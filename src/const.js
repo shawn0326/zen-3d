@@ -27,8 +27,9 @@
      * MATERIAL_TYPE
      */
     var MATERIAL_TYPE = {
-        COLOR: "color",
-        TEXTURE: "texture"
+        BASIC: "basic",
+        LAMBERT: "lambert",
+        PHONE: "phone"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;

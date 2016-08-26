@@ -91,8 +91,9 @@
      * MATERIAL_TYPE
      */
     var MATERIAL_TYPE = {
-        COLOR: "color",
-        TEXTURE: "texture"
+        BASIC: "basic",
+        LAMBERT: "lambert",
+        PHONE: "phone"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
@@ -269,6 +270,10 @@
 
 		return this;
 	}
+
+    Matrix4.prototype.inverse = function() {
+        return this.getInverse(this);
+    }
 
     Matrix4.prototype.getInverse = function(m) {
 
@@ -635,32 +640,36 @@
         vertexBase: [
             'attribute vec3 a_Position;',
 
+            'uniform mat4 u_Projection;',
+            'uniform mat4 u_View;',
+            'uniform mat4 u_Model;',
+
+            '#ifdef USE_NORMAL',
             'attribute vec3 a_Normal;',
             'varying vec3 v_Normal;',
+            '#endif',
 
             '#ifdef USE_DIFFUSE_MAP',
             'attribute vec2 a_Uv;',
             'varying vec2 v_Uv;',
             '#endif',
 
-            'uniform mat4 u_Projection;',
-            'uniform mat4 u_View;',
-            'uniform mat4 u_Model;',
-
-            '#ifdef USE_POINT_LIGHT',
+            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
             'varying vec3 v_VmPos;',
             '#endif',
 
             'void main() {',
                 'gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);',
 
+                '#ifdef USE_NORMAL',
                 'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(a_Normal, 1.0)).xyz;',
+                '#endif',
 
                 '#ifdef USE_DIFFUSE_MAP',
                 'v_Uv = a_Uv;',
                 '#endif',
 
-                '#ifdef USE_POINT_LIGHT',
+                '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
                 'v_VmPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
                 '#endif',
             '}'
@@ -706,9 +715,11 @@
             'uniform PointLight u_Point[USE_POINT_LIGHT];',
             '#endif',
 
+            '#ifdef USE_NORMAL',
             'varying vec3 v_Normal;',
+            '#endif',
 
-            '#ifdef USE_POINT_LIGHT',
+            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
             'varying vec3 v_VmPos;',
             'uniform mat4 u_ViewMat;',
             '#endif',
@@ -717,7 +728,32 @@
             'uniform mat4 u_ViewITMat;',
             '#endif',
 
+            '#ifdef USE_PHONE',
+            'uniform vec3 u_Eye;',
+            'uniform float u_Specular;',
+            '#endif',
+
+            '#if defined(USE_LAMBERT) || defined(USE_PHONE)',
+            'void RE_Lambert(vec4 k, vec4 light, vec3 N, vec3 L, inout vec4 reflectLight) {',
+                'float dotNL = max(dot(N, L), 0.);',
+                'reflectLight += k * light * dotNL;',
+            '}',
+            '#endif',
+
+            '#ifdef USE_PHONE',
+            'void RE_Phone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+                'vec3 R = max(dot(2.0 * N, L), 0.) * N - L;',
+                'reflectLight += k * light * pow(max(dot(V, R), 0.), n_s);',
+            '}',
+            'void RE_BlinnPhone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+                'vec3 H = normalize(L + V);',
+                'reflectLight += k * light * pow(max(dot(N, H), 0.), n_s);',
+            '}',
+            '#endif',
+
             'void main() {',
+
+                'gl_FragColor = vec4(0., 0., 0., 0.);',
 
                 '#ifdef USE_DIFFUSE_MAP',
                 'vec4 color = texture2D(texture, v_Uv);',
@@ -727,11 +763,22 @@
                 'vec4 color = u_Color;',
                 '#endif',
 
-                '#ifdef USE_LIGHT',
-                'vec3 normal = normalize(v_Normal);',
+                '#ifdef USE_NORMAL',
+                'vec3 N = normalize(v_Normal);',
                 '#endif',
 
-                'gl_FragColor = vec4(0., 0., 0., 0.);',
+                '#ifdef USE_BASIC',
+                'gl_FragColor += color;',
+                '#endif',
+
+                '#ifdef USE_LIGHT',
+                'vec4 light;',
+                'vec3 L;',
+                '#endif',
+
+                '#ifdef USE_PHONE',
+                'vec3 V;',
+                '#endif',
 
                 '#ifdef USE_AMBIENT_LIGHT',
                 'for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {',
@@ -741,22 +788,40 @@
 
                 '#ifdef USE_DIRECT_LIGHT',
                 'for(int i = 0; i < USE_DIRECT_LIGHT; i++) {',
-                    'vec3 direction = (u_ViewITMat * vec4(-u_Directional[i].direction, 0.0)).xyz;',
-                    'direction = normalize(direction);',
-                    'float dotL = dot(direction, normal);',
-                    'float dL = max(dotL * u_Directional[i].intensity, 0.);',
-                    'gl_FragColor += color * u_Directional[i].color * dL;',
+                    'L = (u_ViewITMat * vec4(-u_Directional[i].direction, 1.0)).xyz;',
+                    'light = u_Directional[i].color * u_Directional[i].intensity;',
+                    'L = normalize(L);',
+
+                    '#if defined(USE_LAMBERT) || defined(USE_PHONE)',
+                    'RE_Lambert(color, light, N, L, gl_FragColor);',
+                    '#endif',
+
+                    '#ifdef USE_PHONE',
+                        'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                        // 'RE_Phone(color, light, N, L, V, 4., gl_FragColor);',
+                        'RE_BlinnPhone(color, light, N, normalize(L), V, u_Specular, gl_FragColor);',
+                    '#endif',
+
                 '}',
                 '#endif',
 
                 '#ifdef USE_POINT_LIGHT',
                 'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
-                    'vec3 direction2 = ( u_ViewMat * vec4(u_Point[i].position, 1.0) ).xyz - v_VmPos;',
-                    'float dist = max(1. - length(direction2) * .005, 0.0);',
-                    'direction2 = normalize(direction2);',
-                    'float dotL2 = dot(direction2, normal);',
-                    'float pL = max(dotL2 * dist * u_Point[i].intensity, 0.);',
-                    'gl_FragColor += color * u_Point[i].color * pL;',
+                    'L = ( u_ViewMat * vec4(u_Point[i].position, 1.0) ).xyz - v_VmPos;',
+                    'float dist = max(1. - length(L) * .005, 0.0);',
+                    'light = u_Point[i].color * u_Point[i].intensity * dist;',
+                    'L = normalize(L);',
+
+                    '#if defined(USE_LAMBERT) || defined(USE_PHONE)',
+                    'RE_Lambert(color, light, N, L, gl_FragColor);',
+                    '#endif',
+
+                    '#ifdef USE_PHONE',
+                        'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                        // 'RE_Phone(color, light, N, L, V, 4., gl_FragColor);',
+                        'RE_BlinnPhone(color, light, N, normalize(L), V, u_Specular, gl_FragColor);',
+                    '#endif',
+
                 '}',
                 '#endif',
 
@@ -839,15 +904,25 @@
         return code;
     }
 
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+
     /**
      * create program
      */
     function createProgram(gl, props) {
 
+        var basic = props.materialType == MATERIAL_TYPE.BASIC;
+
         var vshader = [
-            props.pointLightNum > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+            (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
+
+            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
+            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
 
             zen3d.ShaderLib.inverse,
             zen3d.ShaderLib.transpose,
@@ -856,12 +931,17 @@
         ].join("\n");
 
         var fshader = [
-            props.pointLightNum > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-            props.directLightNum > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-            props.ambientLightNum > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-            (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
+            (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+            (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+            (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
+
+            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
+            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
 
             zen3d.ShaderLib.fragmentBase
         ].join("\n");
@@ -879,11 +959,12 @@
         pointLightNum = lights.pointLights.length;
 
         var props = {
-            useDiffuseMap: material.type == "texture",
-            useDiffuseColor: material.type == "color",
+            useDiffuseMap: !!material.map,
+            useDiffuseColor: !material.map,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,
-            pointLightNum: pointLightNum
+            pointLightNum: pointLightNum,
+            materialType: material.type
         };
 
         var code = generateProgramCode(props);
@@ -1029,10 +1110,8 @@
     Renderer.prototype.cacheObject = function(object) {
         var material = object.material;
 
-        if(material.type == MATERIAL_TYPE.TEXTURE) {
-            if(!material.checkMapInit()) {
-                return;
-            }
+        if(!material.checkMapInit()) {
+            return;
         }
 
         if(material.transparent) {
@@ -1089,10 +1168,6 @@
             gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 4 * 17, 0);
             gl.enableVertexAttribArray(a_Position);
 
-            var a_Normal = gl.getAttribLocation(program.id, "a_Normal");
-            gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
-            gl.enableVertexAttribArray(a_Normal);
-
             var projectionMat = camera.projectionMatrix.elements;
             var u_Projection = gl.getUniformLocation(program.id, "u_Projection");
             gl.uniformMatrix4fv(u_Projection, false, projectionMat);
@@ -1106,78 +1181,98 @@
             gl.uniformMatrix4fv(u_Model, false, modelMatrix);
 
             /////////////////light
-            var ambientLights = lights.ambientLights;
-            for(var k = 0; k < ambientLights.length; k++) {
-                var light = ambientLights[k];
+            var basic = material.type == MATERIAL_TYPE.BASIC;
 
-                var intensity = light.intensity;
-                var color = zen3d.hex2RGB(light.color);
+            if(!basic) {
+                var ambientLights = lights.ambientLights;
+                for(var k = 0; k < ambientLights.length; k++) {
+                    var light = ambientLights[k];
 
-                var u_Ambient_intensity = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].intensity");
-                var u_Ambient_color = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].color");
-                gl.uniform4f(u_Ambient_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-                gl.uniform1f(u_Ambient_intensity, intensity);
-            }
+                    var intensity = light.intensity;
+                    var color = zen3d.hex2RGB(light.color);
 
-            var directLights = lights.directLights;
-            var helpMatrix = new zen3d.Matrix4();
-            for(var k = 0; k < directLights.length; k++) {
-                var light = directLights[k];
+                    var u_Ambient_intensity = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].intensity");
+                    var u_Ambient_color = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].color");
+                    gl.uniform4f(u_Ambient_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform1f(u_Ambient_intensity, intensity);
+                }
 
-                var intensity = light.intensity;
-                var direction = light.direction;
-                var color = zen3d.hex2RGB(light.color);
+                var directLights = lights.directLights;
+                var helpMatrix = new zen3d.Matrix4();
+                for(var k = 0; k < directLights.length; k++) {
+                    var light = directLights[k];
 
-                var u_Directional_direction = gl.getUniformLocation(program.id, "u_Directional[" + k + "].direction");
-                var u_Directional_intensity = gl.getUniformLocation(program.id, "u_Directional[" + k + "].intensity");
-                var u_Directional_color = gl.getUniformLocation(program.id, "u_Directional[" + k + "].color");
-                gl.uniform3f(u_Directional_direction, direction.x, direction.y, direction.z);
-                gl.uniform1f(u_Directional_intensity, intensity);
-                gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-            }
+                    var intensity = light.intensity;
+                    var direction = light.direction;
+                    var color = zen3d.hex2RGB(light.color);
 
-            var pointLights = lights.pointLights;
-            for(var k = 0; k < pointLights.length; k++) {
-                var light = pointLights[k];
+                    var u_Directional_direction = gl.getUniformLocation(program.id, "u_Directional[" + k + "].direction");
+                    var u_Directional_intensity = gl.getUniformLocation(program.id, "u_Directional[" + k + "].intensity");
+                    var u_Directional_color = gl.getUniformLocation(program.id, "u_Directional[" + k + "].color");
+                    gl.uniform3f(u_Directional_direction, direction.x, direction.y, direction.z);
+                    gl.uniform1f(u_Directional_intensity, intensity);
+                    gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                }
 
-                var position = light.position;
-                var intensity = light.intensity;
-                var color = zen3d.hex2RGB(light.color);
+                var pointLights = lights.pointLights;
+                for(var k = 0; k < pointLights.length; k++) {
+                    var light = pointLights[k];
 
-                var u_Point_position = gl.getUniformLocation(program.id, "u_Point[" + k + "].position");
-                gl.uniform3f(u_Point_position, position.x, position.y, position.z);
-                var u_Point_intensity = gl.getUniformLocation(program.id, "u_Point[" + k + "].intensity");
-                gl.uniform1f(u_Point_intensity, intensity);
-                var u_Point_color = gl.getUniformLocation(program.id, "u_Point[" + k + "].color");
-                gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-            }
+                    var position = light.position;
+                    var intensity = light.intensity;
+                    var color = zen3d.hex2RGB(light.color);
 
-            if(directLights.length > 0) {
-                var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
-                var u_ViewITMat = gl.getUniformLocation(program.id, "u_ViewITMat");
-                gl.uniformMatrix4fv(u_ViewITMat, false, viewITMatrix);
-            } else if(pointLights.length > 0) {
-                var viewMatrix = camera.viewMatrix.elements;
-                var u_ViewMat = gl.getUniformLocation(program.id, "u_ViewMat");
-                gl.uniformMatrix4fv(u_ViewMat, false, viewMatrix);
+                    var u_Point_position = gl.getUniformLocation(program.id, "u_Point[" + k + "].position");
+                    gl.uniform3f(u_Point_position, position.x, position.y, position.z);
+                    var u_Point_intensity = gl.getUniformLocation(program.id, "u_Point[" + k + "].intensity");
+                    gl.uniform1f(u_Point_intensity, intensity);
+                    var u_Point_color = gl.getUniformLocation(program.id, "u_Point[" + k + "].color");
+                    gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                }
+
+                if(directLights.length > 0) {
+                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
+                    // var viewITMatrix = camera.viewMatrix.elements;
+                    // console.log(viewITMatrix)
+                    var u_ViewITMat = gl.getUniformLocation(program.id, "u_ViewITMat");
+                    gl.uniformMatrix4fv(u_ViewITMat, false, viewITMatrix);
+                }
+
+                if(pointLights.length > 0 || (directLights.length > 0 && material.type == MATERIAL_TYPE.PHONE)) {
+                    var viewMatrix = camera.viewMatrix.elements;
+                    var u_ViewMat = gl.getUniformLocation(program.id, "u_ViewMat");
+                    gl.uniformMatrix4fv(u_ViewMat, false, viewMatrix);
+                }
+
+                if(directLights.length > 0 || pointLights.length > 0) {
+                    var a_Normal = gl.getAttribLocation(program.id, "a_Normal");
+                    gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
+                    gl.enableVertexAttribArray(a_Normal);
+                }
+
+                if(material.type == MATERIAL_TYPE.PHONE) {
+                    var eye = camera.position;
+                    var u_Eye = gl.getUniformLocation(program.id, "u_Eye");
+                    gl.uniform3f(u_Eye, eye.x, eye.y, eye.z);
+
+                    var specular = material.specular;
+                    var u_Specular = gl.getUniformLocation(program.id, "u_Specular");
+                    gl.uniform1f(u_Specular, specular);
+                }
             }
             /////////////////
 
-            if(material.type == MATERIAL_TYPE.COLOR) { // color
-
-                var color = zen3d.hex2RGB(material.color);
-                var u_Color = gl.getUniformLocation(program.id, "u_Color");
-                gl.uniform4f(u_Color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-
-            }
-            else if(material.type == MATERIAL_TYPE.TEXTURE) { // texture
-
+            if(material.map) {
                 var a_Uv = gl.getAttribLocation(program.id, "a_Uv");
                 gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
                 gl.enableVertexAttribArray(a_Uv);
 
                 gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, material.diffuseMap.glTexture);
+                gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+            } else {
+                var color = zen3d.hex2RGB(material.color);
+                var u_Color = gl.getUniformLocation(program.id, "u_Color");
+                gl.uniform4f(u_Color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
             }
 
             // draw
@@ -1934,7 +2029,7 @@
 
 (function() {
     /**
-     * Material
+     * base material class
      * @class
      */
     var Material = function() {
@@ -1942,9 +2037,25 @@
         // material type
         this.type = "";
 
-        // TODO
+        // material color
+        this.color = 0xffffff;
+
+        // material map
+        this.map = null;
+
+        // TODO opacity
+        this.opacity = 1;
+
+        // TODO is transparent
         this.transparent = false;
 
+    }
+
+    /**
+     * check map init
+     */
+    Material.prototype.checkMapInit = function() {
+        return !this.map || this.map.isInit;
     }
 
     zen3d.Material = Material;
@@ -1952,43 +2063,52 @@
 
 (function() {
     /**
-     * ColorMaterial
+     * BasicMaterial
      * @class
      */
-    var ColorMaterial = function() {
-        ColorMaterial.superClass.constructor.call(this);
+    var BasicMaterial = function() {
+        BasicMaterial.superClass.constructor.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.COLOR;
-
-        this.color = 0xffffff;
+        this.type = zen3d.MATERIAL_TYPE.BASIC;
     }
 
-    zen3d.inherit(ColorMaterial, zen3d.Material);
+    zen3d.inherit(BasicMaterial, zen3d.Material);
 
-    zen3d.ColorMaterial = ColorMaterial;
+    zen3d.BasicMaterial = BasicMaterial;
 })();
 
 (function() {
     /**
-     * TextureMaterial
+     * LambertMaterial
      * @class
      */
-    var TextureMaterial = function() {
-        TextureMaterial.superClass.constructor.call(this);
+    var LambertMaterial = function() {
+        LambertMaterial.superClass.constructor.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.TEXTURE;
-
-        // diffuse map
-        this.diffuseMap = null;
+        this.type = zen3d.MATERIAL_TYPE.LAMBERT;
     }
 
-    zen3d.inherit(TextureMaterial, zen3d.Material);
+    zen3d.inherit(LambertMaterial, zen3d.Material);
 
-    TextureMaterial.prototype.checkMapInit = function() {
-        return this.diffuseMap.isInit;
+    zen3d.LambertMaterial = LambertMaterial;
+})();
+
+(function() {
+    /**
+     * PhoneMaterial
+     * @class
+     */
+    var PhoneMaterial = function() {
+        PhoneMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.PHONE;
+
+        this.specular = 10;
     }
 
-    zen3d.TextureMaterial = TextureMaterial;
+    zen3d.inherit(PhoneMaterial, zen3d.Material);
+
+    zen3d.PhoneMaterial = PhoneMaterial;
 })();
 
 (function() {

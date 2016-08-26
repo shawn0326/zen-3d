@@ -124,10 +124,8 @@
     Renderer.prototype.cacheObject = function(object) {
         var material = object.material;
 
-        if(material.type == MATERIAL_TYPE.TEXTURE) {
-            if(!material.checkMapInit()) {
-                return;
-            }
+        if(!material.checkMapInit()) {
+            return;
         }
 
         if(material.transparent) {
@@ -184,10 +182,6 @@
             gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 4 * 17, 0);
             gl.enableVertexAttribArray(a_Position);
 
-            var a_Normal = gl.getAttribLocation(program.id, "a_Normal");
-            gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
-            gl.enableVertexAttribArray(a_Normal);
-
             var projectionMat = camera.projectionMatrix.elements;
             var u_Projection = gl.getUniformLocation(program.id, "u_Projection");
             gl.uniformMatrix4fv(u_Projection, false, projectionMat);
@@ -201,78 +195,98 @@
             gl.uniformMatrix4fv(u_Model, false, modelMatrix);
 
             /////////////////light
-            var ambientLights = lights.ambientLights;
-            for(var k = 0; k < ambientLights.length; k++) {
-                var light = ambientLights[k];
+            var basic = material.type == MATERIAL_TYPE.BASIC;
 
-                var intensity = light.intensity;
-                var color = zen3d.hex2RGB(light.color);
+            if(!basic) {
+                var ambientLights = lights.ambientLights;
+                for(var k = 0; k < ambientLights.length; k++) {
+                    var light = ambientLights[k];
 
-                var u_Ambient_intensity = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].intensity");
-                var u_Ambient_color = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].color");
-                gl.uniform4f(u_Ambient_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-                gl.uniform1f(u_Ambient_intensity, intensity);
-            }
+                    var intensity = light.intensity;
+                    var color = zen3d.hex2RGB(light.color);
 
-            var directLights = lights.directLights;
-            var helpMatrix = new zen3d.Matrix4();
-            for(var k = 0; k < directLights.length; k++) {
-                var light = directLights[k];
+                    var u_Ambient_intensity = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].intensity");
+                    var u_Ambient_color = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].color");
+                    gl.uniform4f(u_Ambient_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform1f(u_Ambient_intensity, intensity);
+                }
 
-                var intensity = light.intensity;
-                var direction = light.direction;
-                var color = zen3d.hex2RGB(light.color);
+                var directLights = lights.directLights;
+                var helpMatrix = new zen3d.Matrix4();
+                for(var k = 0; k < directLights.length; k++) {
+                    var light = directLights[k];
 
-                var u_Directional_direction = gl.getUniformLocation(program.id, "u_Directional[" + k + "].direction");
-                var u_Directional_intensity = gl.getUniformLocation(program.id, "u_Directional[" + k + "].intensity");
-                var u_Directional_color = gl.getUniformLocation(program.id, "u_Directional[" + k + "].color");
-                gl.uniform3f(u_Directional_direction, direction.x, direction.y, direction.z);
-                gl.uniform1f(u_Directional_intensity, intensity);
-                gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-            }
+                    var intensity = light.intensity;
+                    var direction = light.direction;
+                    var color = zen3d.hex2RGB(light.color);
 
-            var pointLights = lights.pointLights;
-            for(var k = 0; k < pointLights.length; k++) {
-                var light = pointLights[k];
+                    var u_Directional_direction = gl.getUniformLocation(program.id, "u_Directional[" + k + "].direction");
+                    var u_Directional_intensity = gl.getUniformLocation(program.id, "u_Directional[" + k + "].intensity");
+                    var u_Directional_color = gl.getUniformLocation(program.id, "u_Directional[" + k + "].color");
+                    gl.uniform3f(u_Directional_direction, direction.x, direction.y, direction.z);
+                    gl.uniform1f(u_Directional_intensity, intensity);
+                    gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                }
 
-                var position = light.position;
-                var intensity = light.intensity;
-                var color = zen3d.hex2RGB(light.color);
+                var pointLights = lights.pointLights;
+                for(var k = 0; k < pointLights.length; k++) {
+                    var light = pointLights[k];
 
-                var u_Point_position = gl.getUniformLocation(program.id, "u_Point[" + k + "].position");
-                gl.uniform3f(u_Point_position, position.x, position.y, position.z);
-                var u_Point_intensity = gl.getUniformLocation(program.id, "u_Point[" + k + "].intensity");
-                gl.uniform1f(u_Point_intensity, intensity);
-                var u_Point_color = gl.getUniformLocation(program.id, "u_Point[" + k + "].color");
-                gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-            }
+                    var position = light.position;
+                    var intensity = light.intensity;
+                    var color = zen3d.hex2RGB(light.color);
 
-            if(directLights.length > 0) {
-                var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
-                var u_ViewITMat = gl.getUniformLocation(program.id, "u_ViewITMat");
-                gl.uniformMatrix4fv(u_ViewITMat, false, viewITMatrix);
-            } else if(pointLights.length > 0) {
-                var viewMatrix = camera.viewMatrix.elements;
-                var u_ViewMat = gl.getUniformLocation(program.id, "u_ViewMat");
-                gl.uniformMatrix4fv(u_ViewMat, false, viewMatrix);
+                    var u_Point_position = gl.getUniformLocation(program.id, "u_Point[" + k + "].position");
+                    gl.uniform3f(u_Point_position, position.x, position.y, position.z);
+                    var u_Point_intensity = gl.getUniformLocation(program.id, "u_Point[" + k + "].intensity");
+                    gl.uniform1f(u_Point_intensity, intensity);
+                    var u_Point_color = gl.getUniformLocation(program.id, "u_Point[" + k + "].color");
+                    gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                }
+
+                if(directLights.length > 0) {
+                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
+                    // var viewITMatrix = camera.viewMatrix.elements;
+                    // console.log(viewITMatrix)
+                    var u_ViewITMat = gl.getUniformLocation(program.id, "u_ViewITMat");
+                    gl.uniformMatrix4fv(u_ViewITMat, false, viewITMatrix);
+                }
+
+                if(pointLights.length > 0 || (directLights.length > 0 && material.type == MATERIAL_TYPE.PHONE)) {
+                    var viewMatrix = camera.viewMatrix.elements;
+                    var u_ViewMat = gl.getUniformLocation(program.id, "u_ViewMat");
+                    gl.uniformMatrix4fv(u_ViewMat, false, viewMatrix);
+                }
+
+                if(directLights.length > 0 || pointLights.length > 0) {
+                    var a_Normal = gl.getAttribLocation(program.id, "a_Normal");
+                    gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
+                    gl.enableVertexAttribArray(a_Normal);
+                }
+
+                if(material.type == MATERIAL_TYPE.PHONE) {
+                    var eye = camera.position;
+                    var u_Eye = gl.getUniformLocation(program.id, "u_Eye");
+                    gl.uniform3f(u_Eye, eye.x, eye.y, eye.z);
+
+                    var specular = material.specular;
+                    var u_Specular = gl.getUniformLocation(program.id, "u_Specular");
+                    gl.uniform1f(u_Specular, specular);
+                }
             }
             /////////////////
 
-            if(material.type == MATERIAL_TYPE.COLOR) { // color
-
-                var color = zen3d.hex2RGB(material.color);
-                var u_Color = gl.getUniformLocation(program.id, "u_Color");
-                gl.uniform4f(u_Color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-
-            }
-            else if(material.type == MATERIAL_TYPE.TEXTURE) { // texture
-
+            if(material.map) {
                 var a_Uv = gl.getAttribLocation(program.id, "a_Uv");
                 gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
                 gl.enableVertexAttribArray(a_Uv);
 
                 gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, material.diffuseMap.glTexture);
+                gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+            } else {
+                var color = zen3d.hex2RGB(material.color);
+                var u_Color = gl.getUniformLocation(program.id, "u_Color");
+                gl.uniform4f(u_Color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
             }
 
             // draw

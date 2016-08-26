@@ -70,15 +70,25 @@
         return code;
     }
 
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+
     /**
      * create program
      */
     function createProgram(gl, props) {
 
+        var basic = props.materialType == MATERIAL_TYPE.BASIC;
+
         var vshader = [
-            props.pointLightNum > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+            (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
+
+            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
+            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
 
             zen3d.ShaderLib.inverse,
             zen3d.ShaderLib.transpose,
@@ -87,12 +97,17 @@
         ].join("\n");
 
         var fshader = [
-            props.pointLightNum > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-            props.directLightNum > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-            props.ambientLightNum > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-            (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
+            (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+            (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+            (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
+
+            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
+            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
 
             zen3d.ShaderLib.fragmentBase
         ].join("\n");
@@ -110,11 +125,12 @@
         pointLightNum = lights.pointLights.length;
 
         var props = {
-            useDiffuseMap: material.type == "texture",
-            useDiffuseColor: material.type == "color",
+            useDiffuseMap: !!material.map,
+            useDiffuseColor: !material.map,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,
-            pointLightNum: pointLightNum
+            pointLightNum: pointLightNum,
+            materialType: material.type
         };
 
         var code = generateProgramCode(props);

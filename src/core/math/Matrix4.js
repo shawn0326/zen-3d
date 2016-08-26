@@ -126,6 +126,10 @@
 		return this;
 	}
 
+    Matrix4.prototype.inverse = function() {
+        return this.getInverse(this);
+    }
+
     Matrix4.prototype.getInverse = function(m) {
 
 		// based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm

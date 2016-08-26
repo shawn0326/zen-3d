@@ -12,7 +12,7 @@ RoadMap
 --
 * ~~基本绘制~~
 * ~~多灯光着色器管理~~
-* 实现basic,phone,lambert三种material
+* ~~实现basic,phone,lambert三种material~~
 * 实时阴影
 * 基本模型格式解析
 * 基本摄像机控制器

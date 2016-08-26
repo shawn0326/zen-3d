@@ -54,8 +54,9 @@ var filesSrc = [
     "core/objects/mesh/material/texture/Texture.js",
 
     "core/objects/mesh/material/Material.js",
-    "core/objects/mesh/material/ColorMaterial.js",
-    "core/objects/mesh/material/TextureMaterial.js",
+    "core/objects/mesh/material/BasicMaterial.js",
+    "core/objects/mesh/material/LambertMaterial.js",
+    "core/objects/mesh/material/PhoneMaterial.js",
 
     "core/objects/mesh/Mesh.js"
 

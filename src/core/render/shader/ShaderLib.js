@@ -54,32 +54,36 @@
         vertexBase: [
             'attribute vec3 a_Position;',
 
+            'uniform mat4 u_Projection;',
+            'uniform mat4 u_View;',
+            'uniform mat4 u_Model;',
+
+            '#ifdef USE_NORMAL',
             'attribute vec3 a_Normal;',
             'varying vec3 v_Normal;',
+            '#endif',
 
             '#ifdef USE_DIFFUSE_MAP',
             'attribute vec2 a_Uv;',
             'varying vec2 v_Uv;',
             '#endif',
 
-            'uniform mat4 u_Projection;',
-            'uniform mat4 u_View;',
-            'uniform mat4 u_Model;',
-
-            '#ifdef USE_POINT_LIGHT',
+            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
             'varying vec3 v_VmPos;',
             '#endif',
 
             'void main() {',
                 'gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);',
 
+                '#ifdef USE_NORMAL',
                 'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(a_Normal, 1.0)).xyz;',
+                '#endif',
 
                 '#ifdef USE_DIFFUSE_MAP',
                 'v_Uv = a_Uv;',
                 '#endif',
 
-                '#ifdef USE_POINT_LIGHT',
+                '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
                 'v_VmPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
                 '#endif',
             '}'
@@ -125,9 +129,11 @@
             'uniform PointLight u_Point[USE_POINT_LIGHT];',
             '#endif',
 
+            '#ifdef USE_NORMAL',
             'varying vec3 v_Normal;',
+            '#endif',
 
-            '#ifdef USE_POINT_LIGHT',
+            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
             'varying vec3 v_VmPos;',
             'uniform mat4 u_ViewMat;',
             '#endif',
@@ -136,7 +142,32 @@
             'uniform mat4 u_ViewITMat;',
             '#endif',
 
+            '#ifdef USE_PHONE',
+            'uniform vec3 u_Eye;',
+            'uniform float u_Specular;',
+            '#endif',
+
+            '#if defined(USE_LAMBERT) || defined(USE_PHONE)',
+            'void RE_Lambert(vec4 k, vec4 light, vec3 N, vec3 L, inout vec4 reflectLight) {',
+                'float dotNL = max(dot(N, L), 0.);',
+                'reflectLight += k * light * dotNL;',
+            '}',
+            '#endif',
+
+            '#ifdef USE_PHONE',
+            'void RE_Phone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+                'vec3 R = max(dot(2.0 * N, L), 0.) * N - L;',
+                'reflectLight += k * light * pow(max(dot(V, R), 0.), n_s);',
+            '}',
+            'void RE_BlinnPhone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+                'vec3 H = normalize(L + V);',
+                'reflectLight += k * light * pow(max(dot(N, H), 0.), n_s);',
+            '}',
+            '#endif',
+
             'void main() {',
+
+                'gl_FragColor = vec4(0., 0., 0., 0.);',
 
                 '#ifdef USE_DIFFUSE_MAP',
                 'vec4 color = texture2D(texture, v_Uv);',
@@ -146,11 +177,22 @@
                 'vec4 color = u_Color;',
                 '#endif',
 
-                '#ifdef USE_LIGHT',
-                'vec3 normal = normalize(v_Normal);',
+                '#ifdef USE_NORMAL',
+                'vec3 N = normalize(v_Normal);',
                 '#endif',
 
-                'gl_FragColor = vec4(0., 0., 0., 0.);',
+                '#ifdef USE_BASIC',
+                'gl_FragColor += color;',
+                '#endif',
+
+                '#ifdef USE_LIGHT',
+                'vec4 light;',
+                'vec3 L;',
+                '#endif',
+
+                '#ifdef USE_PHONE',
+                'vec3 V;',
+                '#endif',
 
                 '#ifdef USE_AMBIENT_LIGHT',
                 'for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {',
@@ -160,22 +202,40 @@
 
                 '#ifdef USE_DIRECT_LIGHT',
                 'for(int i = 0; i < USE_DIRECT_LIGHT; i++) {',
-                    'vec3 direction = (u_ViewITMat * vec4(-u_Directional[i].direction, 0.0)).xyz;',
-                    'direction = normalize(direction);',
-                    'float dotL = dot(direction, normal);',
-                    'float dL = max(dotL * u_Directional[i].intensity, 0.);',
-                    'gl_FragColor += color * u_Directional[i].color * dL;',
+                    'L = (u_ViewITMat * vec4(-u_Directional[i].direction, 1.0)).xyz;',
+                    'light = u_Directional[i].color * u_Directional[i].intensity;',
+                    'L = normalize(L);',
+
+                    '#if defined(USE_LAMBERT) || defined(USE_PHONE)',
+                    'RE_Lambert(color, light, N, L, gl_FragColor);',
+                    '#endif',
+
+                    '#ifdef USE_PHONE',
+                        'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                        // 'RE_Phone(color, light, N, L, V, 4., gl_FragColor);',
+                        'RE_BlinnPhone(color, light, N, normalize(L), V, u_Specular, gl_FragColor);',
+                    '#endif',
+
                 '}',
                 '#endif',
 
                 '#ifdef USE_POINT_LIGHT',
                 'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
-                    'vec3 direction2 = ( u_ViewMat * vec4(u_Point[i].position, 1.0) ).xyz - v_VmPos;',
-                    'float dist = max(1. - length(direction2) * .005, 0.0);',
-                    'direction2 = normalize(direction2);',
-                    'float dotL2 = dot(direction2, normal);',
-                    'float pL = max(dotL2 * dist * u_Point[i].intensity, 0.);',
-                    'gl_FragColor += color * u_Point[i].color * pL;',
+                    'L = ( u_ViewMat * vec4(u_Point[i].position, 1.0) ).xyz - v_VmPos;',
+                    'float dist = max(1. - length(L) * .005, 0.0);',
+                    'light = u_Point[i].color * u_Point[i].intensity * dist;',
+                    'L = normalize(L);',
+
+                    '#if defined(USE_LAMBERT) || defined(USE_PHONE)',
+                    'RE_Lambert(color, light, N, L, gl_FragColor);',
+                    '#endif',
+
+                    '#ifdef USE_PHONE',
+                        'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                        // 'RE_Phone(color, light, N, L, V, 4., gl_FragColor);',
+                        'RE_BlinnPhone(color, light, N, normalize(L), V, u_Specular, gl_FragColor);',
+                    '#endif',
+
                 '}',
                 '#endif',
 
