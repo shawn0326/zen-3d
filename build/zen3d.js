@@ -872,6 +872,54 @@
     var programMap = {};
 
     /**
+     * extract uniforms
+     */
+    function extractUniforms(gl, program) {
+        var uniforms = {};
+
+        var totalUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+
+        for (var i = 0; i < totalUniforms; i++) {
+            var uniformData = gl.getActiveUniform(program, i);
+            var name = uniformData.name;
+            var type = uniformData.type;// analysis
+
+            // TODO get update method
+
+            uniforms[name] = {
+                type: type,
+                size: uniformData.size,
+                location: gl.getUniformLocation(program, name)
+            };
+        }
+
+        return uniforms;
+    }
+
+    /**
+     * extract attributes
+     */
+    function extractAttributes(gl, program) {
+        var attributes = {};
+
+        var totalAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+
+        for (var i = 0; i < totalAttributes; i++) {
+            var attribData = gl.getActiveAttrib(program, i);
+            var name = attribData.name;
+            var type = attribData.type;
+
+            attributes[name] = {
+                type: type,
+                size: 1,
+                location: gl.getAttribLocation(program, name)
+            };
+        }
+
+        return attributes;
+    }
+
+    /**
      * WebGL Program
      * @class Program
      */
@@ -891,6 +939,10 @@
 
         // program id
         this.id = createWebGLProgram(gl, this.vertexShader, this.fragmentShader);
+
+        this.uniforms = extractUniforms(gl, this.id);
+
+        this.attributes = extractAttributes(gl, this.id);
     }
 
     /**
@@ -1095,23 +1147,22 @@
                 directLightsNum,
                 pointLightsNum
             ]);
+            var uniforms = program.uniforms;
+            var attributes = program.attributes;
             gl.useProgram(program.id);
 
-            var a_Position = gl.getAttribLocation(program.id, "a_Position");
+            var a_Position = attributes.a_Position.location;
             gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 4 * 17, 0);
             gl.enableVertexAttribArray(a_Position);
 
             var projectionMat = camera.projectionMatrix.elements;
-            var u_Projection = gl.getUniformLocation(program.id, "u_Projection");
-            gl.uniformMatrix4fv(u_Projection, false, projectionMat);
+            gl.uniformMatrix4fv(uniforms.u_Projection.location, false, projectionMat);
 
             var viewMatrix = camera.viewMatrix.elements;
-            var u_View = gl.getUniformLocation(program.id, "u_View");
-            gl.uniformMatrix4fv(u_View, false, viewMatrix);
+            gl.uniformMatrix4fv(uniforms.u_View.location, false, viewMatrix);
 
             var modelMatrix = object.worldMatrix.elements;
-            var u_Model = gl.getUniformLocation(program.id, "u_Model");
-            gl.uniformMatrix4fv(u_Model, false, modelMatrix);
+            gl.uniformMatrix4fv(uniforms.u_Model.location, false, modelMatrix);
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
@@ -1123,8 +1174,8 @@
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
 
-                    var u_Ambient_intensity = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].intensity");
-                    var u_Ambient_color = gl.getUniformLocation(program.id, "u_Ambient[" + k + "].color");
+                    var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"].location;
+                    var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"].location;
                     gl.uniform4f(u_Ambient_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                     gl.uniform1f(u_Ambient_intensity, intensity);
                 }
@@ -1137,9 +1188,9 @@
                     var direction = light.direction;
                     var color = zen3d.hex2RGB(light.color);
 
-                    var u_Directional_direction = gl.getUniformLocation(program.id, "u_Directional[" + k + "].direction");
-                    var u_Directional_intensity = gl.getUniformLocation(program.id, "u_Directional[" + k + "].intensity");
-                    var u_Directional_color = gl.getUniformLocation(program.id, "u_Directional[" + k + "].color");
+                    var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
+                    var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"].location;
+                    var u_Directional_color = uniforms["u_Directional[" + k + "].color"].location;
                     gl.uniform3f(u_Directional_direction, direction.x, direction.y, direction.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
                     gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
@@ -1152,11 +1203,11 @@
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
 
-                    var u_Point_position = gl.getUniformLocation(program.id, "u_Point[" + k + "].position");
+                    var u_Point_position = uniforms["u_Point[" + k + "].position"].location;
                     gl.uniform3f(u_Point_position, position.x, position.y, position.z);
-                    var u_Point_intensity = gl.getUniformLocation(program.id, "u_Point[" + k + "].intensity");
+                    var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"].location;
                     gl.uniform1f(u_Point_intensity, intensity);
-                    var u_Point_color = gl.getUniformLocation(program.id, "u_Point[" + k + "].color");
+                    var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
 
@@ -1164,18 +1215,16 @@
                     var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
                     // var viewITMatrix = camera.viewMatrix.elements;
                     // console.log(viewITMatrix)
-                    var u_ViewITMat = gl.getUniformLocation(program.id, "u_ViewITMat");
-                    gl.uniformMatrix4fv(u_ViewITMat, false, viewITMatrix);
+                    gl.uniformMatrix4fv(uniforms.u_ViewITMat.location, false, viewITMatrix);
                 }
 
                 if(pointLightsNum > 0 || (directLightsNum > 0 && material.type == MATERIAL_TYPE.PHONE)) {
                     var viewMatrix = camera.viewMatrix.elements;
-                    var u_ViewMat = gl.getUniformLocation(program.id, "u_ViewMat");
-                    gl.uniformMatrix4fv(u_ViewMat, false, viewMatrix);
+                    gl.uniformMatrix4fv(uniforms.u_ViewMat.location, false, viewMatrix);
                 }
 
                 if(directLightsNum > 0 || pointLightsNum > 0) {
-                    var a_Normal = gl.getAttribLocation(program.id, "a_Normal");
+                    var a_Normal = attributes.a_Normal.location;
                     gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
                     gl.enableVertexAttribArray(a_Normal);
                 }
@@ -1193,7 +1242,7 @@
             /////////////////
 
             if(material.map) {
-                var a_Uv = gl.getAttribLocation(program.id, "a_Uv");
+                var a_Uv = attributes.a_Uv.location;
                 gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
                 gl.enableVertexAttribArray(a_Uv);
 
@@ -1201,8 +1250,7 @@
                 gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
             } else {
                 var color = zen3d.hex2RGB(material.color);
-                var u_Color = gl.getUniformLocation(program.id, "u_Color");
-                gl.uniform4f(u_Color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                gl.uniform4f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
             }
 
             // draw

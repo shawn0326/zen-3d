@@ -38,6 +38,54 @@
     var programMap = {};
 
     /**
+     * extract uniforms
+     */
+    function extractUniforms(gl, program) {
+        var uniforms = {};
+
+        var totalUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+
+        for (var i = 0; i < totalUniforms; i++) {
+            var uniformData = gl.getActiveUniform(program, i);
+            var name = uniformData.name;
+            var type = uniformData.type;// analysis
+
+            // TODO get update method
+
+            uniforms[name] = {
+                type: type,
+                size: uniformData.size,
+                location: gl.getUniformLocation(program, name)
+            };
+        }
+
+        return uniforms;
+    }
+
+    /**
+     * extract attributes
+     */
+    function extractAttributes(gl, program) {
+        var attributes = {};
+
+        var totalAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+
+        for (var i = 0; i < totalAttributes; i++) {
+            var attribData = gl.getActiveAttrib(program, i);
+            var name = attribData.name;
+            var type = attribData.type;
+
+            attributes[name] = {
+                type: type,
+                size: 1,
+                location: gl.getAttribLocation(program, name)
+            };
+        }
+
+        return attributes;
+    }
+
+    /**
      * WebGL Program
      * @class Program
      */
@@ -57,6 +105,10 @@
 
         // program id
         this.id = createWebGLProgram(gl, this.vertexShader, this.fragmentShader);
+
+        this.uniforms = extractUniforms(gl, this.id);
+
+        this.attributes = extractAttributes(gl, this.id);
     }
 
     /**
