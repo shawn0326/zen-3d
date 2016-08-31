@@ -28,6 +28,7 @@ var filesSrc = [
     "core/render/shader/ShaderLib.js",
     "core/render/shader/Program.js",
     "core/render/Renderer.js",
+    "core/render/RenderCache.js",
 
     // objects
     "core/objects/Object3D.js",

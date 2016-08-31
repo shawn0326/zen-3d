@@ -118,11 +118,11 @@
     /**
      * get a suitable program by material & lights
      */
-    var getProgram = function(gl, material, lights) {
+    var getProgram = function(gl, material, lightsNum) {
 
-        var ambientLightNum = lights.ambientLights.length,
-        directLightNum = lights.directLights.length,
-        pointLightNum = lights.pointLights.length;
+        var ambientLightNum = lightsNum[0],
+        directLightNum = lightsNum[1],
+        pointLightNum = lightsNum[2];
 
         var props = {
             useDiffuseMap: !!material.map,

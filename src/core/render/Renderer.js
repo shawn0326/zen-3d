@@ -1,4 +1,6 @@
 (function() {
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+
     /**
      * Renderer
      * @class
@@ -29,16 +31,8 @@
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
 
-        // lights
-        this.lights = {
-            directLights: new Array(),
-            ambientLights: new Array(),
-            pointLights: new Array()
-        };
-
-        // render list
-        this.opaqueObjects = new Array();
-        this.transparentObjects = new Array();
+        // object cache
+        this.cache = new zen3d.RenderCache();
 
         // camera
         this.camera = null;
@@ -49,98 +43,25 @@
      */
     Renderer.prototype.render = function(scene, camera) {
 
-        this.clear();
-
         this.camera = camera;
 
         scene.updateMatrix();
 
-        this.cacheObjects(scene);
+        this.cache.cache(scene);
 
-        // sort display list
-        // opaque objects render from front to back
-        this.opaqueObjects.sort(function(a, b) {
-            var za = a.position.z;
-            var zb = b.position.z;
-            return za - zb;
-        });
-
-        // transparent objects render from back to front
-        this.transparentObjects.sort(function(a, b) {
-            var za = a.position.z;
-            var zb = b.position.z;
-            return zb - za;
-        });
+        this.cache.sort();
 
         this.flush();
-    }
 
-    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
-    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
-    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
-    /**
-     * cache object
-     */
-    Renderer.prototype.cacheObjects = function(object) {
-
-        switch (object.type) {
-            case OBJECT_TYPE.MESH:
-                this.cacheObject(object);
-                break;
-            case OBJECT_TYPE.LIGHT:
-                if(object.lightType == LIGHT_TYPE.AMBIENT) {
-                    this.lights.ambientLights.push(object);
-                } else if(object.lightType == LIGHT_TYPE.DIRECT) {
-                    this.lights.directLights.push(object);
-                } else if(object.lightType == LIGHT_TYPE.POINT) {
-                    this.lights.pointLights.push(object);
-                }
-                break;
-            case OBJECT_TYPE.CAMERA:
-                // do nothing
-                break;
-            case OBJECT_TYPE.SCENE:
-                // do nothing
-                break;
-            case OBJECT_TYPE.GROUP:
-                // do nothing
-                break;
-            default:
-                console.log("undefined object type")
-        }
-
-        var children = object.children;
-
-		for ( var i = 0, l = children.length; i < l; i ++ ) {
-
-			this.cacheObjects(children[i]);
-
-		}
-    }
-
-    /**
-     * cache object
-     */
-    Renderer.prototype.cacheObject = function(object) {
-        var material = object.material;
-
-        if(!material.checkMapInit()) {
-            return;
-        }
-
-        if(material.transparent) {
-            this.transparentObjects.push(object);
-        } else {
-            this.opaqueObjects.push(object);
-        }
+        this.cache.clear();
     }
 
     /**
      * flush
      */
     Renderer.prototype.flush = function() {
-        this.flushList(this.opaqueObjects);
-        this.flushList(this.transparentObjects);
+        this.flushList(this.cache.opaqueObjects);
+        this.flushList(this.cache.transparentObjects);
     }
 
     Renderer.prototype.flushList = function(renderList) {
@@ -148,6 +69,14 @@
 
         var vertices = this.vertices;
         var indices = this.indices;
+
+        var ambientLights = this.cache.ambientLights;
+        var directLights = this.cache.directLights;
+        var pointLights = this.cache.pointLights;
+        var ambientLightsNum = ambientLights.length;
+        var directLightsNum = directLights.length;
+        var pointLightsNum = pointLights.length;
+        var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum;
 
         for(var i = 0, l = renderList.length; i < l; i++) {
 
@@ -175,7 +104,11 @@
             var indices_view = indices.subarray(0, indicesIndex);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
 
-            var program = zen3d.getProgram(gl, material, lights);
+            var program = zen3d.getProgram(gl, material, [
+                ambientLightsNum,
+                directLightsNum,
+                pointLightsNum
+            ]);
             gl.useProgram(program.id);
 
             var a_Position = gl.getAttribLocation(program.id, "a_Position");
@@ -198,8 +131,7 @@
             var basic = material.type == MATERIAL_TYPE.BASIC;
 
             if(!basic) {
-                var ambientLights = lights.ambientLights;
-                for(var k = 0; k < ambientLights.length; k++) {
+                for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
                     var intensity = light.intensity;
@@ -211,9 +143,8 @@
                     gl.uniform1f(u_Ambient_intensity, intensity);
                 }
 
-                var directLights = lights.directLights;
                 var helpMatrix = new zen3d.Matrix4();
-                for(var k = 0; k < directLights.length; k++) {
+                for(var k = 0; k < directLightsNum; k++) {
                     var light = directLights[k];
 
                     var intensity = light.intensity;
@@ -228,8 +159,7 @@
                     gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
 
-                var pointLights = lights.pointLights;
-                for(var k = 0; k < pointLights.length; k++) {
+                for(var k = 0; k < pointLightsNum; k++) {
                     var light = pointLights[k];
 
                     var position = light.position;
@@ -244,7 +174,7 @@
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
 
-                if(directLights.length > 0) {
+                if(directLightsNum > 0) {
                     var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
                     // var viewITMatrix = camera.viewMatrix.elements;
                     // console.log(viewITMatrix)
@@ -252,13 +182,13 @@
                     gl.uniformMatrix4fv(u_ViewITMat, false, viewITMatrix);
                 }
 
-                if(pointLights.length > 0 || (directLights.length > 0 && material.type == MATERIAL_TYPE.PHONE)) {
+                if(pointLightsNum > 0 || (directLightsNum > 0 && material.type == MATERIAL_TYPE.PHONE)) {
                     var viewMatrix = camera.viewMatrix.elements;
                     var u_ViewMat = gl.getUniformLocation(program.id, "u_ViewMat");
                     gl.uniformMatrix4fv(u_ViewMat, false, viewMatrix);
                 }
 
-                if(directLights.length > 0 || pointLights.length > 0) {
+                if(directLightsNum > 0 || pointLightsNum > 0) {
                     var a_Normal = gl.getAttribLocation(program.id, "a_Normal");
                     gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
                     gl.enableVertexAttribArray(a_Normal);
@@ -292,18 +222,6 @@
             // draw
             gl.drawElements(gl.TRIANGLES, indicesIndex, gl.UNSIGNED_SHORT, 0);
         }
-    }
-
-    /**
-     * clear
-     */
-    Renderer.prototype.clear = function(object) {
-        this.transparentObjects.length = 0;
-        this.opaqueObjects.length = 0;
-        this.lights.ambientLights.length = 0;
-        this.lights.directLights.length = 0;
-        this.lights.pointLights.length = 0;
-        this.camera = null;
     }
 
     zen3d.Renderer = Renderer;
