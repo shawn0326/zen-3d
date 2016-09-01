@@ -9,15 +9,14 @@
         this.type = "";
 
         // material color
+        // TODO this should be a diffuse color ?
         this.color = 0xffffff;
 
         // material map
         this.map = null;
 
-        // TODO opacity
         this.opacity = 1;
 
-        // TODO is transparent
         this.transparent = false;
 
     }

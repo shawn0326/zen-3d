@@ -29,7 +29,6 @@
         // init webgl
         gl.enable(gl.STENCIL_TEST);
         gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -126,6 +125,8 @@
             var modelMatrix = object.worldMatrix.elements;
             gl.uniformMatrix4fv(uniforms.u_Model.location, false, modelMatrix);
 
+            gl.uniform1f(uniforms.u_Opacity.location, material.opacity);
+
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
 
@@ -213,6 +214,13 @@
             } else {
                 var color = zen3d.hex2RGB(material.color);
                 gl.uniform4f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+            }
+
+            if(material.transparent) {
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            } else {
+                gl.disable(gl.BLEND);
             }
 
             // draw

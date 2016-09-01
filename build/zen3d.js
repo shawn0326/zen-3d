@@ -677,6 +677,8 @@
         fragmentBase: [
             'precision mediump float;',
 
+            'uniform float u_Opacity;',
+
             '#ifdef USE_DIFFUSE_MAP',
             'varying vec2 v_Uv;',
             'uniform sampler2D texture;',
@@ -756,11 +758,11 @@
                 'gl_FragColor = vec4(0., 0., 0., 0.);',
 
                 '#ifdef USE_DIFFUSE_MAP',
-                'vec4 color = texture2D(texture, v_Uv);',
+                'vec4 color = texture2D(texture, v_Uv) * u_Opacity;',
                 '#endif',
 
                 '#ifdef USE_DIFFUSE_COLOR',
-                'vec4 color = u_Color;',
+                'vec4 color = u_Color * u_Opacity;',
                 '#endif',
 
                 '#ifdef USE_NORMAL',
@@ -1067,7 +1069,6 @@
         // init webgl
         gl.enable(gl.STENCIL_TEST);
         gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -1164,6 +1165,8 @@
             var modelMatrix = object.worldMatrix.elements;
             gl.uniformMatrix4fv(uniforms.u_Model.location, false, modelMatrix);
 
+            gl.uniform1f(uniforms.u_Opacity.location, material.opacity);
+
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
 
@@ -1251,6 +1254,13 @@
             } else {
                 var color = zen3d.hex2RGB(material.color);
                 gl.uniform4f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+            }
+
+            if(material.transparent) {
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            } else {
+                gl.disable(gl.BLEND);
             }
 
             // draw
@@ -2107,15 +2117,14 @@
         this.type = "";
 
         // material color
+        // TODO this should be a diffuse color ?
         this.color = 0xffffff;
 
         // material map
         this.map = null;
 
-        // TODO opacity
         this.opacity = 1;
 
-        // TODO is transparent
         this.transparent = false;
 
     }

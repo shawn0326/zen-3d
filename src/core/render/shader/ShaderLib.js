@@ -91,6 +91,8 @@
         fragmentBase: [
             'precision mediump float;',
 
+            'uniform float u_Opacity;',
+
             '#ifdef USE_DIFFUSE_MAP',
             'varying vec2 v_Uv;',
             'uniform sampler2D texture;',
@@ -170,11 +172,11 @@
                 'gl_FragColor = vec4(0., 0., 0., 0.);',
 
                 '#ifdef USE_DIFFUSE_MAP',
-                'vec4 color = texture2D(texture, v_Uv);',
+                'vec4 color = texture2D(texture, v_Uv) * u_Opacity;',
                 '#endif',
 
                 '#ifdef USE_DIFFUSE_COLOR',
-                'vec4 color = u_Color;',
+                'vec4 color = u_Color * u_Opacity;',
                 '#endif',
 
                 '#ifdef USE_NORMAL',

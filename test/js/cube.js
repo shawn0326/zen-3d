@@ -41,7 +41,8 @@ material3.transparent = false;
 material3.color = 0xcccccc;
 
 var phone = new zen3d.PhoneMaterial();
-phone.transparent = false;
+phone.transparent = true;
+phone.opacity = .6;
 phone.color = 0xffffff;
 
 var lambert = new zen3d.LambertMaterial();
@@ -66,7 +67,7 @@ sphere2.position.x = 0;
 
 var sphere3 = new zen3d.Mesh(sphere_geometry, phone);
 sphere3.position.z = 10;
-sphere3.position.x = 80;
+sphere3.position.x = 30;
 
 var plane = new zen3d.Mesh(plane_geometry, material3);
 // plane.position.z = 0;
