@@ -29,6 +29,7 @@ var filesSrc = [
     "core/render/shader/Program.js",
     "core/render/Renderer.js",
     "core/render/RenderCache.js",
+    "core/render/RenderTarget.js",
 
     // objects
     "core/objects/Object3D.js",
@@ -52,7 +53,9 @@ var filesSrc = [
     "core/objects/mesh/geometry/PlaneGeometry.js",
     "core/objects/mesh/geometry/SphereGeometry.js",
 
-    "core/objects/mesh/material/texture/Texture.js",
+    // texture
+    "core/texture/Texture.js",
+    "core/texture/RenderTexture.js",
 
     "core/objects/mesh/material/Material.js",
     "core/objects/mesh/material/BasicMaterial.js",

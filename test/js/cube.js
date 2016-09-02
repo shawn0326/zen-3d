@@ -163,6 +163,15 @@ camera.setPerspective(45 / 180 * Math.PI, 480 / 480, 10, 1000);
 scene.add(camera);
 
 // console.log(camera.projectionMatrix)
+var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
+
+renderTarget.bind();
+
+renderTarget.bindTexture2D();
+
+renderTarget.attachRenderBuffer(undefined, "depth");
+
+
 
 // frame render
 var count = 0;
@@ -171,6 +180,17 @@ function loop() {
     requestAnimationFrame(loop);
 
     count++;
+
+    if(count%2 == 0) {
+        material3.map = null;
+        renderTarget.bind();
+        var gl = renderer.gl;
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    } else {
+        material3.map = renderTarget.texture;
+        renderTarget.unbind();
+    }
 
     // rotation.y = Math.PI / 180 * count;
     // mesh1.rotation = rotation;
