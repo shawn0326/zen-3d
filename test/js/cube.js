@@ -24,14 +24,14 @@ image3.onload = function() {
 
 var texture4 = new zen3d.Texture(renderer.gl);
 var image4 = new Image();
-image4.src = "./resources/wall_diffuse.png";
+image4.src = "./resources/normal/couch.jpg";
 image4.onload = function() {
     texture4.uploadImage(image4, true);
 }
 
 var texture5 = new zen3d.Texture(renderer.gl);
 var image5 = new Image();
-image5.src = "./resources/wall_normal.png";
+image5.src = "./resources/normal/counch_norm.jpg";
 image5.onload = function() {
     texture5.uploadImage(image5, true);
 }
@@ -131,7 +131,7 @@ group.add(plane);
 // scene.add(ambientLight);
 
 var directionalLight = new zen3d.DirectionalLight();
-directionalLight.intensity = 1;
+directionalLight.intensity = 2;
 directionalLight.direction.x = -1;
 directionalLight.direction.y = -1;
 directionalLight.direction.z = 0;
@@ -147,11 +147,11 @@ scene.add(directionalLight);
 // scene.add(directionalLight);
 
 // var pointLight1 = new zen3d.PointLight();
-// pointLight1.intensity = 1;
+// pointLight1.intensity = 4;
 // pointLight1.position.x = 0;
 // pointLight1.position.y = 30;
 // pointLight1.position.z = 0;
-// pointLight1.color = 0x00ff00;
+// pointLight1.color = 0xffffff;
 // scene.add(pointLight1);
 // //
 // var pointLight2 = new zen3d.PointLight();
@@ -230,10 +230,10 @@ function loop() {
     // camera.position.y = -20 * Math.cos(count * .01);
 
     directionalLight.direction.x = Math.cos(count * .01);
-    directionalLight.direction.z = Math.cos(count * .01);
+    directionalLight.direction.z = Math.sin(count * .01);
 
-    // pointLight1.position.x = 90 * Math.sin(count * .1);
-    // pointLight1.position.z = 90 * Math.cos(count * .1);
+    // pointLight1.position.x = 210 * Math.sin(count * .01);
+    // pointLight1.position.z = 210 * Math.cos(count * .01);
     //
     // pointLight2.position.x = 90 * Math.sin(count * .1 + Math.PI * 2 / 3);
     // pointLight2.position.z = 90 * Math.cos(count * .1 + Math.PI * 2 / 3);

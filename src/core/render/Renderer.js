@@ -132,6 +132,9 @@
 
             gl.uniform1f(uniforms.u_Opacity.location, material.opacity);
 
+            var color = zen3d.hex2RGB(material.color);
+            gl.uniform3f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255);
+
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
 
@@ -154,6 +157,8 @@
 
                     var intensity = light.intensity;
                     var direction = light.direction;
+                    // TODO calculate direction, apply viewITMatrix
+                    // var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
                     var color = zen3d.hex2RGB(light.color);
 
                     var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
@@ -168,6 +173,8 @@
                     var light = pointLights[k];
 
                     var position = light.position;
+                    // var viewMatrix = camera.viewMatrix.elements;
+                    // TODO calculate position, apply viewMatrix
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
 
@@ -201,50 +208,31 @@
                         gl.activeTexture(gl.TEXTURE1);
                         gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
                         gl.uniform1i(uniforms.normalMap.location, 1);
-
-                        // console.log(uniforms)
-                        // console.log(gl.getProgramParameter(program.id, gl.ACTIVE_UNIFORMS))
-                        // console.log(camera.viewMatrix)
-                        // var mat = helpMatrix.copy(camera.viewMatrix).multiply(object.worldMatrix).inverse().transpose().elements;
-                        // var mat = helpMatrix.identify().inverse().transpose().elements;
-                        // gl.uniformMatrix4fv(uniforms.u_VMITMat.location, false, mat);
-
                     }
                 }
 
                 if(material.type == MATERIAL_TYPE.PHONE) {
                     var eye = camera.position;
-                    var u_Eye = gl.getUniformLocation(program.id, "u_Eye");
-                    gl.uniform3f(u_Eye, eye.x, eye.y, eye.z);
+                    // var viewMatrix = camera.viewMatrix.elements;
+                    // TODO calculate eye, apply viewMatrix
+                    gl.uniform3f(uniforms.u_Eye.location, eye.x, eye.y, eye.z);
 
                     var specular = material.specular;
-                    var u_Specular = gl.getUniformLocation(program.id, "u_Specular");
-                    gl.uniform1f(u_Specular, specular);
+                    gl.uniform1f(uniforms.u_Specular.location, specular);
                 }
             }
             /////////////////
 
-            if(material.map) {
+            if(((directLightsNum > 0 || pointLightsNum > 0) && material.normalMap) || material.map) {
                 var a_Uv = attributes.a_Uv.location;
                 gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
                 gl.enableVertexAttribArray(a_Uv);
+            }
 
+            if(material.map) {
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
                 gl.uniform1i(uniforms.texture.location, 0);
-            } else {
-                var color = zen3d.hex2RGB(material.color);
-                gl.uniform4f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-
-                if((directLightsNum > 0 || pointLightsNum > 0) && material.normalMap) {
-                    var a_Uv = attributes.a_Uv.location;
-                    gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
-                    gl.enableVertexAttribArray(a_Uv);
-
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
-                    gl.uniform1i(uniforms.texture.location, 0);
-                }
             }
 
             if(material.transparent) {

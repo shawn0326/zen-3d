@@ -131,44 +131,55 @@
 
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
 
+        var vertex = zen3d.ShaderLib.vertexBase;
+        var fragment = zen3d.ShaderLib.fragmentBase;
+
+        switch (props.materialType) {
+            case MATERIAL_TYPE.BASIC:
+                vertex = zen3d.ShaderLib.basicVertex;
+                fragment = zen3d.ShaderLib.basicFragment;
+                break;
+            case MATERIAL_TYPE.LAMBERT:
+                vertex = zen3d.ShaderLib.lambertVertex;
+                fragment = zen3d.ShaderLib.lambertFragment;
+                break;
+            case MATERIAL_TYPE.PHONE:
+                vertex = zen3d.ShaderLib.phoneVertex;
+                fragment = zen3d.ShaderLib.phoneFragment;
+                break;
+            default:
+
+        }
+
         var vshader = [
             (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? (props.useNormalMap ? '#define USE_NORMAL_MAP' : '#define USE_NORMAL') : '',
+            (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
+            ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
             props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
 
-            zen3d.ShaderLib.inverse,
-            zen3d.ShaderLib.transpose,
-
-            zen3d.ShaderLib.vertexBase
+            vertex
         ].join("\n");
 
         var fshader = [
-            '#extension GL_OES_standard_derivatives : enable',
             (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
             (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? (props.useNormalMap ? '#define USE_NORMAL_MAP' : '#define USE_NORMAL') : '',
+            (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
+            ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
             // props.useNormalMap ? '#define USE_NORMAL_MAP' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
             props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
 
-            'precision mediump float;',
-
-            zen3d.ShaderLib.tbn,
-            zen3d.ShaderLib.tsn,
-
-            zen3d.ShaderLib.fragmentBase
+            fragment
         ].join("\n");
 
         return new Program(gl, vshader, fshader);
