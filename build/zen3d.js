@@ -637,6 +637,34 @@
                 "a31 * b01 - a30 * b03 - a32 * b00, \n" +
                 "a20 * b03 - a21 * b01 + a22 * b00) / det; \n" +
         "} \n",
+        tsn: [
+            'mat3 tsn(vec3 N, vec3 p, vec2 uv) {',
+
+        		'vec3 q0 = dFdx( p.xyz );',
+        		'vec3 q1 = dFdy( p.xyz );',
+        		'vec2 st0 = dFdx( uv.st );',
+        		'vec2 st1 = dFdy( uv.st );',
+
+        		'vec3 S = normalize( q0 * st1.t - q1 * st0.t );',
+        		'vec3 T = normalize( -q0 * st1.s + q1 * st0.s );',
+        		// 'vec3 N = normalize( N );',
+
+        		'mat3 tsn = mat3( S, T, N );',
+        		'return tsn;',
+        	'}'
+        ].join("\n"),
+        tbn: "mat3 tbn(vec3 N, vec3 p, vec2 uv) { \n" +
+			"vec3 dp1 = dFdx(p.xyz); \n" +
+			"vec3 dp2 = dFdy(p.xyz); \n" +
+			"vec2 duv1 = dFdx(uv.st); \n" +
+			"vec2 duv2 = dFdy(uv.st); \n" +
+			"vec3 dp2perp = cross(dp2, N); \n" +
+			"vec3 dp1perp = cross(N, dp1); \n" +
+			"vec3 T = dp2perp * duv1.x + dp1perp * duv2.x; \n" +
+			"vec3 B = dp2perp * duv1.y + dp1perp * duv2.y; \n" +
+			"float invmax = 1.0 / sqrt(max(dot(T,T), dot(B,B))); \n" +
+			"return mat3(T * invmax, B * invmax, N); \n" +
+		"} \n",
         vertexBase: [
             'attribute vec3 a_Position;',
 
@@ -644,44 +672,51 @@
             'uniform mat4 u_View;',
             'uniform mat4 u_Model;',
 
-            '#ifdef USE_NORMAL',
+            '#if defined(USE_NORMAL) || defined(USE_NORMAL_MAP)',
             'attribute vec3 a_Normal;',
             'varying vec3 v_Normal;',
             '#endif',
 
-            '#ifdef USE_DIFFUSE_MAP',
+            '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
             'attribute vec2 a_Uv;',
             'varying vec2 v_Uv;',
             '#endif',
 
-            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
+            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE) || defined(USE_NORMAL_MAP)',
             'varying vec3 v_VmPos;',
             '#endif',
 
             'void main() {',
                 'gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);',
 
-                '#ifdef USE_NORMAL',
+                '#if defined(USE_NORMAL) || defined(USE_NORMAL_MAP)',
                 'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(a_Normal, 1.0)).xyz;',
                 '#endif',
 
-                '#ifdef USE_DIFFUSE_MAP',
+                '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
                 'v_Uv = a_Uv;',
                 '#endif',
 
-                '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
+                '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE) || defined(USE_NORMAL_MAP)',
                 'v_VmPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
                 '#endif',
             '}'
         ].join("\n"),
         fragmentBase: [
-            'precision mediump float;',
 
             'uniform float u_Opacity;',
 
-            '#ifdef USE_DIFFUSE_MAP',
+            '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
             'varying vec2 v_Uv;',
+            '#endif',
+
+            '#ifdef USE_DIFFUSE_MAP',
             'uniform sampler2D texture;',
+            '#endif',
+
+            '#ifdef USE_NORMAL_MAP',
+            'uniform sampler2D normalMap;',
+            // 'uniform mat4 u_VMITMat;',
             '#endif',
 
             '#ifdef USE_DIFFUSE_COLOR',
@@ -717,12 +752,15 @@
             'uniform PointLight u_Point[USE_POINT_LIGHT];',
             '#endif',
 
-            '#ifdef USE_NORMAL',
+            '#if defined(USE_NORMAL) || defined(USE_NORMAL_MAP)',
             'varying vec3 v_Normal;',
             '#endif',
 
-            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
+            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE) || defined(USE_NORMAL_MAP)',
             'varying vec3 v_VmPos;',
+            '#endif',
+
+            '#if defined(USE_POINT_LIGHT) || defined(USE_PHONE)',
             'uniform mat4 u_ViewMat;',
             '#endif',
 
@@ -767,6 +805,23 @@
 
                 '#ifdef USE_NORMAL',
                 'vec3 N = normalize(v_Normal);',
+                '#endif',
+
+                // TODO always need uv
+                '#ifdef USE_NORMAL_MAP',
+                'vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;',
+                // TODO how to read a nomalmap
+                // v_VmPos
+                // v_Normal
+                // v_Uv
+                'mat3 tspace = tsn(v_Normal, v_VmPos, v_Uv);',
+                // 'mat3 tspace = tbn(v_Normal, v_VmPos, v_Uv);',
+                'vec3 N = normalize(tspace * (normalMapColor * 2.0 - 1.0));',
+                // 'normalMapColor.r = normalMapColor.r;',
+                // 'normalMapColor.g = normalMapColor.b;',
+                // 'normalMapColor.b = normalMapColor.g;',
+
+                // 'mat4 ua = u_VMITMat;vec3 N = normalize((ua * vec4(normalMapColor * 2.0 - 1.0, 1.0)).xyz);',
                 '#endif',
 
                 '#ifdef USE_BASIC',
@@ -970,7 +1025,7 @@
         var vshader = [
             (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? (props.useNormalMap ? '#define USE_NORMAL_MAP' : '#define USE_NORMAL') : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
 
@@ -985,17 +1040,24 @@
         ].join("\n");
 
         var fshader = [
+            '#extension GL_OES_standard_derivatives : enable',
             (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
             (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? (props.useNormalMap ? '#define USE_NORMAL_MAP' : '#define USE_NORMAL') : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
+            // props.useNormalMap ? '#define USE_NORMAL_MAP' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
             props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
+
+            'precision mediump float;',
+
+            zen3d.ShaderLib.tbn,
+            zen3d.ShaderLib.tsn,
 
             zen3d.ShaderLib.fragmentBase
         ].join("\n");
@@ -1014,6 +1076,7 @@
 
         var props = {
             useDiffuseMap: !!material.map,
+            useNormalMap: !!material.normalMap,
             useDiffuseColor: !material.map,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,
@@ -1075,6 +1138,11 @@
 
         // camera
         this.camera = null;
+
+        // use dfdx and dfdy must enable OES_standard_derivatives
+        var ext = zen3d.getExtension(gl, "OES_standard_derivatives");
+        // GL_OES_standard_derivatives
+        var ext = zen3d.getExtension(gl, "GL_OES_standard_derivatives");
     }
 
     /**
@@ -1227,9 +1295,24 @@
                 }
 
                 if(directLightsNum > 0 || pointLightsNum > 0) {
+
                     var a_Normal = attributes.a_Normal.location;
                     gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
                     gl.enableVertexAttribArray(a_Normal);
+
+                    if(material.normalMap) {
+                        gl.activeTexture(gl.TEXTURE1);
+                        gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
+                        gl.uniform1i(uniforms.normalMap.location, 1);
+
+                        // console.log(uniforms)
+                        // console.log(gl.getProgramParameter(program.id, gl.ACTIVE_UNIFORMS))
+                        // console.log(camera.viewMatrix)
+                        // var mat = helpMatrix.copy(camera.viewMatrix).multiply(object.worldMatrix).inverse().transpose().elements;
+                        // var mat = helpMatrix.identify().inverse().transpose().elements;
+                        // gl.uniformMatrix4fv(uniforms.u_VMITMat.location, false, mat);
+
+                    }
                 }
 
                 if(material.type == MATERIAL_TYPE.PHONE) {
@@ -1251,9 +1334,20 @@
 
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+                gl.uniform1i(uniforms.texture.location, 0);
             } else {
                 var color = zen3d.hex2RGB(material.color);
                 gl.uniform4f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+
+                if((directLightsNum > 0 || pointLightsNum > 0) && material.normalMap) {
+                    var a_Uv = attributes.a_Uv.location;
+                    gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
+                    gl.enableVertexAttribArray(a_Uv);
+
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+                    gl.uniform1i(uniforms.texture.location, 0);
+                }
             }
 
             if(material.transparent) {
@@ -2335,13 +2429,16 @@
 
         this.transparent = false;
 
+        // normal map
+        this.normalMap = null;
+
     }
 
     /**
      * check map init
      */
     Material.prototype.checkMapInit = function() {
-        return !this.map || this.map.isInit;
+        return (!this.map || this.map.isInit) && (!this.mormalMap || this.normalMap.isInit);
     }
 
     zen3d.Material = Material;

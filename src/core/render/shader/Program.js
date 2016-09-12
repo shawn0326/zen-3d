@@ -134,7 +134,7 @@
         var vshader = [
             (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? (props.useNormalMap ? '#define USE_NORMAL_MAP' : '#define USE_NORMAL') : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
 
@@ -149,17 +149,24 @@
         ].join("\n");
 
         var fshader = [
+            '#extension GL_OES_standard_derivatives : enable',
             (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
             (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? '#define USE_NORMAL' : '',
+            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0)) ? (props.useNormalMap ? '#define USE_NORMAL_MAP' : '#define USE_NORMAL') : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
             props.useDiffuseColor ? '#define USE_DIFFUSE_COLOR' : '',
+            // props.useNormalMap ? '#define USE_NORMAL_MAP' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
             props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
+
+            'precision mediump float;',
+
+            zen3d.ShaderLib.tbn,
+            zen3d.ShaderLib.tsn,
 
             zen3d.ShaderLib.fragmentBase
         ].join("\n");
@@ -178,6 +185,7 @@
 
         var props = {
             useDiffuseMap: !!material.map,
+            useNormalMap: !!material.normalMap,
             useDiffuseColor: !material.map,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,

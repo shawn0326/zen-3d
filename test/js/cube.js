@@ -22,6 +22,20 @@ image3.onload = function() {
     texture3.uploadImage(image3, true);
 }
 
+var texture4 = new zen3d.Texture(renderer.gl);
+var image4 = new Image();
+image4.src = "./resources/wall_diffuse.png";
+image4.onload = function() {
+    texture4.uploadImage(image4, true);
+}
+
+var texture5 = new zen3d.Texture(renderer.gl);
+var image5 = new Image();
+image5.src = "./resources/wall_normal.png";
+image5.onload = function() {
+    texture5.uploadImage(image5, true);
+}
+
 var material = new zen3d.LambertMaterial();
 material.map = texture2;
 
@@ -33,16 +47,16 @@ material1.transparent = false;
 material1.color = 0xff0000;
 
 var material2 = new zen3d.LambertMaterial();
-material2.transparent = false;
-material2.color = 0xffffff;
+material2.map = texture4;
+material2.normalMap = texture5;
 
 var material3 = new zen3d.LambertMaterial();
 material3.transparent = false;
 material3.color = 0xcccccc;
 
 var phone = new zen3d.PhoneMaterial();
-phone.transparent = true;
-phone.opacity = .6;
+// phone.transparent = true;
+// phone.opacity = .6;
 phone.color = 0xffffff;
 
 var lambert = new zen3d.LambertMaterial();
@@ -67,11 +81,17 @@ sphere2.position.x = 0;
 
 var sphere3 = new zen3d.Mesh(sphere_geometry, phone);
 sphere3.position.z = 10;
-sphere3.position.x = 30;
+sphere3.position.x = 80;
 
-var plane = new zen3d.Mesh(plane_geometry, material3);
+var plane = new zen3d.Mesh(plane_geometry, material2);
 // plane.position.z = 0;
 plane.position.y = -80;
+
+// var wall = new zen3d.Mesh(plane_geometry, material3);
+// wall.position.z = 100;
+// var rotation = wall.rotation;
+// rotation.x = -Math.PI / 2;
+// wall.rotation = rotation;
 
 var mesh3 = new zen3d.Mesh(geometry, material3);
 mesh3.position.z = 50;
@@ -96,6 +116,7 @@ scene.add(sphere);
 scene.add(sphere2);
 scene.add(sphere3);
 group.add(plane);
+// group.add(wall);
 // scene.add(mesh3);
 // scene.add(mesh4);
 
@@ -109,13 +130,13 @@ group.add(plane);
 // // ambientLight.color = 0xff0000;
 // scene.add(ambientLight);
 
-// var directionalLight = new zen3d.DirectionalLight();
-// directionalLight.intensity = 1;
-// directionalLight.direction.x = -1;
-// directionalLight.direction.y = -1;
-// directionalLight.direction.z = 0;
-// directionalLight.color = 0xffffff;
-// scene.add(directionalLight);
+var directionalLight = new zen3d.DirectionalLight();
+directionalLight.intensity = 1;
+directionalLight.direction.x = -1;
+directionalLight.direction.y = -1;
+directionalLight.direction.z = 0;
+directionalLight.color = 0xffffff;
+scene.add(directionalLight);
 //
 // var directionalLight = new zen3d.DirectionalLight();
 // directionalLight.intensity = 0.8;
@@ -125,29 +146,29 @@ group.add(plane);
 // directionalLight.color = 0xff0000;
 // scene.add(directionalLight);
 
-var pointLight1 = new zen3d.PointLight();
-pointLight1.intensity = 1;
-pointLight1.position.x = 0;
-pointLight1.position.y = 30;
-pointLight1.position.z = 0;
-pointLight1.color = 0x00ff00;
-scene.add(pointLight1);
-//
-var pointLight2 = new zen3d.PointLight();
-pointLight2.intensity = 1;
-pointLight2.position.x = 0;
-pointLight2.position.y = 30;
-pointLight2.position.z = 0;
-pointLight2.color = 0xff0000;
-scene.add(pointLight2);
+// var pointLight1 = new zen3d.PointLight();
+// pointLight1.intensity = 1;
+// pointLight1.position.x = 0;
+// pointLight1.position.y = 30;
+// pointLight1.position.z = 0;
+// pointLight1.color = 0x00ff00;
+// scene.add(pointLight1);
 // //
-var pointLight3 = new zen3d.PointLight();
-pointLight3.intensity = 1;
-pointLight3.position.x = 0;
-pointLight3.position.y = 30;
-pointLight3.position.z = 0;
-pointLight3.color = 0x0000ff;
-scene.add(pointLight3);
+// var pointLight2 = new zen3d.PointLight();
+// pointLight2.intensity = 1;
+// pointLight2.position.x = 0;
+// pointLight2.position.y = 30;
+// pointLight2.position.z = 0;
+// pointLight2.color = 0xff0000;
+// scene.add(pointLight2);
+// // //
+// var pointLight3 = new zen3d.PointLight();
+// pointLight3.intensity = 1;
+// pointLight3.position.x = 0;
+// pointLight3.position.y = 30;
+// pointLight3.position.z = 0;
+// pointLight3.color = 0x0000ff;
+// scene.add(pointLight3);
 
 // mesh1.position.x = 20
 
@@ -163,13 +184,13 @@ camera.setPerspective(45 / 180 * Math.PI, 480 / 480, 10, 1000);
 scene.add(camera);
 
 // console.log(camera.projectionMatrix)
-var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
-
-renderTarget.bind();
-
-renderTarget.bindTexture2D();
-
-renderTarget.attachRenderBuffer(undefined, "depth");
+// var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
+//
+// renderTarget.bind();
+//
+// renderTarget.bindTexture2D();
+//
+// renderTarget.attachRenderBuffer(undefined, "depth");
 
 
 
@@ -181,16 +202,16 @@ function loop() {
 
     count++;
 
-    if(count%2 == 0) {
-        material3.map = null;
-        renderTarget.bind();
-        var gl = renderer.gl;
-
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-    } else {
-        material3.map = renderTarget.texture;
-        renderTarget.unbind();
-    }
+    // if(count%2 == 0) {
+    //     material3.map = null;
+    //     renderTarget.bind();
+    //     var gl = renderer.gl;
+    //
+    //     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    // } else {
+    //     material3.map = renderTarget.texture;
+    //     renderTarget.unbind();
+    // }
 
     // rotation.y = Math.PI / 180 * count;
     // mesh1.rotation = rotation;
@@ -204,18 +225,21 @@ function loop() {
 
     // sphere.position.x = 190 * Math.cos(count * .01);
 
-    // camera.position.z = 90 * Math.cos(count * .01);
-    // camera.position.x = 90 * Math.sin(count * .01);
+    // camera.position.z = 300 * Math.cos(count * .01);
+    // camera.position.x = 300 * Math.sin(count * .01);
     // camera.position.y = -20 * Math.cos(count * .01);
 
-    pointLight1.position.x = 90 * Math.sin(count * .1);
-    pointLight1.position.z = 90 * Math.cos(count * .1);
+    directionalLight.direction.x = Math.cos(count * .01);
+    directionalLight.direction.z = Math.cos(count * .01);
 
-    pointLight2.position.x = 90 * Math.sin(count * .1 + Math.PI * 2 / 3);
-    pointLight2.position.z = 90 * Math.cos(count * .1 + Math.PI * 2 / 3);
+    // pointLight1.position.x = 90 * Math.sin(count * .1);
+    // pointLight1.position.z = 90 * Math.cos(count * .1);
     //
-    pointLight3.position.x = 90 * Math.sin(count * .1 + Math.PI * 4 / 3);
-    pointLight3.position.z = 90 * Math.cos(count * .1 + Math.PI * 4 / 3);
+    // pointLight2.position.x = 90 * Math.sin(count * .1 + Math.PI * 2 / 3);
+    // pointLight2.position.z = 90 * Math.cos(count * .1 + Math.PI * 2 / 3);
+    //
+    // pointLight3.position.x = 90 * Math.sin(count * .1 + Math.PI * 4 / 3);
+    // pointLight3.position.z = 90 * Math.cos(count * .1 + Math.PI * 4 / 3);
 
     // camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 

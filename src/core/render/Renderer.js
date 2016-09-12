@@ -35,6 +35,11 @@
 
         // camera
         this.camera = null;
+
+        // use dfdx and dfdy must enable OES_standard_derivatives
+        var ext = zen3d.getExtension(gl, "OES_standard_derivatives");
+        // GL_OES_standard_derivatives
+        var ext = zen3d.getExtension(gl, "GL_OES_standard_derivatives");
     }
 
     /**
@@ -187,9 +192,24 @@
                 }
 
                 if(directLightsNum > 0 || pointLightsNum > 0) {
+
                     var a_Normal = attributes.a_Normal.location;
                     gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
                     gl.enableVertexAttribArray(a_Normal);
+
+                    if(material.normalMap) {
+                        gl.activeTexture(gl.TEXTURE1);
+                        gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
+                        gl.uniform1i(uniforms.normalMap.location, 1);
+
+                        // console.log(uniforms)
+                        // console.log(gl.getProgramParameter(program.id, gl.ACTIVE_UNIFORMS))
+                        // console.log(camera.viewMatrix)
+                        // var mat = helpMatrix.copy(camera.viewMatrix).multiply(object.worldMatrix).inverse().transpose().elements;
+                        // var mat = helpMatrix.identify().inverse().transpose().elements;
+                        // gl.uniformMatrix4fv(uniforms.u_VMITMat.location, false, mat);
+
+                    }
                 }
 
                 if(material.type == MATERIAL_TYPE.PHONE) {
@@ -211,9 +231,20 @@
 
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+                gl.uniform1i(uniforms.texture.location, 0);
             } else {
                 var color = zen3d.hex2RGB(material.color);
                 gl.uniform4f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+
+                if((directLightsNum > 0 || pointLightsNum > 0) && material.normalMap) {
+                    var a_Uv = attributes.a_Uv.location;
+                    gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
+                    gl.enableVertexAttribArray(a_Uv);
+
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+                    gl.uniform1i(uniforms.texture.location, 0);
+                }
             }
 
             if(material.transparent) {

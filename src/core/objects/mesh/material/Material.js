@@ -19,13 +19,16 @@
 
         this.transparent = false;
 
+        // normal map
+        this.normalMap = null;
+
     }
 
     /**
      * check map init
      */
     Material.prototype.checkMapInit = function() {
-        return !this.map || this.map.isInit;
+        return (!this.map || this.map.isInit) && (!this.mormalMap || this.normalMap.isInit);
     }
 
     zen3d.Material = Material;
