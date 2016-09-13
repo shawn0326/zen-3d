@@ -95,14 +95,14 @@
 
             '#ifdef USE_DIRECT_LIGHT',
             'for(int i = 0; i < USE_DIRECT_LIGHT; i++) {',
-                'L = (u_ViewITMat * vec4(-u_Directional[i].direction, 1.0)).xyz;',
+                'L = -u_Directional[i].direction;',
                 'light = u_Directional[i].color * u_Directional[i].intensity;',
                 'L = normalize(L);',
 
                 'RE_Lambert(diffuseColor, light, N, L, gl_FragColor);',
 
                 '#ifdef USE_PHONE',
-                'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                'V = normalize(u_Eye - v_VmPos);',
                 // 'RE_Phone(diffuseColor, light, N, L, V, 4., gl_FragColor);',
                 'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, gl_FragColor);',
                 '#endif',
@@ -111,7 +111,7 @@
 
             '#ifdef USE_POINT_LIGHT',
             'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
-                'L = ( u_ViewMat * vec4(u_Point[i].position, 1.0) ).xyz - v_VmPos;',
+                'L = u_Point[i].position - v_VmPos;',
                 'float dist = max(1. - length(L) * .005, 0.0);',
                 'light = u_Point[i].color * u_Point[i].intensity * dist;',
                 'L = normalize(L);',
@@ -119,7 +119,7 @@
                 'RE_Lambert(diffuseColor, light, N, L, gl_FragColor);',
 
                 '#ifdef USE_PHONE',
-                'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                'V = normalize(u_Eye - v_VmPos);',
                 // 'RE_Phone(diffuseColor, light, N, L, V, 4., gl_FragColor);',
                 'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, gl_FragColor);',
                 '#endif',
@@ -339,14 +339,6 @@
                 'varying vec3 v_VmPos;',
             '#endif',
 
-            '#ifdef USE_POINT_LIGHT',
-                'uniform mat4 u_ViewMat;',
-            '#endif',
-
-            '#ifdef USE_DIRECT_LIGHT',
-                'uniform mat4 u_ViewITMat;',
-            '#endif',
-
             RE_Lambert,
 
             'void main() {',
@@ -424,12 +416,6 @@
             '#endif',
 
             'varying vec3 v_VmPos;',
-
-            'uniform mat4 u_ViewMat;',
-
-            '#ifdef USE_DIRECT_LIGHT',
-                'uniform mat4 u_ViewITMat;',
-            '#endif',
 
             'uniform vec3 u_Eye;',
             'uniform float u_Specular;',

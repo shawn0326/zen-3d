@@ -585,6 +585,47 @@
 })();
 
 (function() {
+    /**
+     * a vector 4 class
+     * @class
+     */
+    var Vector4 = function(x, y, z, w) {
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
+        this.w = ( w !== undefined ) ? w : 1;
+    }
+
+    /**
+     * set values of this vector
+     **/
+    Vector4.prototype.set = function(x, y, z, w) {
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
+        this.w = ( w !== undefined ) ? w : 1;
+
+        return this;
+    }
+
+    /**
+     * apply a 4x4 matrix
+     */
+    Vector4.prototype.applyMatrix4 = function(m) {
+		var x = this.x, y = this.y, z = this.z, w = this.w;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] * w;
+		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] * w;
+		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] * w;
+		this.w = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] * w;
+
+		return this;
+	}
+
+    zen3d.Vector4 = Vector4;
+})();
+(function() {
 
     var vertexCommon = [
         'attribute vec3 a_Position;',
@@ -681,14 +722,14 @@
 
             '#ifdef USE_DIRECT_LIGHT',
             'for(int i = 0; i < USE_DIRECT_LIGHT; i++) {',
-                'L = (u_ViewITMat * vec4(-u_Directional[i].direction, 1.0)).xyz;',
+                'L = -u_Directional[i].direction;',
                 'light = u_Directional[i].color * u_Directional[i].intensity;',
                 'L = normalize(L);',
 
                 'RE_Lambert(diffuseColor, light, N, L, gl_FragColor);',
 
                 '#ifdef USE_PHONE',
-                'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                'V = normalize(u_Eye - v_VmPos);',
                 // 'RE_Phone(diffuseColor, light, N, L, V, 4., gl_FragColor);',
                 'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, gl_FragColor);',
                 '#endif',
@@ -697,7 +738,7 @@
 
             '#ifdef USE_POINT_LIGHT',
             'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
-                'L = ( u_ViewMat * vec4(u_Point[i].position, 1.0) ).xyz - v_VmPos;',
+                'L = u_Point[i].position - v_VmPos;',
                 'float dist = max(1. - length(L) * .005, 0.0);',
                 'light = u_Point[i].color * u_Point[i].intensity * dist;',
                 'L = normalize(L);',
@@ -705,7 +746,7 @@
                 'RE_Lambert(diffuseColor, light, N, L, gl_FragColor);',
 
                 '#ifdef USE_PHONE',
-                'V = normalize( ( u_ViewMat * vec4(u_Eye, 1.0) ).xyz - v_VmPos);',
+                'V = normalize(u_Eye - v_VmPos);',
                 // 'RE_Phone(diffuseColor, light, N, L, V, 4., gl_FragColor);',
                 'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, gl_FragColor);',
                 '#endif',
@@ -925,14 +966,6 @@
                 'varying vec3 v_VmPos;',
             '#endif',
 
-            '#ifdef USE_POINT_LIGHT',
-                'uniform mat4 u_ViewMat;',
-            '#endif',
-
-            '#ifdef USE_DIRECT_LIGHT',
-                'uniform mat4 u_ViewITMat;',
-            '#endif',
-
             RE_Lambert,
 
             'void main() {',
@@ -1010,12 +1043,6 @@
             '#endif',
 
             'varying vec3 v_VmPos;',
-
-            'uniform mat4 u_ViewMat;',
-
-            '#ifdef USE_DIRECT_LIGHT',
-                'uniform mat4 u_ViewITMat;',
-            '#endif',
 
             'uniform vec3 u_Eye;',
             'uniform float u_Specular;',
@@ -1404,6 +1431,9 @@
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
 
+            var helpMatrix = new zen3d.Matrix4();
+            var helpVector4 = new zen3d.Vector4();
+
             if(!basic) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
@@ -1417,20 +1447,20 @@
                     gl.uniform1f(u_Ambient_intensity, intensity);
                 }
 
-                var helpMatrix = new zen3d.Matrix4();
+
                 for(var k = 0; k < directLightsNum; k++) {
                     var light = directLights[k];
 
                     var intensity = light.intensity;
                     var direction = light.direction;
-                    // TODO calculate direction, apply viewITMatrix
-                    // var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
+                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose();
+                    helpVector4.set(direction.x, direction.y, direction.z, 1).applyMatrix4(viewITMatrix);
                     var color = zen3d.hex2RGB(light.color);
 
                     var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
                     var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"].location;
                     var u_Directional_color = uniforms["u_Directional[" + k + "].color"].location;
-                    gl.uniform3f(u_Directional_direction, direction.x, direction.y, direction.z);
+                    gl.uniform3f(u_Directional_direction, helpVector4.x, helpVector4.y, helpVector4.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
                     gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
@@ -1439,29 +1469,17 @@
                     var light = pointLights[k];
 
                     var position = light.position;
-                    // var viewMatrix = camera.viewMatrix.elements;
-                    // TODO calculate position, apply viewMatrix
+                    var viewMatrix = camera.viewMatrix;
+                    helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
 
                     var u_Point_position = uniforms["u_Point[" + k + "].position"].location;
-                    gl.uniform3f(u_Point_position, position.x, position.y, position.z);
+                    gl.uniform3f(u_Point_position, helpVector4.x, helpVector4.y, helpVector4.z);
                     var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"].location;
                     gl.uniform1f(u_Point_intensity, intensity);
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-                }
-
-                if(directLightsNum > 0) {
-                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
-                    // var viewITMatrix = camera.viewMatrix.elements;
-                    // console.log(viewITMatrix)
-                    gl.uniformMatrix4fv(uniforms.u_ViewITMat.location, false, viewITMatrix);
-                }
-
-                if(pointLightsNum > 0 || (directLightsNum > 0 && material.type == MATERIAL_TYPE.PHONE)) {
-                    var viewMatrix = camera.viewMatrix.elements;
-                    gl.uniformMatrix4fv(uniforms.u_ViewMat.location, false, viewMatrix);
                 }
 
                 if(directLightsNum > 0 || pointLightsNum > 0) {
@@ -1479,9 +1497,9 @@
 
                 if(material.type == MATERIAL_TYPE.PHONE) {
                     var eye = camera.position;
-                    // var viewMatrix = camera.viewMatrix.elements;
-                    // TODO calculate eye, apply viewMatrix
-                    gl.uniform3f(uniforms.u_Eye.location, eye.x, eye.y, eye.z);
+                    var viewMatrix = camera.viewMatrix;
+                    helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
+                    gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
 
                     var specular = material.specular;
                     gl.uniform1f(uniforms.u_Specular.location, specular);

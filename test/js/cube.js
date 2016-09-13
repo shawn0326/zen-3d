@@ -58,6 +58,7 @@ var phone = new zen3d.PhoneMaterial();
 // phone.transparent = true;
 // phone.opacity = .6;
 phone.color = 0xffffff;
+phone.specular = 20;
 
 var lambert = new zen3d.LambertMaterial();
 lambert.transparent = false;
@@ -131,7 +132,7 @@ group.add(plane);
 // scene.add(ambientLight);
 
 var directionalLight = new zen3d.DirectionalLight();
-directionalLight.intensity = 2;
+directionalLight.intensity = 0.8;
 directionalLight.direction.x = -1;
 directionalLight.direction.y = -1;
 directionalLight.direction.z = 0;

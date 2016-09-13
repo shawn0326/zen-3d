@@ -23,6 +23,7 @@ var filesSrc = [
     "core/math/Matrix4.js",
     "core/math/Quaternion.js",
     "core/math/Vector3.js",
+    "core/math/Vector4.js",
 
     // render
     "core/render/shader/ShaderLib.js",

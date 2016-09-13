@@ -138,6 +138,9 @@
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
 
+            var helpMatrix = new zen3d.Matrix4();
+            var helpVector4 = new zen3d.Vector4();
+
             if(!basic) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
@@ -151,20 +154,20 @@
                     gl.uniform1f(u_Ambient_intensity, intensity);
                 }
 
-                var helpMatrix = new zen3d.Matrix4();
+
                 for(var k = 0; k < directLightsNum; k++) {
                     var light = directLights[k];
 
                     var intensity = light.intensity;
                     var direction = light.direction;
-                    // TODO calculate direction, apply viewITMatrix
-                    // var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
+                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose();
+                    helpVector4.set(direction.x, direction.y, direction.z, 1).applyMatrix4(viewITMatrix);
                     var color = zen3d.hex2RGB(light.color);
 
                     var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
                     var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"].location;
                     var u_Directional_color = uniforms["u_Directional[" + k + "].color"].location;
-                    gl.uniform3f(u_Directional_direction, direction.x, direction.y, direction.z);
+                    gl.uniform3f(u_Directional_direction, helpVector4.x, helpVector4.y, helpVector4.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
                     gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
@@ -173,29 +176,17 @@
                     var light = pointLights[k];
 
                     var position = light.position;
-                    // var viewMatrix = camera.viewMatrix.elements;
-                    // TODO calculate position, apply viewMatrix
+                    var viewMatrix = camera.viewMatrix;
+                    helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
 
                     var u_Point_position = uniforms["u_Point[" + k + "].position"].location;
-                    gl.uniform3f(u_Point_position, position.x, position.y, position.z);
+                    gl.uniform3f(u_Point_position, helpVector4.x, helpVector4.y, helpVector4.z);
                     var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"].location;
                     gl.uniform1f(u_Point_intensity, intensity);
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
-                }
-
-                if(directLightsNum > 0) {
-                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose().elements;
-                    // var viewITMatrix = camera.viewMatrix.elements;
-                    // console.log(viewITMatrix)
-                    gl.uniformMatrix4fv(uniforms.u_ViewITMat.location, false, viewITMatrix);
-                }
-
-                if(pointLightsNum > 0 || (directLightsNum > 0 && material.type == MATERIAL_TYPE.PHONE)) {
-                    var viewMatrix = camera.viewMatrix.elements;
-                    gl.uniformMatrix4fv(uniforms.u_ViewMat.location, false, viewMatrix);
                 }
 
                 if(directLightsNum > 0 || pointLightsNum > 0) {
@@ -213,9 +204,9 @@
 
                 if(material.type == MATERIAL_TYPE.PHONE) {
                     var eye = camera.position;
-                    // var viewMatrix = camera.viewMatrix.elements;
-                    // TODO calculate eye, apply viewMatrix
-                    gl.uniform3f(uniforms.u_Eye.location, eye.x, eye.y, eye.z);
+                    var viewMatrix = camera.viewMatrix;
+                    helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
+                    gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
 
                     var specular = material.specular;
                     gl.uniform1f(uniforms.u_Specular.location, specular);
