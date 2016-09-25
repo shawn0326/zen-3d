@@ -5,36 +5,42 @@ var geometry = new zen3d.CubeGeometry(40, 40, 40);
 var plane_geometry = new zen3d.PlaneGeometry(400, 400);
 var sphere_geometry = new zen3d.SphereGeometry(30, 20, 20);
 
-var texture = new zen3d.Texture(renderer.gl);
-texture.uploadCheckerboard(50, 50);
+// var texture = new zen3d.Texture(renderer.gl);
+// texture.uploadCheckerboard(50, 50);
+var pixels = zen3d.createCheckerBoardPixels(50, 50);
+var texture = zen3d.Texture2D.fromRes(renderer.gl, pixels, 50, 50);
 
-var texture2 = new zen3d.Texture(renderer.gl);
-var image2 = new Image();
-image2.src = "./resources/hi.png";
-image2.onload = function() {
-    texture2.uploadImage(image2, true);
-}
+var texture2 = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/hi.png");
+// var texture2 = new zen3d.Texture(renderer.gl);
+// var image2 = new Image();
+// image2.src = "./resources/hi.png";
+// image2.onload = function() {
+//     texture2.uploadImage(image2, true);
+// }
 
-var texture3 = new zen3d.Texture(renderer.gl);
-var image3 = new Image();
-image3.src = "./resources/earth.jpg";
-image3.onload = function() {
-    texture3.uploadImage(image3, true);
-}
+var texture3 = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/earth.jpg");
+// var texture3 = new zen3d.Texture(renderer.gl);
+// var image3 = new Image();
+// image3.src = "./resources/earth.jpg";
+// image3.onload = function() {
+//     texture3.uploadImage(image3, true);
+// }
 
-var texture4 = new zen3d.Texture(renderer.gl);
-var image4 = new Image();
-image4.src = "./resources/normal/couch.jpg";
-image4.onload = function() {
-    texture4.uploadImage(image4, true);
-}
+var texture4 = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/normal/couch.jpg");
+// var texture4 = new zen3d.Texture(renderer.gl);
+// var image4 = new Image();
+// image4.src = "./resources/normal/couch.jpg";
+// image4.onload = function() {
+//     texture4.uploadImage(image4, true);
+// }
 
-var texture5 = new zen3d.Texture(renderer.gl);
-var image5 = new Image();
-image5.src = "./resources/normal/counch_norm.jpg";
-image5.onload = function() {
-    texture5.uploadImage(image5, true);
-}
+var texture5 = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/normal/counch_norm.jpg");
+// var texture5 = new zen3d.Texture(renderer.gl);
+// var image5 = new Image();
+// image5.src = "./resources/normal/counch_norm.jpg";
+// image5.onload = function() {
+//     texture5.uploadImage(image5, true);
+// }
 
 var material = new zen3d.LambertMaterial();
 material.map = texture2;
@@ -132,8 +138,8 @@ group.add(plane);
 // scene.add(ambientLight);
 
 var directionalLight = new zen3d.DirectionalLight();
-directionalLight.intensity = 0.8;
-directionalLight.direction.x = -1;
+directionalLight.intensity = 1;
+directionalLight.direction.x = -2;
 directionalLight.direction.y = -1;
 directionalLight.direction.z = 0;
 directionalLight.color = 0xffffff;
@@ -185,13 +191,13 @@ camera.setPerspective(45 / 180 * Math.PI, 480 / 480, 10, 1000);
 scene.add(camera);
 
 // console.log(camera.projectionMatrix)
-// var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
-//
-// renderTarget.bind();
-//
-// renderTarget.bindTexture2D();
-//
-// renderTarget.attachRenderBuffer(undefined, "depth");
+var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
+
+renderTarget.bind();
+
+renderTarget.bindTexture2D();
+
+renderTarget.attachRenderBuffer(undefined, "depth");
 
 
 
@@ -203,16 +209,16 @@ function loop() {
 
     count++;
 
-    // if(count%2 == 0) {
-    //     material3.map = null;
-    //     renderTarget.bind();
-    //     var gl = renderer.gl;
-    //
-    //     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-    // } else {
-    //     material3.map = renderTarget.texture;
-    //     renderTarget.unbind();
-    // }
+    if(count%2 == 0) {
+        material3.map = null;
+        renderTarget.bind();
+        var gl = renderer.gl;
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    } else {
+        material3.map = renderTarget.texture;
+        renderTarget.unbind();
+    }
 
     // rotation.y = Math.PI / 180 * count;
     // mesh1.rotation = rotation;
@@ -230,8 +236,8 @@ function loop() {
     // camera.position.x = 300 * Math.sin(count * .01);
     // camera.position.y = -20 * Math.cos(count * .01);
 
-    directionalLight.direction.x = Math.cos(count * .01);
-    directionalLight.direction.z = Math.sin(count * .01);
+    directionalLight.direction.x = 2 * Math.cos(count * .03);
+    directionalLight.direction.z = Math.sin(count * .03);
 
     // pointLight1.position.x = 210 * Math.sin(count * .01);
     // pointLight1.position.z = 210 * Math.cos(count * .01);

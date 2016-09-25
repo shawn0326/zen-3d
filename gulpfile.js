@@ -55,8 +55,9 @@ var filesSrc = [
     "core/objects/mesh/geometry/SphereGeometry.js",
 
     // texture
-    "core/texture/Texture.js",
-    "core/texture/RenderTexture.js",
+    "core/texture/TextureBase.js",
+    "core/texture/Texture2D.js",
+    "core/texture/TextureCube.js",
 
     "core/objects/mesh/material/Material.js",
     "core/objects/mesh/material/BasicMaterial.js",

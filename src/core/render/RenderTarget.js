@@ -32,7 +32,7 @@
             texture = renderTexture;
             texture.resize(this.width, this.height, true);//bind
         } else {
-            texture = new zen3d.RenderTexture(gl, this.width, this.height);
+            texture = zen3d.Texture2D.createRenderTexture(gl, this.width, this.height);
         }
 
         if(bind) {

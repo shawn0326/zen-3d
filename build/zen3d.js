@@ -60,6 +60,46 @@
 
     zen3d.hex2RGB = hex2RGB;
 
+    /**
+     * create checker board pixels
+     */
+    var createCheckerBoardPixels = function(width, height, blockSize) {
+        var pixelArray = new Uint8Array(width * height * 4);
+
+        // white and blasck
+        var colors = [[255, 255, 255, 255], [0, 0, 0, 255]];
+
+        blockSize = blockSize || 5;
+
+        var colorIndex = 0;
+
+        for(var y = 0; y < height; y++) {
+            for(var x = 0; x < width; x++) {
+
+                if(x == 0) {
+                    colorIndex = 1;
+                } else if((x % blockSize) == 0) {
+                    colorIndex = (colorIndex + 1) % 2;
+                }
+
+                if ((y % blockSize) == 0 && x == 0) {
+                    var tmp = colors[0];
+                    colors[0] = colors[1];
+                    colors[1] = tmp;
+                }
+
+                pixelArray[(y * (width * 4) + x * 4) + 0] = colors[colorIndex][0];
+                pixelArray[(y * (width * 4) + x * 4) + 1] = colors[colorIndex][1];
+                pixelArray[(y * (width * 4) + x * 4) + 2] = colors[colorIndex][2];
+                pixelArray[(y * (width * 4) + x * 4) + 3] = colors[colorIndex][3];
+            }
+        }
+
+        return pixelArray;
+    }
+
+    zen3d.createCheckerBoardPixels = createCheckerBoardPixels;
+
 })(window);
 
 (function() {
@@ -1671,7 +1711,7 @@
             texture = renderTexture;
             texture.resize(this.width, this.height, true);//bind
         } else {
-            texture = new zen3d.RenderTexture(gl, this.width, this.height);
+            texture = zen3d.Texture2D.createRenderTexture(gl, this.width, this.height);
         }
 
         if(bind) {
@@ -2436,146 +2476,296 @@
 
 (function() {
     /**
-     * Texture
+     * TextureBase
      * @class
      */
-    var Texture = function(gl) {
-
+    var TextureBase = function(gl, options) {
         this.gl = gl;
 
         this.width = 0;
         this.height = 0;
 
-        this.isInit = false;
+        this.border = 0;
+
+        this.dataFormat = gl.RGBA;
+
+        this.dataType = gl.UNSIGNED_BYTE;
+
+        // gl.NEAREST, gl.LINEAR...(mipmap etc)
+        this.magFilter = gl.LINEAR;
+        this.minFilter = gl.LINEAR;
+
+        // gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT
+        this.wrapS = gl.REPEAT;
+        this.wrapT = gl.REPEAT;
 
         this.glTexture = gl.createTexture();
 
-        // set webgl texture
-        gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
+        this.isRenderable = false;
 
-        // this can set just as a global props?
+        // TODO this can set just as a global props?
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-
-        // set repeat
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-        // a mipmap optimize
-        // if (isPowerOfTwo(this.glTexture.width) && isPowerOfTwo(this.glTexture.height)) {
-        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        //     gl.generateMipmap(gl.TEXTURE_2D);
-        // } else {
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
     }
 
     /**
-     * uploadImage
-     * upload a image for this texture
+     * bind texture
      */
-    Texture.prototype.uploadImage = function(image, bind) {
+    TextureBase.prototype.bind = function() {
+        // implemented in sub class
+    }
+
+    /**
+     * tex parameteri
+     */
+    TextureBase.prototype.texParam = function() {
+        // implemented in sub class
+    }
+
+    /**
+     * tex image
+     */
+    TextureBase.prototype.texImage = function() {
+        // implemented in sub class
+        // this.isRenderable = true;
+    }
+
+    /**
+     * destory
+     */
+    TextureBase.prototype.destory = function() {
+        var gl = this.gl;
+        gl.deleteTexture(this.glTexture);
+    }
+
+    zen3d.TextureBase = TextureBase;
+})();
+(function() {
+    /**
+     * Texture2D
+     * @class
+     * @extends TextureBase
+     */
+    var Texture2D = function(gl, options) {
+        Texture2D.superClass.constructor.call(this, gl, options);
+
+    }
+
+    zen3d.inherit(Texture2D, zen3d.TextureBase);
+
+    /**
+     * bind texture
+     */
+    Texture2D.prototype.bind = function() {
         var gl = this.gl;
 
-        if(bind) {
-            gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
+        gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
+
+        return this;
+    }
+
+    /**
+     * tex parameteri
+     */
+    Texture2D.prototype.texParam = function() {
+        var gl = this.gl;
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.magFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.minFilter);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this.wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this.wrapT);
+
+        return this;
+    }
+
+    /**
+     * tex image
+     * upload pixels or set size to GPU
+     * notice: if width and height are undefined, pixels must has both width and height properties!!
+     * @param pixels {} pixels to be upload
+     */
+    Texture2D.prototype.texImage = function(pixels, width, height) {
+        var gl = this.gl;
+
+        if((width !== undefined) && (height !== undefined)) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, width, height, this.border, this.dataFormat, this.dataType, pixels);
+
+            this.width = width;
+            this.height = height;
+        } else {
+            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, this.dataFormat, this.dataType, pixels);
+
+            this.width = pixels.width;
+            this.height = pixels.height;
         }
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        this.isRenderable = true;
 
-        this.width = image.width;
-        this.height = image.height;
-
-        this.isInit = true;
+        return this;
     }
 
     /**
-     * uploadCheckerboard
-     * upload a checker boader for this texture
+     * get texture from image|TypedArray|canvas
      */
-    Texture.prototype.uploadCheckerboard = function(width, height) {
+    Texture2D.fromRes = function(gl, data, width, height) {
+        var texture = new Texture2D(gl);
+
+        texture.bind().texParam().texImage(
+            data, width, height
+        );
+
+        return texture;
+    }
+
+    /**
+     * get texture from jpg|png|jpeg src
+     * texture maybe not init util image is loaded
+     */
+    Texture2D.fromSrc = function(gl, src) {
+        var texture = new Texture2D(gl);
+
+        var image = new Image();
+        image.src = src;
+        image.onload = function() {
+
+            texture.bind().texParam().texImage(
+                image
+            );
+
+        }
+
+        return texture;
+    }
+
+    /**
+     * create a render texture
+     */
+    Texture2D.createRenderTexture = function(gl, width, height) {
+        var texture = new Texture2D(gl);
+
+        texture.bind().texParam().texImage(
+            null, width, height
+        );
+
+        return texture;
+    }
+
+    zen3d.Texture2D = Texture2D;
+})();
+(function() {
+    /**
+     * TextureCube
+     * @class
+     * @extends TextureBase
+     */
+    var TextureCube = function(gl, options) {
+        TextureCube.superClass.constructor.call(this, gl, options);
+
         var gl = this.gl;
 
-        var pixelArray = new Uint8Array(width * height * 4);
+        // faces direction
+        this.faces = [
+            gl.TEXTURE_CUBE_MAP_POSITIVE_X, gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+            gl.TEXTURE_CUBE_MAP_POSITIVE_Y, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            gl.TEXTURE_CUBE_MAP_POSITIVE_Z, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
+        ];
+    }
 
-        var colors = [[255, 255, 255, 255], [0, 0, 0, 255]];
+    zen3d.inherit(TextureCube, zen3d.TextureBase);
 
-        var colorIndex = 0;
+    /**
+     * bind texture
+     */
+    TextureCube.prototype.bind = function() {
+        var gl = this.gl;
 
-        var blockSize = 5;
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.glTexture);
 
-        for(var y = 0; y < height; y++) {
-            for(var x = 0; x < width; x++) {
+        return this;
+    }
 
-                if(x == 0) {
-                    colorIndex = 1;
-                } else if((x % blockSize) == 0) {
-                    colorIndex = (colorIndex + 1) % 2;
-                }
+    /**
+     * tex parameteri
+     */
+    TextureCube.prototype.texParam = function() {
+        var gl = this.gl;
 
-                if ((y % blockSize) == 0 && x == 0) {
-                    var tmp = colors[0];
-                    colors[0] = colors[1];
-                    colors[1] = tmp;
-                }
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, this.magFilter);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, this.minFilter);
 
-                pixelArray[(y * (width * 4) + x * 4) + 0] = colors[colorIndex][0];
-                pixelArray[(y * (width * 4) + x * 4) + 1] = colors[colorIndex][1];
-                pixelArray[(y * (width * 4) + x * 4) + 2] = colors[colorIndex][2];
-                pixelArray[(y * (width * 4) + x * 4) + 3] = colors[colorIndex][3];
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, this.wrapS);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, this.wrapT);
+
+        return this;
+    }
+
+    /**
+     * tex image
+     * upload image or set size to GPU
+     * notice: if width and height are undefined, pixels must has both width and height properties!!
+     * @param pixelsArray {Array} pixels array, order: right, left, up, down, back, front.
+     */
+    TextureCube.prototype.texImage = function(pixelsArray, width, height) {
+        var gl = this.gl;
+        var faces = this.faces;
+
+        for(var i = 0; i < 6; i++) {
+            if((width !== undefined) && (height !== undefined)) {
+                gl.texImage2D(faces[i], 0, this.dataFormat, width, height, this.border, this.dataFormat, this.dataType, pixelsArray[i]);
+            } else {
+                gl.texImage2D(faces[i], 0, this.dataFormat, this.dataFormat, this.dataType, pixelsArray[i]);
             }
         }
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixelArray);
-
-        this.width = width;
-        this.height = height;
-
-        this.isInit = true;
-    }
-
-    zen3d.Texture = Texture;
-})();
-
-(function() {
-    /**
-     * RenderTexture Class
-     * for render target to draw into, can be render as a texture
-     **/
-    var RenderTexture = function(gl, width, height) {
-
-        RenderTexture.superClass.constructor.call(this, gl);
-
-        if(width && height) {
-            this.resize(width, height);
+        if((width !== undefined) && (height !== undefined)) {
+            this.width = width;
+            this.height = height;
+        } else {
+            this.width = pixelsArray[0].width;
+            this.height = pixelsArray[0].height;
         }
+
+        this.isRenderable = true;
+
+        return this;
     }
 
-    // inherit
-    zen3d.inherit(RenderTexture, zen3d.Texture);
-
     /**
-     * resize this render texture
-     * this function will clear color of this texture
+     * get texture from image|TypedArray|canvas
      */
-    RenderTexture.prototype.resize = function(width, height, bind) {
-        var gl = this.gl;
+    TextureCube.fromRes = function(gl, dataArray, width, height) {
+        var texture = new TextureCube(gl);
 
-        if(bind) {
-            gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
-        }
+        texture.bind().texParam().texImage(
+            dataArray, width, height
+        );
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-        this.width = width;
-        this.height = height;
-
-        this.isInit = true;
+        return texture;
     }
 
-    zen3d.RenderTexture = RenderTexture;
+    /**
+     * get texture from jpg|png|jpeg srcArray
+     * texture maybe not init util image is loaded
+     */
+    TextureCube.fromSrc = function(gl, srcArray) {
+        // TODO need a load list
+    }
+
+    /**
+     * create a render texture
+     */
+    TextureCube.createRenderTexture = function(gl, width, height) {
+        var texture = new TextureCube(gl);
+
+        texture.bind().texParam().texImage(
+            [null, null, null, null, null, null], width, height
+        );
+
+        return texture;
+    }
+
+    zen3d.TextureCube = TextureCube;
 })();
 (function() {
     /**
@@ -2607,7 +2797,7 @@
      * check map init
      */
     Material.prototype.checkMapInit = function() {
-        return (!this.map || this.map.isInit) && (!this.mormalMap || this.normalMap.isInit);
+        return (!this.map || this.map.isRenderable) && (!this.mormalMap || this.normalMap.isRenderable);
     }
 
     zen3d.Material = Material;
