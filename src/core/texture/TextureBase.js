@@ -20,8 +20,8 @@
         this.minFilter = gl.LINEAR;
 
         // gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT
-        this.wrapS = gl.REPEAT;
-        this.wrapT = gl.REPEAT;
+        this.wrapS = gl.CLAMP_TO_EDGE;
+        this.wrapT = gl.CLAMP_TO_EDGE;
 
         this.glTexture = gl.createTexture();
 

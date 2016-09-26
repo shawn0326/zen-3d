@@ -191,15 +191,9 @@ camera.setPerspective(45 / 180 * Math.PI, 480 / 480, 10, 1000);
 scene.add(camera);
 
 // console.log(camera.projectionMatrix)
+var renderTexture = zen3d.Texture2D.createRenderTexture(renderer.gl, 480, 480);
 var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
-
-renderTarget.bind();
-
-renderTarget.bindTexture2D();
-
-renderTarget.attachRenderBuffer(undefined, "depth");
-
-
+renderTarget.bind().attachRenderBuffer("depth").bindTexture2D(renderTexture).unbind();
 
 // frame render
 var count = 0;
@@ -209,16 +203,27 @@ function loop() {
 
     count++;
 
-    if(count%2 == 0) {
-        material3.map = null;
-        renderTarget.bind();
-        var gl = renderer.gl;
+    // if(count%2 == 0) {
+        // material2.map = null;
+        // renderTarget.bind();
+        // var gl = renderer.gl;
 
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-    } else {
-        material3.map = renderTarget.texture;
-        renderTarget.unbind();
-    }
+        // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+        // return;
+    // } else {
+        // renderTarget.bind();
+        //
+        // var gl = renderer.gl;
+        // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+        //
+        // material2.map = texture4;
+        //
+        // renderer.render(scene, camera);
+        //
+        // material2.map = renderTexture;
+        //
+        // renderTarget.unbind();
+    // }
 
     // rotation.y = Math.PI / 180 * count;
     // mesh1.rotation = rotation;

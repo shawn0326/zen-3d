@@ -1,8 +1,7 @@
 (function() {
     /**
-     * Render Target Class
-     * the render target can bind a renderTexture
-     * the render target can attach some renderBuffer
+     * RenderTarget Class
+     * it's actrually a framebuffer with a needed renderbuffer(or not)
      * @class
      */
     var RenderTarget = function(gl, width, height) {
@@ -13,50 +12,41 @@
 
         this.frameBuffer = gl.createFramebuffer();
 
-        this.texture = null;
-
         this.renderBuffer = null;
     }
 
     /**
-     * bind a 2d texture
-     * @param [bind] {boolean} bind frame buffer or not, default is false
-     * @param [renderTexture] {zen3d.RenderTexture} the render texture render to, if not set, this will create a renderTexture
+     * bind the render target
+     *
      */
-    RenderTarget.prototype.bindTexture2D = function(bind, renderTexture) {
+    RenderTarget.prototype.bind = function() {
         var gl = this.gl;
 
-        var texture = null;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
-        if(renderTexture) {
-            texture = renderTexture;
-            texture.resize(this.width, this.height, true);//bind
-        } else {
-            texture = zen3d.Texture2D.createRenderTexture(gl, this.width, this.height);
-        }
+        return this;
+    }
 
-        if(bind) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
-        }
+    /**
+     * unbind the render target
+     *
+     */
+    RenderTarget.prototype.unbind = function() {
+        var gl = this.gl;
 
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture.glTexture, 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        this.texture = texture;
+        return this;
     }
 
     /**
      * attach a render buffer
-     * @param [bind] {boolean} bind frame buffer or not, default is false
      * @param [type] {string} "depth": gl.DEPTH_ATTACHMENT, "default": gl.DEPTH_STENCIL_ATTACHMENT
      */
-    RenderTarget.prototype.attachRenderBuffer = function(bind, type) {
+    RenderTarget.prototype.attachRenderBuffer = function(type) {
         var gl = this.gl;
 
         var renderBuffer = gl.createRenderbuffer();
-
-        if(bind) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
-        }
 
         gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
 
@@ -71,99 +61,57 @@
             gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, this.width, this.height);
         }
 
-        // TODO multiple render buffer needed?
-        this.renderBufferType = type;
         this.renderBuffer = renderBuffer;
+
+        return this;
+    }
+
+    /**
+     * bind a 2d texture
+     * @param texture {TextureCube} texture to bind
+     */
+    RenderTarget.prototype.bindTexture2D = function(texture) {
+        var gl = this.gl;
+
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture.glTexture, 0);
+
+        return this;
+    }
+
+    /**
+     * bind a cube texture
+     * @param texture {TextureCube} texture to bind
+     * @param faceCode {number} face code order: 0: right, 1: left, 2: up, 3: down, 4: back, 5: front.
+     */
+    RenderTarget.prototype.bindTextureCube = function(texture, faceCode) {
+        var gl = this.gl;
+
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture.faces[faceCode], texture.glTexture, 0);
+
+        return this;
     }
 
     /**
      * resize render target
-     * so we can recycling a render buffer
+     * so we can recycling a render target
      */
     RenderTarget.prototype.resize = function(width, height) {
-        this.width = width;
-        this.height = height;
+        // TODO
+        // if bind, resize texture
+        // if bind, resize renderBuffer
+    }
 
-        // resize texture
-        this.texture.resize(width, height, true);
+    /**
+     * destroy
+     */
+    RenderTarget.prototype.destroy = function() {
+        var gl = this.gl;
 
-        // resize render buffer
+        gl.deleteFramebuffer(this.frameBuffer);
+
         if(this.renderBuffer) {
-            gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderBuffer);
-            if(this.renderBufferType == "depth") {
-                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-            } else if(this.renderBufferType == "stencil") {
-                gl.renderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, width, height);
-            } else {
-                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, width, height);
-            }
+            gl.deleteRenderbuffer(this.renderBuffer);
         }
-    }
-
-    /**
-     * bind the render target
-     *
-     */
-    RenderTarget.prototype.bind = function() {
-        var gl = this.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
-    }
-
-    /**
-     * unbind the render target
-     *
-     */
-    RenderTarget.prototype.unbind = function() {
-        var gl = this.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-
-    /**
-     * check state
-     */
-    RenderTarget.prototype.checkState = function() {
-
-        if(gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
-            var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER)
-            switch(status) {
-                case gl.FRAMEBUFFER_COMPLETE:
-                     console.log("Framebuffer complete.")
-                    break;
-
-                case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                     console.log("[ERROR] Framebuffer incomplete: Attachment is NOT complete.")
-                    break;
-
-                case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                     console.log("[ERROR] Framebuffer incomplete: No image is attached to FBO.")
-                    break;
-
-                case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-                     console.log("[ERROR] Framebuffer incomplete: Attached images have different dimensions.")
-                    break;
-
-                case gl.FRAMEBUFFER_INCOMPLETE_FORMATS:
-                     console.log("[ERROR] Framebuffer incomplete: Color attached images have different internal formats.")
-                    break;
-
-                case gl.FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                     console.log("[ERROR] Framebuffer incomplete: Draw buffer.")
-                    break;
-
-                case gl.FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                     console.log("[ERROR] Framebuffer incomplete: Read buffer.")
-                    break;
-
-                case gl.FRAMEBUFFER_UNSUPPORTED:
-                     console.log("[ERROR] Unsupported by FBO implementation.")
-                    break;
-
-                default:
-                     console.log("[ERROR] Unknow error.")
-                    break;
-            }
-        }
-
     }
 
     zen3d.RenderTarget = RenderTarget;

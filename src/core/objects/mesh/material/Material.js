@@ -28,7 +28,7 @@
      * check map init
      */
     Material.prototype.checkMapInit = function() {
-        return (!this.map || this.map.isRenderable) && (!this.mormalMap || this.normalMap.isRenderable);
+        return (!this.map || this.map.isRenderable) && (!this.normalMap || this.normalMap.isRenderable);
     }
 
     zen3d.Material = Material;
