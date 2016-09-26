@@ -29,6 +29,12 @@
         // init webgl
         gl.enable(gl.STENCIL_TEST);
         gl.enable(gl.DEPTH_TEST);
+        // cull face
+        gl.enable(gl.CULL_FACE);
+        // gl.FRONT_AND_BACK, gl.FRONT, gl.BACK
+        gl.cullFace(gl.BACK);
+        // gl.CW, gl.CCW
+        gl.frontFace(gl.CCW);
 
         // object cache
         this.cache = new zen3d.RenderCache();
