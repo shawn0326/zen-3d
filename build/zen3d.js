@@ -667,155 +667,6 @@
 })();
 (function() {
 
-    var vertexCommon = [
-        'attribute vec3 a_Position;',
-
-        'uniform mat4 u_Projection;',
-        'uniform mat4 u_View;',
-        'uniform mat4 u_Model;'
-    ].join("\n");
-
-    var fragmentCommon = [
-        '#extension GL_OES_standard_derivatives : enable',
-        'precision mediump float;',
-
-        'uniform float u_Opacity;',
-        'uniform vec3 u_Color;',
-    ].join("\n");
-
-    var diffuseHandler = [
-        'vec4 diffuseColor = vec4(u_Color, u_Opacity);',
-
-        '#ifdef USE_DIFFUSE_MAP',
-            'diffuseColor *= texture2D(texture, v_Uv);',
-        '#endif',
-    ].join("\n");
-
-    var normalHandler = [
-        '#ifdef USE_NORMAL',
-            'vec3 N;',
-            '#ifdef USE_NORMAL_MAP',
-                'vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;',
-                'mat3 tspace = tsn(normalize(v_Normal), -v_VmPos, v_Uv);',
-                // 'mat3 tspace = tbn(normalize(v_Normal), v_VmPos, v_Uv);',
-                'N = normalize(tspace * (normalMapColor * 2.0 - 1.0));',
-            '#else',
-                'N = normalize(v_Normal);',
-            '#endif',
-        '#endif',
-    ].join("\n");
-
-    var ambientLightPars = [
-        'struct AmbientLight',
-        '{',
-            'vec4 color;',
-            'float intensity;',
-        '};',
-        'uniform AmbientLight u_Ambient[USE_AMBIENT_LIGHT];',
-    ].join("\n");
-
-    var directLightPars = [
-        'struct DirectLight',
-        '{',
-            'vec3 direction;',
-            'vec4 color;',
-            'float intensity;',
-        '};',
-        'uniform DirectLight u_Directional[USE_DIRECT_LIGHT];',
-    ].join("\n");
-
-    var pointLightPars = [
-        'struct PointLight',
-        '{',
-            'vec3 position;',
-            'vec4 color;',
-            'float intensity;',
-        '};',
-        'uniform PointLight u_Point[USE_POINT_LIGHT];',
-    ].join("\n");
-
-    var lightPars = [
-        '#ifdef USE_AMBIENT_LIGHT',
-            ambientLightPars,
-        '#endif',
-        '#ifdef USE_DIRECT_LIGHT',
-            directLightPars,
-        '#endif',
-        '#ifdef USE_POINT_LIGHT',
-            pointLightPars,
-        '#endif',
-    ].join("\n");
-
-    var lightHandler = [
-        '#ifdef USE_LIGHT',
-            'vec4 light;',
-            'vec3 L;',
-            '#ifdef USE_PHONE',
-            'vec3 V;',
-            '#endif',
-
-            '#ifdef USE_AMBIENT_LIGHT',
-            'for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {',
-                'gl_FragColor += diffuseColor * u_Ambient[i].color * u_Ambient[i].intensity;',
-            '}',
-            '#endif',
-
-            '#ifdef USE_DIRECT_LIGHT',
-            'for(int i = 0; i < USE_DIRECT_LIGHT; i++) {',
-                'L = -u_Directional[i].direction;',
-                'light = u_Directional[i].color * u_Directional[i].intensity;',
-                'L = normalize(L);',
-
-                'RE_Lambert(diffuseColor, light, N, L, gl_FragColor);',
-
-                '#ifdef USE_PHONE',
-                'V = normalize(u_Eye - v_VmPos);',
-                // 'RE_Phone(diffuseColor, light, N, L, V, 4., gl_FragColor);',
-                'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, gl_FragColor);',
-                '#endif',
-            '}',
-            '#endif',
-
-            '#ifdef USE_POINT_LIGHT',
-            'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
-                'L = u_Point[i].position - v_VmPos;',
-                'float dist = max(1. - length(L) * .005, 0.0);',
-                'light = u_Point[i].color * u_Point[i].intensity * dist;',
-                'L = normalize(L);',
-
-                'RE_Lambert(diffuseColor, light, N, L, gl_FragColor);',
-
-                '#ifdef USE_PHONE',
-                'V = normalize(u_Eye - v_VmPos);',
-                // 'RE_Phone(diffuseColor, light, N, L, V, 4., gl_FragColor);',
-                'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, gl_FragColor);',
-                '#endif',
-            '}',
-            '#endif',
-        '#endif',
-    ].join("\n");
-
-    var RE_Lambert = [
-        'void RE_Lambert(vec4 k, vec4 light, vec3 N, vec3 L, inout vec4 reflectLight) {',
-            'float dotNL = max(dot(N, L), 0.);',
-            'reflectLight += k * light * dotNL;',
-        '}'
-    ].join("\n");
-
-    var RE_Phone = [
-        'void RE_Phone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
-            'vec3 R = max(dot(2.0 * N, L), 0.) * N - L;',
-            'reflectLight += k * light * pow(max(dot(V, R), 0.), n_s);',
-        '}'
-    ].join("\n");
-
-    var RE_BlinnPhone = [
-        'void RE_BlinnPhone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
-            'vec3 H = normalize(L + V);',
-            'reflectLight += k * light * pow(max(dot(N, H), 0.), n_s);',
-        '}'
-    ].join("\n");
-
     var transpose = "mat4 transpose(mat4 inMatrix) { \n" +
         "vec4 i0 = inMatrix[0]; \n" +
         "vec4 i1 = inMatrix[1]; \n" +
@@ -899,6 +750,289 @@
     "} \n";
 
     /**
+     * common parts
+     */
+
+    var vertexCommon = [
+        'attribute vec3 a_Position;',
+        'attribute vec3 a_Normal;',
+
+        transpose,
+        inverse,
+
+        'uniform mat4 u_Projection;',
+        'uniform mat4 u_View;',
+        'uniform mat4 u_Model;',
+
+        'uniform vec3 u_CameraPosition;'
+    ].join("\n");
+
+    var fragmentCommon = [
+        'uniform float u_Opacity;',
+        'uniform vec3 u_Color;',
+
+        'uniform vec3 u_CameraPosition;'
+    ].join("\n");
+
+    /**
+     * frag
+     */
+
+    var frag_begin = [
+        'vec4 outColor = vec4(u_Color, u_Opacity);'
+    ].join("\n");
+
+    var frag_end = [
+        'gl_FragColor = outColor;'
+    ].join("\n");
+
+    /**
+     * pvm
+     */
+
+    var pvm_vert = [
+        'gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);'
+    ].join("\n");
+
+    /**
+     * uv
+     */
+
+    var uv_pars_vert = [
+        '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
+            'attribute vec2 a_Uv;',
+            'varying vec2 v_Uv;',
+        '#endif',
+    ].join("\n");
+
+    var uv_vert = [
+        '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
+            'v_Uv = a_Uv;',
+        '#endif',
+    ].join("\n");
+
+    var uv_pars_frag = [
+        '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
+            'varying vec2 v_Uv;',
+        '#endif',
+    ].join("\n");
+
+    /**
+     * normal
+     */
+
+    var normal_pars_vert = [
+        '#ifdef USE_NORMAL',
+            //'attribute vec3 a_Normal;',
+            'varying vec3 v_Normal;',
+        '#endif',
+    ].join("\n");
+
+    var normal_vert = [
+        '#ifdef USE_NORMAL',
+            'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(a_Normal, 1.0)).xyz;',
+        '#endif',
+    ].join("\n");
+
+    var normal_pars_frag = [
+        '#ifdef USE_NORMAL',
+            'varying vec3 v_Normal;',
+        '#endif',
+    ].join("\n");
+
+    var normal_frag = [
+        '#ifdef USE_NORMAL',
+            'vec3 N;',
+            '#ifdef USE_NORMAL_MAP',
+                'vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;',
+                'mat3 tspace = tsn(normalize(v_Normal), v_VmPos, v_Uv);',
+                // 'mat3 tspace = tbn(normalize(v_Normal), v_VmPos, v_Uv);',
+                'N = normalize(tspace * (normalMapColor * 2.0 - 1.0));',
+            '#else',
+                'N = normalize(v_Normal);',
+            '#endif',
+        '#endif',
+    ].join("\n");
+
+    /**
+     * diffuse map
+     */
+
+    var diffuseMap_pars_frag = [
+        '#ifdef USE_DIFFUSE_MAP',
+            'uniform sampler2D texture;',
+        '#endif',
+    ].join("\n");
+
+    var diffuseMap_frag = [
+        '#ifdef USE_DIFFUSE_MAP',
+            'outColor *= texture2D(texture, v_Uv);',
+        '#endif',
+    ].join("\n");
+
+    /**
+     * normal map
+     */
+
+    var normalMap_pars_frag = [
+        tsn,
+        tbn,
+        'uniform sampler2D normalMap;',
+    ].join("\n");
+
+    /**
+     * env map
+     */
+
+    var envMap_pars_vert = [
+        '#ifdef USE_ENV_MAP',
+            'varying vec3 v_EnvPos;',
+        '#endif',
+    ].join("\n");
+
+    var envMap_vert = [
+        '#ifdef USE_ENV_MAP',
+            'v_EnvPos = reflect(normalize((u_Model * vec4(a_Position, 1.0)).xyz - u_CameraPosition), (transpose(inverse(u_Model)) * vec4(a_Normal, 1.0)).xyz);',
+        '#endif',
+    ].join("\n");
+
+    var envMap_pars_frag = [
+        '#ifdef USE_ENV_MAP',
+            'varying vec3 v_EnvPos;',
+            'uniform samplerCube envMap;',
+            'uniform float u_EnvMap_Intensity;',
+        '#endif',
+    ].join("\n");
+
+    var envMap_frag = [
+        '#ifdef USE_ENV_MAP',
+            'vec4 envColor = textureCube(envMap, v_EnvPos);',
+            // TODO add? mix? or some other method?
+            // 'outColor = mix(outColor, envColor, u_EnvMap_Intensity);',
+            'outColor += envColor * u_EnvMap_Intensity;',
+            // 'outColor = mix(outColor, envColor * outColor, u_EnvMap_Intensity);',
+        '#endif',
+    ].join("\n");
+
+    /**
+     * light
+     */
+
+    var ambientlight_pars_frag = [
+        'struct AmbientLight',
+        '{',
+            'vec4 color;',
+            'float intensity;',
+        '};',
+        'uniform AmbientLight u_Ambient[USE_AMBIENT_LIGHT];',
+    ].join("\n");
+
+    var directlight_pars_frag = [
+        'struct DirectLight',
+        '{',
+            'vec3 direction;',
+            'vec4 color;',
+            'float intensity;',
+        '};',
+        'uniform DirectLight u_Directional[USE_DIRECT_LIGHT];',
+    ].join("\n");
+
+    var pointlight_pars_frag = [
+        'struct PointLight',
+        '{',
+            'vec3 position;',
+            'vec4 color;',
+            'float intensity;',
+        '};',
+        'uniform PointLight u_Point[USE_POINT_LIGHT];',
+    ].join("\n");
+
+    var light_pars_frag = [
+        '#ifdef USE_AMBIENT_LIGHT',
+            ambientlight_pars_frag,
+        '#endif',
+        '#ifdef USE_DIRECT_LIGHT',
+            directlight_pars_frag,
+        '#endif',
+        '#ifdef USE_POINT_LIGHT',
+            pointlight_pars_frag,
+        '#endif',
+    ].join("\n");
+
+    var light_frag = [
+        '#ifdef USE_LIGHT',
+            'vec4 light;',
+            'vec3 L;',
+            '#ifdef USE_PHONE',
+            'vec3 V;',
+            '#endif',
+            'vec4 reflectLight = vec4(0., 0., 0., 0.);',
+            'vec4 diffuseColor = outColor.xyzw;',
+
+            '#ifdef USE_AMBIENT_LIGHT',
+            'for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {',
+                'reflectLight += diffuseColor * u_Ambient[i].color * u_Ambient[i].intensity;',
+            '}',
+            '#endif',
+
+            '#ifdef USE_DIRECT_LIGHT',
+            'for(int i = 0; i < USE_DIRECT_LIGHT; i++) {',
+                'L = -u_Directional[i].direction;',
+                'light = u_Directional[i].color * u_Directional[i].intensity;',
+                'L = normalize(L);',
+
+                'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
+
+                '#ifdef USE_PHONE',
+                'V = normalize(u_Eye - v_VmPos);',
+                // 'RE_Phone(diffuseColor, light, N, L, V, 4., reflectLight);',
+                'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                '#endif',
+            '}',
+            '#endif',
+
+            '#ifdef USE_POINT_LIGHT',
+            'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
+                'L = u_Point[i].position - v_VmPos;',
+                'float dist = max(1. - length(L) * .005, 0.0);',
+                'light = u_Point[i].color * u_Point[i].intensity * dist;',
+                'L = normalize(L);',
+
+                'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
+
+                '#ifdef USE_PHONE',
+                'V = normalize(u_Eye - v_VmPos);',
+                // 'RE_Phone(diffuseColor, light, N, L, V, 4., reflectLight);',
+                'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                '#endif',
+            '}',
+            '#endif',
+            'outColor = reflectLight.xyzw;',
+        '#endif'
+    ].join("\n");
+
+    var RE_Lambert = [
+        'void RE_Lambert(vec4 k, vec4 light, vec3 N, vec3 L, inout vec4 reflectLight) {',
+            'float dotNL = max(dot(N, L), 0.);',
+            'reflectLight += k * light * dotNL;',
+        '}'
+    ].join("\n");
+
+    var RE_Phone = [
+        'void RE_Phone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+            'vec3 R = max(dot(2.0 * N, L), 0.) * N - L;',
+            'reflectLight += k * light * pow(max(dot(V, R), 0.), n_s);',
+        '}'
+    ].join("\n");
+
+    var RE_BlinnPhone = [
+        'void RE_BlinnPhone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+            'vec3 H = normalize(L + V);',
+            'reflectLight += k * light * pow(max(dot(N, H), 0.), n_s);',
+        '}'
+    ].join("\n");
+
+    /**
      * shader libs
      */
     var ShaderLib = {
@@ -906,201 +1040,104 @@
         // basic shader
         basicVertex: [
             vertexCommon,
-
-            '#ifdef USE_DIFFUSE_MAP',
-                'attribute vec2 a_Uv;',
-                'varying vec2 v_Uv;',
-            '#endif',
-
+            uv_pars_vert,
+            envMap_pars_vert,
             'void main() {',
-                'gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);',
-
-                '#ifdef USE_DIFFUSE_MAP',
-                    'v_Uv = a_Uv;',
-                '#endif',
+                pvm_vert,
+                uv_vert,
+                envMap_vert,
             '}'
         ].join("\n"),
         basicFragment: [
             fragmentCommon,
-
-            '#ifdef USE_DIFFUSE_MAP',
-                'varying vec2 v_Uv;',
-                'uniform sampler2D texture;',
-            '#endif',
-
+            uv_pars_frag,
+            diffuseMap_pars_frag,
+            envMap_pars_frag,
             'void main() {',
-                'gl_FragColor = vec4(0., 0., 0., 0.);',
-
-                diffuseHandler,
-
-                'gl_FragColor = diffuseColor;',
+                frag_begin,
+                diffuseMap_frag,
+                envMap_frag,
+                frag_end,
             '}'
         ].join("\n"),
 
         // lambert shader
         lambertVertex: [
             vertexCommon,
-
-            '#ifdef USE_NORMAL',
-                transpose,
-                inverse,
-            '#endif',
-
-            '#ifdef USE_NORMAL',
-                'attribute vec3 a_Normal;',
-                'varying vec3 v_Normal;',
-            '#endif',
-
-            '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
-                'attribute vec2 a_Uv;',
-                'varying vec2 v_Uv;',
-            '#endif',
-
+            normal_pars_vert,
+            uv_pars_vert,
             '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP)',
                 'varying vec3 v_VmPos;',
             '#endif',
-
+            envMap_pars_vert,
             'void main() {',
-                'gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);',
-
-                '#ifdef USE_NORMAL',
-                    'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(a_Normal, 1.0)).xyz;',
-                '#endif',
-
-                '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
-                    'v_Uv = a_Uv;',
-                '#endif',
-
+                pvm_vert,
+                normal_vert,
+                uv_vert,
                 '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP)',
                     'v_VmPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
                 '#endif',
+                envMap_vert,
             '}'
         ].join("\n"),
         lambertFragment: [
             fragmentCommon,
-
-            '#ifdef USE_NORMAL_MAP',
-                tsn,
-                tbn,
-            '#endif',
-
-            '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
-                'varying vec2 v_Uv;',
-            '#endif',
-
-            '#ifdef USE_DIFFUSE_MAP',
-                'uniform sampler2D texture;',
-            '#endif',
-
-            '#ifdef USE_NORMAL_MAP',
-                'uniform sampler2D normalMap;',
-            '#endif',
-
-            lightPars,
-
-            '#ifdef USE_NORMAL',
-                'varying vec3 v_Normal;',
-            '#endif',
-
+            uv_pars_frag,
+            diffuseMap_pars_frag,
+            normalMap_pars_frag,
+            light_pars_frag,
+            normal_pars_frag,
             '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP)',
                 'varying vec3 v_VmPos;',
             '#endif',
-
             RE_Lambert,
-
+            envMap_pars_frag,
             'void main() {',
-                'gl_FragColor = vec4(0., 0., 0., 0.);',
-
-                diffuseHandler,
-
-                // 'gl_FragColor += diffuseColor;',
-
-                normalHandler,
-
-                lightHandler,
+                frag_begin,
+                diffuseMap_frag,
+                normal_frag,
+                light_frag,
+                envMap_frag,
+                frag_end,
             '}'
         ].join("\n"),
 
         // phone shader
         phoneVertex: [
             vertexCommon,
-
-            '#ifdef USE_NORMAL',
-                transpose,
-                inverse,
-            '#endif',
-
-            '#ifdef USE_NORMAL',
-                'attribute vec3 a_Normal;',
-                'varying vec3 v_Normal;',
-            '#endif',
-
-            '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
-                'attribute vec2 a_Uv;',
-                'varying vec2 v_Uv;',
-            '#endif',
-
+            normal_pars_vert,
+            uv_pars_vert,
             'varying vec3 v_VmPos;',
-
+            envMap_pars_vert,
             'void main() {',
-                'gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);',
-
-                '#ifdef USE_NORMAL',
-                    'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(a_Normal, 1.0)).xyz;',
-                '#endif',
-
-                '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
-                    'v_Uv = a_Uv;',
-                '#endif',
-
+                pvm_vert,
+                normal_vert,
+                uv_vert,
                 'v_VmPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
+                envMap_vert,
             '}'
         ].join("\n"),
         phoneFragment: [
             fragmentCommon,
-
-            '#ifdef USE_NORMAL_MAP',
-                tsn,
-                tbn,
-            '#endif',
-
-            '#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP)',
-                'varying vec2 v_Uv;',
-            '#endif',
-
-            '#ifdef USE_DIFFUSE_MAP',
-                'uniform sampler2D texture;',
-            '#endif',
-
-            '#ifdef USE_NORMAL_MAP',
-                'uniform sampler2D normalMap;',
-            '#endif',
-
-            lightPars,
-
-            '#ifdef USE_NORMAL',
-                'varying vec3 v_Normal;',
-            '#endif',
-
-            'varying vec3 v_VmPos;',
-
-            'uniform vec3 u_Eye;',
             'uniform float u_Specular;',
-
+            uv_pars_frag,
+            diffuseMap_pars_frag,
+            normalMap_pars_frag,
+            light_pars_frag,
+            normal_pars_frag,
+            'varying vec3 v_VmPos;',
+            'uniform vec3 u_Eye;',
             RE_Lambert,
             RE_Phone,
             RE_BlinnPhone,
-
+            envMap_pars_frag,
             'void main() {',
-                'gl_FragColor = vec4(0., 0., 0., 0.);',
-
-                diffuseHandler,
-
-                // 'gl_FragColor += diffuseColor;',
-
-                normalHandler,
-
-                lightHandler,
+                frag_begin,
+                diffuseMap_frag,
+                normal_frag,
+                light_frag,
+                envMap_frag,
+                frag_end,
             '}'
         ].join("\n")
     };
@@ -1196,6 +1233,28 @@
     }
 
     /**
+     * get max precision
+     * @param gl
+     * @param precision {string} the expect precision, can be: "highp"|"mediump"|"lowp"
+     */
+    function getMaxPrecision(gl, precision) {
+		if ( precision === 'highp' ) {
+			if ( gl.getShaderPrecisionFormat( gl.VERTEX_SHADER, gl.HIGH_FLOAT ).precision > 0 &&
+			     gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_FLOAT ).precision > 0 ) {
+				return 'highp';
+			}
+			precision = 'mediump';
+		}
+		if ( precision === 'mediump' ) {
+			if ( gl.getShaderPrecisionFormat( gl.VERTEX_SHADER, gl.MEDIUM_FLOAT ).precision > 0 &&
+			     gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT ).precision > 0 ) {
+				return 'mediump';
+			}
+		}
+		return 'lowp';
+	}
+
+    /**
      * WebGL Program
      * @class Program
      */
@@ -1262,11 +1321,15 @@
         }
 
         var vshader = [
+            'precision ' + props.precision + ' float;',
+            'precision ' + props.precision + ' int;',
+
             (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
             (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
             ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+            props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
@@ -1276,6 +1339,11 @@
         ].join("\n");
 
         var fshader = [
+            '#extension GL_OES_standard_derivatives : enable',
+
+            'precision ' + props.precision + ' float;',
+            'precision ' + props.precision + ' int;',
+
             (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
             (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
@@ -1283,7 +1351,7 @@
             (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
             ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            // props.useNormalMap ? '#define USE_NORMAL_MAP' : '',
+            props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
@@ -1305,8 +1373,10 @@
         pointLightNum = lightsNum[2];
 
         var props = {
+            precision: getMaxPrecision(gl, "highp"),
             useDiffuseMap: !!material.map,
             useNormalMap: !!material.normalMap,
+            useEnvMap: !!material.envMap,
             useDiffuseColor: !material.map,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,
@@ -1367,7 +1437,7 @@
         // gl.FRONT_AND_BACK, gl.FRONT, gl.BACK
         gl.cullFace(gl.BACK);
         // gl.CW, gl.CCW
-        gl.frontFace(gl.CCW);
+        gl.frontFace(gl.CW);
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -1447,32 +1517,91 @@
             var indices_view = indices.subarray(0, indicesIndex);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
 
+            // get program
             var program = zen3d.getProgram(gl, material, [
                 ambientLightsNum,
                 directLightsNum,
                 pointLightsNum
             ]);
-            var uniforms = program.uniforms;
-            var attributes = program.attributes;
             gl.useProgram(program.id);
 
-            var a_Position = attributes.a_Position.location;
-            gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 4 * 17, 0);
-            gl.enableVertexAttribArray(a_Position);
+            // update attributes
+            var attributes = program.attributes;
+            for(var key in attributes) {
+                var location = attributes[key].location;
+                switch(key) {
+                    case "a_Position":
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
+                        break;
+                    case "a_Normal":
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
+                        break;
+                    case "a_Uv":
+                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
+                        break;
+                    default:
+                        console.warn("attribute " + key + " not found!");
+                }
+                gl.enableVertexAttribArray(location);
+            }
 
-            var projectionMat = camera.projectionMatrix.elements;
-            gl.uniformMatrix4fv(uniforms.u_Projection.location, false, projectionMat);
+            // update uniforms
+            var uniforms = program.uniforms;
+            for(var key in uniforms) {
+                var location = uniforms[key].location;
+                switch(key) {
 
-            var viewMatrix = camera.viewMatrix.elements;
-            gl.uniformMatrix4fv(uniforms.u_View.location, false, viewMatrix);
+                    // pvm matrix
+                    case "u_Projection":
+                        var projectionMat = camera.projectionMatrix.elements;
+                        gl.uniformMatrix4fv(location, false, projectionMat);
+                        break;
+                    case "u_View":
+                        var viewMatrix = camera.viewMatrix.elements;
+                        gl.uniformMatrix4fv(location, false, viewMatrix);
+                        break;
+                    case "u_Model":
+                        var modelMatrix = object.worldMatrix.elements;
+                        gl.uniformMatrix4fv(location, false, modelMatrix);
+                        break;
 
-            var modelMatrix = object.worldMatrix.elements;
-            gl.uniformMatrix4fv(uniforms.u_Model.location, false, modelMatrix);
+                    case "u_Color":
+                        var color = zen3d.hex2RGB(material.color);
+                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        break;
+                    case "u_Opacity":
+                        gl.uniform1f(location, material.opacity);
+                        break;
 
-            gl.uniform1f(uniforms.u_Opacity.location, material.opacity);
+                    case "texture":
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+                        gl.uniform1i(location, 0);
+                        break;
+                    case "normalMap":
+                        gl.activeTexture(gl.TEXTURE1);
+                        gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
+                        gl.uniform1i(location, 1);
+                        break;
+                    case "envMap":
+                        gl.activeTexture(gl.TEXTURE2);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.envMap.glTexture);
+                        gl.uniform1i(location, 2);
+                        break;
 
-            var color = zen3d.hex2RGB(material.color);
-            gl.uniform3f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255);
+                    case "u_EnvMap_Intensity":
+                        gl.uniform1f(location, material.envMapIntensity);
+                        break;
+                    case "u_Specular":
+                        var specular = material.specular;
+                        gl.uniform1f(location, specular);
+                        break;
+                    case "u_CameraPosition":
+                        var position = camera.position;
+                        gl.uniform3f(location, position.x, position.y, position.z);
+                        break;
+                }
+            }
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
@@ -1527,42 +1656,14 @@
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
-
-                if(directLightsNum > 0 || pointLightsNum > 0) {
-
-                    var a_Normal = attributes.a_Normal.location;
-                    gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
-                    gl.enableVertexAttribArray(a_Normal);
-
-                    if(material.normalMap) {
-                        gl.activeTexture(gl.TEXTURE1);
-                        gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
-                        gl.uniform1i(uniforms.normalMap.location, 1);
-                    }
-                }
-
-                if(material.type == MATERIAL_TYPE.PHONE) {
-                    var eye = camera.position;
-                    var viewMatrix = camera.viewMatrix;
-                    helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
-                    gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
-
-                    var specular = material.specular;
-                    gl.uniform1f(uniforms.u_Specular.location, specular);
-                }
-            }
-            /////////////////
-
-            if(((directLightsNum > 0 || pointLightsNum > 0) && material.normalMap) || material.map) {
-                var a_Uv = attributes.a_Uv.location;
-                gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
-                gl.enableVertexAttribArray(a_Uv);
             }
 
-            if(material.map) {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
-                gl.uniform1i(uniforms.texture.location, 0);
+            // TODO
+            if(material.type == MATERIAL_TYPE.PHONE) {
+                var eye = camera.position;
+                var viewMatrix = camera.viewMatrix;
+                helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
+                gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
             }
 
             if(material.transparent) {
@@ -2035,17 +2136,18 @@
         var eye = this.position;
 
         var zaxis = new zen3d.Vector3();
-        eye.subtract(target, zaxis);
+        eye.subtract(target, zaxis); // right-hand coordinates system
         zaxis.normalize();
+
         var xaxis = new zen3d.Vector3();
         up.crossProduct(zaxis, xaxis);
         xaxis.normalize();
+
         var yaxis = new zen3d.Vector3();
         zaxis.crossProduct(xaxis, yaxis);
 
-        // TODO why x axis is opposite??
         this.viewMatrix.set(
-            -xaxis.x, -xaxis.y, -xaxis.z, -xaxis.dotProduct(eye),
+            xaxis.x, xaxis.y, xaxis.z, -xaxis.dotProduct(eye),
             yaxis.x, yaxis.y, yaxis.z, -yaxis.dotProduct(eye),
             zaxis.x, zaxis.y, zaxis.z, -zaxis.dotProduct(eye),
             0, 0, 0, 1
@@ -2745,13 +2847,19 @@
         // normal map
         this.normalMap = null;
 
+        // env map
+        this.envMap = null;
+        this.envMapIntensity = 1;
+
     }
 
     /**
      * check map init
      */
     Material.prototype.checkMapInit = function() {
-        return (!this.map || this.map.isRenderable) && (!this.normalMap || this.normalMap.isRenderable);
+        return (!this.map || this.map.isRenderable) &&
+            (!this.normalMap || this.normalMap.isRenderable) &&
+            (!this.envMap || this.envMap.isRenderable);
     }
 
     zen3d.Material = Material;

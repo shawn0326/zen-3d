@@ -86,6 +86,28 @@
     }
 
     /**
+     * get max precision
+     * @param gl
+     * @param precision {string} the expect precision, can be: "highp"|"mediump"|"lowp"
+     */
+    function getMaxPrecision(gl, precision) {
+		if ( precision === 'highp' ) {
+			if ( gl.getShaderPrecisionFormat( gl.VERTEX_SHADER, gl.HIGH_FLOAT ).precision > 0 &&
+			     gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_FLOAT ).precision > 0 ) {
+				return 'highp';
+			}
+			precision = 'mediump';
+		}
+		if ( precision === 'mediump' ) {
+			if ( gl.getShaderPrecisionFormat( gl.VERTEX_SHADER, gl.MEDIUM_FLOAT ).precision > 0 &&
+			     gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT ).precision > 0 ) {
+				return 'mediump';
+			}
+		}
+		return 'lowp';
+	}
+
+    /**
      * WebGL Program
      * @class Program
      */
@@ -152,11 +174,15 @@
         }
 
         var vshader = [
+            'precision ' + props.precision + ' float;',
+            'precision ' + props.precision + ' int;',
+
             (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
             (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
             ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+            props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
@@ -166,6 +192,11 @@
         ].join("\n");
 
         var fshader = [
+            '#extension GL_OES_standard_derivatives : enable',
+
+            'precision ' + props.precision + ' float;',
+            'precision ' + props.precision + ' int;',
+
             (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
             (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
             (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
@@ -173,7 +204,7 @@
             (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
             ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
             props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            // props.useNormalMap ? '#define USE_NORMAL_MAP' : '',
+            props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
             props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
             props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
@@ -195,8 +226,10 @@
         pointLightNum = lightsNum[2];
 
         var props = {
+            precision: getMaxPrecision(gl, "highp"),
             useDiffuseMap: !!material.map,
             useNormalMap: !!material.normalMap,
+            useEnvMap: !!material.envMap,
             useDiffuseColor: !material.map,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,

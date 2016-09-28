@@ -34,7 +34,7 @@
         // gl.FRONT_AND_BACK, gl.FRONT, gl.BACK
         gl.cullFace(gl.BACK);
         // gl.CW, gl.CCW
-        gl.frontFace(gl.CCW);
+        gl.frontFace(gl.CW);
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -114,32 +114,91 @@
             var indices_view = indices.subarray(0, indicesIndex);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
 
+            // get program
             var program = zen3d.getProgram(gl, material, [
                 ambientLightsNum,
                 directLightsNum,
                 pointLightsNum
             ]);
-            var uniforms = program.uniforms;
-            var attributes = program.attributes;
             gl.useProgram(program.id);
 
-            var a_Position = attributes.a_Position.location;
-            gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 4 * 17, 0);
-            gl.enableVertexAttribArray(a_Position);
+            // update attributes
+            var attributes = program.attributes;
+            for(var key in attributes) {
+                var location = attributes[key].location;
+                switch(key) {
+                    case "a_Position":
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
+                        break;
+                    case "a_Normal":
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
+                        break;
+                    case "a_Uv":
+                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
+                        break;
+                    default:
+                        console.warn("attribute " + key + " not found!");
+                }
+                gl.enableVertexAttribArray(location);
+            }
 
-            var projectionMat = camera.projectionMatrix.elements;
-            gl.uniformMatrix4fv(uniforms.u_Projection.location, false, projectionMat);
+            // update uniforms
+            var uniforms = program.uniforms;
+            for(var key in uniforms) {
+                var location = uniforms[key].location;
+                switch(key) {
 
-            var viewMatrix = camera.viewMatrix.elements;
-            gl.uniformMatrix4fv(uniforms.u_View.location, false, viewMatrix);
+                    // pvm matrix
+                    case "u_Projection":
+                        var projectionMat = camera.projectionMatrix.elements;
+                        gl.uniformMatrix4fv(location, false, projectionMat);
+                        break;
+                    case "u_View":
+                        var viewMatrix = camera.viewMatrix.elements;
+                        gl.uniformMatrix4fv(location, false, viewMatrix);
+                        break;
+                    case "u_Model":
+                        var modelMatrix = object.worldMatrix.elements;
+                        gl.uniformMatrix4fv(location, false, modelMatrix);
+                        break;
 
-            var modelMatrix = object.worldMatrix.elements;
-            gl.uniformMatrix4fv(uniforms.u_Model.location, false, modelMatrix);
+                    case "u_Color":
+                        var color = zen3d.hex2RGB(material.color);
+                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        break;
+                    case "u_Opacity":
+                        gl.uniform1f(location, material.opacity);
+                        break;
 
-            gl.uniform1f(uniforms.u_Opacity.location, material.opacity);
+                    case "texture":
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
+                        gl.uniform1i(location, 0);
+                        break;
+                    case "normalMap":
+                        gl.activeTexture(gl.TEXTURE1);
+                        gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
+                        gl.uniform1i(location, 1);
+                        break;
+                    case "envMap":
+                        gl.activeTexture(gl.TEXTURE2);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.envMap.glTexture);
+                        gl.uniform1i(location, 2);
+                        break;
 
-            var color = zen3d.hex2RGB(material.color);
-            gl.uniform3f(uniforms.u_Color.location, color[0] / 255, color[1] / 255, color[2] / 255);
+                    case "u_EnvMap_Intensity":
+                        gl.uniform1f(location, material.envMapIntensity);
+                        break;
+                    case "u_Specular":
+                        var specular = material.specular;
+                        gl.uniform1f(location, specular);
+                        break;
+                    case "u_CameraPosition":
+                        var position = camera.position;
+                        gl.uniform3f(location, position.x, position.y, position.z);
+                        break;
+                }
+            }
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
@@ -194,42 +253,14 @@
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
-
-                if(directLightsNum > 0 || pointLightsNum > 0) {
-
-                    var a_Normal = attributes.a_Normal.location;
-                    gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
-                    gl.enableVertexAttribArray(a_Normal);
-
-                    if(material.normalMap) {
-                        gl.activeTexture(gl.TEXTURE1);
-                        gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
-                        gl.uniform1i(uniforms.normalMap.location, 1);
-                    }
-                }
-
-                if(material.type == MATERIAL_TYPE.PHONE) {
-                    var eye = camera.position;
-                    var viewMatrix = camera.viewMatrix;
-                    helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
-                    gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
-
-                    var specular = material.specular;
-                    gl.uniform1f(uniforms.u_Specular.location, specular);
-                }
-            }
-            /////////////////
-
-            if(((directLightsNum > 0 || pointLightsNum > 0) && material.normalMap) || material.map) {
-                var a_Uv = attributes.a_Uv.location;
-                gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
-                gl.enableVertexAttribArray(a_Uv);
             }
 
-            if(material.map) {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
-                gl.uniform1i(uniforms.texture.location, 0);
+            // TODO
+            if(material.type == MATERIAL_TYPE.PHONE) {
+                var eye = camera.position;
+                var viewMatrix = camera.viewMatrix;
+                helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
+                gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
             }
 
             if(material.transparent) {

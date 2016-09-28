@@ -48,7 +48,7 @@ directionalLight.color = 0xffffff;
 scene.add(directionalLight);
 
 var camera = new zen3d.Camera();
-camera.position.z = -300;
+camera.position.z = 300;
 camera.position.y = 300;
 camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 // camera.setOrtho(-480/2, 480/2, -480/2, 480/2, 10, 500);

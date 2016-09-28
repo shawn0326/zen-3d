@@ -22,13 +22,19 @@
         // normal map
         this.normalMap = null;
 
+        // env map
+        this.envMap = null;
+        this.envMapIntensity = 1;
+
     }
 
     /**
      * check map init
      */
     Material.prototype.checkMapInit = function() {
-        return (!this.map || this.map.isRenderable) && (!this.normalMap || this.normalMap.isRenderable);
+        return (!this.map || this.map.isRenderable) &&
+            (!this.normalMap || this.normalMap.isRenderable) &&
+            (!this.envMap || this.envMap.isRenderable);
     }
 
     zen3d.Material = Material;

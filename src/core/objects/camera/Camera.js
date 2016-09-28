@@ -27,17 +27,18 @@
         var eye = this.position;
 
         var zaxis = new zen3d.Vector3();
-        eye.subtract(target, zaxis);
+        eye.subtract(target, zaxis); // right-hand coordinates system
         zaxis.normalize();
+
         var xaxis = new zen3d.Vector3();
         up.crossProduct(zaxis, xaxis);
         xaxis.normalize();
+
         var yaxis = new zen3d.Vector3();
         zaxis.crossProduct(xaxis, yaxis);
 
-        // TODO why x axis is opposite??
         this.viewMatrix.set(
-            -xaxis.x, -xaxis.y, -xaxis.z, -xaxis.dotProduct(eye),
+            xaxis.x, xaxis.y, xaxis.z, -xaxis.dotProduct(eye),
             yaxis.x, yaxis.y, yaxis.z, -yaxis.dotProduct(eye),
             zaxis.x, zaxis.y, zaxis.z, -zaxis.dotProduct(eye),
             0, 0, 0, 1
