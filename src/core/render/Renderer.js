@@ -202,10 +202,8 @@
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
-
             var helpMatrix = new zen3d.Matrix4();
             var helpVector4 = new zen3d.Vector4();
-
             if(!basic) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
@@ -254,14 +252,7 @@
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
             }
-
-            // TODO
-            if(material.type == MATERIAL_TYPE.PHONE) {
-                var eye = camera.position;
-                var viewMatrix = camera.viewMatrix;
-                helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
-                gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
-            }
+            ///////
 
             if(material.transparent) {
                 gl.enable(gl.BLEND);

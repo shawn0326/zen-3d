@@ -768,6 +768,8 @@
     ].join("\n");
 
     var fragmentCommon = [
+        'uniform mat4 u_View;',
+
         'uniform float u_Opacity;',
         'uniform vec3 u_Color;',
 
@@ -845,8 +847,8 @@
             'vec3 N;',
             '#ifdef USE_NORMAL_MAP',
                 'vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;',
-                'mat3 tspace = tsn(normalize(v_Normal), v_VmPos, v_Uv);',
-                // 'mat3 tspace = tbn(normalize(v_Normal), v_VmPos, v_Uv);',
+                'mat3 tspace = tsn(normalize(v_Normal), v_ViewModelPos, v_Uv);',
+                // 'mat3 tspace = tbn(normalize(v_Normal), v_ViewModelPos, v_Uv);',
                 'N = normalize(tspace * (normalMapColor * 2.0 - 1.0));',
             '#else',
                 'N = normalize(v_Normal);',
@@ -963,9 +965,6 @@
         '#ifdef USE_LIGHT',
             'vec4 light;',
             'vec3 L;',
-            '#ifdef USE_PHONE',
-            'vec3 V;',
-            '#endif',
             'vec4 reflectLight = vec4(0., 0., 0., 0.);',
             'vec4 diffuseColor = outColor.xyzw;',
 
@@ -973,6 +972,10 @@
             'for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {',
                 'reflectLight += diffuseColor * u_Ambient[i].color * u_Ambient[i].intensity;',
             '}',
+            '#endif',
+
+            '#if defined(USE_PHONE) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) )',
+                'vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);',
             '#endif',
 
             '#ifdef USE_DIRECT_LIGHT',
@@ -984,7 +987,6 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONE',
-                'V = normalize(u_Eye - v_VmPos);',
                 // 'RE_Phone(diffuseColor, light, N, L, V, 4., reflectLight);',
                 'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
@@ -993,7 +995,7 @@
 
             '#ifdef USE_POINT_LIGHT',
             'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
-                'L = u_Point[i].position - v_VmPos;',
+                'L = u_Point[i].position - v_ViewModelPos;',
                 'float dist = max(1. - length(L) * .005, 0.0);',
                 'light = u_Point[i].color * u_Point[i].intensity * dist;',
                 'L = normalize(L);',
@@ -1001,7 +1003,6 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONE',
-                'V = normalize(u_Eye - v_VmPos);',
                 // 'RE_Phone(diffuseColor, light, N, L, V, 4., reflectLight);',
                 'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
@@ -1030,6 +1031,28 @@
             'vec3 H = normalize(L + V);',
             'reflectLight += k * light * pow(max(dot(N, H), 0.), n_s);',
         '}'
+    ].join("\n");
+
+    /**
+     * view model pos
+     */
+
+    var viewModelPos_pars_vert =[
+        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONE) && defined(USE_DIRECT_LIGHT) )',
+            'varying vec3 v_ViewModelPos;',
+        '#endif'
+    ].join("\n");
+
+    var viewModelPos_vert =[
+        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONE) && defined(USE_DIRECT_LIGHT) )',
+            'v_ViewModelPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
+        '#endif'
+    ].join("\n");
+
+    var viewModelPos_pars_frag =[
+        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONE) && defined(USE_DIRECT_LIGHT) )',
+            'varying vec3 v_ViewModelPos;',
+        '#endif'
     ].join("\n");
 
     /**
@@ -1066,17 +1089,13 @@
             vertexCommon,
             normal_pars_vert,
             uv_pars_vert,
-            '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP)',
-                'varying vec3 v_VmPos;',
-            '#endif',
+            viewModelPos_pars_vert,
             envMap_pars_vert,
             'void main() {',
                 pvm_vert,
                 normal_vert,
                 uv_vert,
-                '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP)',
-                    'v_VmPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
-                '#endif',
+                viewModelPos_vert,
                 envMap_vert,
             '}'
         ].join("\n"),
@@ -1087,9 +1106,7 @@
             normalMap_pars_frag,
             light_pars_frag,
             normal_pars_frag,
-            '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP)',
-                'varying vec3 v_VmPos;',
-            '#endif',
+            viewModelPos_pars_frag,
             RE_Lambert,
             envMap_pars_frag,
             'void main() {',
@@ -1107,13 +1124,13 @@
             vertexCommon,
             normal_pars_vert,
             uv_pars_vert,
-            'varying vec3 v_VmPos;',
+            viewModelPos_pars_vert,
             envMap_pars_vert,
             'void main() {',
                 pvm_vert,
                 normal_vert,
                 uv_vert,
-                'v_VmPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
+                viewModelPos_vert,
                 envMap_vert,
             '}'
         ].join("\n"),
@@ -1125,8 +1142,7 @@
             normalMap_pars_frag,
             light_pars_frag,
             normal_pars_frag,
-            'varying vec3 v_VmPos;',
-            'uniform vec3 u_Eye;',
+            viewModelPos_pars_frag,
             RE_Lambert,
             RE_Phone,
             RE_BlinnPhone,
@@ -1325,6 +1341,8 @@
             'precision ' + props.precision + ' int;',
 
             (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+            (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+            (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
             (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
             (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
             ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
@@ -1605,10 +1623,8 @@
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
-
             var helpMatrix = new zen3d.Matrix4();
             var helpVector4 = new zen3d.Vector4();
-
             if(!basic) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
@@ -1657,14 +1673,7 @@
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                 }
             }
-
-            // TODO
-            if(material.type == MATERIAL_TYPE.PHONE) {
-                var eye = camera.position;
-                var viewMatrix = camera.viewMatrix;
-                helpVector4.set(eye.x, eye.y, eye.z, 1).applyMatrix4(viewMatrix);
-                gl.uniform3f(uniforms.u_Eye.location, helpVector4.x, helpVector4.y, helpVector4.z);
-            }
+            ///////
 
             if(material.transparent) {
                 gl.enable(gl.BLEND);
