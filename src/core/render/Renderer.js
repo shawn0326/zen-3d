@@ -185,6 +185,11 @@
                         gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.envMap.glTexture);
                         gl.uniform1i(location, 2);
                         break;
+                    case "cubeMap":
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.cubeMap.glTexture);
+                        gl.uniform1i(location, 0);
+                        break;
 
                     case "u_EnvMap_Intensity":
                         gl.uniform1f(location, material.envMapIntensity);
@@ -202,9 +207,10 @@
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
+            var cube = material.type == MATERIAL_TYPE.CUBE;
             var helpMatrix = new zen3d.Matrix4();
             var helpVector4 = new zen3d.Vector4();
-            if(!basic) {
+            if(!basic && !cube) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 

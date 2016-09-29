@@ -488,6 +488,26 @@
                 envMap_frag,
                 frag_end,
             '}'
+        ].join("\n"),
+
+        // cube shader
+        cubeVertex: [
+            vertexCommon,
+            'varying vec3 v_ModelPos;',
+            'void main() {',
+                pvm_vert,
+                'v_ModelPos = (u_Model * vec4(a_Position, 1.0)).xyz;',
+            '}'
+        ].join("\n"),
+        cubeFragment: [
+            fragmentCommon,
+            'uniform samplerCube cubeMap;',
+            'varying vec3 v_ModelPos;',
+            'void main() {',
+                frag_begin,
+                'outColor *= textureCube(cubeMap, v_ModelPos);',
+                frag_end,
+            '}'
         ].join("\n")
     };
 

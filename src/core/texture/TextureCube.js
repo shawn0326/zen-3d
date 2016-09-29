@@ -94,7 +94,32 @@
      * texture maybe not init util image is loaded
      */
     TextureCube.fromSrc = function(gl, srcArray) {
-        // TODO need a load list
+        var texture = new TextureCube(gl);
+
+        var count = 0;
+        var images = [];
+        function next() {
+            if(count >= 6) {
+                loaded();
+                return;
+            }
+
+            var image = new Image();
+            image.src = srcArray[count];
+            image.onload = next;
+            images.push(image);
+            count++;
+        }
+
+        function loaded() {
+            texture.bind().texParam().texImage(
+                images
+            );
+        }
+
+        next();
+
+        return texture;
     }
 
     /**

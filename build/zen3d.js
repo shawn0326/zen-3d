@@ -133,7 +133,8 @@
     var MATERIAL_TYPE = {
         BASIC: "basic",
         LAMBERT: "lambert",
-        PHONE: "phone"
+        PHONE: "phone",
+        CUBE: "cube"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
@@ -1155,6 +1156,26 @@
                 envMap_frag,
                 frag_end,
             '}'
+        ].join("\n"),
+
+        // cube shader
+        cubeVertex: [
+            vertexCommon,
+            'varying vec3 v_ModelPos;',
+            'void main() {',
+                pvm_vert,
+                'v_ModelPos = (u_Model * vec4(a_Position, 1.0)).xyz;',
+            '}'
+        ].join("\n"),
+        cubeFragment: [
+            fragmentCommon,
+            'uniform samplerCube cubeMap;',
+            'varying vec3 v_ModelPos;',
+            'void main() {',
+                frag_begin,
+                'outColor *= textureCube(cubeMap, v_ModelPos);',
+                frag_end,
+            '}'
         ].join("\n")
     };
 
@@ -1315,6 +1336,7 @@
     function createProgram(gl, props) {
 
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
+        var cube = props.materialType == MATERIAL_TYPE.CUBE;
 
         var vertex = zen3d.ShaderLib.vertexBase;
         var fragment = zen3d.ShaderLib.fragmentBase;
@@ -1332,49 +1354,72 @@
                 vertex = zen3d.ShaderLib.phoneVertex;
                 fragment = zen3d.ShaderLib.phoneFragment;
                 break;
+            case MATERIAL_TYPE.CUBE:
+                vertex = zen3d.ShaderLib.cubeVertex;
+                fragment = zen3d.ShaderLib.cubeFragment;
+                break;
             default:
 
+        }
+
+        var vshader_define, fshader_define;
+        if(basic) {
+            vshader_define = [
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+            ].join("\n");
+            fshader_define = [
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+            ].join("\n");
+        } else if(cube) {
+            vshader_define = [
+                ""
+            ].join("\n");
+            fshader_define = [
+                ""
+            ].join("\n");
+        } else {
+            vshader_define = [
+                (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+                (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+                (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
+                ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+
+                props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+                props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : ''
+            ].join("\n");
+            fshader_define = [
+                (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+                (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+                (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
+                ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+
+                props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+                props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : ''
+            ].join("\n");
         }
 
         var vshader = [
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
-
-            (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-            (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-            (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
-            ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-            props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            props.useEnvMap ? '#define USE_ENV_MAP' : '',
-
-            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
-            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
-
+            vshader_define,
             vertex
         ].join("\n");
 
         var fshader = [
             '#extension GL_OES_standard_derivatives : enable',
-
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
-
-            (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-            (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-            (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
-            ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-            props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            props.useEnvMap ? '#define USE_ENV_MAP' : '',
-
-            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
-            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
-
+            fshader_define,
             fragment
         ].join("\n");
 
@@ -1606,6 +1651,11 @@
                         gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.envMap.glTexture);
                         gl.uniform1i(location, 2);
                         break;
+                    case "cubeMap":
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.cubeMap.glTexture);
+                        gl.uniform1i(location, 0);
+                        break;
 
                     case "u_EnvMap_Intensity":
                         gl.uniform1f(location, material.envMapIntensity);
@@ -1623,9 +1673,10 @@
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
+            var cube = material.type == MATERIAL_TYPE.CUBE;
             var helpMatrix = new zen3d.Matrix4();
             var helpVector4 = new zen3d.Vector4();
-            if(!basic) {
+            if(!basic && !cube) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
@@ -2212,15 +2263,15 @@
      * CubeGeometry data
      * @class
      */
-    var CubeGeometry = function(width, height, depth) {
+    var CubeGeometry = function(width, height, depth, front) {
         CubeGeometry.superClass.constructor.call(this);
 
-        this.buildGeometry(width, height, depth);
+        this.buildGeometry(width, height, depth, (front == void 0) ? true : front);
     }
 
     zen3d.inherit(CubeGeometry, zen3d.Geometry);
 
-    CubeGeometry.prototype.buildGeometry = function(width, height, depth) {
+    CubeGeometry.prototype.buildGeometry = function(width, height, depth, front) {
 
         this.verticesArray.push(
             -width * 0.5, -height * 0.5, -depth * 0.5, 0.0, 0.0, -10.0, 1.0, 0.0, 0.0, 1, 1, 1, 1, 1.0, 0.0, 0, 0,
@@ -2272,7 +2323,7 @@
             -width * 0.5, height * 0.5, -depth * 0.5, -10.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1, 1, 1, 1, 0.0, 0.0, 0, 0
         );
 
-        // if (front) {
+        if (front) {
             this.indicesArray.push(
                 0, 2, 1, 3, 5, 4,
                 6, 8, 7, 9, 11, 10,
@@ -2280,16 +2331,15 @@
                 18, 20, 19, 21, 23, 22,
                 24, 26, 25, 27, 29, 28,
                 30, 32, 31, 33, 35, 34);
-        // }
-        // else {
-            // this.indicesArray.push(
-            //     0, 1, 2, 3, 4, 5,
-            //     6, 7, 8, 9, 10, 11,
-            //     12, 13, 14, 15, 16, 17,
-            //     18, 19, 20, 21, 22, 23,
-            //     24, 25, 26, 27, 28, 29,
-            //     30, 31, 32, 33, 34, 35);
-        // }
+        } else {
+            this.indicesArray.push(
+                0, 1, 2, 3, 4, 5,
+                6, 7, 8, 9, 10, 11,
+                12, 13, 14, 15, 16, 17,
+                18, 19, 20, 21, 22, 23,
+                24, 25, 26, 27, 28, 29,
+                30, 31, 32, 33, 34, 35);
+        }
 
         this.verticesCount = 36;
     }
@@ -2569,8 +2619,8 @@
         this.isRenderable = false;
 
         // TODO this can set just as a global props?
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        // gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     }
 
     /**
@@ -2814,7 +2864,32 @@
      * texture maybe not init util image is loaded
      */
     TextureCube.fromSrc = function(gl, srcArray) {
-        // TODO need a load list
+        var texture = new TextureCube(gl);
+
+        var count = 0;
+        var images = [];
+        function next() {
+            if(count >= 6) {
+                loaded();
+                return;
+            }
+
+            var image = new Image();
+            image.src = srcArray[count];
+            image.onload = next;
+            images.push(image);
+            count++;
+        }
+
+        function loaded() {
+            texture.bind().texParam().texImage(
+                images
+            );
+        }
+
+        next();
+
+        return texture;
     }
 
     /**
@@ -2922,6 +2997,24 @@
     zen3d.inherit(PhoneMaterial, zen3d.Material);
 
     zen3d.PhoneMaterial = PhoneMaterial;
+})();
+
+(function() {
+    /**
+     * CubeMaterial
+     * @class
+     */
+    var CubeMaterial = function() {
+        CubeMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.CUBE;
+
+        this.cubeMap = null;
+    }
+
+    zen3d.inherit(CubeMaterial, zen3d.Material);
+
+    zen3d.CubeMaterial = CubeMaterial;
 })();
 
 (function() {

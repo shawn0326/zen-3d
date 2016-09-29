@@ -3,15 +3,15 @@
      * CubeGeometry data
      * @class
      */
-    var CubeGeometry = function(width, height, depth) {
+    var CubeGeometry = function(width, height, depth, front) {
         CubeGeometry.superClass.constructor.call(this);
 
-        this.buildGeometry(width, height, depth);
+        this.buildGeometry(width, height, depth, (front == void 0) ? true : front);
     }
 
     zen3d.inherit(CubeGeometry, zen3d.Geometry);
 
-    CubeGeometry.prototype.buildGeometry = function(width, height, depth) {
+    CubeGeometry.prototype.buildGeometry = function(width, height, depth, front) {
 
         this.verticesArray.push(
             -width * 0.5, -height * 0.5, -depth * 0.5, 0.0, 0.0, -10.0, 1.0, 0.0, 0.0, 1, 1, 1, 1, 1.0, 0.0, 0, 0,
@@ -63,7 +63,7 @@
             -width * 0.5, height * 0.5, -depth * 0.5, -10.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1, 1, 1, 1, 0.0, 0.0, 0, 0
         );
 
-        // if (front) {
+        if (front) {
             this.indicesArray.push(
                 0, 2, 1, 3, 5, 4,
                 6, 8, 7, 9, 11, 10,
@@ -71,16 +71,15 @@
                 18, 20, 19, 21, 23, 22,
                 24, 26, 25, 27, 29, 28,
                 30, 32, 31, 33, 35, 34);
-        // }
-        // else {
-            // this.indicesArray.push(
-            //     0, 1, 2, 3, 4, 5,
-            //     6, 7, 8, 9, 10, 11,
-            //     12, 13, 14, 15, 16, 17,
-            //     18, 19, 20, 21, 22, 23,
-            //     24, 25, 26, 27, 28, 29,
-            //     30, 31, 32, 33, 34, 35);
-        // }
+        } else {
+            this.indicesArray.push(
+                0, 1, 2, 3, 4, 5,
+                6, 7, 8, 9, 10, 11,
+                12, 13, 14, 15, 16, 17,
+                18, 19, 20, 21, 22, 23,
+                24, 25, 26, 27, 28, 29,
+                30, 31, 32, 33, 34, 35);
+        }
 
         this.verticesCount = 36;
     }

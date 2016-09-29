@@ -29,7 +29,8 @@
     var MATERIAL_TYPE = {
         BASIC: "basic",
         LAMBERT: "lambert",
-        PHONE: "phone"
+        PHONE: "phone",
+        CUBE: "cube"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;

@@ -152,6 +152,7 @@
     function createProgram(gl, props) {
 
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
+        var cube = props.materialType == MATERIAL_TYPE.CUBE;
 
         var vertex = zen3d.ShaderLib.vertexBase;
         var fragment = zen3d.ShaderLib.fragmentBase;
@@ -169,49 +170,72 @@
                 vertex = zen3d.ShaderLib.phoneVertex;
                 fragment = zen3d.ShaderLib.phoneFragment;
                 break;
+            case MATERIAL_TYPE.CUBE:
+                vertex = zen3d.ShaderLib.cubeVertex;
+                fragment = zen3d.ShaderLib.cubeFragment;
+                break;
             default:
 
+        }
+
+        var vshader_define, fshader_define;
+        if(basic) {
+            vshader_define = [
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+            ].join("\n");
+            fshader_define = [
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+            ].join("\n");
+        } else if(cube) {
+            vshader_define = [
+                ""
+            ].join("\n");
+            fshader_define = [
+                ""
+            ].join("\n");
+        } else {
+            vshader_define = [
+                (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+                (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+                (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
+                ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+
+                props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+                props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : ''
+            ].join("\n");
+            fshader_define = [
+                (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+                (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+                (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
+                ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+
+                props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+                props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : ''
+            ].join("\n");
         }
 
         var vshader = [
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
-
-            (!basic && props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-            (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-            (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
-            ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-            props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            props.useEnvMap ? '#define USE_ENV_MAP' : '',
-
-            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
-            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
-
+            vshader_define,
             vertex
         ].join("\n");
 
         var fshader = [
             '#extension GL_OES_standard_derivatives : enable',
-
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
-
-            (!basic && props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-            (!basic && props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-            (!basic && props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-            (!basic && (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0)) ? '#define USE_LIGHT' : '',
-            (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
-            ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-            props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-            props.useEnvMap ? '#define USE_ENV_MAP' : '',
-
-            props.materialType == MATERIAL_TYPE.BASIC ? '#define USE_BASIC' : '',
-            props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-            props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : '',
-
+            fshader_define,
             fragment
         ].join("\n");
 

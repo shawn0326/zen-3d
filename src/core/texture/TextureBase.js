@@ -28,8 +28,8 @@
         this.isRenderable = false;
 
         // TODO this can set just as a global props?
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        // gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     }
 
     /**
