@@ -1487,9 +1487,9 @@
         this.height = view.clientHeight;
 
         // array buffer
-        this.vertices = new Float32Array(2000 * 4 * 5);
+        this.vertices = new Float32Array(524288);
         this.vertexBuffer = gl.createBuffer();
-        this.indices = new Uint16Array(2000 * 6);
+        this.indices = new Uint16Array(524288);
         this.indexBuffer = gl.createBuffer();
 
         // init webgl
