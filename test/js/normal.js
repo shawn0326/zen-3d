@@ -45,7 +45,7 @@ var texture5 = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/normal/counch_n
 var material = new zen3d.LambertMaterial();
 material.map = texture2;
 
-var material0 = new zen3d.PhoneMaterial();
+var material0 = new zen3d.PhongMaterial();
 material0.map = texture3;
 
 var material1 = new zen3d.LambertMaterial();
@@ -60,11 +60,11 @@ var material3 = new zen3d.LambertMaterial();
 material3.transparent = false;
 material3.color = 0xcccccc;
 
-var phone = new zen3d.PhoneMaterial();
-// phone.transparent = true;
-// phone.opacity = .6;
-phone.color = 0xffffff;
-phone.specular = 20;
+var phong = new zen3d.PhongMaterial();
+// phong.transparent = true;
+// phong.opacity = .6;
+phong.color = 0xffffff;
+phong.specular = 20;
 
 var lambert = new zen3d.LambertMaterial();
 lambert.transparent = false;
@@ -86,7 +86,7 @@ var sphere2 = new zen3d.Mesh(sphere_geometry, lambert);
 sphere2.position.z = 10;
 sphere2.position.x = 0;
 
-var sphere3 = new zen3d.Mesh(sphere_geometry, phone);
+var sphere3 = new zen3d.Mesh(sphere_geometry, phong);
 sphere3.position.z = 10;
 sphere3.position.x = 80;
 

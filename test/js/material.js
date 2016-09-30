@@ -25,10 +25,10 @@ sphere2.position.z = 10;
 sphere2.position.x = 0;
 scene.add(sphere2);
 
-var phone = new zen3d.PhoneMaterial();
-phone.color = 0xffffff;
-phone.specular = 20;
-var sphere3 = new zen3d.Mesh(sphere_geometry, phone);
+var phong = new zen3d.PhongMaterial();
+phong.color = 0xffffff;
+phong.specular = 20;
+var sphere3 = new zen3d.Mesh(sphere_geometry, phong);
 sphere3.position.z = 10;
 sphere3.position.x = 80;
 scene.add(sphere3);

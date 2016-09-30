@@ -40,7 +40,7 @@ scene.add(sky_box);
 //
 // scene.add(group);
 
-var material2 = new zen3d.PhoneMaterial();
+var material2 = new zen3d.PhongMaterial();
 material2.color = 0xffffff;
 material2.map = texture2;
 var sphere2 = new zen3d.Mesh(sphere_geometry2, material2);
@@ -48,7 +48,7 @@ sphere2.position.z = 0;
 sphere2.position.x = 40;
 scene.add(sphere2);
 
-var material3 = new zen3d.PhoneMaterial();
+var material3 = new zen3d.PhongMaterial();
 material3.color = 0xffffff;
 material3.map = texture2;
 var sphere3 = new zen3d.Mesh(sphere_geometry2, material3);
@@ -56,7 +56,7 @@ sphere3.position.z = 40;
 sphere3.position.x = 0;
 scene.add(sphere3);
 
-var material2 = new zen3d.PhoneMaterial();
+var material2 = new zen3d.PhongMaterial();
 material2.color = 0xffffff;
 material2.envMap = renderTexture;
 material2.envMapIntensity = .8;

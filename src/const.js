@@ -29,7 +29,7 @@
     var MATERIAL_TYPE = {
         BASIC: "basic",
         LAMBERT: "lambert",
-        PHONE: "phone",
+        PHONG: "phong",
         CUBE: "cube"
     };
 

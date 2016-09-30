@@ -13,7 +13,7 @@ plane.position.y = -80;
 scene.add(plane);
 
 var sphere_geometry = new zen3d.SphereGeometry(30, 20, 20);
-var material2 = new zen3d.PhoneMaterial();
+var material2 = new zen3d.PhongMaterial();
 material2.map = texture;
 var sphere = new zen3d.Mesh(sphere_geometry, material2);
 sphere.position.z = 10;

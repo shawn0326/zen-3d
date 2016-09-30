@@ -307,7 +307,7 @@
             '}',
             '#endif',
 
-            '#if defined(USE_PHONE) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) )',
+            '#if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) )',
                 'vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);',
             '#endif',
 
@@ -319,9 +319,9 @@
 
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
-                '#ifdef USE_PHONE',
-                // 'RE_Phone(diffuseColor, light, N, L, V, 4., reflectLight);',
-                'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                '#ifdef USE_PHONG',
+                // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
+                'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
             '}',
             '#endif',
@@ -335,9 +335,9 @@
 
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
-                '#ifdef USE_PHONE',
-                // 'RE_Phone(diffuseColor, light, N, L, V, 4., reflectLight);',
-                'RE_BlinnPhone(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                '#ifdef USE_PHONG',
+                // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
+                'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
             '}',
             '#endif',
@@ -352,15 +352,15 @@
         '}'
     ].join("\n");
 
-    var RE_Phone = [
-        'void RE_Phone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+    var RE_Phong = [
+        'void RE_Phong(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
             'vec3 R = max(dot(2.0 * N, L), 0.) * N - L;',
             'reflectLight += k * light * pow(max(dot(V, R), 0.), n_s);',
         '}'
     ].join("\n");
 
-    var RE_BlinnPhone = [
-        'void RE_BlinnPhone(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
+    var RE_BlinnPhong = [
+        'void RE_BlinnPhong(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, inout vec4 reflectLight) {',
             'vec3 H = normalize(L + V);',
             'reflectLight += k * light * pow(max(dot(N, H), 0.), n_s);',
         '}'
@@ -371,19 +371,19 @@
      */
 
     var viewModelPos_pars_vert =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONE) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'varying vec3 v_ViewModelPos;',
         '#endif'
     ].join("\n");
 
     var viewModelPos_vert =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONE) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'v_ViewModelPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
         '#endif'
     ].join("\n");
 
     var viewModelPos_pars_frag =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONE) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'varying vec3 v_ViewModelPos;',
         '#endif'
     ].join("\n");
@@ -452,8 +452,8 @@
             '}'
         ].join("\n"),
 
-        // phone shader
-        phoneVertex: [
+        // phong shader
+        phongVertex: [
             vertexCommon,
             normal_pars_vert,
             uv_pars_vert,
@@ -467,7 +467,7 @@
                 envMap_vert,
             '}'
         ].join("\n"),
-        phoneFragment: [
+        phongFragment: [
             fragmentCommon,
             'uniform float u_Specular;',
             uv_pars_frag,
@@ -477,8 +477,8 @@
             normal_pars_frag,
             viewModelPos_pars_frag,
             RE_Lambert,
-            RE_Phone,
-            RE_BlinnPhone,
+            RE_Phong,
+            RE_BlinnPhong,
             envMap_pars_frag,
             'void main() {',
                 frag_begin,

@@ -166,9 +166,9 @@
                 vertex = zen3d.ShaderLib.lambertVertex;
                 fragment = zen3d.ShaderLib.lambertFragment;
                 break;
-            case MATERIAL_TYPE.PHONE:
-                vertex = zen3d.ShaderLib.phoneVertex;
-                fragment = zen3d.ShaderLib.phoneFragment;
+            case MATERIAL_TYPE.PHONG:
+                vertex = zen3d.ShaderLib.phongVertex;
+                fragment = zen3d.ShaderLib.phongFragment;
                 break;
             case MATERIAL_TYPE.CUBE:
                 vertex = zen3d.ShaderLib.cubeVertex;
@@ -207,7 +207,7 @@
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-                props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : ''
+                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
             ].join("\n");
             fshader_define = [
                 (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -220,7 +220,7 @@
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-                props.materialType == MATERIAL_TYPE.PHONE ? '#define USE_PHONE' : ''
+                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
             ].join("\n");
         }
 

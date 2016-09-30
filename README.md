@@ -12,11 +12,11 @@ RoadMap
 --
 * ~~基本绘制~~
 * ~~多灯光着色器管理~~
-* ~~实现basic,phone,lambert三种material~~
+* ~~实现basic,phong,lambert三种material~~
 * ~~支持法线贴图~~
 * ~~支持环境贴图~~
 * 实时阴影
-* 基本模型格式解析
+* ~~基本模型格式解析(assimp2json)~~
 * 基本摄像机控制器
 
 About Me
