@@ -34,7 +34,8 @@
     Material.prototype.checkMapInit = function() {
         return (!this.map || this.map.isRenderable) &&
             (!this.normalMap || this.normalMap.isRenderable) &&
-            (!this.envMap || this.envMap.isRenderable);
+            (!this.envMap || this.envMap.isRenderable) &&
+            (!this.cubeMap || this.cubeMap.isRenderable);
     }
 
     zen3d.Material = Material;

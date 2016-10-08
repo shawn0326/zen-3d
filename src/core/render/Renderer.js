@@ -53,9 +53,10 @@
      */
     Renderer.prototype.render = function(scene, camera) {
 
-        this.camera = camera;
-
         scene.updateMatrix();
+
+        camera.viewMatrix.getInverse(camera.worldMatrix);// update view matrix
+        this.camera = camera;
 
         this.cache.cache(scene);
 

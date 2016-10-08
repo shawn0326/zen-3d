@@ -94,6 +94,7 @@ var ups = [
     new zen3d.Vector3( 0, 0, -1 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 )
 ];
 helpCamera.setPerspective(90 / 180 * Math.PI, 480 / 480, 50, 10000);
+scene.add(helpCamera);
 var lookTarget = new zen3d.Vector3();
 // helpCamera.setOrtho(-480/2, 480/2, -480/2, 480/2, 1, 1000);
 

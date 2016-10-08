@@ -147,24 +147,65 @@
      * @class
      */
     var Euler = function(x, y, z, order) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
-        this.order = order || Euler.DefaultOrder;
+        this._x = x || 0;
+        this._y = y || 0;
+        this._z = z || 0;
+        this._order = order || Euler.DefaultOrder;
     }
 
     Euler.RotationOrders = [ 'XYZ', 'YZX', 'ZXY', 'XZY', 'YXZ', 'ZYX' ];
 
     Euler.DefaultOrder = 'XYZ';
 
+    Object.defineProperties(Euler.prototype, {
+        x: {
+            get: function() {
+                return this._x;
+            },
+            set: function(value) {
+                this._x = value;
+                this.onChangeCallback();
+            }
+        },
+        y: {
+            get: function() {
+                return this._y;
+            },
+            set: function(value) {
+                this._y = value;
+                this.onChangeCallback();
+            }
+        },
+        z: {
+            get: function() {
+                return this._z;
+            },
+            set: function(value) {
+                this._z = value;
+                this.onChangeCallback();
+            }
+        },
+        order: {
+            get: function() {
+                return this._order;
+            },
+            set: function(value) {
+                this._order = value;
+                this.onChangeCallback();
+            }
+        }
+    });
+
     /**
      * copy from another euler
      **/
     Euler.prototype.copyFrom = function(euler) {
-        this.x = euler.x;
-        this.y = euler.y;
-        this.z = euler.z;
-        this.order = euler.order;
+        this._x = euler._x;
+        this._y = euler._y;
+        this._z = euler._z;
+        this._order = euler._order;
+
+        this.onChangeCallback();
 
         return this;
     }
@@ -172,14 +213,170 @@
     /**
      * set values of this euler
      **/
-    Euler.prototype.set = function(x, y, z) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
-        this.order = order || this.order;
+    Euler.prototype.set = function(x, y, z, order) {
+        this._x = x || 0;
+        this._y = y || 0;
+        this._z = z || 0;
+        this._order = order || this._order;
+
+        this.onChangeCallback();
 
         return this;
     }
+
+    /**
+     * set values from rotation matrix
+     **/
+    Euler.prototype.setFromRotationMatrix = function(m, order, update) {
+
+		var clamp = function(value, min, max) {
+
+			return Math.max( min, Math.min( max, value ) );
+
+		};
+
+		// assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+
+		var te = m.elements;
+		var m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ];
+		var m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ];
+		var m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
+
+		order = order || this._order;
+
+		if ( order === 'XYZ' ) {
+
+			this._y = Math.asin( clamp( m13, - 1, 1 ) );
+
+			if ( Math.abs( m13 ) < 0.99999 ) {
+
+				this._x = Math.atan2( - m23, m33 );
+				this._z = Math.atan2( - m12, m11 );
+
+			} else {
+
+				this._x = Math.atan2( m32, m22 );
+				this._z = 0;
+
+			}
+
+		} else if ( order === 'YXZ' ) {
+
+			this._x = Math.asin( - clamp( m23, - 1, 1 ) );
+
+			if ( Math.abs( m23 ) < 0.99999 ) {
+
+				this._y = Math.atan2( m13, m33 );
+				this._z = Math.atan2( m21, m22 );
+
+			} else {
+
+				this._y = Math.atan2( - m31, m11 );
+				this._z = 0;
+
+			}
+
+		} else if ( order === 'ZXY' ) {
+
+			this._x = Math.asin( clamp( m32, - 1, 1 ) );
+
+			if ( Math.abs( m32 ) < 0.99999 ) {
+
+				this._y = Math.atan2( - m31, m33 );
+				this._z = Math.atan2( - m12, m22 );
+
+			} else {
+
+				this._y = 0;
+				this._z = Math.atan2( m21, m11 );
+
+			}
+
+		} else if ( order === 'ZYX' ) {
+
+			this._y = Math.asin( - clamp( m31, - 1, 1 ) );
+
+			if ( Math.abs( m31 ) < 0.99999 ) {
+
+				this._x = Math.atan2( m32, m33 );
+				this._z = Math.atan2( m21, m11 );
+
+			} else {
+
+				this._x = 0;
+				this._z = Math.atan2( - m12, m22 );
+
+			}
+
+		} else if ( order === 'YZX' ) {
+
+			this._z = Math.asin( clamp( m21, - 1, 1 ) );
+
+			if ( Math.abs( m21 ) < 0.99999 ) {
+
+				this._x = Math.atan2( - m23, m22 );
+				this._y = Math.atan2( - m31, m11 );
+
+			} else {
+
+				this._x = 0;
+				this._y = Math.atan2( m13, m33 );
+
+			}
+
+		} else if ( order === 'XZY' ) {
+
+			this._z = Math.asin( - clamp( m12, - 1, 1 ) );
+
+			if ( Math.abs( m12 ) < 0.99999 ) {
+
+				this._x = Math.atan2( m32, m22 );
+				this._y = Math.atan2( m13, m11 );
+
+			} else {
+
+				this._x = Math.atan2( - m23, m33 );
+				this._y = 0;
+
+			}
+
+		} else {
+
+			console.warn( 'given unsupported order: ' + order );
+
+		}
+
+		this._order = order;
+
+		if ( update !== false ) this.onChangeCallback();
+
+		return this;
+
+	}
+
+    /**
+     * set values from quaternion
+     **/
+    Euler.prototype.setFromQuaternion = function(q, order, update) {
+
+		var matrix = zen3d.helpMatrix;
+
+		q.toMatrix4(matrix);
+
+		return this.setFromRotationMatrix(matrix, order, update);
+
+	}
+
+    /**
+     * set change callback
+     **/
+    Euler.prototype.onChange = function(callback) {
+        this.onChangeCallback = callback;
+
+        return this;
+    }
+
+    Euler.prototype.onChangeCallback = function() {}
 
     zen3d.Euler = Euler;
 })();
@@ -199,9 +396,9 @@
     }
 
     /**
-     * identify matrix
+     * identity matrix
      **/
-    Matrix4.prototype.identify = function() {
+    Matrix4.prototype.identity = function() {
         this.set(
             1, 0, 0, 0,
             0, 1, 0, 0,
@@ -401,7 +598,45 @@
         return this;
     }
 
+    Matrix4.prototype.makeRotationFromQuaternion = function ( q ) {
+
+		var te = this.elements;
+
+		var x = q.x, y = q.y, z = q.z, w = q.w;
+		var x2 = x + x, y2 = y + y, z2 = z + z;
+		var xx = x * x2, xy = x * y2, xz = x * z2;
+		var yy = y * y2, yz = y * z2, zz = z * z2;
+		var wx = w * x2, wy = w * y2, wz = w * z2;
+
+		te[ 0 ] = 1 - ( yy + zz );
+		te[ 4 ] = xy - wz;
+		te[ 8 ] = xz + wy;
+
+		te[ 1 ] = xy + wz;
+		te[ 5 ] = 1 - ( xx + zz );
+		te[ 9 ] = yz - wx;
+
+		te[ 2 ] = xz - wy;
+		te[ 6 ] = yz + wx;
+		te[ 10 ] = 1 - ( xx + yy );
+
+		// last column
+		te[ 3 ] = 0;
+		te[ 7 ] = 0;
+		te[ 11 ] = 0;
+
+		// bottom row
+		te[ 12 ] = 0;
+		te[ 13 ] = 0;
+		te[ 14 ] = 0;
+		te[ 15 ] = 1;
+
+		return this;
+
+	}
+
     zen3d.Matrix4 = Matrix4;
+    zen3d.helpMatrix = new Matrix4();
 })();
 
 (function() {
@@ -410,77 +645,181 @@
      * @class
      */
     var Quaternion = function(x, y, z, w) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
-        this.w = ( w !== undefined ) ? w : 1;
+        this._x = x || 0;
+        this._y = y || 0;
+        this._z = z || 0;
+        this._w = ( w !== undefined ) ? w : 1;
     }
+
+    Object.defineProperties(Quaternion.prototype, {
+        x: {
+            get: function() {
+                return this._x;
+            },
+            set: function(value) {
+                this._x = value;
+                this.onChangeCallback();
+            }
+        },
+        y: {
+            get: function() {
+                return this._y;
+            },
+            set: function(value) {
+                this._y = value;
+                this.onChangeCallback();
+            }
+        },
+        z: {
+            get: function() {
+                return this._z;
+            },
+            set: function(value) {
+                this._z = value;
+                this.onChangeCallback();
+            }
+        },
+        w: {
+            get: function() {
+                return this._w;
+            },
+            set: function(value) {
+                this._w = value;
+                this.onChangeCallback();
+            }
+        }
+    });
 
     /**
      * set values of this vector
      **/
     Quaternion.prototype.set = function(x, y, z, w) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
-        this.w = ( w !== undefined ) ? w : 1;
+        this._x = x || 0;
+        this._y = y || 0;
+        this._z = z || 0;
+        this._w = ( w !== undefined ) ? w : 1;
+
+        this.onChangeCallback();
 
         return this;
     }
 
-    Quaternion.prototype.setFromEuler = function(euler) {
-		var c1 = Math.cos( euler.x / 2 );
-		var c2 = Math.cos( euler.y / 2 );
-		var c3 = Math.cos( euler.z / 2 );
-		var s1 = Math.sin( euler.x / 2 );
-		var s2 = Math.sin( euler.y / 2 );
-		var s3 = Math.sin( euler.z / 2 );
+    /**
+     * set values from euler
+     **/
+    Quaternion.prototype.setFromEuler = function(euler, update) {
+		var c1 = Math.cos( euler._x / 2 );
+		var c2 = Math.cos( euler._y / 2 );
+		var c3 = Math.cos( euler._z / 2 );
+		var s1 = Math.sin( euler._x / 2 );
+		var s2 = Math.sin( euler._y / 2 );
+		var s3 = Math.sin( euler._z / 2 );
 
-		var order = euler.order;
+		var order = euler._order;
 
 		if ( order === 'XYZ' ) {
 
-			this.x = s1 * c2 * c3 + c1 * s2 * s3;
-			this.y = c1 * s2 * c3 - s1 * c2 * s3;
-			this.z = c1 * c2 * s3 + s1 * s2 * c3;
-			this.w = c1 * c2 * c3 - s1 * s2 * s3;
+			this._x = s1 * c2 * c3 + c1 * s2 * s3;
+			this._y = c1 * s2 * c3 - s1 * c2 * s3;
+			this._z = c1 * c2 * s3 + s1 * s2 * c3;
+			this._w = c1 * c2 * c3 - s1 * s2 * s3;
 
 		} else if ( order === 'YXZ' ) {
 
-			this.x = s1 * c2 * c3 + c1 * s2 * s3;
-			this.y = c1 * s2 * c3 - s1 * c2 * s3;
-			this.z = c1 * c2 * s3 - s1 * s2 * c3;
-			this.w = c1 * c2 * c3 + s1 * s2 * s3;
+			this._x = s1 * c2 * c3 + c1 * s2 * s3;
+			this._y = c1 * s2 * c3 - s1 * c2 * s3;
+			this._z = c1 * c2 * s3 - s1 * s2 * c3;
+			this._w = c1 * c2 * c3 + s1 * s2 * s3;
 
 		} else if ( order === 'ZXY' ) {
 
-			this.x = s1 * c2 * c3 - c1 * s2 * s3;
-			this.y = c1 * s2 * c3 + s1 * c2 * s3;
-			this.z = c1 * c2 * s3 + s1 * s2 * c3;
-			this.w = c1 * c2 * c3 - s1 * s2 * s3;
+			this._x = s1 * c2 * c3 - c1 * s2 * s3;
+			this._y = c1 * s2 * c3 + s1 * c2 * s3;
+			this._z = c1 * c2 * s3 + s1 * s2 * c3;
+			this._w = c1 * c2 * c3 - s1 * s2 * s3;
 
 		} else if ( order === 'ZYX' ) {
 
-			this.x = s1 * c2 * c3 - c1 * s2 * s3;
-			this.y = c1 * s2 * c3 + s1 * c2 * s3;
-			this.z = c1 * c2 * s3 - s1 * s2 * c3;
-			this.w = c1 * c2 * c3 + s1 * s2 * s3;
+			this._x = s1 * c2 * c3 - c1 * s2 * s3;
+			this._y = c1 * s2 * c3 + s1 * c2 * s3;
+			this._z = c1 * c2 * s3 - s1 * s2 * c3;
+			this._w = c1 * c2 * c3 + s1 * s2 * s3;
 
 		} else if ( order === 'YZX' ) {
 
-			this.x = s1 * c2 * c3 + c1 * s2 * s3;
-			this.y = c1 * s2 * c3 + s1 * c2 * s3;
-			this.z = c1 * c2 * s3 - s1 * s2 * c3;
-			this.w = c1 * c2 * c3 - s1 * s2 * s3;
+			this._x = s1 * c2 * c3 + c1 * s2 * s3;
+			this._y = c1 * s2 * c3 + s1 * c2 * s3;
+			this._z = c1 * c2 * s3 - s1 * s2 * c3;
+			this._w = c1 * c2 * c3 - s1 * s2 * s3;
 
 		} else if ( order === 'XZY' ) {
 
-			this.x = s1 * c2 * c3 - c1 * s2 * s3;
-			this.y = c1 * s2 * c3 - s1 * c2 * s3;
-			this.z = c1 * c2 * s3 + s1 * s2 * c3;
-			this.w = c1 * c2 * c3 + s1 * s2 * s3;
+			this._x = s1 * c2 * c3 - c1 * s2 * s3;
+			this._y = c1 * s2 * c3 - s1 * c2 * s3;
+			this._z = c1 * c2 * s3 + s1 * s2 * c3;
+			this._w = c1 * c2 * c3 + s1 * s2 * s3;
 
 		}
+
+        if ( update !== false ) this.onChangeCallback();
+
+		return this;
+
+	}
+
+    /**
+     * set values from rotation matrix
+     **/
+    Quaternion.prototype.setFromRotationMatrix = function ( m ) {
+
+		var te = m.elements,
+
+			m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
+			m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
+			m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ],
+
+			trace = m11 + m22 + m33,
+			s;
+
+		if ( trace > 0 ) {
+
+			s = 0.5 / Math.sqrt( trace + 1.0 );
+
+			this._w = 0.25 / s;
+			this._x = ( m32 - m23 ) * s;
+			this._y = ( m13 - m31 ) * s;
+			this._z = ( m21 - m12 ) * s;
+
+		} else if ( m11 > m22 && m11 > m33 ) {
+
+			s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
+
+			this._w = ( m32 - m23 ) / s;
+			this._x = 0.25 * s;
+			this._y = ( m12 + m21 ) / s;
+			this._z = ( m13 + m31 ) / s;
+
+		} else if ( m22 > m33 ) {
+
+			s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
+
+			this._w = ( m13 - m31 ) / s;
+			this._x = ( m12 + m21 ) / s;
+			this._y = 0.25 * s;
+			this._z = ( m23 + m32 ) / s;
+
+		} else {
+
+			s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
+
+			this._w = ( m21 - m12 ) / s;
+			this._x = ( m13 + m31 ) / s;
+			this._y = ( m23 + m32 ) / s;
+			this._z = 0.25 * s;
+
+		}
+
+		this.onChangeCallback();
 
 		return this;
 
@@ -495,9 +834,9 @@
         }
         var ele = target.elements;
 
-        var xy2 = 2.0 * this.x * this.y, xz2 = 2.0 * this.x * this.z, xw2 = 2.0 * this.x * this.w;
-        var yz2 = 2.0 * this.y * this.z, yw2 = 2.0 * this.y * this.w, zw2 = 2.0 * this.z * this.w;
-        var xx = this.x * this.x, yy = this.y * this.y, zz = this.z * this.z, ww = this.w * this.w;
+        var xy2 = 2.0 * this._x * this._y, xz2 = 2.0 * this._x * this._z, xw2 = 2.0 * this._x * this._w;
+        var yz2 = 2.0 * this._y * this._z, yw2 = 2.0 * this._y * this._w, zw2 = 2.0 * this._z * this._w;
+        var xx = this._x * this._x, yy = this._y * this._y, zz = this._z * this._z, ww = this._w * this._w;
 
         ele[0] = xx - yy - zz + ww;
         ele[4] = xy2 - zw2;
@@ -518,6 +857,38 @@
 
         return target;
     }
+
+    /**
+     * set quaternion from axis angle
+     **/
+    Quaternion.prototype.setFromAxisAngle = function(axis, angle) {
+
+		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
+
+		// assumes axis is normalized
+
+		var halfAngle = angle / 2, s = Math.sin( halfAngle );
+
+		this._x = axis.x * s;
+		this._y = axis.y * s;
+		this._z = axis.z * s;
+		this._w = Math.cos( halfAngle );
+
+		this.onChangeCallback();
+
+		return this;
+	}
+
+    /**
+     * set change callback
+     **/
+    Quaternion.prototype.onChange = function(callback) {
+        this.onChangeCallback = callback;
+
+        return this;
+    }
+
+    Quaternion.prototype.onChangeCallback = function() {}
 
     zen3d.Quaternion = Quaternion;
 })();
@@ -1519,9 +1890,10 @@
      */
     Renderer.prototype.render = function(scene, camera) {
 
-        this.camera = camera;
-
         scene.updateMatrix();
+
+        camera.viewMatrix.getInverse(camera.worldMatrix);// update view matrix
+        this.camera = camera;
 
         this.cache.cache(scene);
 
@@ -1981,9 +2353,17 @@
     	this.scale = new zen3d.Vector3(1, 1, 1);
 
         // euler rotate
-        this.euler = new zen3d.Euler();
+        var euler = this.euler = new zen3d.Euler();
         // quaternion rotate
-    	this.quaternion = new zen3d.Quaternion();
+    	var quaternion = this.quaternion = new zen3d.Quaternion();
+
+        // bind euler and quaternion
+        euler.onChange(function() {
+            quaternion.setFromEuler(euler, false);
+        });
+        quaternion.onChange(function() {
+            euler.setFromQuaternion(quaternion, undefined, false);
+        });
 
         // transform matrix
         this.matrix = new zen3d.Matrix4();
@@ -2186,11 +2566,8 @@
 
     zen3d.inherit(Camera, zen3d.Object3D);
 
-    // TODO how to handle rotation, and how to handle the conflict with lookAt
-    // TODO This routine does not support cameras with rotated and/or translated parent(s)
-
     /**
-     * set view by look at
+     * set view by look at, this func will set quaternion of this camera
      */
     Camera.prototype.setLookAt = function(target, up) {
         var eye = this.position;
@@ -2206,12 +2583,12 @@
         var yaxis = new zen3d.Vector3();
         zaxis.crossProduct(xaxis, yaxis);
 
-        this.viewMatrix.set(
-            xaxis.x, xaxis.y, xaxis.z, -xaxis.dotProduct(eye),
-            yaxis.x, yaxis.y, yaxis.z, -yaxis.dotProduct(eye),
-            zaxis.x, zaxis.y, zaxis.z, -zaxis.dotProduct(eye),
+        this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
+            xaxis.x, yaxis.x, zaxis.x, 0,
+            xaxis.y, yaxis.y, zaxis.y, 0,
+            xaxis.z, yaxis.z, zaxis.z, 0,
             0, 0, 0, 1
-        );
+        ));
     }
 
     /**
@@ -2943,7 +3320,8 @@
     Material.prototype.checkMapInit = function() {
         return (!this.map || this.map.isRenderable) &&
             (!this.normalMap || this.normalMap.isRenderable) &&
-            (!this.envMap || this.envMap.isRenderable);
+            (!this.envMap || this.envMap.isRenderable) &&
+            (!this.cubeMap || this.cubeMap.isRenderable);
     }
 
     zen3d.Material = Material;
@@ -3035,4 +3413,64 @@
     zen3d.inherit(Mesh, zen3d.Object3D);
 
     zen3d.Mesh = Mesh;
+})();
+
+(function() {
+    /**
+     * HoverController Class
+     * @class
+     */
+    var HoverController = function(camera, lookAtPoint) {
+        this.camera = camera;
+
+        this.lookAtPoint = lookAtPoint;
+
+        this.up = new zen3d.Vector3(0, 1, 0);
+
+        this.distance = 300;
+
+        this._panAngle = 0;
+        this._panRad = 0;
+        this.minPanAngle = -Infinity;
+        this.maxPanAngle = Infinity;
+
+        this._tiltAngle = 0;
+        this._tiltRad = 0;
+        this.minTileAngle = -90;
+        this.maxTileAngle = 90;
+    }
+
+    Object.defineProperties(HoverController.prototype, {
+        panAngle: {
+            get: function() {
+                return this._panAngle;
+            },
+            set: function(value) {
+                this._panAngle = Math.max(this.minPanAngle, Math.min(this.maxPanAngle, value));
+                this._panRad = this._panAngle * Math.PI / 180;
+            }
+        },
+        tiltAngle: {
+            get: function() {
+                return this._tiltAngle;
+            },
+            set: function(value) {
+                this._tiltAngle = Math.max(this.minTileAngle, Math.min(this.maxTileAngle, value));
+                this._tiltRad = this._tiltAngle * Math.PI / 180;
+            }
+        }
+    });
+
+    HoverController.prototype.update = function() {
+        var distanceX = this.distance * Math.sin(this._panRad) * Math.cos(this._tiltRad);
+        var distanceY = this.distance * Math.sin(this._tiltRad);
+        var distanceZ = this.distance * Math.cos(this._panRad) * Math.cos(this._tiltRad);
+
+        var camera = this.camera;
+        var target = this.lookAtPoint;
+        camera.position.set(distanceX + target.x, distanceY + target.y, distanceZ + target.z);
+        camera.setLookAt(target, this.up);
+    }
+
+    zen3d.HoverController = HoverController;
 })();

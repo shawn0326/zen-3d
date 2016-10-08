@@ -17,11 +17,8 @@
 
     zen3d.inherit(Camera, zen3d.Object3D);
 
-    // TODO how to handle rotation, and how to handle the conflict with lookAt
-    // TODO This routine does not support cameras with rotated and/or translated parent(s)
-
     /**
-     * set view by look at
+     * set view by look at, this func will set quaternion of this camera
      */
     Camera.prototype.setLookAt = function(target, up) {
         var eye = this.position;
@@ -37,12 +34,12 @@
         var yaxis = new zen3d.Vector3();
         zaxis.crossProduct(xaxis, yaxis);
 
-        this.viewMatrix.set(
-            xaxis.x, xaxis.y, xaxis.z, -xaxis.dotProduct(eye),
-            yaxis.x, yaxis.y, yaxis.z, -yaxis.dotProduct(eye),
-            zaxis.x, zaxis.y, zaxis.z, -zaxis.dotProduct(eye),
+        this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
+            xaxis.x, yaxis.x, zaxis.x, 0,
+            xaxis.y, yaxis.y, zaxis.y, 0,
+            xaxis.z, yaxis.z, zaxis.z, 0,
             0, 0, 0, 1
-        );
+        ));
     }
 
     /**

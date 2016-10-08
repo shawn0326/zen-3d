@@ -17,9 +17,17 @@
     	this.scale = new zen3d.Vector3(1, 1, 1);
 
         // euler rotate
-        this.euler = new zen3d.Euler();
+        var euler = this.euler = new zen3d.Euler();
         // quaternion rotate
-    	this.quaternion = new zen3d.Quaternion();
+    	var quaternion = this.quaternion = new zen3d.Quaternion();
+
+        // bind euler and quaternion
+        euler.onChange(function() {
+            quaternion.setFromEuler(euler, false);
+        });
+        quaternion.onChange(function() {
+            euler.setFromQuaternion(quaternion, undefined, false);
+        });
 
         // transform matrix
         this.matrix = new zen3d.Matrix4();

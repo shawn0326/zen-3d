@@ -65,7 +65,10 @@ var filesSrc = [
     "core/objects/mesh/material/PhongMaterial.js",
     "core/objects/mesh/material/CubeMaterial.js",
 
-    "core/objects/mesh/Mesh.js"
+    "core/objects/mesh/Mesh.js",
+
+    // controller
+    "extension/controller/HoverController.js"
 
 ];
 
