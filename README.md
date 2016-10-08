@@ -10,14 +10,7 @@ JavaScript 3D library
 
 RoadMap
 --
-* ~~基本绘制~~
-* ~~多灯光着色器管理~~
-* ~~实现basic,phong,lambert三种material~~
-* ~~支持法线贴图~~
-* ~~支持环境贴图~~
-* 实时阴影
-* ~~基本模型格式解析(assimp2json)~~
-* 基本摄像机控制器
+[zen-3d RoadMap](https://trello.com/b/7Ie3DDBP)
 
 About Me
 --
