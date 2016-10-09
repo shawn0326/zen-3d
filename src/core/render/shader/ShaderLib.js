@@ -278,6 +278,8 @@
             'vec3 position;',
             'vec4 color;',
             'float intensity;',
+            'float distance;',
+            'float decay;',
         '};',
         'uniform PointLight u_Point[USE_POINT_LIGHT];',
     ].join("\n");
@@ -329,7 +331,7 @@
             '#ifdef USE_POINT_LIGHT',
             'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
                 'L = u_Point[i].position - v_ViewModelPos;',
-                'float dist = max(1. - length(L) * .005, 0.0);',
+                'float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);',
                 'light = u_Point[i].color * u_Point[i].intensity * dist;',
                 'L = normalize(L);',
 

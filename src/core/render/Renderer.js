@@ -250,6 +250,8 @@
                     helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
+                    var distance = light.distance;
+                    var decay = light.decay;
 
                     var u_Point_position = uniforms["u_Point[" + k + "].position"].location;
                     gl.uniform3f(u_Point_position, helpVector4.x, helpVector4.y, helpVector4.z);
@@ -257,6 +259,10 @@
                     gl.uniform1f(u_Point_intensity, intensity);
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    var u_Point_distance = uniforms["u_Point[" + k + "].distance"].location;
+                    gl.uniform1f(u_Point_distance, distance);
+                    var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
+                    gl.uniform1f(u_Point_decay, decay);
                 }
             }
             ///////

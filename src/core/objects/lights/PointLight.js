@@ -8,9 +8,11 @@
 
         this.lightType = zen3d.LIGHT_TYPE.POINT;
 
-        // TODO does not support lights with rotated and/or translated parent(s)
-        // TODO decay of this light
+        // decay of this light
         this.decay = 2;
+
+        // distance of this light
+        this.distance = 200;
     }
 
     zen3d.inherit(PointLight, zen3d.Light);

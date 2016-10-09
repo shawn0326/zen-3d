@@ -1317,6 +1317,8 @@
             'vec3 position;',
             'vec4 color;',
             'float intensity;',
+            'float distance;',
+            'float decay;',
         '};',
         'uniform PointLight u_Point[USE_POINT_LIGHT];',
     ].join("\n");
@@ -1368,7 +1370,7 @@
             '#ifdef USE_POINT_LIGHT',
             'for(int i = 0; i < USE_POINT_LIGHT; i++) {',
                 'L = u_Point[i].position - v_ViewModelPos;',
-                'float dist = max(1. - length(L) * .005, 0.0);',
+                'float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);',
                 'light = u_Point[i].color * u_Point[i].intensity * dist;',
                 'L = normalize(L);',
 
@@ -2087,6 +2089,8 @@
                     helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
+                    var distance = light.distance;
+                    var decay = light.decay;
 
                     var u_Point_position = uniforms["u_Point[" + k + "].position"].location;
                     gl.uniform3f(u_Point_position, helpVector4.x, helpVector4.y, helpVector4.z);
@@ -2094,6 +2098,10 @@
                     gl.uniform1f(u_Point_intensity, intensity);
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
                     gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    var u_Point_distance = uniforms["u_Point[" + k + "].distance"].location;
+                    gl.uniform1f(u_Point_distance, distance);
+                    var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
+                    gl.uniform1f(u_Point_decay, decay);
                 }
             }
             ///////
@@ -2537,9 +2545,11 @@
 
         this.lightType = zen3d.LIGHT_TYPE.POINT;
 
-        // TODO does not support lights with rotated and/or translated parent(s)
-        // TODO decay of this light
+        // decay of this light
         this.decay = 2;
+
+        // distance of this light
+        this.distance = 200;
     }
 
     zen3d.inherit(PointLight, zen3d.Light);
