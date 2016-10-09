@@ -84,10 +84,12 @@
         var ambientLights = this.cache.ambientLights;
         var directLights = this.cache.directLights;
         var pointLights = this.cache.pointLights;
+        var spotLights = this.cache.spotLights;
         var ambientLightsNum = ambientLights.length;
         var directLightsNum = directLights.length;
         var pointLightsNum = pointLights.length;
-        var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum;
+        var spotLightsNum = spotLights.length;
+        var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum + spotLightsNum;
 
         for(var i = 0, l = renderList.length; i < l; i++) {
 
@@ -119,7 +121,8 @@
             var program = zen3d.getProgram(gl, material, [
                 ambientLightsNum,
                 directLightsNum,
-                pointLightsNum
+                pointLightsNum,
+                spotLightsNum
             ]);
             gl.useProgram(program.id);
 
@@ -263,6 +266,43 @@
                     gl.uniform1f(u_Point_distance, distance);
                     var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
                     gl.uniform1f(u_Point_decay, decay);
+                }
+
+                for(var k = 0; k < spotLightsNum; k++) {
+                    var light = spotLights[k];
+
+                    var position = light.position;
+                    var viewMatrix = camera.viewMatrix;
+                    helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
+                    var u_Spot_position = uniforms["u_Spot[" + k + "].position"].location;
+                    gl.uniform3f(u_Spot_position, helpVector4.x, helpVector4.y, helpVector4.z);
+
+                    var intensity = light.intensity;
+                    var color = zen3d.hex2RGB(light.color);
+                    var distance = light.distance;
+                    var decay = light.decay;
+
+                    var direction = light.direction;
+                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose();
+                    helpVector4.set(direction.x, direction.y, direction.z, 1).applyMatrix4(viewITMatrix);
+                    var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"].location;
+                    gl.uniform3f(u_Spot_direction, helpVector4.x, helpVector4.y, helpVector4.z);
+
+                    var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"].location;
+                    gl.uniform1f(u_Spot_intensity, intensity);
+                    var u_Spot_color = uniforms["u_Spot[" + k + "].color"].location;
+                    gl.uniform4f(u_Spot_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"].location;
+                    gl.uniform1f(u_Spot_distance, distance);
+                    var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"].location;
+                    gl.uniform1f(u_Spot_decay, decay);
+
+                    var coneCos = Math.cos( light.angle );
+                    var penumbraCos = Math.cos( light.angle * ( 1 - light.penumbra ) );
+                    var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"].location;
+                    gl.uniform1f(u_Spot_coneCos, coneCos);
+                    var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"].location;
+                    gl.uniform1f(u_Spot_penumbraCos, penumbraCos);
                 }
             }
             ///////

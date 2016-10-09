@@ -284,6 +284,21 @@
         'uniform PointLight u_Point[USE_POINT_LIGHT];',
     ].join("\n");
 
+    var spotlight_pars_frag = [
+        'struct SpotLight',
+        '{',
+            'vec3 position;',
+            'vec4 color;',
+            'float intensity;',
+            'float distance;',
+            'float decay;',
+            'float coneCos;',
+            'float penumbraCos;',
+            'vec3 direction;',
+        '};',
+        'uniform SpotLight u_Spot[USE_SPOT_LIGHT];',
+    ].join("\n");
+
     var light_pars_frag = [
         '#ifdef USE_AMBIENT_LIGHT',
             ambientlight_pars_frag,
@@ -293,6 +308,9 @@
         '#endif',
         '#ifdef USE_POINT_LIGHT',
             pointlight_pars_frag,
+        '#endif',
+        '#ifdef USE_SPOT_LIGHT',
+            spotlight_pars_frag,
         '#endif',
     ].join("\n");
 
@@ -309,7 +327,7 @@
             '}',
             '#endif',
 
-            '#if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) )',
+            '#if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) )',
                 'vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);',
             '#endif',
 
@@ -343,6 +361,32 @@
                 '#endif',
             '}',
             '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+            'for(int i = 0; i < USE_SPOT_LIGHT; i++) {',
+                'L = u_Spot[i].position - v_ViewModelPos;',
+                'float lightDistance = length(L);',
+                'L = normalize(L);',
+                'float angleCos = dot( L, -normalize(u_Spot[i].direction) );',
+
+                'if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {',
+
+                    'float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );',
+                    'float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);',
+                    'light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;',
+
+                    'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
+
+                    '#ifdef USE_PHONG',
+                    // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
+                    'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                    '#endif',
+
+                '}',
+
+            '}',
+            '#endif',
+
             'outColor = reflectLight.xyzw;',
         '#endif'
     ].join("\n");
@@ -373,19 +417,19 @@
      */
 
     var viewModelPos_pars_vert =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'varying vec3 v_ViewModelPos;',
         '#endif'
     ].join("\n");
 
     var viewModelPos_vert =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'v_ViewModelPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
         '#endif'
     ].join("\n");
 
     var viewModelPos_pars_frag =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'varying vec3 v_ViewModelPos;',
         '#endif'
     ].join("\n");

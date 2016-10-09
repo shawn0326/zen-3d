@@ -18,7 +18,8 @@
     var LIGHT_TYPE = {
         AMBIENT: "ambient",
         DIRECT: "direct",
-        POINT: "point"
+        POINT: "point",
+        SPOT: "spot"
     };
 
     zen3d.LIGHT_TYPE = LIGHT_TYPE;

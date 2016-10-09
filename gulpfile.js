@@ -44,6 +44,7 @@ var filesSrc = [
     "core/objects/lights/AmbientLight.js",
     "core/objects/lights/DirectionalLight.js",
     "core/objects/lights/PointLight.js",
+    "core/objects/lights/SpotLight.js",
 
     // camera
     "core/objects/camera/Camera.js",

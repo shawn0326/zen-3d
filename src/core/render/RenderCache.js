@@ -16,6 +16,7 @@
         this.ambientLights = new Array();
         this.directLights = new Array();
         this.pointLights = new Array();
+        this.spotLights = new Array();
     }
 
     /**
@@ -43,6 +44,8 @@
                     this.directLights.push(object);
                 } else if(object.lightType == LIGHT_TYPE.POINT) {
                     this.pointLights.push(object);
+                } else if(object.lightType == LIGHT_TYPE.SPOT) {
+                    this.spotLights.push(object);
                 }
                 break;
             case OBJECT_TYPE.CAMERA:
@@ -96,6 +99,7 @@
         this.ambientLights.length = 0;
         this.directLights.length = 0;
         this.pointLights.length = 0;
+        this.spotLights.length = 0;
     }
 
     zen3d.RenderCache = RenderCache;

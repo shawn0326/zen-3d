@@ -122,7 +122,8 @@
     var LIGHT_TYPE = {
         AMBIENT: "ambient",
         DIRECT: "direct",
-        POINT: "point"
+        POINT: "point",
+        SPOT: "spot"
     };
 
     zen3d.LIGHT_TYPE = LIGHT_TYPE;
@@ -1323,6 +1324,21 @@
         'uniform PointLight u_Point[USE_POINT_LIGHT];',
     ].join("\n");
 
+    var spotlight_pars_frag = [
+        'struct SpotLight',
+        '{',
+            'vec3 position;',
+            'vec4 color;',
+            'float intensity;',
+            'float distance;',
+            'float decay;',
+            'float coneCos;',
+            'float penumbraCos;',
+            'vec3 direction;',
+        '};',
+        'uniform SpotLight u_Spot[USE_SPOT_LIGHT];',
+    ].join("\n");
+
     var light_pars_frag = [
         '#ifdef USE_AMBIENT_LIGHT',
             ambientlight_pars_frag,
@@ -1332,6 +1348,9 @@
         '#endif',
         '#ifdef USE_POINT_LIGHT',
             pointlight_pars_frag,
+        '#endif',
+        '#ifdef USE_SPOT_LIGHT',
+            spotlight_pars_frag,
         '#endif',
     ].join("\n");
 
@@ -1348,7 +1367,7 @@
             '}',
             '#endif',
 
-            '#if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) )',
+            '#if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) )',
                 'vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);',
             '#endif',
 
@@ -1382,6 +1401,32 @@
                 '#endif',
             '}',
             '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+            'for(int i = 0; i < USE_SPOT_LIGHT; i++) {',
+                'L = u_Spot[i].position - v_ViewModelPos;',
+                'float lightDistance = length(L);',
+                'L = normalize(L);',
+                'float angleCos = dot( L, -normalize(u_Spot[i].direction) );',
+
+                'if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {',
+
+                    'float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );',
+                    'float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);',
+                    'light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;',
+
+                    'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
+
+                    '#ifdef USE_PHONG',
+                    // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
+                    'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                    '#endif',
+
+                '}',
+
+            '}',
+            '#endif',
+
             'outColor = reflectLight.xyzw;',
         '#endif'
     ].join("\n");
@@ -1412,19 +1457,19 @@
      */
 
     var viewModelPos_pars_vert =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'varying vec3 v_ViewModelPos;',
         '#endif'
     ].join("\n");
 
     var viewModelPos_vert =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'v_ViewModelPos = (u_View * u_Model * vec4(a_Position, 1.0)).xyz;',
         '#endif'
     ].join("\n");
 
     var viewModelPos_pars_frag =[
-        '#if defined(USE_POINT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
+        '#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )',
             'varying vec3 v_ViewModelPos;',
         '#endif'
     ].join("\n");
@@ -1755,11 +1800,12 @@
         } else {
             vshader_define = [
                 (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+                (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
                 (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
                 (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
+                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
@@ -1768,11 +1814,12 @@
             ].join("\n");
             fshader_define = [
                 (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+                (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
                 (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
                 (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0) ? '#define USE_LIGHT' : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0) ? '#define USE_NORMAL' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
+                (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
+                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
 
@@ -1806,7 +1853,8 @@
 
         var ambientLightNum = lightsNum[0],
         directLightNum = lightsNum[1],
-        pointLightNum = lightsNum[2];
+        pointLightNum = lightsNum[2],
+        spotLightNum = lightsNum[3]
 
         var props = {
             precision: getMaxPrecision(gl, "highp"),
@@ -1817,6 +1865,7 @@
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,
             pointLightNum: pointLightNum,
+            spotLightNum: spotLightNum,
             materialType: material.type
         };
 
@@ -1923,10 +1972,12 @@
         var ambientLights = this.cache.ambientLights;
         var directLights = this.cache.directLights;
         var pointLights = this.cache.pointLights;
+        var spotLights = this.cache.spotLights;
         var ambientLightsNum = ambientLights.length;
         var directLightsNum = directLights.length;
         var pointLightsNum = pointLights.length;
-        var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum;
+        var spotLightsNum = spotLights.length;
+        var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum + spotLightsNum;
 
         for(var i = 0, l = renderList.length; i < l; i++) {
 
@@ -1958,7 +2009,8 @@
             var program = zen3d.getProgram(gl, material, [
                 ambientLightsNum,
                 directLightsNum,
-                pointLightsNum
+                pointLightsNum,
+                spotLightsNum
             ]);
             gl.useProgram(program.id);
 
@@ -2103,6 +2155,43 @@
                     var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
                     gl.uniform1f(u_Point_decay, decay);
                 }
+
+                for(var k = 0; k < spotLightsNum; k++) {
+                    var light = spotLights[k];
+
+                    var position = light.position;
+                    var viewMatrix = camera.viewMatrix;
+                    helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
+                    var u_Spot_position = uniforms["u_Spot[" + k + "].position"].location;
+                    gl.uniform3f(u_Spot_position, helpVector4.x, helpVector4.y, helpVector4.z);
+
+                    var intensity = light.intensity;
+                    var color = zen3d.hex2RGB(light.color);
+                    var distance = light.distance;
+                    var decay = light.decay;
+
+                    var direction = light.direction;
+                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose();
+                    helpVector4.set(direction.x, direction.y, direction.z, 1).applyMatrix4(viewITMatrix);
+                    var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"].location;
+                    gl.uniform3f(u_Spot_direction, helpVector4.x, helpVector4.y, helpVector4.z);
+
+                    var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"].location;
+                    gl.uniform1f(u_Spot_intensity, intensity);
+                    var u_Spot_color = uniforms["u_Spot[" + k + "].color"].location;
+                    gl.uniform4f(u_Spot_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"].location;
+                    gl.uniform1f(u_Spot_distance, distance);
+                    var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"].location;
+                    gl.uniform1f(u_Spot_decay, decay);
+
+                    var coneCos = Math.cos( light.angle );
+                    var penumbraCos = Math.cos( light.angle * ( 1 - light.penumbra ) );
+                    var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"].location;
+                    gl.uniform1f(u_Spot_coneCos, coneCos);
+                    var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"].location;
+                    gl.uniform1f(u_Spot_penumbraCos, penumbraCos);
+                }
             }
             ///////
 
@@ -2139,6 +2228,7 @@
         this.ambientLights = new Array();
         this.directLights = new Array();
         this.pointLights = new Array();
+        this.spotLights = new Array();
     }
 
     /**
@@ -2166,6 +2256,8 @@
                     this.directLights.push(object);
                 } else if(object.lightType == LIGHT_TYPE.POINT) {
                     this.pointLights.push(object);
+                } else if(object.lightType == LIGHT_TYPE.SPOT) {
+                    this.spotLights.push(object);
                 }
                 break;
             case OBJECT_TYPE.CAMERA:
@@ -2219,6 +2311,7 @@
         this.ambientLights.length = 0;
         this.directLights.length = 0;
         this.pointLights.length = 0;
+        this.spotLights.length = 0;
     }
 
     zen3d.RenderCache = RenderCache;
@@ -2555,6 +2648,36 @@
     zen3d.inherit(PointLight, zen3d.Light);
 
     zen3d.PointLight = PointLight;
+})();
+
+(function() {
+    /**
+     * SpotLight
+     * @class
+     */
+    var SpotLight = function() {
+        SpotLight.superClass.constructor.call(this);
+
+        this.lightType = zen3d.LIGHT_TYPE.SPOT;
+
+        // decay of this light
+        this.decay = 2;
+
+        // distance of this light
+        this.distance = 200;
+
+        // TODO does not support lights with rotated
+        // direction of this light
+        this.direction = new zen3d.Vector3();
+
+        this.penumbra = 0;
+
+        this.angle = Math.PI / 3;
+    }
+
+    zen3d.inherit(SpotLight, zen3d.Light);
+
+    zen3d.SpotLight = SpotLight;
 })();
 
 (function() {
