@@ -14,10 +14,6 @@
         // distance of this light
         this.distance = 200;
 
-        // TODO does not support lights with rotated
-        // direction of this light
-        this.direction = new zen3d.Vector3();
-
         this.penumbra = 0;
 
         this.angle = Math.PI / 3;

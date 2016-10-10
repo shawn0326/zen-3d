@@ -108,9 +108,7 @@ request.send();
 
 var directionalLight = new zen3d.DirectionalLight();
 directionalLight.intensity = .8;
-directionalLight.direction.x = -2;
-directionalLight.direction.y = -1;
-directionalLight.direction.z = 0;
+directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
 directionalLight.color = 0xffffff;
 scene.add(directionalLight);
 

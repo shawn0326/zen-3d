@@ -80,7 +80,7 @@
     Vector3.prototype.applyQuaternion = function(q) {
 
 		var x = this.x, y = this.y, z = this.z;
-		var qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+		var qx = q._x, qy = q._y, qz = q._z, qw = q._w;
 
 		// calculate quat * vector
 

@@ -63,7 +63,7 @@ light1.distance = 500;
 light1.decay = 1;
 light1.position.y = 100;
 light1.angle = Math.PI / 6;
-light1.direction.set(0, -1, 0);
+light1.euler.x = Math.PI / 2;
 light1.penumbra = 0.2;
 scene.add(light1);
 
@@ -73,10 +73,8 @@ function loop() {
     requestAnimationFrame(loop);
 
     count++;
-    //
-    light1.direction.x = 1 * Math.cos(count * .03);
-    light1.direction.y = -4;
-    light1.direction.z = 1 * Math.sin(count * .03);
+
+    light1.euler.x = Math.PI / 2 + Math.sin(count * .03);
 
     controller.update();
 

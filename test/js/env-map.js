@@ -54,9 +54,7 @@ scene.add(ambientLight);
 
 var directionalLight = new zen3d.DirectionalLight();
 directionalLight.intensity = .8;
-directionalLight.direction.x = -2;
-directionalLight.direction.y = -1;
-directionalLight.direction.z = 0;
+directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
 directionalLight.color = 0xffffff;
 scene.add(directionalLight);
 
@@ -106,9 +104,6 @@ function loop() {
     // rotation.y += 0.05;
     // sphere3.rotation = rotation;
     // camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-    // directionalLight.direction.x = 2 * Math.cos(count * .03);
-    // directionalLight.direction.z = Math.sin(count * .03);
 
     helpCamera.position.set(sphere.position.x, sphere.position.y, sphere.position.z);
 

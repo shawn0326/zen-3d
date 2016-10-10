@@ -41,9 +41,7 @@ scene.add(plane);
 
 var directionalLight = new zen3d.DirectionalLight();
 directionalLight.intensity = 1;
-directionalLight.direction.x = -2;
-directionalLight.direction.y = -1;
-directionalLight.direction.z = 0;
+directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
 directionalLight.color = 0xffffff;
 scene.add(directionalLight);
 
@@ -83,9 +81,6 @@ function loop() {
     requestAnimationFrame(loop);
 
     count++;
-
-    directionalLight.direction.x = 2 * Math.cos(count * .03);
-    directionalLight.direction.z = Math.sin(count * .03);
 
     hoverController.update();
 

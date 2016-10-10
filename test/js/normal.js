@@ -139,9 +139,7 @@ group.add(plane);
 
 var directionalLight = new zen3d.DirectionalLight();
 directionalLight.intensity = 1;
-directionalLight.direction.x = -2;
-directionalLight.direction.y = -1;
-directionalLight.direction.z = 0;
+directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
 directionalLight.color = 0xffffff;
 scene.add(directionalLight);
 //
@@ -241,8 +239,7 @@ function loop() {
     // camera.position.x = 300 * Math.sin(count * .01);
     // camera.position.y = -20 * Math.cos(count * .01);
 
-    directionalLight.direction.x = 2 * Math.cos(count * .03);
-    directionalLight.direction.z = Math.sin(count * .03);
+    directionalLight.euler.y = Math.sin(count * .03);
 
     // pointLight1.position.x = 210 * Math.sin(count * .01);
     // pointLight1.position.z = 210 * Math.cos(count * .01);
