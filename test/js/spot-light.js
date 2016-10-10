@@ -17,24 +17,42 @@ controller.panAngle = 0;
 controller.tiltAngle = 45;
 controller.distance = 300;
 var pressed = false;
-document.addEventListener("mousewheel", function(e) {
+var touchX = 0;
+var touchY = 0;
+function touchScale(e) {
+    e.preventDefault();
     controller.distance += e.deltaY;
-}.bind(this));
-document.addEventListener("mousedown", function(e) {
+}
+function touchDown(e) {
+    e.preventDefault();
     pressed = true;
-}.bind(this));
-document.addEventListener("mouseup", function(e) {
-    pressed = false;
-}.bind(this));
-document.addEventListener("mousemove", function(e) {
+    touchX = e.pageX;
+    touchY = e.pageY;
+}
+function touchMove(e) {
+    e.preventDefault();
     if(pressed) {
-        // TODO only works for chrome?
-        var moveX = -e.movementX;
-        var moveY = e.movementY;
-        controller.panAngle += moveX;
+        var moveX = e.pageX - touchX;
+        var moveY = e.pageY - touchY;
+
+        touchX = e.pageX;
+        touchY = e.pageY;
+
+        controller.panAngle -= moveX;
         controller.tiltAngle += moveY;
     }
-}.bind(this));
+}
+function touchRelease(e) {
+    e.preventDefault();
+    pressed = false;
+}
+canvas.addEventListener("mousewheel", touchScale);
+canvas.addEventListener("mousedown", touchDown);
+canvas.addEventListener("mouseup", touchRelease);
+canvas.addEventListener("mousemove", touchMove);
+canvas.addEventListener("touchstart", touchDown);
+canvas.addEventListener("touchend", touchRelease);
+canvas.addEventListener("touchmove", touchMove);
 
 // plane
 var plane_geometry = new zen3d.PlaneGeometry(800, 800);

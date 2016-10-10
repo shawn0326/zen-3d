@@ -54,25 +54,44 @@ camera.setPerspective(45 / 180 * Math.PI, 480 / 480, 10, 1000);
 scene.add(camera);
 
 // add a hover controller
-var hoverController = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
+var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
 var pressed = false;
-document.addEventListener("mousewheel", function(e) {
-    hoverController.distance += e.deltaY;
-}.bind(this));
-document.addEventListener("mousedown", function(e) {
+var touchX = 0;
+var touchY = 0;
+function touchScale(e) {
+    e.preventDefault();
+    controller.distance += e.deltaY;
+}
+function touchDown(e) {
+    e.preventDefault();
     pressed = true;
-}.bind(this));
-document.addEventListener("mouseup", function(e) {
-    pressed = false;
-}.bind(this));
-document.addEventListener("mousemove", function(e) {
+    touchX = e.pageX;
+    touchY = e.pageY;
+}
+function touchMove(e) {
+    e.preventDefault();
     if(pressed) {
-        var moveX = -e.movementX;
-        var moveY = e.movementY;
-        hoverController.panAngle += moveX;
-        hoverController.tiltAngle += moveY;
+        var moveX = e.pageX - touchX;
+        var moveY = e.pageY - touchY;
+
+        touchX = e.pageX;
+        touchY = e.pageY;
+
+        controller.panAngle -= moveX;
+        controller.tiltAngle += moveY;
     }
-}.bind(this));
+}
+function touchRelease(e) {
+    e.preventDefault();
+    pressed = false;
+}
+canvas.addEventListener("mousewheel", touchScale);
+canvas.addEventListener("mousedown", touchDown);
+canvas.addEventListener("mouseup", touchRelease);
+canvas.addEventListener("mousemove", touchMove);
+canvas.addEventListener("touchstart", touchDown);
+canvas.addEventListener("touchend", touchRelease);
+canvas.addEventListener("touchmove", touchMove);
 
 // frame render
 var count = 0;
@@ -82,7 +101,7 @@ function loop() {
 
     count++;
 
-    hoverController.update();
+    controller.update();
 
     renderer.render(scene, camera);
 }
