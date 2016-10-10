@@ -50,7 +50,7 @@ function loop() {
 
     // render target
 
-    renderTarget.bind();
+    renderer.setRenderTarget(renderTarget);
 
     var gl = renderer.gl;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
@@ -61,7 +61,7 @@ function loop() {
 
     material1.map = renderTexture;
 
-    renderTarget.unbind();
+    renderer.clearRenderTarget();
 
     // render target
 

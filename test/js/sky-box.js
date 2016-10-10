@@ -127,7 +127,7 @@ function loop() {
 
     helpCamera.position.set(sphere.position.x, sphere.position.y, sphere.position.z);
 
-    renderTarget.bind();
+    renderer.setRenderTarget(renderTarget);
     var gl = renderer.gl;
 
     material2.envMap = null;
@@ -142,7 +142,7 @@ function loop() {
         renderer.render(scene, helpCamera);
     }
     material2.envMap = renderTexture;
-    renderTarget.unbind();
+    renderer.clearRenderTarget();
 
     renderer.render(scene, camera);
 

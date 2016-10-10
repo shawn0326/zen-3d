@@ -9,8 +9,8 @@ var sphere_geometry2 = new zen3d.SphereGeometry(30, 30, 10);
 var texture2 = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/earth.jpg");
 var pixels = zen3d.createCheckerBoardPixels(50, 50);
 var texture = zen3d.Texture2D.fromRes(renderer.gl, pixels, 50, 50);
-var renderTexture = zen3d.TextureCube.createRenderTexture(renderer.gl, 480, 480);
-var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
+var renderTexture = zen3d.TextureCube.createRenderTexture(renderer.gl, 120, 120);
+var renderTarget = new zen3d.RenderTarget(renderer.gl, 120, 120);
 renderTarget.bind().attachRenderBuffer("depth").unbind();
 
 var scene = new zen3d.Scene();
@@ -107,7 +107,7 @@ function loop() {
 
     helpCamera.position.set(sphere.position.x, sphere.position.y, sphere.position.z);
 
-    renderTarget.bind();
+    renderer.setRenderTarget(renderTarget);
     var gl = renderer.gl;
 
     material2.envMap = null;
@@ -122,7 +122,7 @@ function loop() {
         renderer.render(scene, helpCamera);
     }
     material2.envMap = renderTexture;
-    renderTarget.unbind();
+    renderer.clearRenderTarget();
 
     renderer.render(scene, camera);
 

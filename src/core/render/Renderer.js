@@ -340,5 +340,27 @@
         }
     }
 
+    /**
+     * set render target
+     */
+    Renderer.prototype.setRenderTarget = function(target) {
+        var gl = this.gl;
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target.frameBuffer);
+
+        gl.viewport(0, 0, target.width, target.height);
+    }
+
+    /**
+     * clear render target
+     */
+    Renderer.prototype.clearRenderTarget = function() {
+        var gl = this.gl;
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.viewport(0, 0, this.width, this.height);
+    }
+
     zen3d.Renderer = Renderer;
 })();
