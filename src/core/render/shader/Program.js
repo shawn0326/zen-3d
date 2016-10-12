@@ -206,6 +206,7 @@
                 ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.useShadow ? '#define USE_SHADOW' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -220,6 +221,7 @@
                 ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.useShadow ? '#define USE_SHADOW' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -245,9 +247,11 @@
     }
 
     /**
-     * get a suitable program by material & lights
+     * get a suitable program by object & lights
      */
-    var getProgram = function(gl, material, lightsNum) {
+    var getProgram = function(gl, object, lightsNum) {
+
+        var material = object.material;
 
         var ambientLightNum = lightsNum[0],
         directLightNum = lightsNum[1],
@@ -264,7 +268,8 @@
             directLightNum: directLightNum,
             pointLightNum: pointLightNum,
             spotLightNum: spotLightNum,
-            materialType: material.type
+            materialType: material.type,
+            useShadow: object.receiveShadow
         };
 
         var code = generateProgramCode(props);
@@ -281,5 +286,39 @@
         return program;
     }
 
+    /**
+     * get depth program, used to render depth map
+     */
+    var getDepthProgram = function(gl) {
+        var program;
+        var map = programMap;
+        var code = "depth";
+        var precision = getMaxPrecision(gl, "highp");
+
+        if(map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.depthVertex
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.depthFragment
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
+
+
     zen3d.getProgram = getProgram;
+    zen3d.getDepthProgram = getDepthProgram;
 })();

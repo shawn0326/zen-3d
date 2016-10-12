@@ -1,5 +1,29 @@
 (function() {
 
+    var packing = [
+        "const float PackUpscale = 256. / 255.;", // fraction -> 0..1 (including 1)
+        "const float UnpackDownscale = 255. / 256.;", // 0..1 -> fraction (excluding 1)
+
+        "const vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256.,  256. );",
+        "const vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );",
+
+        "const float ShiftRight8 = 1. / 256.;",
+
+        "vec4 packDepthToRGBA( const in float v ) {",
+
+            "vec4 r = vec4( fract( v * PackFactors ), v );",
+            "r.yzw -= r.xyz * ShiftRight8;", // tidy overflow
+            "return r * PackUpscale;",
+
+        "}",
+
+        "float unpackRGBAToDepth( const in vec4 v ) {",
+
+            "return dot( v, UnpackFactors );",
+
+        "}"
+    ].join("\n");
+
     var transpose = "mat4 transpose(mat4 inMatrix) { \n" +
         "vec4 i0 = inMatrix[0]; \n" +
         "vec4 i1 = inMatrix[1]; \n" +
@@ -250,6 +274,129 @@
     ].join("\n");
 
     /**
+     * shadow map
+     */
+
+    var shadowMap_pars_vert = [
+        '#ifdef USE_SHADOW',
+
+            '#ifdef USE_DIRECT_LIGHT',
+
+                'uniform mat4 directionalShadowMatrix[ USE_DIRECT_LIGHT ];',
+                'varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];',
+
+            '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+
+                'uniform mat4 spotShadowMatrix[ USE_SPOT_LIGHT ];',
+                'varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];',
+
+            '#endif',
+
+        '#endif'
+    ].join("\n");
+
+    var shadowMap_vert = [
+        '#ifdef USE_SHADOW',
+
+            'vec4 worldPosition = u_Model * vec4(a_Position, 1.0);',
+
+            '#ifdef USE_DIRECT_LIGHT',
+
+                'for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {',
+
+                    'vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;',
+
+                '}',
+
+            '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+
+                'for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {',
+
+                    'vSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * worldPosition;',
+
+                '}',
+
+            '#endif',
+
+        '#endif'
+    ].join("\n");
+
+    var shadowMap_pars_frag = [
+        '#ifdef USE_SHADOW',
+
+            packing,
+
+            '#ifdef USE_DIRECT_LIGHT',
+
+                'uniform sampler2D directionalShadowMap[ USE_DIRECT_LIGHT ];',
+                'varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];',
+
+            '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+
+                'uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];',
+                'varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];',
+
+            '#endif',
+
+            'float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {',
+
+        		'return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );',
+
+        	'}',
+
+            'float getShadow( sampler2D shadowMap, vec4 shadowCoord ) {',
+                'shadowCoord.xyz /= shadowCoord.w;',
+                'shadowCoord.z += 0.0003;', // shadow bias
+
+                'bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );',
+        		'bool inFrustum = all( inFrustumVec );',
+
+        		'bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );',
+
+        		'bool frustumTest = all( frustumTestVec );',
+
+        		'if ( frustumTest ) {',
+                    'return texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );',
+                '}',
+
+                'return 1.0;',
+
+            '}',
+
+            'float getShadowMask() {',
+                'float shadow = 1.0;',
+
+                '#ifdef USE_DIRECT_LIGHT',
+                    'for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {',
+                        'shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;',
+                    '}',
+                '#endif',
+
+                '#ifdef USE_SPOT_LIGHT',
+                    'for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {',
+                        'shadow *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;',
+                    '}',
+                '#endif',
+
+                'return shadow;',
+            '}',
+
+        '#endif'
+    ].join("\n");
+
+    var shadowMap_frag = [
+        '#ifdef USE_SHADOW',
+            'outColor *= getShadowMask();',
+        '#endif'
+    ].join("\n");
+
+    /**
      * light
      */
 
@@ -268,6 +415,8 @@
             'vec3 direction;',
             'vec4 color;',
             'float intensity;',
+
+            'int shadow;',
         '};',
         'uniform DirectLight u_Directional[USE_DIRECT_LIGHT];',
     ].join("\n");
@@ -295,6 +444,8 @@
             'float coneCos;',
             'float penumbraCos;',
             'vec3 direction;',
+
+            'int shadow;',
         '};',
         'uniform SpotLight u_Spot[USE_SPOT_LIGHT];',
     ].join("\n");
@@ -470,12 +621,14 @@
             uv_pars_vert,
             viewModelPos_pars_vert,
             envMap_pars_vert,
+            shadowMap_pars_vert,
             'void main() {',
                 pvm_vert,
                 normal_vert,
                 uv_vert,
                 viewModelPos_vert,
                 envMap_vert,
+                shadowMap_vert,
             '}'
         ].join("\n"),
         lambertFragment: [
@@ -488,12 +641,14 @@
             viewModelPos_pars_frag,
             RE_Lambert,
             envMap_pars_frag,
+            shadowMap_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
                 normal_frag,
                 light_frag,
                 envMap_frag,
+                shadowMap_frag,
                 frag_end,
             '}'
         ].join("\n"),
@@ -505,12 +660,14 @@
             uv_pars_vert,
             viewModelPos_pars_vert,
             envMap_pars_vert,
+            shadowMap_pars_vert,
             'void main() {',
                 pvm_vert,
                 normal_vert,
                 uv_vert,
                 viewModelPos_vert,
                 envMap_vert,
+                shadowMap_vert,
             '}'
         ].join("\n"),
         phongFragment: [
@@ -526,12 +683,14 @@
             RE_Phong,
             RE_BlinnPhong,
             envMap_pars_frag,
+            shadowMap_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
                 normal_frag,
                 light_frag,
                 envMap_frag,
+                shadowMap_frag,
                 frag_end,
             '}'
         ].join("\n"),
@@ -554,7 +713,27 @@
                 'outColor *= textureCube(cubeMap, v_ModelPos);',
                 frag_end,
             '}'
+        ].join("\n"),
+
+        // depth shader
+        depthVertex: [
+            vertexCommon,
+            'varying vec3 v_ModelPos;',
+            'void main() {',
+                pvm_vert,
+                'v_ModelPos = (u_Model * vec4(a_Position, 1.0)).xyz;',
+            '}'
+        ].join("\n"),
+        depthFragment: [
+            fragmentCommon,
+            'uniform vec3 lightPos;',
+            'varying vec3 v_ModelPos;',
+            packing,
+            'void main() {',
+                'gl_FragColor = packDepthToRGBA(length(v_ModelPos - lightPos) / 1000.);',
+            '}'
         ].join("\n")
+
     };
 
     zen3d.ShaderLib = ShaderLib;

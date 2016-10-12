@@ -1142,6 +1142,30 @@
 })();
 (function() {
 
+    var packing = [
+        "const float PackUpscale = 256. / 255.;", // fraction -> 0..1 (including 1)
+        "const float UnpackDownscale = 255. / 256.;", // 0..1 -> fraction (excluding 1)
+
+        "const vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256.,  256. );",
+        "const vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );",
+
+        "const float ShiftRight8 = 1. / 256.;",
+
+        "vec4 packDepthToRGBA( const in float v ) {",
+
+            "vec4 r = vec4( fract( v * PackFactors ), v );",
+            "r.yzw -= r.xyz * ShiftRight8;", // tidy overflow
+            "return r * PackUpscale;",
+
+        "}",
+
+        "float unpackRGBAToDepth( const in vec4 v ) {",
+
+            "return dot( v, UnpackFactors );",
+
+        "}"
+    ].join("\n");
+
     var transpose = "mat4 transpose(mat4 inMatrix) { \n" +
         "vec4 i0 = inMatrix[0]; \n" +
         "vec4 i1 = inMatrix[1]; \n" +
@@ -1392,6 +1416,129 @@
     ].join("\n");
 
     /**
+     * shadow map
+     */
+
+    var shadowMap_pars_vert = [
+        '#ifdef USE_SHADOW',
+
+            '#ifdef USE_DIRECT_LIGHT',
+
+                'uniform mat4 directionalShadowMatrix[ USE_DIRECT_LIGHT ];',
+                'varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];',
+
+            '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+
+                'uniform mat4 spotShadowMatrix[ USE_SPOT_LIGHT ];',
+                'varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];',
+
+            '#endif',
+
+        '#endif'
+    ].join("\n");
+
+    var shadowMap_vert = [
+        '#ifdef USE_SHADOW',
+
+            'vec4 worldPosition = u_Model * vec4(a_Position, 1.0);',
+
+            '#ifdef USE_DIRECT_LIGHT',
+
+                'for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {',
+
+                    'vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;',
+
+                '}',
+
+            '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+
+                'for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {',
+
+                    'vSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * worldPosition;',
+
+                '}',
+
+            '#endif',
+
+        '#endif'
+    ].join("\n");
+
+    var shadowMap_pars_frag = [
+        '#ifdef USE_SHADOW',
+
+            packing,
+
+            '#ifdef USE_DIRECT_LIGHT',
+
+                'uniform sampler2D directionalShadowMap[ USE_DIRECT_LIGHT ];',
+                'varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];',
+
+            '#endif',
+
+            '#ifdef USE_SPOT_LIGHT',
+
+                'uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];',
+                'varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];',
+
+            '#endif',
+
+            'float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {',
+
+        		'return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );',
+
+        	'}',
+
+            'float getShadow( sampler2D shadowMap, vec4 shadowCoord ) {',
+                'shadowCoord.xyz /= shadowCoord.w;',
+                'shadowCoord.z += 0.0003;', // shadow bias
+
+                'bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );',
+        		'bool inFrustum = all( inFrustumVec );',
+
+        		'bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );',
+
+        		'bool frustumTest = all( frustumTestVec );',
+
+        		'if ( frustumTest ) {',
+                    'return texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );',
+                '}',
+
+                'return 1.0;',
+
+            '}',
+
+            'float getShadowMask() {',
+                'float shadow = 1.0;',
+
+                '#ifdef USE_DIRECT_LIGHT',
+                    'for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {',
+                        'shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;',
+                    '}',
+                '#endif',
+
+                '#ifdef USE_SPOT_LIGHT',
+                    'for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {',
+                        'shadow *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;',
+                    '}',
+                '#endif',
+
+                'return shadow;',
+            '}',
+
+        '#endif'
+    ].join("\n");
+
+    var shadowMap_frag = [
+        '#ifdef USE_SHADOW',
+            'outColor *= getShadowMask();',
+        '#endif'
+    ].join("\n");
+
+    /**
      * light
      */
 
@@ -1410,6 +1557,8 @@
             'vec3 direction;',
             'vec4 color;',
             'float intensity;',
+
+            'int shadow;',
         '};',
         'uniform DirectLight u_Directional[USE_DIRECT_LIGHT];',
     ].join("\n");
@@ -1437,6 +1586,8 @@
             'float coneCos;',
             'float penumbraCos;',
             'vec3 direction;',
+
+            'int shadow;',
         '};',
         'uniform SpotLight u_Spot[USE_SPOT_LIGHT];',
     ].join("\n");
@@ -1612,12 +1763,14 @@
             uv_pars_vert,
             viewModelPos_pars_vert,
             envMap_pars_vert,
+            shadowMap_pars_vert,
             'void main() {',
                 pvm_vert,
                 normal_vert,
                 uv_vert,
                 viewModelPos_vert,
                 envMap_vert,
+                shadowMap_vert,
             '}'
         ].join("\n"),
         lambertFragment: [
@@ -1630,12 +1783,14 @@
             viewModelPos_pars_frag,
             RE_Lambert,
             envMap_pars_frag,
+            shadowMap_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
                 normal_frag,
                 light_frag,
                 envMap_frag,
+                shadowMap_frag,
                 frag_end,
             '}'
         ].join("\n"),
@@ -1647,12 +1802,14 @@
             uv_pars_vert,
             viewModelPos_pars_vert,
             envMap_pars_vert,
+            shadowMap_pars_vert,
             'void main() {',
                 pvm_vert,
                 normal_vert,
                 uv_vert,
                 viewModelPos_vert,
                 envMap_vert,
+                shadowMap_vert,
             '}'
         ].join("\n"),
         phongFragment: [
@@ -1668,12 +1825,14 @@
             RE_Phong,
             RE_BlinnPhong,
             envMap_pars_frag,
+            shadowMap_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
                 normal_frag,
                 light_frag,
                 envMap_frag,
+                shadowMap_frag,
                 frag_end,
             '}'
         ].join("\n"),
@@ -1696,7 +1855,27 @@
                 'outColor *= textureCube(cubeMap, v_ModelPos);',
                 frag_end,
             '}'
+        ].join("\n"),
+
+        // depth shader
+        depthVertex: [
+            vertexCommon,
+            'varying vec3 v_ModelPos;',
+            'void main() {',
+                pvm_vert,
+                'v_ModelPos = (u_Model * vec4(a_Position, 1.0)).xyz;',
+            '}'
+        ].join("\n"),
+        depthFragment: [
+            fragmentCommon,
+            'uniform vec3 lightPos;',
+            'varying vec3 v_ModelPos;',
+            packing,
+            'void main() {',
+                'gl_FragColor = packDepthToRGBA(length(v_ModelPos - lightPos) / 1000.);',
+            '}'
         ].join("\n")
+
     };
 
     zen3d.ShaderLib = ShaderLib;
@@ -1910,6 +2089,7 @@
                 ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.useShadow ? '#define USE_SHADOW' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -1924,6 +2104,7 @@
                 ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.useShadow ? '#define USE_SHADOW' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -1949,9 +2130,11 @@
     }
 
     /**
-     * get a suitable program by material & lights
+     * get a suitable program by object & lights
      */
-    var getProgram = function(gl, material, lightsNum) {
+    var getProgram = function(gl, object, lightsNum) {
+
+        var material = object.material;
 
         var ambientLightNum = lightsNum[0],
         directLightNum = lightsNum[1],
@@ -1968,7 +2151,8 @@
             directLightNum: directLightNum,
             pointLightNum: pointLightNum,
             spotLightNum: spotLightNum,
-            materialType: material.type
+            materialType: material.type,
+            useShadow: object.receiveShadow
         };
 
         var code = generateProgramCode(props);
@@ -1985,7 +2169,41 @@
         return program;
     }
 
+    /**
+     * get depth program, used to render depth map
+     */
+    var getDepthProgram = function(gl) {
+        var program;
+        var map = programMap;
+        var code = "depth";
+        var precision = getMaxPrecision(gl, "highp");
+
+        if(map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.depthVertex
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.depthFragment
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
+
+
     zen3d.getProgram = getProgram;
+    zen3d.getDepthProgram = getDepthProgram;
 })();
 
 (function() {
@@ -2052,9 +2270,91 @@
 
         this.cache.sort();
 
+        this.renderShadow();
+
         this.flush();
 
         this.cache.clear();
+    }
+
+    /**
+     * render shadow map for lights
+     */
+    Renderer.prototype.renderShadow = function() {
+        var renderList = this.cache.shadowObjects;
+
+        if(renderList.length == 0) {
+            return;
+        }
+
+        var gl = this.gl;
+
+        // only direct light for now
+        var lights = this.cache.shadowLights;
+        for(var i = 0; i < lights.length; i++) {
+            var light = lights[i];
+
+            if(!light.shadow.isInit) {
+                light.shadow.init(gl);
+            }
+
+            var shadow = light.shadow;
+
+            shadow.update(light);
+
+            var camera = shadow.camera;
+            var shadowTarget = shadow.renderTarget;
+
+            this.setRenderTarget(shadowTarget);
+
+            gl.clearColor(1., 1., 1., 1.);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            for(var n = 0, l = renderList.length; n < l; n++) {
+                var object = renderList[n];
+                var material = object.material;
+
+                var offset = this._uploadGeometry(object.geometry);
+
+                var program = zen3d.getDepthProgram(gl);
+                gl.useProgram(program.id);
+
+                var location = program.attributes.a_Position.location;
+                gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
+                gl.enableVertexAttribArray(location);
+
+                // update uniforms
+                var uniforms = program.uniforms;
+                for(var key in uniforms) {
+                    var location = uniforms[key].location;
+                    switch(key) {
+                        // pvm matrix
+                        case "u_Projection":
+                            var projectionMat = camera.projectionMatrix.elements;
+                            gl.uniformMatrix4fv(location, false, projectionMat);
+                            break;
+                        case "u_View":
+                            var viewMatrix = camera.viewMatrix.elements;
+                            gl.uniformMatrix4fv(location, false, viewMatrix);
+                            break;
+                        case "u_Model":
+                            var modelMatrix = object.worldMatrix.elements;
+                            gl.uniformMatrix4fv(location, false, modelMatrix);
+                            break;
+                        case "lightPos":
+                            var lightPos = light.position; // TODO should be world position
+                            gl.uniform3f(location, lightPos.x, lightPos.y, lightPos.z);
+                    }
+                }
+
+                gl.disable(gl.BLEND);
+
+                // draw
+                gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+            }
+
+            this.clearRenderTarget();
+        }
     }
 
     /**
@@ -2075,9 +2375,7 @@
 
     Renderer.prototype.flushList = function(renderList) {
         var camera = this.camera;
-
-        var vertices = this.vertices;
-        var indices = this.indices;
+        var gl = this.gl;
 
         var ambientLights = this.cache.ambientLights;
         var directLights = this.cache.directLights;
@@ -2092,31 +2390,12 @@
         for(var i = 0, l = renderList.length; i < l; i++) {
 
             var object = renderList[i];
-            var geometry = object.geometry;
             var material = object.material;
-            var lights = this.lights;
 
-            var verticesIndex = 0;
-            var indicesIndex = 0;
-            // copy vertices
-            for(var j = 0, verticesArray = geometry.verticesArray, verticesLen = verticesArray.length; j < verticesLen; j++) {
-                vertices[verticesIndex++] = verticesArray[j];
-            }
-            // copy indices
-            for(var k = 0, indicesArray = geometry.indicesArray, indicesLen = indicesArray.length; k < indicesLen; k++) {
-                indices[indicesIndex++] = indicesArray[k];
-            }
-
-            var gl = this.gl;
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-            var vertices_view = vertices.subarray(0, verticesIndex);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
-            var indices_view = indices.subarray(0, indicesIndex);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
+            var offset = this._uploadGeometry(object.geometry);
 
             // get program
-            var program = zen3d.getProgram(gl, material, [
+            var program = zen3d.getProgram(gl, object, [
                 ambientLightsNum,
                 directLightsNum,
                 pointLightsNum,
@@ -2210,13 +2489,6 @@
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
             var cube = material.type == MATERIAL_TYPE.CUBE;
-            // var helpMatrix = new zen3d.Matrix4();
-            // var helpVector3 = new zen3d.Vector3();
-            // var helpVector4 = new zen3d.Vector4();
-            //
-            // var _position = new zen3d.Vector3();
-            // var _quaternion = new zen3d.Quaternion();
-            // var _scale = new zen3d.Vector3();
 
             if(!basic && !cube) {
                 for(var k = 0; k < ambientLightsNum; k++) {
@@ -2251,6 +2523,21 @@
                     gl.uniform3f(u_Directional_direction, helpVector4.x, helpVector4.y, helpVector4.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
                     gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+
+                    // shadow
+                    var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
+                    gl.uniform1i(u_Directional_shadow, light.castShadow ? 1 : 0);
+
+                    if(light.castShadow && object.receiveShadow) {
+                        var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"].location;
+                        gl.uniformMatrix4fv(directionalShadowMatrix, false, light.shadow.matrix.elements);
+
+                        var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"].location;
+                        gl.activeTexture(gl.TEXTURE3);
+                        gl.bindTexture(gl.TEXTURE_2D, light.shadow.map.glTexture);
+                        gl.uniform1i(directionalShadowMap, 3);
+                    }
+
                 }
 
                 for(var k = 0; k < pointLightsNum; k++) {
@@ -2314,6 +2601,20 @@
                     gl.uniform1f(u_Spot_coneCos, coneCos);
                     var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"].location;
                     gl.uniform1f(u_Spot_penumbraCos, penumbraCos);
+
+                    // shadow
+                    var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"].location;
+                    gl.uniform1i(u_Spot_shadow, light.castShadow ? 1 : 0);
+
+                    if(light.castShadow && object.receiveShadow) {
+                        var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"].location;
+                        gl.uniformMatrix4fv(spotShadowMatrix, false, light.shadow.matrix.elements);
+
+                        var spotShadowMap = uniforms["spotShadowMap[" + k + "]"].location;
+                        gl.activeTexture(gl.TEXTURE3);
+                        gl.bindTexture(gl.TEXTURE_2D, light.shadow.map.glTexture);
+                        gl.uniform1i(spotShadowMap, 3);
+                    }
                 }
             }
             ///////
@@ -2326,8 +2627,38 @@
             }
 
             // draw
-            gl.drawElements(gl.TRIANGLES, indicesIndex, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
         }
+    }
+
+    /**
+     * update geometry to GPU
+     * @return offset {number}
+     */
+    Renderer.prototype._uploadGeometry = function(geometry) {
+        var vertices = this.vertices;
+        var indices = this.indices;
+
+        var verticesIndex = 0;
+        var indicesIndex = 0;
+        // copy vertices
+        for(var j = 0, verticesArray = geometry.verticesArray, verticesLen = verticesArray.length; j < verticesLen; j++) {
+            vertices[verticesIndex++] = verticesArray[j];
+        }
+        // copy indices
+        for(var k = 0, indicesArray = geometry.indicesArray, indicesLen = indicesArray.length; k < indicesLen; k++) {
+            indices[indicesIndex++] = indicesArray[k];
+        }
+
+        var gl = this.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+        var vertices_view = vertices.subarray(0, verticesIndex);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
+        var indices_view = indices.subarray(0, indicesIndex);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
+
+        return indicesIndex;
     }
 
     /**
@@ -2369,11 +2700,15 @@
         this.opaqueObjects = new Array();
         this.transparentObjects = new Array();
 
+        this.shadowObjects = new Array();
+
         // lights
         this.ambientLights = new Array();
         this.directLights = new Array();
         this.pointLights = new Array();
         this.spotLights = new Array();
+
+        this.shadowLights = new Array();
     }
 
     /**
@@ -2392,6 +2727,10 @@
                     } else {
                         this.opaqueObjects.push(object);
                     }
+
+                    if(object.castShadow) {
+                        this.shadowObjects.push(object);
+                    }
                 }
                 break;
             case OBJECT_TYPE.LIGHT:
@@ -2404,6 +2743,11 @@
                 } else if(object.lightType == LIGHT_TYPE.SPOT) {
                     this.spotLights.push(object);
                 }
+
+                if(object.castShadow && (object.lightType == LIGHT_TYPE.DIRECT || object.lightType == LIGHT_TYPE.SPOT)) {
+                    this.shadowLights.push(object);
+                }
+
                 break;
             case OBJECT_TYPE.CAMERA:
                 // do nothing
@@ -2453,10 +2797,14 @@
         this.transparentObjects.length = 0;
         this.opaqueObjects.length = 0;
 
+        this.shadowObjects.length = 0;
+
         this.ambientLights.length = 0;
         this.directLights.length = 0;
         this.pointLights.length = 0;
         this.spotLights.length = 0;
+
+        this.shadowLights.length = 0;
     }
 
     zen3d.RenderCache = RenderCache;
@@ -2621,6 +2969,10 @@
         // parent
         this.parent = null;
 
+        // shadow
+        this.castShadow = false;
+	    this.receiveShadow = false;
+
     }
 
     Object.defineProperties(Object3D.prototype, {
@@ -2762,6 +3114,8 @@
         DirectionalLight.superClass.constructor.call(this);
 
         this.lightType = zen3d.LIGHT_TYPE.DIRECT;
+
+        this.shadow = new zen3d.DirectionalLightShadow();
     }
 
     zen3d.inherit(DirectionalLight, zen3d.Light);
@@ -2810,6 +3164,8 @@
         this.penumbra = 0;
 
         this.angle = Math.PI / 3;
+
+        this.shadow = new zen3d.SpotLightShadow();
     }
 
     zen3d.inherit(SpotLight, zen3d.Light);
@@ -2817,6 +3173,193 @@
     zen3d.SpotLight = SpotLight;
 })();
 
+(function() {
+    /**
+     * DirectionalLightShadow
+     * @class
+     */
+    var DirectionalLightShadow = function() {
+        this.camera = null;
+
+        this.matrix = null;
+
+        // size force to 1024x1024
+        this.renderTarget = null;
+
+        this.map = null;
+
+        this.isInit = false;
+    }
+
+    /**
+     * init
+     */
+    DirectionalLightShadow.prototype.init = function(gl) {
+        this.camera = new zen3d.Camera();
+
+        this.matrix = new zen3d.Matrix4();
+
+        // size force to 1024x1024
+        this.renderTarget = new zen3d.RenderTarget(gl, 1024, 1024);
+
+        this.map = zen3d.Texture2D.createRenderTexture(gl, 1024, 1024);
+
+        this.renderTarget.bind().attachRenderBuffer("depth").bindTexture2D(this.map).unbind();
+
+        this.isInit = true;
+    }
+
+    /**
+     * update by light
+     */
+    DirectionalLightShadow.prototype.update = function(light) {
+        this._updateCamera(light);
+        this._updateMatrix();
+    }
+
+    var _position = new zen3d.Vector3();
+    var _quaternion = new zen3d.Quaternion();
+    var _scale = new zen3d.Vector3();
+
+    /**
+     * update camera matrix by light
+     */
+    DirectionalLightShadow.prototype._updateCamera = function(light) {
+        var camera = this.camera;
+
+        // decompose light world matrix
+        light.worldMatrix.decompose(_position, _quaternion, _scale);
+
+        // copy position
+        camera.position.set(_position.x, _position.y, _position.z);
+
+        // copy rotation and doing opposite
+        camera.quaternion.set(_quaternion.x, _quaternion.y, _quaternion.z, _quaternion.w);
+        camera.euler.y += Math.PI;
+
+        // update view matrix
+        camera.updateMatrix(); // just copy matrix to world matrix
+        camera.viewMatrix.getInverse(camera.worldMatrix);
+
+        // update projection
+        camera.setOrtho(-1024/2, 1024/2, -1024/2, 1024/2, 1, 1000);
+    }
+
+    /**
+     * update shadow matrix
+     */
+    DirectionalLightShadow.prototype._updateMatrix = function() {
+        var matrix = this.matrix;
+        var camera = this.camera;
+
+        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
+        matrix.set(
+            0.5, 0.0, 0.0, 0.5,
+            0.0, 0.5, 0.0, 0.5,
+            0.0, 0.0, 0.5, 0.5,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        matrix.multiply(camera.projectionMatrix);
+        matrix.multiply(camera.viewMatrix);
+    }
+
+    zen3d.DirectionalLightShadow = DirectionalLightShadow;
+})();
+(function() {
+    /**
+     * SpotLightShadow
+     * @class
+     */
+    var SpotLightShadow = function() {
+        this.camera = null;
+
+        this.matrix = null;
+
+        // size force to 1024x1024
+        this.renderTarget = null;
+
+        this.map = null;
+
+        this.isInit = false;
+    }
+
+    /**
+     * init
+     */
+    SpotLightShadow.prototype.init = function(gl) {
+        this.camera = new zen3d.Camera();
+
+        this.matrix = new zen3d.Matrix4();
+
+        // size force to 1024x1024
+        this.renderTarget = new zen3d.RenderTarget(gl, 1024, 1024);
+
+        this.map = zen3d.Texture2D.createRenderTexture(gl, 1024, 1024);
+
+        this.renderTarget.bind().attachRenderBuffer("depth").bindTexture2D(this.map).unbind();
+
+        this.isInit = true;
+    }
+
+    /**
+     * update by light
+     */
+    SpotLightShadow.prototype.update = function(light) {
+        this._updateCamera(light);
+        this._updateMatrix();
+    }
+
+    var _position = new zen3d.Vector3();
+    var _quaternion = new zen3d.Quaternion();
+    var _scale = new zen3d.Vector3();
+
+    /**
+     * update camera matrix by light
+     */
+    SpotLightShadow.prototype._updateCamera = function(light) {
+        var camera = this.camera;
+
+        // decompose light world matrix
+        light.worldMatrix.decompose(_position, _quaternion, _scale);
+
+        // copy position
+        camera.position.set(_position.x, _position.y, _position.z);
+
+        // copy rotation and doing opposite
+        camera.quaternion.set(_quaternion.x, _quaternion.y, _quaternion.z, _quaternion.w);
+        camera.euler.y += Math.PI;
+
+        // update view matrix
+        camera.updateMatrix(); // just copy matrix to world matrix
+        camera.viewMatrix.getInverse(camera.worldMatrix);
+
+        // update projection
+        // TODO distance should be custom?
+        camera.setPerspective(light.angle * 2, 1, 1, 1000);
+    }
+
+    /**
+     * update shadow matrix
+     */
+    SpotLightShadow.prototype._updateMatrix = function() {
+        var matrix = this.matrix;
+        var camera = this.camera;
+
+        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
+        matrix.set(
+            0.5, 0.0, 0.0, 0.5,
+            0.0, 0.5, 0.0, 0.5,
+            0.0, 0.0, 0.5, 0.5,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        matrix.multiply(camera.projectionMatrix);
+        matrix.multiply(camera.viewMatrix);
+    }
+
+    zen3d.SpotLightShadow = SpotLightShadow;
+})();
 (function() {
     /**
      * Camera

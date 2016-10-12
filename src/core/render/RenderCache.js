@@ -12,11 +12,15 @@
         this.opaqueObjects = new Array();
         this.transparentObjects = new Array();
 
+        this.shadowObjects = new Array();
+
         // lights
         this.ambientLights = new Array();
         this.directLights = new Array();
         this.pointLights = new Array();
         this.spotLights = new Array();
+
+        this.shadowLights = new Array();
     }
 
     /**
@@ -35,6 +39,10 @@
                     } else {
                         this.opaqueObjects.push(object);
                     }
+
+                    if(object.castShadow) {
+                        this.shadowObjects.push(object);
+                    }
                 }
                 break;
             case OBJECT_TYPE.LIGHT:
@@ -47,6 +55,11 @@
                 } else if(object.lightType == LIGHT_TYPE.SPOT) {
                     this.spotLights.push(object);
                 }
+
+                if(object.castShadow && (object.lightType == LIGHT_TYPE.DIRECT || object.lightType == LIGHT_TYPE.SPOT)) {
+                    this.shadowLights.push(object);
+                }
+
                 break;
             case OBJECT_TYPE.CAMERA:
                 // do nothing
@@ -96,10 +109,14 @@
         this.transparentObjects.length = 0;
         this.opaqueObjects.length = 0;
 
+        this.shadowObjects.length = 0;
+
         this.ambientLights.length = 0;
         this.directLights.length = 0;
         this.pointLights.length = 0;
         this.spotLights.length = 0;
+
+        this.shadowLights.length = 0;
     }
 
     zen3d.RenderCache = RenderCache;

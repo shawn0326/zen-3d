@@ -62,9 +62,91 @@
 
         this.cache.sort();
 
+        this.renderShadow();
+
         this.flush();
 
         this.cache.clear();
+    }
+
+    /**
+     * render shadow map for lights
+     */
+    Renderer.prototype.renderShadow = function() {
+        var renderList = this.cache.shadowObjects;
+
+        if(renderList.length == 0) {
+            return;
+        }
+
+        var gl = this.gl;
+
+        // only direct light for now
+        var lights = this.cache.shadowLights;
+        for(var i = 0; i < lights.length; i++) {
+            var light = lights[i];
+
+            if(!light.shadow.isInit) {
+                light.shadow.init(gl);
+            }
+
+            var shadow = light.shadow;
+
+            shadow.update(light);
+
+            var camera = shadow.camera;
+            var shadowTarget = shadow.renderTarget;
+
+            this.setRenderTarget(shadowTarget);
+
+            gl.clearColor(1., 1., 1., 1.);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            for(var n = 0, l = renderList.length; n < l; n++) {
+                var object = renderList[n];
+                var material = object.material;
+
+                var offset = this._uploadGeometry(object.geometry);
+
+                var program = zen3d.getDepthProgram(gl);
+                gl.useProgram(program.id);
+
+                var location = program.attributes.a_Position.location;
+                gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
+                gl.enableVertexAttribArray(location);
+
+                // update uniforms
+                var uniforms = program.uniforms;
+                for(var key in uniforms) {
+                    var location = uniforms[key].location;
+                    switch(key) {
+                        // pvm matrix
+                        case "u_Projection":
+                            var projectionMat = camera.projectionMatrix.elements;
+                            gl.uniformMatrix4fv(location, false, projectionMat);
+                            break;
+                        case "u_View":
+                            var viewMatrix = camera.viewMatrix.elements;
+                            gl.uniformMatrix4fv(location, false, viewMatrix);
+                            break;
+                        case "u_Model":
+                            var modelMatrix = object.worldMatrix.elements;
+                            gl.uniformMatrix4fv(location, false, modelMatrix);
+                            break;
+                        case "lightPos":
+                            var lightPos = light.position; // TODO should be world position
+                            gl.uniform3f(location, lightPos.x, lightPos.y, lightPos.z);
+                    }
+                }
+
+                gl.disable(gl.BLEND);
+
+                // draw
+                gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+            }
+
+            this.clearRenderTarget();
+        }
     }
 
     /**
@@ -85,9 +167,7 @@
 
     Renderer.prototype.flushList = function(renderList) {
         var camera = this.camera;
-
-        var vertices = this.vertices;
-        var indices = this.indices;
+        var gl = this.gl;
 
         var ambientLights = this.cache.ambientLights;
         var directLights = this.cache.directLights;
@@ -102,31 +182,12 @@
         for(var i = 0, l = renderList.length; i < l; i++) {
 
             var object = renderList[i];
-            var geometry = object.geometry;
             var material = object.material;
-            var lights = this.lights;
 
-            var verticesIndex = 0;
-            var indicesIndex = 0;
-            // copy vertices
-            for(var j = 0, verticesArray = geometry.verticesArray, verticesLen = verticesArray.length; j < verticesLen; j++) {
-                vertices[verticesIndex++] = verticesArray[j];
-            }
-            // copy indices
-            for(var k = 0, indicesArray = geometry.indicesArray, indicesLen = indicesArray.length; k < indicesLen; k++) {
-                indices[indicesIndex++] = indicesArray[k];
-            }
-
-            var gl = this.gl;
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-            var vertices_view = vertices.subarray(0, verticesIndex);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
-            var indices_view = indices.subarray(0, indicesIndex);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
+            var offset = this._uploadGeometry(object.geometry);
 
             // get program
-            var program = zen3d.getProgram(gl, material, [
+            var program = zen3d.getProgram(gl, object, [
                 ambientLightsNum,
                 directLightsNum,
                 pointLightsNum,
@@ -220,13 +281,6 @@
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
             var cube = material.type == MATERIAL_TYPE.CUBE;
-            // var helpMatrix = new zen3d.Matrix4();
-            // var helpVector3 = new zen3d.Vector3();
-            // var helpVector4 = new zen3d.Vector4();
-            //
-            // var _position = new zen3d.Vector3();
-            // var _quaternion = new zen3d.Quaternion();
-            // var _scale = new zen3d.Vector3();
 
             if(!basic && !cube) {
                 for(var k = 0; k < ambientLightsNum; k++) {
@@ -261,6 +315,21 @@
                     gl.uniform3f(u_Directional_direction, helpVector4.x, helpVector4.y, helpVector4.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
                     gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+
+                    // shadow
+                    var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
+                    gl.uniform1i(u_Directional_shadow, light.castShadow ? 1 : 0);
+
+                    if(light.castShadow && object.receiveShadow) {
+                        var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"].location;
+                        gl.uniformMatrix4fv(directionalShadowMatrix, false, light.shadow.matrix.elements);
+
+                        var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"].location;
+                        gl.activeTexture(gl.TEXTURE3);
+                        gl.bindTexture(gl.TEXTURE_2D, light.shadow.map.glTexture);
+                        gl.uniform1i(directionalShadowMap, 3);
+                    }
+
                 }
 
                 for(var k = 0; k < pointLightsNum; k++) {
@@ -324,6 +393,20 @@
                     gl.uniform1f(u_Spot_coneCos, coneCos);
                     var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"].location;
                     gl.uniform1f(u_Spot_penumbraCos, penumbraCos);
+
+                    // shadow
+                    var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"].location;
+                    gl.uniform1i(u_Spot_shadow, light.castShadow ? 1 : 0);
+
+                    if(light.castShadow && object.receiveShadow) {
+                        var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"].location;
+                        gl.uniformMatrix4fv(spotShadowMatrix, false, light.shadow.matrix.elements);
+
+                        var spotShadowMap = uniforms["spotShadowMap[" + k + "]"].location;
+                        gl.activeTexture(gl.TEXTURE3);
+                        gl.bindTexture(gl.TEXTURE_2D, light.shadow.map.glTexture);
+                        gl.uniform1i(spotShadowMap, 3);
+                    }
                 }
             }
             ///////
@@ -336,8 +419,38 @@
             }
 
             // draw
-            gl.drawElements(gl.TRIANGLES, indicesIndex, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
         }
+    }
+
+    /**
+     * update geometry to GPU
+     * @return offset {number}
+     */
+    Renderer.prototype._uploadGeometry = function(geometry) {
+        var vertices = this.vertices;
+        var indices = this.indices;
+
+        var verticesIndex = 0;
+        var indicesIndex = 0;
+        // copy vertices
+        for(var j = 0, verticesArray = geometry.verticesArray, verticesLen = verticesArray.length; j < verticesLen; j++) {
+            vertices[verticesIndex++] = verticesArray[j];
+        }
+        // copy indices
+        for(var k = 0, indicesArray = geometry.indicesArray, indicesLen = indicesArray.length; k < indicesLen; k++) {
+            indices[indicesIndex++] = indicesArray[k];
+        }
+
+        var gl = this.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+        var vertices_view = vertices.subarray(0, verticesIndex);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
+        var indices_view = indices.subarray(0, indicesIndex);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
+
+        return indicesIndex;
     }
 
     /**

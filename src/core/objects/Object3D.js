@@ -39,6 +39,10 @@
         // parent
         this.parent = null;
 
+        // shadow
+        this.castShadow = false;
+	    this.receiveShadow = false;
+
     }
 
     Object.defineProperties(Object3D.prototype, {
