@@ -2220,7 +2220,7 @@
         // gl context
         var gl = this.gl = view.getContext("webgl", {
             antialias: true, // effect performance!! default false
-            // alpha: false, // effect performance, default false
+            alpha: false, // effect performance, default false
             // premultipliedAlpha: false, // effect performance, default false
             stencil: true
         });
@@ -2528,7 +2528,7 @@
                     var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
                     gl.uniform1i(u_Directional_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow) {
+                    if(light.castShadow && object.receiveShadow && light.shadow.isInit) {
                         var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"].location;
                         gl.uniformMatrix4fv(directionalShadowMatrix, false, light.shadow.matrix.elements);
 
@@ -2606,7 +2606,7 @@
                     var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"].location;
                     gl.uniform1i(u_Spot_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow) {
+                    if(light.castShadow && object.receiveShadow && light.shadow.isInit) {
                         var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"].location;
                         gl.uniformMatrix4fv(spotShadowMatrix, false, light.shadow.matrix.elements);
 
@@ -2681,6 +2681,17 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         gl.viewport(0, 0, this.width, this.height);
+    }
+
+    /**
+     * clear buffer
+     */
+    Renderer.prototype.clear = function() {
+        var gl = this.gl;
+
+        gl.clearColor(0., 0., 0., 0.);
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
     }
 
     zen3d.Renderer = Renderer;
@@ -3163,7 +3174,7 @@
 
         this.penumbra = 0;
 
-        this.angle = Math.PI / 3;
+        this.angle = Math.PI / 6;
 
         this.shadow = new zen3d.SpotLightShadow();
     }
@@ -4182,7 +4193,7 @@
 
         this.type = zen3d.MATERIAL_TYPE.PHONG;
 
-        this.specular = 10;
+        this.specular = 20;
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);
@@ -4240,7 +4251,7 @@
 
         this.up = new zen3d.Vector3(0, 1, 0);
 
-        this.distance = 300;
+        this.distance = 100;
 
         this._panAngle = 0;
         this._panRad = 0;

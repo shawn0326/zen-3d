@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - normalmap</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - normalmap
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			// couch
+			var couch_texture = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/normal/couch.jpg");
+			var couch_norm_texture = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/normal/counch_norm.jpg");
+			var couch_material = new zen3d.PhongMaterial();
+			couch_material.map = couch_texture;
+			couch_material.normalMap = couch_norm_texture;
+			var couch_geom = new zen3d.PlaneGeometry(100, 100);
+			var couch = new zen3d.Mesh(couch_geom, couch_material);
+			scene.add(couch);
+
+			var pointLight = new zen3d.PointLight();
+			pointLight.intensity = 2;
+			pointLight.color = 0xffffff;
+			pointLight.decay = 1;
+			pointLight.distance = 100;
+			pointLight.position.set(0, 5, 0);
+			scene.add(pointLight);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.color = 0xffffff;
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(0, 5, 0);
+	        scene.add(lightBall);
+
+	        var camera = new zen3d.Camera();
+			camera.position.set(0, 100, 80);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
+	        scene.add(camera);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				pointLight.position.x = 30 * Math.sin(count / 1000 * 1);
+				pointLight.position.z = 30 * Math.cos(count / 1000 * 1);
+
+				lightBall.position.x = 30 * Math.sin(count / 1000 * 1);
+				lightBall.position.z = 30 * Math.cos(count / 1000 * 1);
+
+				// rotate camera
+				camera.position.x = 80 * Math.sin(count / 1000 * .1);
+				camera.position.z = 80 * Math.cos(count / 1000 * .1);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				renderer.clear();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+		})();
+	</script>
+</body>
+</html>

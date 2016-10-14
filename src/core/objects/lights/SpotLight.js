@@ -16,7 +16,7 @@
 
         this.penumbra = 0;
 
-        this.angle = Math.PI / 3;
+        this.angle = Math.PI / 6;
 
         this.shadow = new zen3d.SpotLightShadow();
     }

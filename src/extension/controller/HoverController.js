@@ -10,7 +10,7 @@
 
         this.up = new zen3d.Vector3(0, 1, 0);
 
-        this.distance = 300;
+        this.distance = 100;
 
         this._panAngle = 0;
         this._panRad = 0;

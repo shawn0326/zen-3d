@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - realtimeenvmap</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - realtimeenvmap
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			// small ball
+			var ball_geometry = new zen3d.SphereGeometry(4, 20, 20);
+
+			var ball1_material = new zen3d.BasicMaterial();
+			ball1_material.color = 0xff0000;
+			var ball1 = new zen3d.Mesh(ball_geometry, ball1_material);
+			ball1.position.set(20, 0, 0);
+			scene.add(ball1);
+
+			var ball2_material = new zen3d.BasicMaterial();
+			ball2_material.color = 0x0000ff;
+			var ball2 = new zen3d.Mesh(ball_geometry, ball2_material);
+			ball2.position.set(0, 0, 15);
+			scene.add(ball2);
+
+			// plane
+			var pixels = zen3d.createCheckerBoardPixels(50, 50);
+			var texture = zen3d.Texture2D.fromRes(renderer.gl, pixels, 50, 50);
+			var plane_geometry = new zen3d.PlaneGeometry(80, 80);
+			var plane_material = new zen3d.BasicMaterial();
+			plane_material.color = 0xffffff;
+			plane_material.map = texture;
+			var plane = new zen3d.Mesh(plane_geometry, plane_material);
+			plane.position.set(0, -20, 0);
+			scene.add(plane);
+
+			// sphere
+			var renderTexture = zen3d.TextureCube.createRenderTexture(renderer.gl, 480, 480);
+			var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
+			renderTarget.bind().attachRenderBuffer("depth").unbind();
+
+			var sphere_geometry = new zen3d.SphereGeometry(10, 30, 30);
+			var phong = new zen3d.PhongMaterial();
+			phong.color = 0xffffff;
+			phong.envMap = renderTexture;
+			phong.envMapIntensity = .8;
+			phong.specular = 40;
+			var sphere = new zen3d.Mesh(sphere_geometry, phong);
+			scene.add(sphere);
+
+			// lights
+			var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.intensity = 0.1;
+	        ambientLight.color = 0xffffff;
+	        scene.add(ambientLight);
+
+			var directionalLight = new zen3d.DirectionalLight();
+			directionalLight.intensity = .5;
+			directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+			directionalLight.color = 0xffffff;
+			directionalLight.position.set(-20, 20, 0);
+			scene.add(directionalLight);
+
+			var lightball_geometry = new zen3d.SphereGeometry(2, 20, 20);
+			var lightball_material = new zen3d.BasicMaterial();
+			lightball_material.color = 0xffffff;
+			var lightball = new zen3d.Mesh(lightball_geometry, lightball_material);
+			lightball.position.set(-20, 20, 0);
+			scene.add(lightball);
+
+			// camera
+	        var camera = new zen3d.Camera();
+			camera.position.set(0, 20, 100);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
+	        scene.add(camera);
+
+			// help camera
+			var helpCamera = new zen3d.Camera();
+			var targets = [
+			    new zen3d.Vector3( 1, 0, 0 ), new zen3d.Vector3( -1, 0, 0 ), new zen3d.Vector3( 0, 1, 0 ),
+				new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ), new zen3d.Vector3( 0, 0, -1 )
+			];
+			var ups = [
+			    new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ),
+			    new zen3d.Vector3( 0, 0, -1 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 )
+			];
+			helpCamera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
+			scene.add(helpCamera);
+			var lookTarget = new zen3d.Vector3();
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// ball rotation
+			    ball1.position.x = Math.sin(count / 1000 * 1) * 20;
+			    ball1.position.y = sphere.position.y;
+			    ball1.position.z = Math.cos(count / 1000 * 1) * 20;
+			    ball2.position.x = sphere.position.x;
+			    ball2.position.y = Math.sin(count / 1000 * 1) * 15;
+			    ball2.position.z = Math.cos(count / 1000 * 1) * 15;
+
+				// rotate camera
+				camera.position.x = 100 * Math.sin(count / 1000 * .5);
+				camera.position.z = 100 * Math.cos(count / 1000 * .5);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				// render env map on six faces
+				renderer.setRenderTarget(renderTarget);
+			    phong.envMap = null;
+			    for(var i = 0; i < 6; i++) {
+			        lookTarget.set(targets[i].x + helpCamera.position.x, targets[i].y + helpCamera.position.y, targets[i].z + helpCamera.position.z);
+			        renderTarget.bindTextureCube(renderTexture, i);
+			        helpCamera.setLookAt(lookTarget, ups[i]);
+
+			        renderer.clear();
+
+			        renderer.render(scene, helpCamera);
+			    }
+			    phong.envMap = renderTexture;
+			    renderer.clearRenderTarget();
+
+				renderer.clear();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+		})();
+	</script>
+</body>
+</html>

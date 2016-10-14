@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - envmap</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - envmap
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var cube_texture = zen3d.TextureCube.fromSrc(renderer.gl, [
+			    "./resources/skybox/right.jpg",
+			    "./resources/skybox/left.jpg",
+			    "./resources/skybox/up.jpg",
+			    "./resources/skybox/down.jpg",
+			    "./resources/skybox/back.jpg",
+			    "./resources/skybox/front.jpg"
+			]);
+
+			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
+			var sky_material = new zen3d.CubeMaterial();
+			sky_material.cubeMap = cube_texture;
+			var sky_box = new zen3d.Mesh(sky_geom, sky_material);
+			scene.add(sky_box);
+
+			var sphere_geometry = new zen3d.SphereGeometry(20, 20, 20);
+			var phong = new zen3d.PhongMaterial();
+			phong.color = 0xffffff;
+			phong.envMap = cube_texture;
+			var sphere = new zen3d.Mesh(sphere_geometry, phong);
+			scene.add(sphere);
+
+			var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.intensity = 0.1;
+	        ambientLight.color = 0xffffff;
+	        scene.add(ambientLight);
+
+	        var camera = new zen3d.Camera();
+			camera.position.set(0, 20, 200);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
+	        scene.add(camera);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 200 * Math.sin(count / 1000 * .5);
+				camera.position.z = 200 * Math.cos(count / 1000 * .5);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				renderer.clear();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+		})();
+	</script>
+</body>
+</html>

@@ -8,7 +8,7 @@
 
         this.type = zen3d.MATERIAL_TYPE.PHONG;
 
-        this.specular = 10;
+        this.specular = 20;
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);

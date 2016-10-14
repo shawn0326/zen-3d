@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - hovercontroller</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - hovercontroller
+		<br/>
+		use mouse or touch to rotate camera.
+		<br/>
+		mousewheel or two finger to move camera far/near
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
+
+	        var phong = new zen3d.PhongMaterial();
+	        phong.color = 0xffffff;
+	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
+			scene.add(sphere);
+
+	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.color = 0xf0f0f0;
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        plane.position.y = -5;
+	        scene.add(plane);
+
+	        var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color = 0xffffff;
+	        ambientLight.intensity = 0.2;
+	        scene.add(ambientLight);
+
+	        var directLight = new zen3d.DirectionalLight();
+	        directLight.intensity = 0.8;
+	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+	        directLight.color = 0xffffff;
+	        directLight.position.set(-40, 40, 0);
+	        scene.add(directLight);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.color = 0xffffff;
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(-40, 40, 0);
+	        scene.add(lightBall);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 80, 100);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+			// add a hover controller
+			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
+			controller.distance = 100;
+			var pressed = false;
+			var touchX = 0;
+			var touchY = 0;
+			function touchScale(e) {
+			    e.preventDefault();
+			    controller.distance += e.deltaY;
+			}
+			function touchDown(e) {
+			    e.preventDefault();
+			    pressed = true;
+			    touchX = e.pageX;
+			    touchY = e.pageY;
+			}
+			function touchMove(e) {
+			    e.preventDefault();
+			    if(pressed) {
+			        var moveX = e.pageX - touchX;
+			        var moveY = e.pageY - touchY;
+
+			        touchX = e.pageX;
+			        touchY = e.pageY;
+
+			        controller.panAngle -= moveX;
+			        controller.tiltAngle += moveY;
+			    }
+			}
+			function touchRelease(e) {
+			    e.preventDefault();
+			    pressed = false;
+			}
+			canvas.addEventListener("mousewheel", touchScale);
+			canvas.addEventListener("mousedown", touchDown);
+			canvas.addEventListener("mouseup", touchRelease);
+			canvas.addEventListener("mousemove", touchMove);
+			canvas.addEventListener("touchstart", touchDown);
+			canvas.addEventListener("touchend", touchRelease);
+			canvas.addEventListener("touchmove", touchMove);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				controller.update();
+
+				renderer.clear();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+		})();
+	</script>
+</body>
+</html>

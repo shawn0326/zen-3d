@@ -2,91 +2,24 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>zen-3d-test</title>
+    <title>zen3d-test</title>
     <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
-    	#canvas{
-            display: block;
-            position: absolute;
-            left: 0;
-            top: 0;
-            background-color: black;
-    	}
+
     </style>
     <script src="../build/zen3d.js"></script>
 </head>
 <body>
 
-	<canvas id="canvas" width="480" height="480"></canvas>
+	<h3>URL Changed -_-!</h3>
 
-    <select id="examples_menu" style="width:200px;font-size:24px;position:absolute;z-index:2;top:50px;" onchange="onSelectChange(this.value)"></select>
+    <p>demos with better ui have been moved to examples file.</p>
+
+    <p>this page will be changed to a test page.</p>
+
+    <p>if you want to see some demos of zen3d, please click:</p>
+
+    <p><a href="../examples/">../examples</a></p>
+
 </body>
-<script>
-    var list = [
-        "material",
-        "normal",
-        "render-target",
-        "env-map",
-        "sky-box",
-        "assimp2json",
-        "camera-controller",
-        "point-light",
-        "spot-light",
-        "direct-light-shadow",
-        "spot-light-shadow"
-    ];
-
-    var menu = document.getElementById("examples_menu");
-
-    list.forEach(function (item) {
-        var option = document.createElement("option");
-        option.setAttribute("id", item);
-        option.setAttribute("value", item);
-        option.innerText = item;
-        menu.appendChild(option);
-    });
-
-    function onSelectChange(value) {
-        var url = location.href;
-        var index = url.indexOf("?");
-        if (index != -1) {
-            url = url.slice(0, index);
-        }
-        if (url.indexOf(".html") == -1) {
-            url += "index.html";
-        }
-        url += "?test=" + value;
-        location.href = url;
-    }
-
-    function getCurrentTest() {
-        var appFile;
-        var hasTest = false;
-        var str = location.search;
-        str = str.slice(1, str.length);
-        var totalArray = str.split("&");
-        for (var i = 0; i < totalArray.length; i++) {
-            var itemArray = totalArray[i].split("=");
-            if (itemArray.length == 2) {
-                var key = itemArray[0];
-                var value = itemArray[1];
-                if (key == "test") {
-                    appFile = value;
-                    hasTest = true;
-                    break;
-                }
-            }
-        }
-        if (!hasTest) {
-            appFile = list[0];
-        }
-
-        return appFile;
-    }
-
-    var test = getCurrentTest();
-    menu.value = test;
-    document.title = "zen-3d-test|" + test;
-    document.write("<script src='js/" + test + ".js'><\/script>");
-</script>
 </html>
