@@ -1037,7 +1037,7 @@
             this.x *= invLength;
             this.y *= invLength;
             this.z *= invLength;
-            return;
+            return this;
         }
     }
 
@@ -1094,6 +1094,76 @@
 		this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
 
 		return this;
+	}
+
+    /**
+     * apply quaternion
+     **/
+    Vector3.prototype.applyMatrix4 = function ( m ) {
+
+		// input: zen3d.Matrix4 affine matrix
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z + e[ 12 ];
+		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z + e[ 13 ];
+		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ];
+
+		return this;
+
+	}
+
+    /**
+     * transformDirection
+     **/
+    Vector3.prototype.transformDirection = function ( m ) {
+
+		// input: zen3d.Matrix4 affine matrix
+		// vector interpreted as a direction
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z;
+		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z;
+		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
+
+		return this.normalize();
+
+	}
+
+    /**
+     * setFromMatrixPosition
+     **/
+    Vector3.prototype.setFromMatrixPosition = function ( m ) {
+
+		return this.setFromMatrixColumn( m, 3 );
+
+	}
+
+    /**
+     * setFromMatrixColumn
+     **/
+    Vector3.prototype.setFromMatrixColumn = function ( m, index ) {
+
+		return this.fromArray( m.elements, index * 4 );
+
+	}
+
+    /**
+     * fromArray
+     **/
+    Vector3.prototype.fromArray = function ( array, offset ) {
+
+		if ( offset === undefined ) offset = 0;
+
+		this.x = array[ offset ];
+		this.y = array[ offset + 1 ];
+		this.z = array[ offset + 2 ];
+
+		return this;
+
 	}
 
     zen3d.Vector3 = Vector3;
@@ -2289,7 +2359,6 @@
 
         var gl = this.gl;
 
-        // only direct light for now
         var lights = this.cache.shadowLights;
         for(var i = 0; i < lights.length; i++) {
             var light = lights[i];
@@ -2342,8 +2411,8 @@
                             gl.uniformMatrix4fv(location, false, modelMatrix);
                             break;
                         case "lightPos":
-                            var lightPos = light.position; // TODO should be world position
-                            gl.uniform3f(location, lightPos.x, lightPos.y, lightPos.z);
+                            helpVector3.setFromMatrixPosition(light.worldMatrix);
+                            gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
                     }
                 }
 
@@ -2365,13 +2434,7 @@
         this.flushList(this.cache.transparentObjects);
     }
 
-    var helpMatrix = new zen3d.Matrix4();
     var helpVector3 = new zen3d.Vector3();
-    var helpVector4 = new zen3d.Vector4();
-
-    var _position = new zen3d.Vector3();
-    var _quaternion = new zen3d.Quaternion();
-    var _scale = new zen3d.Vector3();
 
     Renderer.prototype.flushList = function(renderList) {
         var camera = this.camera;
@@ -2480,8 +2543,8 @@
                         gl.uniform1f(location, specular);
                         break;
                     case "u_CameraPosition":
-                        var position = camera.position;
-                        gl.uniform3f(location, position.x, position.y, position.z);
+                        helpVector3.setFromMatrixPosition(camera.worldMatrix);
+                        gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
                         break;
                 }
             }
@@ -2508,19 +2571,14 @@
                     var light = directLights[k];
 
                     var intensity = light.intensity;
-                    // var direction = light.direction;
-                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose();
-                    // helpVector4.set(direction.x, direction.y, direction.z, 1).applyMatrix4(viewITMatrix);
-
-                    light.worldMatrix.decompose(_position, _quaternion, _scale);
-                    helpVector3.set(0, 0, 1).applyQuaternion(_quaternion);
-                    helpVector4.set(helpVector3.x, helpVector3.y, helpVector3.z, 1).applyMatrix4(viewITMatrix);
+                    light.getWorldDirection(helpVector3);
+                    helpVector3.transformDirection(camera.viewMatrix);
                     var color = zen3d.hex2RGB(light.color);
 
                     var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
                     var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"].location;
                     var u_Directional_color = uniforms["u_Directional[" + k + "].color"].location;
-                    gl.uniform3f(u_Directional_direction, helpVector4.x, helpVector4.y, helpVector4.z);
+                    gl.uniform3f(u_Directional_direction, helpVector3.x, helpVector3.y, helpVector3.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
                     gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
 
@@ -2543,16 +2601,15 @@
                 for(var k = 0; k < pointLightsNum; k++) {
                     var light = pointLights[k];
 
-                    var position = light.position;
-                    var viewMatrix = camera.viewMatrix;
-                    helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
+                    helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
+
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
                     var distance = light.distance;
                     var decay = light.decay;
 
                     var u_Point_position = uniforms["u_Point[" + k + "].position"].location;
-                    gl.uniform3f(u_Point_position, helpVector4.x, helpVector4.y, helpVector4.z);
+                    gl.uniform3f(u_Point_position, helpVector3.x, helpVector3.y, helpVector3.z);
                     var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"].location;
                     gl.uniform1f(u_Point_intensity, intensity);
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
@@ -2566,25 +2623,21 @@
                 for(var k = 0; k < spotLightsNum; k++) {
                     var light = spotLights[k];
 
-                    var position = light.position;
-                    var viewMatrix = camera.viewMatrix;
-                    helpVector4.set(position.x, position.y, position.z, 1).applyMatrix4(viewMatrix);
+                    helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
+
                     var u_Spot_position = uniforms["u_Spot[" + k + "].position"].location;
-                    gl.uniform3f(u_Spot_position, helpVector4.x, helpVector4.y, helpVector4.z);
+                    gl.uniform3f(u_Spot_position, helpVector3.x, helpVector3.y, helpVector3.z);
 
                     var intensity = light.intensity;
                     var color = zen3d.hex2RGB(light.color);
                     var distance = light.distance;
                     var decay = light.decay;
 
-                    // var direction = light.direction;
-                    var viewITMatrix = helpMatrix.copy(camera.viewMatrix).inverse().transpose();
-                    // helpVector4.set(direction.x, direction.y, direction.z, 1).applyMatrix4(viewITMatrix);
-                    light.worldMatrix.decompose(_position, _quaternion, _scale);
-                    helpVector3.set(0, 0, 1).applyQuaternion(_quaternion);
-                    helpVector4.set(helpVector3.x, helpVector3.y, helpVector3.z, 1).applyMatrix4(viewITMatrix);
+                    light.getWorldDirection(helpVector3);
+                    helpVector3.transformDirection(camera.viewMatrix);
+
                     var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"].location;
-                    gl.uniform3f(u_Spot_direction, helpVector4.x, helpVector4.y, helpVector4.z);
+                    gl.uniform3f(u_Spot_direction, helpVector3.x, helpVector3.y, helpVector3.z);
 
                     var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"].location;
                     gl.uniform1f(u_Spot_intensity, intensity);
@@ -3041,6 +3094,29 @@
         }
     }
 
+    /*
+     * get world direction
+     * must call after world matrix updated
+     */
+    Object3D.prototype.getWorldDirection = function() {
+
+        var position = new zen3d.Vector3();
+        var quaternion = new zen3d.Quaternion();
+		var scale = new zen3d.Vector3();
+
+        return function getWorldDirection( optionalTarget ) {
+
+			var result = optionalTarget || new zen3d.Vector3();
+
+			this.worldMatrix.decompose(position, quaternion, scale );
+
+            result.set(0, 0, 1).applyQuaternion(quaternion);
+
+			return result;
+
+		};
+    }();
+
     zen3d.Object3D = Object3D;
 })();
 
@@ -3438,6 +3514,29 @@
             0, 0, -1, 0
         );
     }
+
+    /*
+     * get world direction (override)
+     * must call after world matrix updated
+     */
+    Camera.prototype.getWorldDirection = function() {
+
+        var position = new zen3d.Vector3();
+        var quaternion = new zen3d.Quaternion();
+		var scale = new zen3d.Vector3();
+
+        return function getWorldQuaternion( optionalTarget ) {
+
+			var result = optionalTarget || new zen3d.Vector3();
+
+			this.worldMatrix.decompose(position, quaternion, scale );
+
+            result.set(0, 0, -1).applyQuaternion(quaternion);
+
+			return result;
+
+		};
+    }();
 
     zen3d.Camera = Camera;
 })();

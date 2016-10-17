@@ -39,7 +39,7 @@
             this.x *= invLength;
             this.y *= invLength;
             this.z *= invLength;
-            return;
+            return this;
         }
     }
 
@@ -96,6 +96,76 @@
 		this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
 
 		return this;
+	}
+
+    /**
+     * apply quaternion
+     **/
+    Vector3.prototype.applyMatrix4 = function ( m ) {
+
+		// input: zen3d.Matrix4 affine matrix
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z + e[ 12 ];
+		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z + e[ 13 ];
+		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ];
+
+		return this;
+
+	}
+
+    /**
+     * transformDirection
+     **/
+    Vector3.prototype.transformDirection = function ( m ) {
+
+		// input: zen3d.Matrix4 affine matrix
+		// vector interpreted as a direction
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z;
+		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z;
+		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
+
+		return this.normalize();
+
+	}
+
+    /**
+     * setFromMatrixPosition
+     **/
+    Vector3.prototype.setFromMatrixPosition = function ( m ) {
+
+		return this.setFromMatrixColumn( m, 3 );
+
+	}
+
+    /**
+     * setFromMatrixColumn
+     **/
+    Vector3.prototype.setFromMatrixColumn = function ( m, index ) {
+
+		return this.fromArray( m.elements, index * 4 );
+
+	}
+
+    /**
+     * fromArray
+     **/
+    Vector3.prototype.fromArray = function ( array, offset ) {
+
+		if ( offset === undefined ) offset = 0;
+
+		this.x = array[ offset ];
+		this.y = array[ offset + 1 ];
+		this.z = array[ offset + 2 ];
+
+		return this;
+
 	}
 
     zen3d.Vector3 = Vector3;
