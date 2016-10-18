@@ -13,6 +13,8 @@
 
         // distance of this light
         this.distance = 200;
+
+        this.shadow = new zen3d.PointLightShadow();
     }
 
     zen3d.inherit(PointLight, zen3d.Light);

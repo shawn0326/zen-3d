@@ -14,6 +14,10 @@
         this.map = null;
 
         this.isInit = false;
+
+        this._lookTarget = new zen3d.Vector3();
+
+        this._up = new zen3d.Vector3(0, 1, 0);
     }
 
     /**
@@ -42,25 +46,18 @@
         this._updateMatrix();
     }
 
-    var _position = new zen3d.Vector3();
-    var _quaternion = new zen3d.Quaternion();
-    var _scale = new zen3d.Vector3();
-
     /**
      * update camera matrix by light
      */
     SpotLightShadow.prototype._updateCamera = function(light) {
         var camera = this.camera;
+        var lookTarget = this._lookTarget;
 
-        // decompose light world matrix
-        light.worldMatrix.decompose(_position, _quaternion, _scale);
-
-        // copy position
-        camera.position.set(_position.x, _position.y, _position.z);
-
-        // copy rotation and doing opposite
-        camera.quaternion.set(_quaternion.x, _quaternion.y, _quaternion.z, _quaternion.w);
-        camera.euler.y += Math.PI;
+        // set camera position and lookAt(rotation)
+        light.getWorldDirection(this._lookTarget);
+        camera.position.setFromMatrixPosition(light.worldMatrix);
+        lookTarget.set(lookTarget.x + camera.position.x, lookTarget.y + camera.position.y, lookTarget.z + camera.position.z);
+        camera.setLookAt(lookTarget, this._up);
 
         // update view matrix
         camera.updateMatrix(); // just copy matrix to world matrix

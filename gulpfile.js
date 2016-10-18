@@ -47,6 +47,7 @@ var filesSrc = [
     "core/objects/lights/SpotLight.js",
     "core/objects/lights/DirectionalLightShadow.js",
     "core/objects/lights/SpotLightShadow.js",
+    "core/objects/lights/PointLightShadow.js",
 
     // camera
     "core/objects/camera/Camera.js",

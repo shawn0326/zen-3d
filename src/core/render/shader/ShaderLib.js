@@ -288,6 +288,12 @@
 
             '#endif',
 
+            '#ifdef USE_POINT_LIGHT',
+
+                // nothing
+
+            '#endif',
+
             '#ifdef USE_SPOT_LIGHT',
 
                 'uniform mat4 spotShadowMatrix[ USE_SPOT_LIGHT ];',
@@ -310,6 +316,12 @@
                     'vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;',
 
                 '}',
+
+            '#endif',
+
+            '#ifdef USE_POINT_LIGHT',
+
+                // nothing
 
             '#endif',
 
@@ -338,6 +350,12 @@
 
             '#endif',
 
+            '#ifdef USE_POINT_LIGHT',
+
+                'uniform samplerCube pointShadowMap[ USE_POINT_LIGHT ];',
+
+            '#endif',
+
             '#ifdef USE_SPOT_LIGHT',
 
                 'uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];',
@@ -348,6 +366,12 @@
             'float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {',
 
         		'return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );',
+
+        	'}',
+
+            'float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {',
+
+        		'return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );',
 
         	'}',
 
@@ -370,12 +394,23 @@
 
             '}',
 
+            'float getPointShadow( samplerCube shadowMap, vec3 V ) {',
+                'return textureCubeCompare( shadowMap, normalize(V), length(V) / 1000.);',
+            '}',
+
             'float getShadowMask() {',
                 'float shadow = 1.0;',
 
                 '#ifdef USE_DIRECT_LIGHT',
                     'for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {',
                         'shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;',
+                    '}',
+                '#endif',
+
+                '#ifdef USE_POINT_LIGHT',
+                    'for ( int i = 0; i < USE_POINT_LIGHT; i ++ ) {',
+                        'vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;',
+                        'shadow *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV ) : 1.0;',
                     '}',
                 '#endif',
 
@@ -430,6 +465,8 @@
             'float intensity;',
             'float distance;',
             'float decay;',
+
+            'int shadow;',
         '};',
         'uniform PointLight u_Point[USE_POINT_LIGHT];',
     ].join("\n");

@@ -90,58 +90,69 @@
             }
 
             var shadow = light.shadow;
-
-            shadow.update(light);
-
             var camera = shadow.camera;
             var shadowTarget = shadow.renderTarget;
+            var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
+            var faces = isPointLight ? 6 : 1;
 
             this.setRenderTarget(shadowTarget);
 
-            gl.clearColor(1., 1., 1., 1.);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            for(var j = 0; j < faces; j++) {
 
-            for(var n = 0, l = renderList.length; n < l; n++) {
-                var object = renderList[n];
-                var material = object.material;
-
-                var offset = this._uploadGeometry(object.geometry);
-
-                var program = zen3d.getDepthProgram(gl);
-                gl.useProgram(program.id);
-
-                var location = program.attributes.a_Position.location;
-                gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
-                gl.enableVertexAttribArray(location);
-
-                // update uniforms
-                var uniforms = program.uniforms;
-                for(var key in uniforms) {
-                    var location = uniforms[key].location;
-                    switch(key) {
-                        // pvm matrix
-                        case "u_Projection":
-                            var projectionMat = camera.projectionMatrix.elements;
-                            gl.uniformMatrix4fv(location, false, projectionMat);
-                            break;
-                        case "u_View":
-                            var viewMatrix = camera.viewMatrix.elements;
-                            gl.uniformMatrix4fv(location, false, viewMatrix);
-                            break;
-                        case "u_Model":
-                            var modelMatrix = object.worldMatrix.elements;
-                            gl.uniformMatrix4fv(location, false, modelMatrix);
-                            break;
-                        case "lightPos":
-                            helpVector3.setFromMatrixPosition(light.worldMatrix);
-                            gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
-                    }
+                if(isPointLight) {
+                    shadow.update(light, j);
+                    // bind faces
+                    shadowTarget.bindTextureCube(shadow.map, j);
+                } else {
+                    shadow.update(light);
                 }
 
-                gl.disable(gl.BLEND);
+                gl.clearColor(1., 1., 1., 1.);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-                // draw
-                gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+                for(var n = 0, l = renderList.length; n < l; n++) {
+                    var object = renderList[n];
+                    var material = object.material;
+
+                    var offset = this._uploadGeometry(object.geometry);
+
+                    var program = zen3d.getDepthProgram(gl);
+                    gl.useProgram(program.id);
+
+                    var location = program.attributes.a_Position.location;
+                    gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
+                    gl.enableVertexAttribArray(location);
+
+                    // update uniforms
+                    var uniforms = program.uniforms;
+                    for(var key in uniforms) {
+                        var location = uniforms[key].location;
+                        switch(key) {
+                            // pvm matrix
+                            case "u_Projection":
+                                var projectionMat = camera.projectionMatrix.elements;
+                                gl.uniformMatrix4fv(location, false, projectionMat);
+                                break;
+                            case "u_View":
+                                var viewMatrix = camera.viewMatrix.elements;
+                                gl.uniformMatrix4fv(location, false, viewMatrix);
+                                break;
+                            case "u_Model":
+                                var modelMatrix = object.worldMatrix.elements;
+                                gl.uniformMatrix4fv(location, false, modelMatrix);
+                                break;
+                            case "lightPos":
+                                helpVector3.setFromMatrixPosition(light.worldMatrix);
+                                gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
+                        }
+                    }
+
+                    gl.disable(gl.BLEND);
+
+                    // draw
+                    gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+                }
+
             }
 
             this.clearRenderTarget();
@@ -340,6 +351,17 @@
                     gl.uniform1f(u_Point_distance, distance);
                     var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
                     gl.uniform1f(u_Point_decay, decay);
+
+                    // shadow
+                    var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"].location;
+                    gl.uniform1i(u_Point_shadow, light.castShadow ? 1 : 0);
+
+                    if(light.castShadow && object.receiveShadow && light.shadow.isInit) {
+                        var pointShadowMap = uniforms["pointShadowMap[" + k + "]"].location;
+                        gl.activeTexture(gl.TEXTURE3);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, light.shadow.map.glTexture);
+                        gl.uniform1i(pointShadowMap, 3);
+                    }
                 }
 
                 for(var k = 0; k < spotLightsNum; k++) {

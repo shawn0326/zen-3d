@@ -56,7 +56,7 @@
                     this.spotLights.push(object);
                 }
 
-                if(object.castShadow && (object.lightType == LIGHT_TYPE.DIRECT || object.lightType == LIGHT_TYPE.SPOT)) {
+                if(object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
                     this.shadowLights.push(object);
                 }
 

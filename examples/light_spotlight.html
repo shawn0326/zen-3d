@@ -69,6 +69,7 @@
 	        spotLight.color = 0xffffff;
 			spotLight.angle = Math.PI / 6;
 	        spotLight.position.set(-40, 40, 0);
+			spotLight.penumbra = 0.2;
 	        scene.add(spotLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);

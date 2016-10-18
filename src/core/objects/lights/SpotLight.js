@@ -14,6 +14,7 @@
         // distance of this light
         this.distance = 200;
 
+        // from 0 to 1
         this.penumbra = 0;
 
         this.angle = Math.PI / 6;
