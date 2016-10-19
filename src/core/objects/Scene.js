@@ -7,6 +7,8 @@
         Scene.superClass.constructor.call(this);
 
         this.type = zen3d.OBJECT_TYPE.SCENE;
+
+        this.fog = null;
     }
 
     zen3d.inherit(Scene, zen3d.Object3D);

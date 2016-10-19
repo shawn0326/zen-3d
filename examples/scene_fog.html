@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - fog</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - fog
+		<br/>
+		press 'z' to enable fog
+		<br/>
+		press 'x' to enable exp2 fog
+		<br/>
+		press 'c' to disable fog
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+			var fog = new zen3d.Fog(0xF6CF9C, 1, 1000);
+			var fogExp2 = new zen3d.FogExp2(0xF6CF9C, 0.002);
+			scene.fog = fogExp2;
+
+	        var sphere_geometry = new zen3d.CubeGeometry(20, 20, 20);
+
+			for(var i = 0; i < 10; i++) {
+				var baisc = new zen3d.BasicMaterial();
+		        baisc.color = 0xF9E3B1;
+		        var sphere1 = new zen3d.Mesh(sphere_geometry, baisc);
+				sphere1.position.x = Math.random() * 500 - 250;
+				sphere1.position.y = Math.random() * 500 - 250;
+				sphere1.position.z = Math.random() * 500 - 250;
+				scene.add(sphere1);
+
+		        var lambert = new zen3d.LambertMaterial();
+		        lambert.color = 0xF9E3B1;
+		        var sphere2 = new zen3d.Mesh(sphere_geometry, lambert);
+				sphere2.position.x = Math.random() * 500 - 250;
+				sphere2.position.y = Math.random() * 500 - 250;
+				sphere2.position.z = Math.random() * 500 - 250;
+				scene.add(sphere2);
+
+		        var phong = new zen3d.PhongMaterial();
+		        phong.color = 0xF9E3B1;
+		        var sphere3 = new zen3d.Mesh(sphere_geometry, phong);
+				sphere3.position.x = Math.random() * 500 - 250;
+				sphere3.position.y = Math.random() * 500 - 250;
+				sphere3.position.z = Math.random() * 500 - 250;
+				scene.add(sphere3);
+			}
+
+			var sky_geom = new zen3d.CubeGeometry(1000, 1000, 1000, false);
+			var basic = new zen3d.BasicMaterial();
+	        basic.color = 0x777777;
+	        var sky = new zen3d.Mesh(sky_geom, basic);
+	        scene.add(sky);
+
+	        var directLight = new zen3d.DirectionalLight();
+	        directLight.intensity = 0.8;
+	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+	        directLight.color = 0xffffff;
+	        directLight.position.set(-40, 40, 0);
+	        scene.add(directLight);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.color = 0xffffff;
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(-40, 40, 0);
+	        scene.add(lightBall);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 40, 600);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+	        scene.add(camera);
+
+			// input
+
+			document.onkeydown = function(e) {
+				if(e.keyCode == 90) { // 'z'
+					scene.fog = fog;
+				} else if(e.keyCode == 88) { // 'x'
+					scene.fog = fogExp2;
+				} else if(e.keyCode == 67) { // 'c'
+					scene.fog = null;
+				}
+	        }
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 600 * Math.sin(count / 1000 * .5);
+				camera.position.z = 600 * Math.cos(count / 1000 * .5);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				renderer.clear();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+		})();
+	</script>
+</body>
+</html>

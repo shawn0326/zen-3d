@@ -36,6 +36,8 @@ var filesSrc = [
     "core/objects/Object3D.js",
     // scene
     "core/objects/Scene.js",
+    "core/objects/Fog.js",
+    "core/objects/FogExp2.js",
     // group
     "core/objects/Group.js",
 

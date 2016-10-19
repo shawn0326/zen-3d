@@ -42,6 +42,9 @@
         // camera
         this.camera = null;
 
+        // fog
+        this.fog = null;
+
         // use dfdx and dfdy must enable OES_standard_derivatives
         var ext = zen3d.getExtension(gl, "OES_standard_derivatives");
         // GL_OES_standard_derivatives
@@ -57,6 +60,8 @@
 
         camera.viewMatrix.getInverse(camera.worldMatrix);// update view matrix
         this.camera = camera;
+
+        this.fog = scene.fog;
 
         this.cache.cache(scene, camera);
 
@@ -197,7 +202,7 @@
                 directLightsNum,
                 pointLightsNum,
                 spotLightsNum
-            ]);
+            ], this.fog);
             gl.useProgram(program.id);
 
             // update attributes
@@ -283,6 +288,22 @@
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
                         gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
+                        break;
+                    case "u_FogColor":
+                        var color = zen3d.hex2RGB(this.fog.color);
+                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        break;
+                    case "u_FogDensity":
+                        var density = this.fog.density;
+                        gl.uniform1f(location, density);
+                        break;
+                    case "u_FogNear":
+                        var near = this.fog.near;
+                        gl.uniform1f(location, near);
+                        break;
+                    case "u_FogFar":
+                        var far = this.fog.far;
+                        gl.uniform1f(location, far);
                         break;
                 }
             }

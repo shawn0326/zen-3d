@@ -19,5 +19,8 @@ var files = {
 	"camera": [
 		"camera_cameras",
 		"camera_controller_hover"
+	],
+	"scene": [
+		"scene_fog"
 	]
 };

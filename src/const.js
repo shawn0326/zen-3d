@@ -36,4 +36,14 @@
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
 
+    /**
+     * FOG_TYPE
+     */
+    var FOG_TYPE = {
+        NORMAL: "normal",
+        EXP2: "exp2"
+    };
+
+    zen3d.FOG_TYPE = FOG_TYPE;
+
 })();

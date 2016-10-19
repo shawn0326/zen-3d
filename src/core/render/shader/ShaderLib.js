@@ -633,6 +633,48 @@
     ].join("\n");
 
     /**
+     * fog
+     */
+
+    var fog_pars_frag = [
+        '#ifdef USE_FOG',
+
+        	'uniform vec3 u_FogColor;',
+
+        	'#ifdef USE_EXP2_FOG',
+
+        		'uniform float u_FogDensity;',
+
+        	'#else',
+
+        		'uniform float u_FogNear;',
+        		'uniform float u_FogFar;',
+        	'#endif',
+
+        '#endif'
+    ].join("\n");
+
+    var fog_frag = [
+        '#ifdef USE_FOG',
+
+        	'float depth = gl_FragCoord.z / gl_FragCoord.w;',
+
+        	'#ifdef USE_EXP2_FOG',
+
+        		'float fogFactor = whiteCompliment( exp2( - u_FogDensity * u_FogDensity * depth * depth * LOG2 ) );',
+
+        	'#else',
+
+        		'float fogFactor = smoothstep( u_FogNear, u_FogFar, depth );',
+
+        	'#endif',
+
+        	'gl_FragColor.rgb = mix( gl_FragColor.rgb, u_FogColor, fogFactor );',
+
+        '#endif'
+    ].join("\n");
+
+    /**
      * shader libs
      */
     var ShaderLib = {
@@ -653,12 +695,14 @@
             uv_pars_frag,
             diffuseMap_pars_frag,
             envMap_pars_frag,
+            fog_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
                 envMap_frag,
                 frag_end,
                 premultipliedAlpha_frag,
+                fog_frag,
             '}'
         ].join("\n"),
 
@@ -690,6 +734,7 @@
             RE_Lambert,
             envMap_pars_frag,
             shadowMap_pars_frag,
+            fog_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
@@ -699,6 +744,7 @@
                 shadowMap_frag,
                 frag_end,
                 premultipliedAlpha_frag,
+                fog_frag,
             '}'
         ].join("\n"),
 
@@ -735,6 +781,7 @@
             RE_BlinnPhong,
             envMap_pars_frag,
             shadowMap_pars_frag,
+            fog_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
@@ -744,6 +791,7 @@
                 shadowMap_frag,
                 frag_end,
                 premultipliedAlpha_frag,
+                fog_frag,
             '}'
         ].join("\n"),
 

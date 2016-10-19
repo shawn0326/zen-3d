@@ -187,7 +187,9 @@
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
-                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : ''
+                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
+                props.fog ? '#define USE_FOG' : '',
+                props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
         } else if(cube) {
             vshader_define = [
@@ -224,6 +226,8 @@
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
                 props.useShadow ? '#define USE_SHADOW' : '',
                 props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
+                props.fog ? '#define USE_FOG' : '',
+                props.fogExp2 ? '#define USE_EXP2_FOG' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -242,6 +246,9 @@
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
             fshader_define,
+            '#define LOG2 1.442695',
+            '#define saturate(a) clamp( a, 0.0, 1.0 )',
+            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
             fragment
         ].join("\n");
 
@@ -249,9 +256,9 @@
     }
 
     /**
-     * get a suitable program by object & lights
+     * get a suitable program by object & lights & fog
      */
-    var getProgram = function(gl, object, lightsNum) {
+    var getProgram = function(gl, object, lightsNum, fog) {
 
         var material = object.material;
 
@@ -272,7 +279,9 @@
             spotLightNum: spotLightNum,
             materialType: material.type,
             useShadow: object.receiveShadow,
-            premultipliedAlpha: material.premultipliedAlpha
+            premultipliedAlpha: material.premultipliedAlpha,
+            fog: !!fog,
+            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2)
         };
 
         var code = generateProgramCode(props);

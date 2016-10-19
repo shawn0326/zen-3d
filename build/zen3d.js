@@ -140,6 +140,16 @@
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
 
+    /**
+     * FOG_TYPE
+     */
+    var FOG_TYPE = {
+        NORMAL: "normal",
+        EXP2: "exp2"
+    };
+
+    zen3d.FOG_TYPE = FOG_TYPE;
+
 })();
 
 (function() {
@@ -1845,6 +1855,48 @@
     ].join("\n");
 
     /**
+     * fog
+     */
+
+    var fog_pars_frag = [
+        '#ifdef USE_FOG',
+
+        	'uniform vec3 u_FogColor;',
+
+        	'#ifdef USE_EXP2_FOG',
+
+        		'uniform float u_FogDensity;',
+
+        	'#else',
+
+        		'uniform float u_FogNear;',
+        		'uniform float u_FogFar;',
+        	'#endif',
+
+        '#endif'
+    ].join("\n");
+
+    var fog_frag = [
+        '#ifdef USE_FOG',
+
+        	'float depth = gl_FragCoord.z / gl_FragCoord.w;',
+
+        	'#ifdef USE_EXP2_FOG',
+
+        		'float fogFactor = whiteCompliment( exp2( - u_FogDensity * u_FogDensity * depth * depth * LOG2 ) );',
+
+        	'#else',
+
+        		'float fogFactor = smoothstep( u_FogNear, u_FogFar, depth );',
+
+        	'#endif',
+
+        	'gl_FragColor.rgb = mix( gl_FragColor.rgb, u_FogColor, fogFactor );',
+
+        '#endif'
+    ].join("\n");
+
+    /**
      * shader libs
      */
     var ShaderLib = {
@@ -1865,12 +1917,14 @@
             uv_pars_frag,
             diffuseMap_pars_frag,
             envMap_pars_frag,
+            fog_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
                 envMap_frag,
                 frag_end,
                 premultipliedAlpha_frag,
+                fog_frag,
             '}'
         ].join("\n"),
 
@@ -1902,6 +1956,7 @@
             RE_Lambert,
             envMap_pars_frag,
             shadowMap_pars_frag,
+            fog_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
@@ -1911,6 +1966,7 @@
                 shadowMap_frag,
                 frag_end,
                 premultipliedAlpha_frag,
+                fog_frag,
             '}'
         ].join("\n"),
 
@@ -1947,6 +2003,7 @@
             RE_BlinnPhong,
             envMap_pars_frag,
             shadowMap_pars_frag,
+            fog_pars_frag,
             'void main() {',
                 frag_begin,
                 diffuseMap_frag,
@@ -1956,6 +2013,7 @@
                 shadowMap_frag,
                 frag_end,
                 premultipliedAlpha_frag,
+                fog_frag,
             '}'
         ].join("\n"),
 
@@ -2192,7 +2250,9 @@
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
-                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : ''
+                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
+                props.fog ? '#define USE_FOG' : '',
+                props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
         } else if(cube) {
             vshader_define = [
@@ -2229,6 +2289,8 @@
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
                 props.useShadow ? '#define USE_SHADOW' : '',
                 props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
+                props.fog ? '#define USE_FOG' : '',
+                props.fogExp2 ? '#define USE_EXP2_FOG' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -2247,6 +2309,9 @@
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
             fshader_define,
+            '#define LOG2 1.442695',
+            '#define saturate(a) clamp( a, 0.0, 1.0 )',
+            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
             fragment
         ].join("\n");
 
@@ -2254,9 +2319,9 @@
     }
 
     /**
-     * get a suitable program by object & lights
+     * get a suitable program by object & lights & fog
      */
-    var getProgram = function(gl, object, lightsNum) {
+    var getProgram = function(gl, object, lightsNum, fog) {
 
         var material = object.material;
 
@@ -2277,7 +2342,9 @@
             spotLightNum: spotLightNum,
             materialType: material.type,
             useShadow: object.receiveShadow,
-            premultipliedAlpha: material.premultipliedAlpha
+            premultipliedAlpha: material.premultipliedAlpha,
+            fog: !!fog,
+            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2)
         };
 
         var code = generateProgramCode(props);
@@ -2375,6 +2442,9 @@
         // camera
         this.camera = null;
 
+        // fog
+        this.fog = null;
+
         // use dfdx and dfdy must enable OES_standard_derivatives
         var ext = zen3d.getExtension(gl, "OES_standard_derivatives");
         // GL_OES_standard_derivatives
@@ -2390,6 +2460,8 @@
 
         camera.viewMatrix.getInverse(camera.worldMatrix);// update view matrix
         this.camera = camera;
+
+        this.fog = scene.fog;
 
         this.cache.cache(scene, camera);
 
@@ -2530,7 +2602,7 @@
                 directLightsNum,
                 pointLightsNum,
                 spotLightsNum
-            ]);
+            ], this.fog);
             gl.useProgram(program.id);
 
             // update attributes
@@ -2616,6 +2688,22 @@
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
                         gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
+                        break;
+                    case "u_FogColor":
+                        var color = zen3d.hex2RGB(this.fog.color);
+                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        break;
+                    case "u_FogDensity":
+                        var density = this.fog.density;
+                        gl.uniform1f(location, density);
+                        break;
+                    case "u_FogNear":
+                        var near = this.fog.near;
+                        gl.uniform1f(location, near);
+                        break;
+                    case "u_FogFar":
+                        var far = this.fog.far;
+                        gl.uniform1f(location, far);
                         break;
                 }
             }
@@ -3240,6 +3328,8 @@
         Scene.superClass.constructor.call(this);
 
         this.type = zen3d.OBJECT_TYPE.SCENE;
+
+        this.fog = null;
     }
 
     zen3d.inherit(Scene, zen3d.Object3D);
@@ -3247,6 +3337,39 @@
     zen3d.Scene = Scene;
 })();
 
+(function() {
+    /**
+     * Fog
+     * @class
+     */
+    var Fog = function(color, near, far) {
+
+        this.fogType = zen3d.FOG_TYPE.NORMAL;
+
+        this.color = color;
+
+        this.near = (near !== undefined) ? near : 1;
+        this.far = (far !== undefined) ? far : 1000;
+    }
+
+    zen3d.Fog = Fog;
+})();
+(function() {
+    /**
+     * FogExp2
+     * @class
+     */
+    var FogExp2 = function(color, density) {
+
+        this.fogType = zen3d.FOG_TYPE.EXP2;
+
+        this.color = color;
+
+        this.density = (density !== undefined) ? density : 0.00025;
+    }
+
+    zen3d.FogExp2 = FogExp2;
+})();
 (function() {
     /**
      * Group
