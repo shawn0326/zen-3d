@@ -13,7 +13,8 @@ var files = {
 		"material_texture_normalmap",
 		"material_cubetexture_skybox",
 		"material_cubetexture_envmap",
-		"material_cubetexture_realtimeenvmap"
+		"material_cubetexture_realtimeenvmap",
+		"material_transparent"
 	],
 	"camera": [
 		"camera_cameras",

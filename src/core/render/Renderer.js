@@ -58,7 +58,7 @@
         camera.viewMatrix.getInverse(camera.worldMatrix);// update view matrix
         this.camera = camera;
 
-        this.cache.cache(scene);
+        this.cache.cache(scene, camera);
 
         this.cache.sort();
 
@@ -185,10 +185,11 @@
 
         for(var i = 0, l = renderList.length; i < l; i++) {
 
-            var object = renderList[i];
-            var material = object.material;
+            var renderItem = renderList[i];
+            var object = renderItem.object;
+            var material = renderItem.material;
 
-            var offset = this._uploadGeometry(object.geometry);
+            var offset = this._uploadGeometry(renderItem.geometry);
 
             // get program
             var program = zen3d.getProgram(gl, object, [
@@ -417,8 +418,21 @@
             ///////
 
             if(material.transparent) {
+
                 gl.enable(gl.BLEND);
-                gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+                if ( material.premultipliedAlpha ) {
+
+					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
+					gl.blendFuncSeparate( gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+
+				} else {
+
+					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
+					gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+
+				}
+
             } else {
                 gl.disable(gl.BLEND);
             }

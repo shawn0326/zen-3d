@@ -529,6 +529,7 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONG',
+                // TODO use specular color
                 // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
                 'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
@@ -545,6 +546,7 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONG',
+                // TODO use specular color
                 // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
                 'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
@@ -624,6 +626,15 @@
     ].join("\n");
 
     /**
+     * premultiplied alpha
+     */
+    var premultipliedAlpha_frag = [
+        '#ifdef USE_PREMULTIPLIED_ALPHA',
+            'gl_FragColor.rgb = gl_FragColor.rgb * gl_FragColor.a;',
+        '#endif'
+    ].join("\n");
+
+    /**
      * shader libs
      */
     var ShaderLib = {
@@ -649,6 +660,7 @@
                 diffuseMap_frag,
                 envMap_frag,
                 frag_end,
+                premultipliedAlpha_frag,
             '}'
         ].join("\n"),
 
@@ -688,6 +700,7 @@
                 envMap_frag,
                 shadowMap_frag,
                 frag_end,
+                premultipliedAlpha_frag,
             '}'
         ].join("\n"),
 
@@ -730,6 +743,7 @@
                 envMap_frag,
                 shadowMap_frag,
                 frag_end,
+                premultipliedAlpha_frag,
             '}'
         ].join("\n"),
 

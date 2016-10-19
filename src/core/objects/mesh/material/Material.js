@@ -19,6 +19,8 @@
 
         this.transparent = false;
 
+        this.premultipliedAlpha = false;
+
         // normal map
         this.normalMap = null;
 

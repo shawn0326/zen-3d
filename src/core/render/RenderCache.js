@@ -23,10 +23,12 @@
         this.shadowLights = new Array();
     }
 
+    var helpVector3 = new zen3d.Vector3();
+
     /**
      * cache object
      */
-    RenderCache.prototype.cache = function(object) {
+    RenderCache.prototype.cache = function(object, camera) {
 
         // cache all type of objects
         switch (object.type) {
@@ -34,11 +36,25 @@
                 var material = object.material;
 
                 if(material.checkMapInit()) {
+
+                    var array;
                     if(material.transparent) {
-                        this.transparentObjects.push(object);
+                        array = this.transparentObjects;
                     } else {
-                        this.opaqueObjects.push(object);
+                        array = this.opaqueObjects;
                     }
+
+                    // TODO frustum test
+
+                    helpVector3.setFromMatrixPosition( object.worldMatrix );
+					helpVector3.applyMatrix4( camera.viewMatrix ).applyMatrix4( camera.projectionMatrix );
+
+                    array.push({
+                        object: object,
+                        geometry: object.geometry,
+                        material: object.material,
+                        z: helpVector3.z
+                    });
 
                     if(object.castShadow) {
                         this.shadowObjects.push(object);
@@ -79,7 +95,7 @@
         // handle children by recursion
         var children = object.children;
 		for ( var i = 0, l = children.length; i < l; i ++ ) {
-			this.cache(children[i]);
+			this.cache(children[i], camera);
 		}
     }
 
@@ -89,15 +105,15 @@
     RenderCache.prototype.sort = function() {
         // opaque objects render from front to back
         this.opaqueObjects.sort(function(a, b) {
-            var za = a.position.z;
-            var zb = b.position.z;
+            var za = a.z;
+            var zb = b.z;
             return za - zb;
         });
 
         // transparent objects render from back to front
         this.transparentObjects.sort(function(a, b) {
-            var za = a.position.z;
-            var zb = b.position.z;
+            var za = a.z;
+            var zb = b.z;
             return zb - za;
         });
     }

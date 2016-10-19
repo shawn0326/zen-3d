@@ -1741,6 +1741,7 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONG',
+                // TODO use specular color
                 // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
                 'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
@@ -1757,6 +1758,7 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONG',
+                // TODO use specular color
                 // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
                 'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
@@ -1836,6 +1838,15 @@
     ].join("\n");
 
     /**
+     * premultiplied alpha
+     */
+    var premultipliedAlpha_frag = [
+        '#ifdef USE_PREMULTIPLIED_ALPHA',
+            'gl_FragColor.rgb = gl_FragColor.rgb * gl_FragColor.a;',
+        '#endif'
+    ].join("\n");
+
+    /**
      * shader libs
      */
     var ShaderLib = {
@@ -1861,6 +1872,7 @@
                 diffuseMap_frag,
                 envMap_frag,
                 frag_end,
+                premultipliedAlpha_frag,
             '}'
         ].join("\n"),
 
@@ -1900,6 +1912,7 @@
                 envMap_frag,
                 shadowMap_frag,
                 frag_end,
+                premultipliedAlpha_frag,
             '}'
         ].join("\n"),
 
@@ -1942,6 +1955,7 @@
                 envMap_frag,
                 shadowMap_frag,
                 frag_end,
+                premultipliedAlpha_frag,
             '}'
         ].join("\n"),
 
@@ -2177,7 +2191,8 @@
             ].join("\n");
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : ''
             ].join("\n");
         } else if(cube) {
             vshader_define = [
@@ -2213,6 +2228,7 @@
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
                 props.useShadow ? '#define USE_SHADOW' : '',
+                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -2260,7 +2276,8 @@
             pointLightNum: pointLightNum,
             spotLightNum: spotLightNum,
             materialType: material.type,
-            useShadow: object.receiveShadow
+            useShadow: object.receiveShadow,
+            premultipliedAlpha: material.premultipliedAlpha
         };
 
         var code = generateProgramCode(props);
@@ -2374,7 +2391,7 @@
         camera.viewMatrix.getInverse(camera.worldMatrix);// update view matrix
         this.camera = camera;
 
-        this.cache.cache(scene);
+        this.cache.cache(scene, camera);
 
         this.cache.sort();
 
@@ -2501,10 +2518,11 @@
 
         for(var i = 0, l = renderList.length; i < l; i++) {
 
-            var object = renderList[i];
-            var material = object.material;
+            var renderItem = renderList[i];
+            var object = renderItem.object;
+            var material = renderItem.material;
 
-            var offset = this._uploadGeometry(object.geometry);
+            var offset = this._uploadGeometry(renderItem.geometry);
 
             // get program
             var program = zen3d.getProgram(gl, object, [
@@ -2733,8 +2751,21 @@
             ///////
 
             if(material.transparent) {
+
                 gl.enable(gl.BLEND);
-                gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+                if ( material.premultipliedAlpha ) {
+
+					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
+					gl.blendFuncSeparate( gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+
+				} else {
+
+					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
+					gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+
+				}
+
             } else {
                 gl.disable(gl.BLEND);
             }
@@ -2835,10 +2866,12 @@
         this.shadowLights = new Array();
     }
 
+    var helpVector3 = new zen3d.Vector3();
+
     /**
      * cache object
      */
-    RenderCache.prototype.cache = function(object) {
+    RenderCache.prototype.cache = function(object, camera) {
 
         // cache all type of objects
         switch (object.type) {
@@ -2846,11 +2879,25 @@
                 var material = object.material;
 
                 if(material.checkMapInit()) {
+
+                    var array;
                     if(material.transparent) {
-                        this.transparentObjects.push(object);
+                        array = this.transparentObjects;
                     } else {
-                        this.opaqueObjects.push(object);
+                        array = this.opaqueObjects;
                     }
+
+                    // TODO frustum test
+
+                    helpVector3.setFromMatrixPosition( object.worldMatrix );
+					helpVector3.applyMatrix4( camera.viewMatrix ).applyMatrix4( camera.projectionMatrix );
+
+                    array.push({
+                        object: object,
+                        geometry: object.geometry,
+                        material: object.material,
+                        z: helpVector3.z
+                    });
 
                     if(object.castShadow) {
                         this.shadowObjects.push(object);
@@ -2891,7 +2938,7 @@
         // handle children by recursion
         var children = object.children;
 		for ( var i = 0, l = children.length; i < l; i ++ ) {
-			this.cache(children[i]);
+			this.cache(children[i], camera);
 		}
     }
 
@@ -2901,15 +2948,15 @@
     RenderCache.prototype.sort = function() {
         // opaque objects render from front to back
         this.opaqueObjects.sort(function(a, b) {
-            var za = a.position.z;
-            var zb = b.position.z;
+            var za = a.z;
+            var zb = b.z;
             return za - zb;
         });
 
         // transparent objects render from back to front
         this.transparentObjects.sort(function(a, b) {
-            var za = a.position.z;
-            var zb = b.position.z;
+            var za = a.z;
+            var zb = b.z;
             return zb - za;
         });
     }
@@ -4387,6 +4434,8 @@
         this.opacity = 1;
 
         this.transparent = false;
+
+        this.premultipliedAlpha = false;
 
         // normal map
         this.normalMap = null;

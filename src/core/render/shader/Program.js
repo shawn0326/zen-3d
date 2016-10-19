@@ -186,7 +186,8 @@
             ].join("\n");
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : ''
             ].join("\n");
         } else if(cube) {
             vshader_define = [
@@ -222,6 +223,7 @@
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
                 props.useShadow ? '#define USE_SHADOW' : '',
+                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -269,7 +271,8 @@
             pointLightNum: pointLightNum,
             spotLightNum: spotLightNum,
             materialType: material.type,
-            useShadow: object.receiveShadow
+            useShadow: object.receiveShadow,
+            premultipliedAlpha: material.premultipliedAlpha
         };
 
         var code = generateProgramCode(props);
