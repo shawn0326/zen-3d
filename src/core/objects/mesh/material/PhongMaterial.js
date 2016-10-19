@@ -9,6 +9,8 @@
         this.type = zen3d.MATERIAL_TYPE.PHONG;
 
         this.specular = 20;
+
+        this.specularColor = 0xffffff;
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);

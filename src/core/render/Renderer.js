@@ -276,6 +276,10 @@
                         var specular = material.specular;
                         gl.uniform1f(location, specular);
                         break;
+                    case "u_SpecularColor":
+                        var color = zen3d.hex2RGB(material.specularColor);
+                        gl.uniform4f(location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                        break;
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
                         gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);

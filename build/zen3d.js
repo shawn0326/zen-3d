@@ -1741,9 +1741,8 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONG',
-                // TODO use specular color
-                // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
-                'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                // 'RE_Phong(u_SpecularColor, light, N, L, V, 4., reflectLight);',
+                'RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
             '}',
             '#endif',
@@ -1758,9 +1757,8 @@
                 'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                 '#ifdef USE_PHONG',
-                // TODO use specular color
-                // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
-                'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                // 'RE_Phong(u_SpecularColor, light, N, L, V, u_Specular, reflectLight);',
+                'RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                 '#endif',
             '}',
             '#endif',
@@ -1781,8 +1779,8 @@
                     'RE_Lambert(diffuseColor, light, N, L, reflectLight);',
 
                     '#ifdef USE_PHONG',
-                    // 'RE_Phong(diffuseColor, light, N, L, V, 4., reflectLight);',
-                    'RE_BlinnPhong(diffuseColor, light, N, normalize(L), V, u_Specular, reflectLight);',
+                    // 'RE_Phong(u_SpecularColor, light, N, L, V, u_Specular, reflectLight);',
+                    'RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, reflectLight);',
                     '#endif',
 
                 '}',
@@ -1935,7 +1933,9 @@
         ].join("\n"),
         phongFragment: [
             fragmentCommon,
+            // if no light, this will not active
             'uniform float u_Specular;',
+            'uniform vec4 u_SpecularColor;',
             uv_pars_frag,
             diffuseMap_pars_frag,
             normalMap_pars_frag,
@@ -2608,6 +2608,10 @@
                     case "u_Specular":
                         var specular = material.specular;
                         gl.uniform1f(location, specular);
+                        break;
+                    case "u_SpecularColor":
+                        var color = zen3d.hex2RGB(material.specularColor);
+                        gl.uniform4f(location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
                         break;
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
@@ -4502,6 +4506,8 @@
         this.type = zen3d.MATERIAL_TYPE.PHONG;
 
         this.specular = 20;
+
+        this.specularColor = 0xffffff;
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);
