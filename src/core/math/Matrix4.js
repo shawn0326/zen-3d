@@ -354,6 +354,18 @@
 
 	}
 
+    Matrix4.prototype.fromArray = function (array, offset) {
+		if ( offset === undefined ) offset = 0;
+
+		for( var i = 0; i < 16; i ++ ) {
+
+			this.elements[ i ] = array[ i + offset ];
+
+		}
+
+		return this;
+	}
+
     zen3d.Matrix4 = Matrix4;
     zen3d.helpMatrix = new Matrix4();
 })();

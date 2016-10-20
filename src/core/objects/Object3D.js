@@ -82,6 +82,35 @@
     }
 
     /**
+     * get object by name
+     */
+    Object3D.prototype.getObjectByName = function ( name ) {
+		return this.getObjectByProperty( 'name', name );
+	}
+
+    /**
+     * get object by property
+     */
+	Object3D.prototype.getObjectByProperty = function ( name, value ) {
+		if ( this[ name ] === value ) return this;
+
+		for ( var i = 0, l = this.children.length; i < l; i ++ ) {
+
+			var child = this.children[ i ];
+			var object = child.getObjectByProperty( name, value );
+
+			if ( object !== undefined ) {
+
+				return object;
+
+			}
+
+		}
+
+		return undefined;
+	}
+
+    /**
      * update matrix
      */
     Object3D.prototype.updateMatrix = function() {

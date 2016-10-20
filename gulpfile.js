@@ -73,6 +73,9 @@ var filesSrc = [
 
     "core/objects/mesh/Mesh.js",
 
+    //loader
+    "core/loader/AssimpJsonLoader.js",
+
     // controller
     "extension/controller/HoverController.js"
 

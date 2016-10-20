@@ -8,7 +8,7 @@
 
         this.type = zen3d.MATERIAL_TYPE.PHONG;
 
-        this.specular = 20;
+        this.specular = 30;
 
         this.specularColor = 0xffffff;
     }
