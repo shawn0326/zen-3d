@@ -100,6 +100,39 @@
 
     zen3d.createCheckerBoardPixels = createCheckerBoardPixels;
 
+    var isPowerOf2 = function(value) {
+        return ( value & ( value - 1 ) ) === 0 && value !== 0;
+    }
+
+    zen3d.isPowerOf2 = isPowerOf2;
+
+    var nearestPowerOf2 = function ( value ) {
+		return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
+	}
+
+    zen3d.nearestPowerOf2 = nearestPowerOf2;
+
+    var makePowerOf2 = function( image ) {
+		if ( image instanceof HTMLImageElement || image instanceof HTMLCanvasElement ) {
+
+			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+			canvas.width = nearestPowerOf2( image.width );
+			canvas.height = nearestPowerOf2( image.height );
+
+			var context = canvas.getContext( '2d' );
+			context.drawImage( image, 0, 0, canvas.width, canvas.height );
+
+			console.warn( 'image is not power of two (' + image.width + 'x' + image.height + '). Resized to ' + canvas.width + 'x' + canvas.height, image );
+
+			return canvas;
+
+		}
+
+		return image;
+	}
+
+    zen3d.makePowerOf2 = makePowerOf2;
+
 })(window);
 
 (function() {
@@ -4281,9 +4314,9 @@
 
         this.dataType = gl.UNSIGNED_BYTE;
 
-        // gl.NEAREST, gl.LINEAR...(mipmap etc)
+        // gl.NEAREST, gl.LINEAR, gl.LINEAR_MIPMAP_LINEAR ...
         this.magFilter = gl.LINEAR;
-        this.minFilter = gl.LINEAR;
+        this.minFilter = gl.LINEAR_MIPMAP_LINEAR;
 
         // gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT
         this.wrapS = gl.CLAMP_TO_EDGE;
@@ -4292,6 +4325,9 @@
         this.glTexture = gl.createTexture();
 
         this.isRenderable = false;
+
+        this.generateMipMaps = true;
+        this.hasMipMaps = false;
 
         // TODO this can set just as a global props?
         // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -4312,12 +4348,27 @@
         // implemented in sub class
     }
 
+    TextureBase.prototype._filterFallback = function(gl, filter) {
+		if ( filter === gl.NEAREST || filter === gl.NEAREST_MIPMAP_LINEAR || filter === gl.NEAREST_MIPMAP_NEAREST ) {
+			return gl.NEAREST;
+		}
+
+		return gl.LINEAR;
+	}
+
     /**
      * tex image
      */
     TextureBase.prototype.texImage = function() {
         // implemented in sub class
         // this.isRenderable = true;
+    }
+
+    /**
+     * generate mipmaps
+     */
+    TextureBase.prototype.generateMipMaps = function() {
+
     }
 
     /**
@@ -4360,11 +4411,23 @@
     Texture2D.prototype.texParam = function() {
         var gl = this.gl;
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.magFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.minFilter);
+        if(this.hasMipMaps) {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.magFilter);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.minFilter);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this._filterFallback(gl, this.magFilter));
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this._filterFallback(gl, this.minFilter));
+        }
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this.wrapS);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this.wrapT);
+        var isPowerOf2 = zen3d.isPowerOf2(this.width) && zen3d.isPowerOf2(this.height);
+
+        if(isPowerOf2) {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this.wrapS);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this.wrapT);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
 
         return this;
     }
@@ -4378,19 +4441,54 @@
     Texture2D.prototype.texImage = function(pixels, width, height) {
         var gl = this.gl;
 
-        if((width !== undefined) && (height !== undefined)) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, width, height, this.border, this.dataFormat, this.dataType, pixels);
+        var isRenderTexture = (pixels == null);
+        var isSetSize = ( (width !== undefined) && (height !== undefined) );
 
-            this.width = width;
-            this.height = height;
+        var _width, _height;
+        if(isSetSize) {
+            _width = width;
+            _height = height;
         } else {
-            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, this.dataFormat, this.dataType, pixels);
 
-            this.width = pixels.width;
-            this.height = pixels.height;
+            // if need mip maps, make image power of 2
+            if(this.generateMipMaps && !(zen3d.isPowerOf2(pixels.width) && zen3d.isPowerOf2(pixels.height)) ) {
+                pixels = zen3d.makePowerOf2(pixels);
+            }
+
+            _width = pixels.width;
+            _height = pixels.height;
         }
 
+        var isPowerOf2 = zen3d.isPowerOf2(_width) && zen3d.isPowerOf2(_height);
+
+        if(isSetSize) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, _width, _height, this.border, this.dataFormat, this.dataType, pixels);
+        } else {
+            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, this.dataFormat, this.dataType, pixels);
+        }
+
+        if(!isRenderTexture && this.generateMipMaps && isPowerOf2) {
+            this.generateMipMap();
+        } else {
+            this.hasMipMaps = false;
+        }
+
+        this.width = _width;
+        this.height = _height;
+
         this.isRenderable = true;
+
+        return this;
+    }
+
+    /**
+     * generate mipmap
+     */
+    Texture2D.prototype.generateMipMap = function() {
+        var gl = this.gl;
+        gl.generateMipmap( gl.TEXTURE_2D );
+
+        this.hasMipMaps = true;
 
         return this;
     }
@@ -4401,9 +4499,9 @@
     Texture2D.fromRes = function(gl, data, width, height) {
         var texture = new Texture2D(gl);
 
-        texture.bind().texParam().texImage(
+        texture.bind().texImage(
             data, width, height
-        );
+        ).texParam();
 
         return texture;
     }
@@ -4419,9 +4517,9 @@
         image.src = src;
         image.onload = function() {
 
-            texture.bind().texParam().texImage(
+            texture.bind().texImage(
                 image
-            );
+            ).texParam();
 
         }
 
@@ -4434,9 +4532,9 @@
     Texture2D.createRenderTexture = function(gl, width, height) {
         var texture = new Texture2D(gl);
 
-        texture.bind().texParam().texImage(
+        texture.bind().texImage(
             null, width, height
-        );
+        ).texParam();
 
         return texture;
     }
@@ -4481,11 +4579,23 @@
     TextureCube.prototype.texParam = function() {
         var gl = this.gl;
 
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, this.magFilter);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, this.minFilter);
+        if(this.hasMipMaps) {
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, this.magFilter);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, this.minFilter);
+        } else {
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, this._filterFallback(gl, this.magFilter));
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, this._filterFallback(gl, this.minFilter));
+        }
 
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, this.wrapS);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, this.wrapT);
+        var isPowerOf2 = zen3d.isPowerOf2(this.width) && zen3d.isPowerOf2(this.height);
+
+        if(isPowerOf2) {
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, this.wrapS);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, this.wrapT);
+        } else {
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
 
         return this;
     }
@@ -4500,23 +4610,58 @@
         var gl = this.gl;
         var faces = this.faces;
 
+        var pixels = pixelsArray[0];
+
+        var isRenderTexture = (pixels == null);
+        var isSetSize = ( (width !== undefined) && (height !== undefined) );
+
+        var _width, _height;
+        if(isSetSize) {
+            _width = width;
+            _height = height;
+        } else {
+
+            // if need mip maps, make image power of 2
+            // if(this.generateMipMaps && !(zen3d.isPowerOf2(pixels.width) && zen3d.isPowerOf2(pixels.height)) ) {
+            //     pixels = zen3d.makePowerOf2(pixels);
+            // }
+
+            _width = pixels.width;
+            _height = pixels.height;
+        }
+
+        var isPowerOf2 = zen3d.isPowerOf2(_width) && zen3d.isPowerOf2(_height);
+
         for(var i = 0; i < 6; i++) {
-            if((width !== undefined) && (height !== undefined)) {
-                gl.texImage2D(faces[i], 0, this.dataFormat, width, height, this.border, this.dataFormat, this.dataType, pixelsArray[i]);
+            if(isSetSize) {
+                gl.texImage2D(faces[i], 0, this.dataFormat, _width, _height, this.border, this.dataFormat, this.dataType, pixelsArray[i]);
             } else {
                 gl.texImage2D(faces[i], 0, this.dataFormat, this.dataFormat, this.dataType, pixelsArray[i]);
             }
         }
 
-        if((width !== undefined) && (height !== undefined)) {
-            this.width = width;
-            this.height = height;
+        if(!isRenderTexture && this.generateMipMaps && isPowerOf2) {
+            this.generateMipMap();
         } else {
-            this.width = pixelsArray[0].width;
-            this.height = pixelsArray[0].height;
+            this.hasMipMaps = false;
         }
 
+        this.width = _width;
+        this.height = _height;
+
         this.isRenderable = true;
+
+        return this;
+    }
+
+    /**
+     * generate mipmap
+     */
+    TextureCube.prototype.generateMipMap = function() {
+        var gl = this.gl;
+        gl.generateMipmap( gl.TEXTURE_CUBE_MAP );
+
+        this.hasMipMaps = true;
 
         return this;
     }
@@ -4527,9 +4672,9 @@
     TextureCube.fromRes = function(gl, dataArray, width, height) {
         var texture = new TextureCube(gl);
 
-        texture.bind().texParam().texImage(
+        texture.bind().texImage(
             dataArray, width, height
-        );
+        ).texParam();
 
         return texture;
     }
@@ -4557,9 +4702,9 @@
         }
 
         function loaded() {
-            texture.bind().texParam().texImage(
+            texture.bind().texImage(
                 images
-            );
+            ).texParam();
         }
 
         next();
@@ -4573,9 +4718,9 @@
     TextureCube.createRenderTexture = function(gl, width, height) {
         var texture = new TextureCube(gl);
 
-        texture.bind().texParam().texImage(
+        texture.bind().texImage(
             [null, null, null, null, null, null], width, height
-        );
+        ).texParam();
 
         return texture;
     }

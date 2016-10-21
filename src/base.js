@@ -100,4 +100,37 @@
 
     zen3d.createCheckerBoardPixels = createCheckerBoardPixels;
 
+    var isPowerOf2 = function(value) {
+        return ( value & ( value - 1 ) ) === 0 && value !== 0;
+    }
+
+    zen3d.isPowerOf2 = isPowerOf2;
+
+    var nearestPowerOf2 = function ( value ) {
+		return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
+	}
+
+    zen3d.nearestPowerOf2 = nearestPowerOf2;
+
+    var makePowerOf2 = function( image ) {
+		if ( image instanceof HTMLImageElement || image instanceof HTMLCanvasElement ) {
+
+			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+			canvas.width = nearestPowerOf2( image.width );
+			canvas.height = nearestPowerOf2( image.height );
+
+			var context = canvas.getContext( '2d' );
+			context.drawImage( image, 0, 0, canvas.width, canvas.height );
+
+			console.warn( 'image is not power of two (' + image.width + 'x' + image.height + '). Resized to ' + canvas.width + 'x' + canvas.height, image );
+
+			return canvas;
+
+		}
+
+		return image;
+	}
+
+    zen3d.makePowerOf2 = makePowerOf2;
+
 })(window);

@@ -28,11 +28,23 @@
     Texture2D.prototype.texParam = function() {
         var gl = this.gl;
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.magFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.minFilter);
+        if(this.hasMipMaps) {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.magFilter);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.minFilter);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this._filterFallback(gl, this.magFilter));
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this._filterFallback(gl, this.minFilter));
+        }
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this.wrapS);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this.wrapT);
+        var isPowerOf2 = zen3d.isPowerOf2(this.width) && zen3d.isPowerOf2(this.height);
+
+        if(isPowerOf2) {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this.wrapS);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this.wrapT);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
 
         return this;
     }
@@ -46,19 +58,54 @@
     Texture2D.prototype.texImage = function(pixels, width, height) {
         var gl = this.gl;
 
-        if((width !== undefined) && (height !== undefined)) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, width, height, this.border, this.dataFormat, this.dataType, pixels);
+        var isRenderTexture = (pixels == null);
+        var isSetSize = ( (width !== undefined) && (height !== undefined) );
 
-            this.width = width;
-            this.height = height;
+        var _width, _height;
+        if(isSetSize) {
+            _width = width;
+            _height = height;
         } else {
-            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, this.dataFormat, this.dataType, pixels);
 
-            this.width = pixels.width;
-            this.height = pixels.height;
+            // if need mip maps, make image power of 2
+            if(this.generateMipMaps && !(zen3d.isPowerOf2(pixels.width) && zen3d.isPowerOf2(pixels.height)) ) {
+                pixels = zen3d.makePowerOf2(pixels);
+            }
+
+            _width = pixels.width;
+            _height = pixels.height;
         }
 
+        var isPowerOf2 = zen3d.isPowerOf2(_width) && zen3d.isPowerOf2(_height);
+
+        if(isSetSize) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, _width, _height, this.border, this.dataFormat, this.dataType, pixels);
+        } else {
+            gl.texImage2D(gl.TEXTURE_2D, 0, this.dataFormat, this.dataFormat, this.dataType, pixels);
+        }
+
+        if(!isRenderTexture && this.generateMipMaps && isPowerOf2) {
+            this.generateMipMap();
+        } else {
+            this.hasMipMaps = false;
+        }
+
+        this.width = _width;
+        this.height = _height;
+
         this.isRenderable = true;
+
+        return this;
+    }
+
+    /**
+     * generate mipmap
+     */
+    Texture2D.prototype.generateMipMap = function() {
+        var gl = this.gl;
+        gl.generateMipmap( gl.TEXTURE_2D );
+
+        this.hasMipMaps = true;
 
         return this;
     }
@@ -69,9 +116,9 @@
     Texture2D.fromRes = function(gl, data, width, height) {
         var texture = new Texture2D(gl);
 
-        texture.bind().texParam().texImage(
+        texture.bind().texImage(
             data, width, height
-        );
+        ).texParam();
 
         return texture;
     }
@@ -87,9 +134,9 @@
         image.src = src;
         image.onload = function() {
 
-            texture.bind().texParam().texImage(
+            texture.bind().texImage(
                 image
-            );
+            ).texParam();
 
         }
 
@@ -102,9 +149,9 @@
     Texture2D.createRenderTexture = function(gl, width, height) {
         var texture = new Texture2D(gl);
 
-        texture.bind().texParam().texImage(
+        texture.bind().texImage(
             null, width, height
-        );
+        ).texParam();
 
         return texture;
     }
