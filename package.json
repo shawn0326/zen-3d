@@ -1,0 +1,14 @@
+{
+    "name": "zen-3d",
+    "version": "0.0.0",
+    "dependencies": {},
+    "repository": {},
+    "devDependencies": {
+        "gulp": "",
+        "gulp-uglify": "",
+        "gulp-concat": "",
+        "gulp-rename": "",
+        "gulp-notify": "",
+        "gulp-watch": ""
+    }
+}

@@ -12,26 +12,43 @@ RoadMap
 --
 [zen-3d RoadMap](https://trello.com/b/7Ie3DDBP)
 
-Git:
---
-* [github] https://github.com/shawn0326/zen-3d
-* [coding] https://coding.net/u/shawn0326/p/zen-3d/git
-
 Examples:
 --
-* [zen-3d Examples](http://shawn0326.coding.me/zen-3d/examples)
-
-Usage
---
-build path is `./build`, you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
-
-````
-<script src="zen3d.min.js"></script>    
-````
+* [github examples](https://shawn0326.github.io/zen-3d/examples/)
 
 Build
 --
 zen3d is built by [gulp](http://gulpjs.com/).
+
+first run:
+
+````
+npm install
+````
+
+and then, run:
+
+````
+gulp build
+````
+
+or:
+
+````
+gulp watch
+````
+
+build path is `./build`.
+
+Usage
+--
+you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
+
+````
+<script src="zen3d.min.js"></script>.
+````
+
+zen-3d use JSON([assimp2json](https://github.com/acgessler/assimp2json)) as default supported format of model.
 
 About Me
 --
