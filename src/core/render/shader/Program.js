@@ -258,17 +258,19 @@
     /**
      * get a suitable program by object & lights & fog
      */
-    var getProgram = function(gl, object, lightsNum, fog) {
+    var getProgram = function(gl, render, object, lightsNum, fog) {
 
         var material = object.material;
 
         var ambientLightNum = lightsNum[0],
         directLightNum = lightsNum[1],
         pointLightNum = lightsNum[2],
-        spotLightNum = lightsNum[3]
+        spotLightNum = lightsNum[3];
+
+        var precision = render.capabilities.maxPrecision;
 
         var props = {
-            precision: getMaxPrecision(gl, "highp"),
+            precision: precision,
             useDiffuseMap: !!material.map,
             useNormalMap: !!material.normalMap,
             useEnvMap: !!material.envMap,

@@ -26,6 +26,7 @@ var filesSrc = [
     "core/math/Vector4.js",
 
     // render
+    "core/render/WebGL/WebGLCapabilities.js",
     "core/render/shader/ShaderLib.js",
     "core/render/shader/Program.js",
     "core/render/Renderer.js",

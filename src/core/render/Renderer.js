@@ -49,6 +49,10 @@
         var ext = zen3d.getExtension(gl, "OES_standard_derivatives");
         // GL_OES_standard_derivatives
         var ext = zen3d.getExtension(gl, "GL_OES_standard_derivatives");
+
+        this.capabilities = new zen3d.WebGLCapabilities(gl);
+
+        this._usedTextureUnits = 0;
     }
 
     /**
@@ -197,7 +201,7 @@
             var offset = this._uploadGeometry(renderItem.geometry);
 
             // get program
-            var program = zen3d.getProgram(gl, object, [
+            var program = zen3d.getProgram(gl, this, object, [
                 ambientLightsNum,
                 directLightsNum,
                 pointLightsNum,
@@ -254,24 +258,24 @@
                         break;
 
                     case "texture":
-                        gl.activeTexture(gl.TEXTURE0);
-                        gl.bindTexture(gl.TEXTURE_2D, material.map.glTexture);
-                        gl.uniform1i(location, 0);
+                        var slot = this.allocTexUnit();
+                        this.setTexture2D(material.map, slot);
+                        gl.uniform1i(location, slot);
                         break;
                     case "normalMap":
-                        gl.activeTexture(gl.TEXTURE1);
-                        gl.bindTexture(gl.TEXTURE_2D, material.normalMap.glTexture);
-                        gl.uniform1i(location, 1);
+                        var slot = this.allocTexUnit();
+                        this.setTexture2D(material.normalMap, slot);
+                        gl.uniform1i(location, slot);
                         break;
                     case "envMap":
-                        gl.activeTexture(gl.TEXTURE2);
-                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.envMap.glTexture);
-                        gl.uniform1i(location, 2);
+                        var slot = this.allocTexUnit();
+                        this.setTextureCube(material.envMap, slot);
+                        gl.uniform1i(location, slot);
                         break;
                     case "cubeMap":
-                        gl.activeTexture(gl.TEXTURE0);
-                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, material.cubeMap.glTexture);
-                        gl.uniform1i(location, 0);
+                        var slot = this.allocTexUnit();
+                        this.setTextureCube(material.cubeMap, slot);
+                        gl.uniform1i(location, slot);
                         break;
 
                     case "u_EnvMap_Intensity":
@@ -350,9 +354,9 @@
                         gl.uniformMatrix4fv(directionalShadowMatrix, false, light.shadow.matrix.elements);
 
                         var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"].location;
-                        gl.activeTexture(gl.TEXTURE3);
-                        gl.bindTexture(gl.TEXTURE_2D, light.shadow.map.glTexture);
-                        gl.uniform1i(directionalShadowMap, 3);
+                        var slot = this.allocTexUnit();
+                        this.setTexture2D(light.shadow.map, slot);
+                        gl.uniform1i(directionalShadowMap, slot);
                     }
 
                 }
@@ -384,9 +388,9 @@
 
                     if(light.castShadow && object.receiveShadow && light.shadow.isInit) {
                         var pointShadowMap = uniforms["pointShadowMap[" + k + "]"].location;
-                        gl.activeTexture(gl.TEXTURE3);
-                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, light.shadow.map.glTexture);
-                        gl.uniform1i(pointShadowMap, 3);
+                        var slot = this.allocTexUnit();
+                        this.setTextureCube(light.shadow.map, slot);
+                        gl.uniform1i(pointShadowMap, slot);
                     }
                 }
 
@@ -434,9 +438,9 @@
                         gl.uniformMatrix4fv(spotShadowMatrix, false, light.shadow.matrix.elements);
 
                         var spotShadowMap = uniforms["spotShadowMap[" + k + "]"].location;
-                        gl.activeTexture(gl.TEXTURE3);
-                        gl.bindTexture(gl.TEXTURE_2D, light.shadow.map.glTexture);
-                        gl.uniform1i(spotShadowMap, 3);
+                        var slot = this.allocTexUnit();
+                        this.setTexture2D(light.shadow.map, slot);
+                        gl.uniform1i(spotShadowMap, slot);
                     }
                 }
             }
@@ -464,6 +468,9 @@
 
             // draw
             gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+
+            // reset used tex Unit
+            this._usedTextureUnits = 0;
         }
     }
 
@@ -528,6 +535,43 @@
         gl.clearColor(0., 0., 0., 0.);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    }
+
+    /**
+     * alloc texture unit
+     **/
+    Renderer.prototype.allocTexUnit = function() {
+        var textureUnit = this._usedTextureUnits;
+
+		if ( textureUnit >= this.capabilities.maxTextures ) {
+
+			console.warn( 'trying to use ' + textureUnit + ' texture units while this GPU supports only ' + capabilities.maxTextures );
+
+		}
+
+		this._usedTextureUnits += 1;
+
+		return textureUnit;
+    }
+
+    /**
+     * set texture 2D
+     **/
+    Renderer.prototype.setTexture2D = function(texture, slot) {
+        var gl = this.gl;
+
+        gl.activeTexture(gl.TEXTURE0 + slot);
+        gl.bindTexture(gl.TEXTURE_2D, texture.glTexture);
+    }
+
+    /**
+     * set texture cube
+     **/
+    Renderer.prototype.setTextureCube = function(texture, slot) {
+        var gl = this.gl;
+
+        gl.activeTexture(gl.TEXTURE0 + slot);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.glTexture);
     }
 
     zen3d.Renderer = Renderer;
