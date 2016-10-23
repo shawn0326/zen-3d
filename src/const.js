@@ -46,4 +46,26 @@
 
     zen3d.FOG_TYPE = FOG_TYPE;
 
+    /**
+     * BLEND_TYPE
+     */
+    var BLEND_TYPE = {
+        NONE: "none",
+        NORMAL: "normal"
+    };
+
+    zen3d.BLEND_TYPE = BLEND_TYPE;
+
+    /**
+     * CULL_FACE_TYPE
+     */
+    var CULL_FACE_TYPE = {
+        NONE: "none",
+        FRONT: "front",
+        BACK: "back",
+        FRONT_AND_BACK: "front_and_back"
+    };
+
+    zen3d.CULL_FACE_TYPE = CULL_FACE_TYPE;
+
 })();

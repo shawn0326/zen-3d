@@ -183,6 +183,28 @@
 
     zen3d.FOG_TYPE = FOG_TYPE;
 
+    /**
+     * BLEND_TYPE
+     */
+    var BLEND_TYPE = {
+        NONE: "none",
+        NORMAL: "normal"
+    };
+
+    zen3d.BLEND_TYPE = BLEND_TYPE;
+
+    /**
+     * CULL_FACE_TYPE
+     */
+    var CULL_FACE_TYPE = {
+        NONE: "none",
+        FRONT: "front",
+        BACK: "back",
+        FRONT_AND_BACK: "front_and_back"
+    };
+
+    zen3d.CULL_FACE_TYPE = CULL_FACE_TYPE;
+
 })();
 
 (function() {
@@ -1299,6 +1321,91 @@
     }
 
     zen3d.WebGLCapabilities = WebGLCapabilities;
+})();
+(function() {
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
+    var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
+
+    var WebGLState = function(gl) {
+        this.gl = gl;
+
+        this.states = {};
+
+        this.currentBlending = null;
+        this.currentPremultipliedAlpha = null;
+
+        this.currentCullFace = null;
+    }
+
+    WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
+        var gl = this.gl;
+
+        if(blend !== BLEND_TYPE.NONE) {
+            this.enable(gl.BLEND);
+        } else {
+            this.disable(gl.BLEND);
+        }
+
+        if(blend !== this.currentBlending || premultipliedAlpha !== this.currentPremultipliedAlpha) {
+
+            if(blend === BLEND_TYPE.NORMAL) {
+                if(premultipliedAlpha) {
+                    gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
+					gl.blendFuncSeparate( gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+                } else {
+                    gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
+					gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+                }
+            }
+
+            this.currentBlending = blend;
+            this.currentPremultipliedAlpha = premultipliedAlpha;
+        }
+    }
+
+    WebGLState.prototype.setCullFace = function(cullFace) {
+
+        // gl.CW, gl.CCW, default is CCW
+        // state.frontFace(gl.CCW);
+
+        var gl = this.gl;
+
+        if(cullFace !== CULL_FACE_TYPE.NONE) {
+            this.enable(gl.CULL_FACE);
+
+            if (cullFace !== this.currentCullFace) {
+
+                if(cullFace === CULL_FACE_TYPE.BACK) {
+                    gl.cullFace(gl.BACK);
+                } else if(cullFace === CULL_FACE_TYPE.FRONT) {
+                    gl.cullFace(gl.FRONT);
+                } else {
+                    gl.cullFace(gl.FRONT_AND_BACK);
+                }
+
+            }
+        } else {
+            this.disable(gl.CULL_FACE);
+        }
+
+        this.currentCullFace = cullFace;
+    }
+
+    WebGLState.prototype.enable = function(id) {
+        if(this.states[id] !== true) {
+            this.gl.enable(id);
+            this.states[id] = true;
+        }
+    }
+
+    WebGLState.prototype.disable = function(id) {
+        if(this.states[id] !== false) {
+            this.gl.disable(id);
+            this.states[id] = false;
+        }
+    }
+
+    zen3d.WebGLState = WebGLState;
 })();
 (function() {
 
@@ -2446,11 +2553,12 @@
     /**
      * get depth program, used to render depth map
      */
-    var getDepthProgram = function(gl) {
+    var getDepthProgram = function(gl, render) {
         var program;
         var map = programMap;
         var code = "depth";
-        var precision = getMaxPrecision(gl, "highp");
+
+        var precision = render.capabilities.maxPrecision;
 
         if(map[code]) {
             program = map[code];
@@ -2482,6 +2590,8 @@
 
 (function() {
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
 
     /**
      * Renderer
@@ -2509,14 +2619,11 @@
         this.indexBuffer = gl.createBuffer();
 
         // init webgl
-        gl.enable(gl.STENCIL_TEST);
-        gl.enable(gl.DEPTH_TEST);
-        // cull face
-        gl.enable(gl.CULL_FACE);
-        // gl.FRONT_AND_BACK, gl.FRONT, gl.BACK
-        gl.cullFace(gl.BACK);
-        // gl.CW, gl.CCW
-        gl.frontFace(gl.CW);
+        var state = new zen3d.WebGLState(gl);
+        state.enable(gl.STENCIL_TEST);
+        state.enable(gl.DEPTH_TEST);
+        state.setCullFace(CULL_FACE_TYPE.FRONT);
+        this.state = state;
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -2607,7 +2714,7 @@
 
                     var offset = this._uploadGeometry(object.geometry);
 
-                    var program = zen3d.getDepthProgram(gl);
+                    var program = zen3d.getDepthProgram(gl, this);
                     gl.useProgram(program.id);
 
                     var location = program.attributes.a_Position.location;
@@ -2638,7 +2745,7 @@
                         }
                     }
 
-                    gl.disable(gl.BLEND);
+                    this.state.setBlend(BLEND_TYPE.NONE);
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
@@ -2929,23 +3036,9 @@
             ///////
 
             if(material.transparent) {
-
-                gl.enable(gl.BLEND);
-
-                if ( material.premultipliedAlpha ) {
-
-					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
-					gl.blendFuncSeparate( gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
-
-				} else {
-
-					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
-					gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
-
-				}
-
+                this.state.setBlend(BLEND_TYPE.NORMAL, material.premultipliedAlpha);
             } else {
-                gl.disable(gl.BLEND);
+                this.state.setBlend(BLEND_TYPE.NONE);
             }
 
             // draw

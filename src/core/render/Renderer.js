@@ -1,5 +1,7 @@
 (function() {
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
 
     /**
      * Renderer
@@ -27,14 +29,11 @@
         this.indexBuffer = gl.createBuffer();
 
         // init webgl
-        gl.enable(gl.STENCIL_TEST);
-        gl.enable(gl.DEPTH_TEST);
-        // cull face
-        gl.enable(gl.CULL_FACE);
-        // gl.FRONT_AND_BACK, gl.FRONT, gl.BACK
-        gl.cullFace(gl.BACK);
-        // gl.CW, gl.CCW
-        gl.frontFace(gl.CW);
+        var state = new zen3d.WebGLState(gl);
+        state.enable(gl.STENCIL_TEST);
+        state.enable(gl.DEPTH_TEST);
+        state.setCullFace(CULL_FACE_TYPE.FRONT);
+        this.state = state;
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -125,7 +124,7 @@
 
                     var offset = this._uploadGeometry(object.geometry);
 
-                    var program = zen3d.getDepthProgram(gl);
+                    var program = zen3d.getDepthProgram(gl, this);
                     gl.useProgram(program.id);
 
                     var location = program.attributes.a_Position.location;
@@ -156,7 +155,7 @@
                         }
                     }
 
-                    gl.disable(gl.BLEND);
+                    this.state.setBlend(BLEND_TYPE.NONE);
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
@@ -447,23 +446,9 @@
             ///////
 
             if(material.transparent) {
-
-                gl.enable(gl.BLEND);
-
-                if ( material.premultipliedAlpha ) {
-
-					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
-					gl.blendFuncSeparate( gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
-
-				} else {
-
-					gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
-					gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
-
-				}
-
+                this.state.setBlend(BLEND_TYPE.NORMAL, material.premultipliedAlpha);
             } else {
-                gl.disable(gl.BLEND);
+                this.state.setBlend(BLEND_TYPE.NONE);
             }
 
             // draw

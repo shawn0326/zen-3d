@@ -303,11 +303,12 @@
     /**
      * get depth program, used to render depth map
      */
-    var getDepthProgram = function(gl) {
+    var getDepthProgram = function(gl, render) {
         var program;
         var map = programMap;
         var code = "depth";
-        var precision = getMaxPrecision(gl, "highp");
+
+        var precision = render.capabilities.maxPrecision;
 
         if(map[code]) {
             program = map[code];
