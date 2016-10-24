@@ -63,8 +63,6 @@
                 }
             }
         }
-
-        this.verticesCount = tw * th;
     }
 
     zen3d.PlaneGeometry = PlaneGeometry;

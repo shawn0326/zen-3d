@@ -161,8 +161,6 @@
                 index += skip;
             }
         }
-
-        this.verticesCount = (segmentsH + 1) * (segmentsW + 1);
     }
 
     zen3d.SphereGeometry = SphereGeometry;

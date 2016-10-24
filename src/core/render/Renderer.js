@@ -22,12 +22,6 @@
         this.width = view.clientWidth;
         this.height = view.clientHeight;
 
-        // array buffer
-        this.vertices = new Float32Array(524288);
-        this.vertexBuffer = gl.createBuffer();
-        this.indices = new Uint16Array(524288);
-        this.indexBuffer = gl.createBuffer();
-
         // init webgl
         var state = new zen3d.WebGLState(gl);
         state.enable(gl.STENCIL_TEST);
@@ -464,29 +458,7 @@
      * @return offset {number}
      */
     Renderer.prototype._uploadGeometry = function(geometry) {
-        var vertices = this.vertices;
-        var indices = this.indices;
-
-        var verticesIndex = 0;
-        var indicesIndex = 0;
-        // copy vertices
-        for(var j = 0, verticesArray = geometry.verticesArray, verticesLen = verticesArray.length; j < verticesLen; j++) {
-            vertices[verticesIndex++] = verticesArray[j];
-        }
-        // copy indices
-        for(var k = 0, indicesArray = geometry.indicesArray, indicesLen = indicesArray.length; k < indicesLen; k++) {
-            indices[indicesIndex++] = indicesArray[k];
-        }
-
-        var gl = this.gl;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        var vertices_view = vertices.subarray(0, verticesIndex);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
-        var indices_view = indices.subarray(0, indicesIndex);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
-
-        return indicesIndex;
+        return geometry.bind(this);
     }
 
     /**

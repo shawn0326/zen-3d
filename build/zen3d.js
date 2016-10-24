@@ -2612,12 +2612,6 @@
         this.width = view.clientWidth;
         this.height = view.clientHeight;
 
-        // array buffer
-        this.vertices = new Float32Array(524288);
-        this.vertexBuffer = gl.createBuffer();
-        this.indices = new Uint16Array(524288);
-        this.indexBuffer = gl.createBuffer();
-
         // init webgl
         var state = new zen3d.WebGLState(gl);
         state.enable(gl.STENCIL_TEST);
@@ -3054,29 +3048,7 @@
      * @return offset {number}
      */
     Renderer.prototype._uploadGeometry = function(geometry) {
-        var vertices = this.vertices;
-        var indices = this.indices;
-
-        var verticesIndex = 0;
-        var indicesIndex = 0;
-        // copy vertices
-        for(var j = 0, verticesArray = geometry.verticesArray, verticesLen = verticesArray.length; j < verticesLen; j++) {
-            vertices[verticesIndex++] = verticesArray[j];
-        }
-        // copy indices
-        for(var k = 0, indicesArray = geometry.indicesArray, indicesLen = indicesArray.length; k < indicesLen; k++) {
-            indices[indicesIndex++] = indicesArray[k];
-        }
-
-        var gl = this.gl;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        var vertices_view = vertices.subarray(0, verticesIndex);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
-        var indices_view = indices.subarray(0, indicesIndex);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
-
-        return indicesIndex;
+        return geometry.bind(this);
     }
 
     /**
@@ -4134,7 +4106,51 @@
 
         this.indicesArray = new Array();
 
-        this.verticesCount = 0;
+        this.verticesBuffer = null;
+
+        this.indicesBuffer = null;
+
+        this.drawLen = 0;
+
+        this.vertexCount = 0;
+
+        this.vertexSize = 17; // static
+
+        this.dirty = true;
+    }
+
+    Geometry.prototype.bind = function(render) {
+        if(this.dirty) {
+            this.upload(render);
+            this.dirty = false;
+        } else {
+            var gl = render.gl;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+        }
+
+        return this.drawLen;
+    }
+
+    Geometry.prototype.upload = function(render) {
+        var gl = render.gl;
+
+        if(!this.verticesBuffer || !this.indicesBuffer) {
+            this.verticesBuffer = gl.createBuffer();
+            this.indicesBuffer = gl.createBuffer();
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+
+        var vertices = new Float32Array(this.verticesArray);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        var indices = new Uint16Array(this.indicesArray);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
+        this.drawLen = this.indicesArray.length;
+        this.vertexCount = this.verticesArray.length / this.vertexSize;
     }
 
     zen3d.Geometry = Geometry;
@@ -4222,8 +4238,6 @@
                 24, 25, 26, 27, 28, 29,
                 30, 31, 32, 33, 34, 35);
         }
-
-        this.verticesCount = 36;
     }
 
     zen3d.CubeGeometry = CubeGeometry;
@@ -4294,8 +4308,6 @@
                 }
             }
         }
-
-        this.verticesCount = tw * th;
     }
 
     zen3d.PlaneGeometry = PlaneGeometry;
@@ -4464,8 +4476,6 @@
                 index += skip;
             }
         }
-
-        this.verticesCount = (segmentsH + 1) * (segmentsW + 1);
     }
 
     zen3d.SphereGeometry = SphereGeometry;
