@@ -11,6 +11,10 @@
         this.currentPremultipliedAlpha = null;
 
         this.currentCullFace = null;
+
+        this.currentViewport = new zen3d.Vector4();
+
+        this.currentClearColor = new zen3d.Vector4();
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -65,6 +69,32 @@
         }
 
         this.currentCullFace = cullFace;
+    }
+
+    WebGLState.prototype.viewport = function(x, y, width, height) {
+        var currentViewport = this.currentViewport;
+        if (currentViewport.x !== x ||
+            currentViewport.y !== y ||
+            currentViewport.z !== width ||
+            currentViewport.w !== height
+        ) {
+            var gl = this.gl;
+			gl.viewport(x, y, width, height);
+			currentViewport.set(x, y, width, height);
+		}
+    }
+
+    WebGLState.prototype.clearColor = function(r, g, b, a) {
+        var currentClearColor = this.currentClearColor;
+        if (currentClearColor.x !== r ||
+            currentClearColor.y !== g ||
+            currentClearColor.z !== b ||
+            currentClearColor.w !== a
+        ) {
+            var gl = this.gl;
+			gl.clearColor(r, g, b, a);
+			currentClearColor.set(r, g, b, a);
+		}
     }
 
     WebGLState.prototype.enable = function(id) {

@@ -37,5 +37,24 @@
 		return this;
 	}
 
+    /**
+     * equals
+     */
+    Vector4.prototype.equals = function(v) {
+		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
+	}
+
+    /**
+     * copy
+     */
+    Vector4.prototype.copy = function(v) {
+        this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		this.w = ( v.w !== undefined ) ? v.w : 1;
+
+		return this;
+	}
+
     zen3d.Vector4 = Vector4;
 })();

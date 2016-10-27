@@ -1285,6 +1285,25 @@
 		return this;
 	}
 
+    /**
+     * equals
+     */
+    Vector4.prototype.equals = function(v) {
+		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
+	}
+
+    /**
+     * copy
+     */
+    Vector4.prototype.copy = function(v) {
+        this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		this.w = ( v.w !== undefined ) ? v.w : 1;
+
+		return this;
+	}
+
     zen3d.Vector4 = Vector4;
 })();
 (function() {
@@ -1335,6 +1354,10 @@
         this.currentPremultipliedAlpha = null;
 
         this.currentCullFace = null;
+
+        this.currentViewport = new zen3d.Vector4();
+
+        this.currentClearColor = new zen3d.Vector4();
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -1389,6 +1412,32 @@
         }
 
         this.currentCullFace = cullFace;
+    }
+
+    WebGLState.prototype.viewport = function(x, y, width, height) {
+        var currentViewport = this.currentViewport;
+        if (currentViewport.x !== x ||
+            currentViewport.y !== y ||
+            currentViewport.z !== width ||
+            currentViewport.w !== height
+        ) {
+            var gl = this.gl;
+			gl.viewport(x, y, width, height);
+			currentViewport.set(x, y, width, height);
+		}
+    }
+
+    WebGLState.prototype.clearColor = function(r, g, b, a) {
+        var currentClearColor = this.currentClearColor;
+        if (currentClearColor.x !== r ||
+            currentClearColor.y !== g ||
+            currentClearColor.z !== b ||
+            currentClearColor.w !== a
+        ) {
+            var gl = this.gl;
+			gl.clearColor(r, g, b, a);
+			currentClearColor.set(r, g, b, a);
+		}
     }
 
     WebGLState.prototype.enable = function(id) {
@@ -2609,14 +2658,16 @@
             stencil: true
         });
         // width and height, same with the canvas
-        this.width = view.clientWidth;
-        this.height = view.clientHeight;
+        this.width = view.width;
+        this.height = view.height;
 
         // init webgl
         var state = new zen3d.WebGLState(gl);
         state.enable(gl.STENCIL_TEST);
         state.enable(gl.DEPTH_TEST);
         state.setCullFace(CULL_FACE_TYPE.FRONT);
+        state.viewport(0, 0, this.width, this.height);
+        state.clearColor(0, 0, 0, 0);
         this.state = state;
 
         // object cache
@@ -2699,8 +2750,9 @@
                     shadow.update(light);
                 }
 
-                gl.clearColor(1., 1., 1., 1.);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                this.state.clearColor(1, 1, 1, 1);
+                this.clear(true, true);
+                this.state.clearColor(0, 0, 0, 0);
 
                 for(var n = 0, l = renderList.length; n < l; n++) {
                     var object = renderList[n];
@@ -3059,7 +3111,7 @@
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, target.frameBuffer);
 
-        gl.viewport(0, 0, target.width, target.height);
+        this.state.viewport(0, 0, target.width, target.height);
     }
 
     /**
@@ -3070,18 +3122,22 @@
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        gl.viewport(0, 0, this.width, this.height);
+        this.state.viewport(0, 0, this.width, this.height);
     }
 
     /**
      * clear buffer
      */
-    Renderer.prototype.clear = function() {
+    Renderer.prototype.clear = function(color, depth, stencil) {
         var gl = this.gl;
 
-        gl.clearColor(0., 0., 0., 0.);
+        var bits = 0;
 
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+		if ( color === undefined || color ) bits |= gl.COLOR_BUFFER_BIT;
+		if ( depth === undefined || depth ) bits |= gl.DEPTH_BUFFER_BIT;
+		if ( stencil === undefined || stencil ) bits |= gl.STENCIL_BUFFER_BIT;
+
+		gl.clear( bits );
     }
 
     /**
