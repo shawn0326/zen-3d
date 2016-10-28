@@ -113,7 +113,7 @@
     zen3d.nearestPowerOf2 = nearestPowerOf2;
 
     var makePowerOf2 = function( image ) {
-		if ( image instanceof HTMLImageElement || image instanceof HTMLCanvasElement ) {
+		if ( HTMLImageElement && (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement) ) {
 
 			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
 			canvas.width = nearestPowerOf2( image.width );
@@ -132,5 +132,60 @@
 	}
 
     zen3d.makePowerOf2 = makePowerOf2;
+
+    /**
+     * require image
+     */
+    var requireImage = function(url, sucCallback, errCallback) {
+        var image = new Image();
+
+        image.onload = function() {
+            sucCallback(image);
+        }
+        // TODO errCallback
+
+        image.src = url;
+    }
+
+    zen3d.requireImage = requireImage;
+
+    /**
+     * require http
+     *
+     * param :
+     * {
+     *   method: "GET"|"POST",
+     *   data: {},
+     *   parse: true|false
+     * }
+     *
+     */
+    var requireHttp = function(url, sucCallback, errCallback, param) {
+        var request = new XMLHttpRequest();
+
+        request.onreadystatechange = function(event) {
+
+            if(event.target.readyState == 4) {
+                var data = event.target.response;
+
+                if(param && param.parse) {
+                    data = JSON.parse(data);
+                }
+                // TODO errCallback
+                sucCallback(data);
+            }
+
+        };
+
+        if(param && param.method === "POST") {
+            request.open("POST", url, true);
+            request.send(param.data);
+        } else {
+            request.open("GET", url, true);
+            request.send();
+        }
+    }
+
+    zen3d.requireHttp = requireHttp;
 
 })(window);

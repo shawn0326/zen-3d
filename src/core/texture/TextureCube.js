@@ -145,17 +145,18 @@
 
         var count = 0;
         var images = [];
-        function next() {
+        function next(image) {
+            if(image) {
+                images.push(image);
+                count++;
+            }
+
             if(count >= 6) {
                 loaded();
                 return;
             }
 
-            var image = new Image();
-            image.src = srcArray[count];
-            image.onload = next;
-            images.push(image);
-            count++;
+            zen3d.requireImage(srcArray[count], next);
         }
 
         function loaded() {

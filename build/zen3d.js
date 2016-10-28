@@ -113,7 +113,7 @@
     zen3d.nearestPowerOf2 = nearestPowerOf2;
 
     var makePowerOf2 = function( image ) {
-		if ( image instanceof HTMLImageElement || image instanceof HTMLCanvasElement ) {
+		if ( HTMLImageElement && (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement) ) {
 
 			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
 			canvas.width = nearestPowerOf2( image.width );
@@ -132,6 +132,61 @@
 	}
 
     zen3d.makePowerOf2 = makePowerOf2;
+
+    /**
+     * require image
+     */
+    var requireImage = function(url, sucCallback, errCallback) {
+        var image = new Image();
+
+        image.onload = function() {
+            sucCallback(image);
+        }
+        // TODO errCallback
+
+        image.src = url;
+    }
+
+    zen3d.requireImage = requireImage;
+
+    /**
+     * require http
+     *
+     * param :
+     * {
+     *   method: "GET"|"POST",
+     *   data: {},
+     *   parse: true|false
+     * }
+     *
+     */
+    var requireHttp = function(url, sucCallback, errCallback, param) {
+        var request = new XMLHttpRequest();
+
+        request.onreadystatechange = function(event) {
+
+            if(event.target.readyState == 4) {
+                var data = event.target.response;
+
+                if(param && param.parse) {
+                    data = JSON.parse(data);
+                }
+                // TODO errCallback
+                sucCallback(data);
+            }
+
+        };
+
+        if(param && param.method === "POST") {
+            request.open("POST", url, true);
+            request.send(param.data);
+        } else {
+            request.open("GET", url, true);
+            request.send();
+        }
+    }
+
+    zen3d.requireHttp = requireHttp;
 
 })(window);
 
@@ -4622,6 +4677,8 @@
     zen3d.TextureBase = TextureBase;
 })();
 (function() {
+    var requireImage = zen3d.requireImage;
+
     /**
      * Texture2D
      * @class
@@ -4753,15 +4810,11 @@
     Texture2D.fromSrc = function(gl, src) {
         var texture = new Texture2D(gl);
 
-        var image = new Image();
-        image.src = src;
-        image.onload = function() {
-
+        zen3d.requireImage(src, function(image) {
             texture.bind().texImage(
                 image
             ).texParam();
-
-        }
+        });
 
         return texture;
     }
@@ -4928,17 +4981,18 @@
 
         var count = 0;
         var images = [];
-        function next() {
+        function next(image) {
+            if(image) {
+                images.push(image);
+                count++;
+            }
+
             if(count >= 6) {
                 loaded();
                 return;
             }
 
-            var image = new Image();
-            image.src = srcArray[count];
-            image.onload = next;
-            images.push(image);
-            count++;
+            zen3d.requireImage(srcArray[count], next);
         }
 
         function loaded() {
@@ -5115,107 +5169,23 @@
      */
     var AssimpJsonLoader = function(gl) {
         this.gl = gl;
-
-        this.texturePath = ".";
+        this.texturePath = "./";
     }
 
     AssimpJsonLoader.prototype.load = function(url, onLoad) {
         this.texturePath = this.extractUrlBase(url);
 
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function(event) {
-
-            if(event.target.readyState == 4) {
-                var data = JSON.parse(event.target.response);
-                var group = this._parse(data);
-                onLoad(group);
-            }
-
-        }.bind(this);
-        request.open("GET", url, true);
-        request.send();
+        zen3d.requireHttp(url, function(json) {
+            var group = this.parse(json);
+            onLoad(group);
+        }.bind(this), function() {
+            console.log("load assimp2json error!");
+        }, {
+            parse: true
+        });
     }
 
     AssimpJsonLoader.prototype.parse = function(json) {
-        var group = new zen3d.Group();
-
-        var meshes = json.meshes;
-        var mesh;
-        for(var n = 0; n < meshes.length; n++) {
-
-            mesh = meshes[n];
-
-            var faces = mesh.faces;
-            var vertices = mesh.vertices;
-            var normals = mesh.normals;
-            var texturecoords = mesh.texturecoords[n];
-            var verticesCount = vertices.length / 3; // not need
-
-            var geometry = new zen3d.Geometry();
-            geometry.verticesCount = verticesCount;
-
-            var g_v = geometry.verticesArray;
-            for(var i = 0; i < verticesCount; i++) {
-                g_v.push(vertices[i * 3 + 0]);
-                g_v.push(vertices[i * 3 + 1]);
-                g_v.push(vertices[i * 3 + 2]);
-
-                g_v.push(normals[i * 3 + 0]);
-                g_v.push(normals[i * 3 + 1]);
-                g_v.push(normals[i * 3 + 2]);
-
-                g_v.push(0);
-                g_v.push(0);
-                g_v.push(0);
-
-                g_v.push(1);
-                g_v.push(1);
-                g_v.push(1);
-                g_v.push(1);
-
-                // uv1
-                if(texturecoords) {
-                    g_v.push(texturecoords[i * 2 + 0]);
-                    g_v.push(1 - texturecoords[i * 2 + 1]);
-                } else {
-                    g_v.push(0);
-                    g_v.push(0);
-                }
-
-                g_v.push(0);
-                g_v.push(0);
-            }
-
-            var g_i = geometry.indicesArray;
-            for(var i = 0; i < faces.length; i++) {
-                g_i.push(faces[i][2]);
-                g_i.push(faces[i][1]);
-                g_i.push(faces[i][0]);
-            }
-
-            var map = null;
-            // if(json.materials[n]) {
-                var prop = json.materials[n].properties;
-
-                for(var key in prop) {
-                    if(prop[key].semantic == 1) {
-                        map = new zen3d.Texture2D.fromSrc(this.gl, "./resources/models/assimp/jeep/jeep1.jpg");
-                    }
-                }
-            // }
-
-            var material = new zen3d.PhongMaterial();
-            material.map = map;
-            var mesh = new zen3d.Mesh(geometry, material);
-            mesh.castShadow = true;
-
-            group.add(mesh);
-        }
-
-        return group;
-    }
-
-    AssimpJsonLoader.prototype._parse = function(json) {
         var meshes = this.parseList ( json.meshes, this.parseMesh );
 		var materials = this.parseList ( json.materials, this.parseMaterial );
 		return this.parseObject( json, json.rootnode, meshes, materials );
@@ -5249,8 +5219,8 @@
     			// 5: height map (bumps)
     			// 6: normal map
                 if(prop.semantic == 1) {
-                    var material_url = this.texturePath + '/' + prop.value;
-					material_url = material_url.replace( /\\/g, '/' );
+                    var material_url = this.texturePath + prop.value;
+					material_url = material_url.replace( /.\\/g, '' );
                     map = new zen3d.Texture2D.fromSrc(this.gl, material_url);
                     // TODO: read texture settings from assimp.
 					// Wrapping is the default, though.
@@ -5260,8 +5230,8 @@
                 } else if(prop.semantic == 5) {
 
                 } else if(prop.semantic == 6) {
-                    var material_url = this.texturePath + '/' + prop.value;
-					material_url = material_url.replace( /\\/g, '/' );
+                    var material_url = this.texturePath + prop.value;
+					material_url = material_url.replace( /.\\/g, '' );
                     normalMap = new zen3d.Texture2D.fromSrc(this.gl, material_url);
                     // TODO: read texture settings from assimp.
 					// Wrapping is the default, though.

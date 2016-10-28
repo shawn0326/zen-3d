@@ -1,4 +1,6 @@
 (function() {
+    var requireImage = zen3d.requireImage;
+
     /**
      * Texture2D
      * @class
@@ -130,15 +132,11 @@
     Texture2D.fromSrc = function(gl, src) {
         var texture = new Texture2D(gl);
 
-        var image = new Image();
-        image.src = src;
-        image.onload = function() {
-
+        zen3d.requireImage(src, function(image) {
             texture.bind().texImage(
                 image
             ).texParam();
-
-        }
+        });
 
         return texture;
     }
