@@ -43,13 +43,13 @@
 
 	        var scene = new zen3d.Scene();
 
-			var cube_texture = zen3d.TextureCube.fromSrc(renderer.gl, [
-			    "./resources/skybox/right.jpg",
-			    "./resources/skybox/left.jpg",
-			    "./resources/skybox/up.jpg",
-			    "./resources/skybox/down.jpg",
-			    "./resources/skybox/back.jpg",
-			    "./resources/skybox/front.jpg"
+			var cube_texture = zen3d.TextureCube.fromSrc([
+			    "resources/skybox/right.jpg",
+			    "resources/skybox/left.jpg",
+			    "resources/skybox/up.jpg",
+			    "resources/skybox/down.jpg",
+			    "resources/skybox/back.jpg",
+			    "resources/skybox/front.jpg"
 			]);
 
 			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
@@ -84,8 +84,6 @@
 				camera.position.x = 200 * Math.sin(count / 1000 * .5);
 				camera.position.z = 200 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				renderer.clear();
 
 	            renderer.render(scene, camera);
 	        }

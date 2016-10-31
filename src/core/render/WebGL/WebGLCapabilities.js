@@ -29,6 +29,9 @@
         this.maxPrecision = getMaxPrecision(gl, this.precision);
 
         this.maxTextures = gl.getParameter( gl.MAX_TEXTURE_IMAGE_UNITS );
+
+        this.maxTextureSize = gl.getParameter( gl.MAX_TEXTURE_SIZE );
+        this.maxCubemapSize = gl.getParameter( gl.MAX_CUBE_MAP_TEXTURE_SIZE );
     }
 
     zen3d.WebGLCapabilities = WebGLCapabilities;

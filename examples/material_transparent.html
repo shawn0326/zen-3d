@@ -48,7 +48,7 @@
 	        var scene = new zen3d.Scene();
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-			var texture = zen3d.Texture2D.fromSrc(renderer.gl, "resources/hardwood2_diffuse.jpg");
+			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 
 			var phong = new zen3d.PhongMaterial();
 	        phong.color = 0xffffff;
@@ -126,8 +126,6 @@
 				camera.position.x = 100 * Math.sin(count / 1000 * .5);
 				camera.position.z = 100 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				renderer.clear();
 
 	            renderer.render(scene, camera);
 	        }

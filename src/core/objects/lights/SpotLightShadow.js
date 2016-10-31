@@ -4,38 +4,18 @@
      * @class
      */
     var SpotLightShadow = function() {
-        this.camera = null;
-
-        this.matrix = null;
-
-        // size force to 1024x1024
-        this.renderTarget = null;
-
-        this.map = null;
-
-        this.isInit = false;
-
-        this._lookTarget = new zen3d.Vector3();
-
-        this._up = new zen3d.Vector3(0, 1, 0);
-    }
-
-    /**
-     * init
-     */
-    SpotLightShadow.prototype.init = function(gl) {
         this.camera = new zen3d.Camera();
 
         this.matrix = new zen3d.Matrix4();
 
         // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTarget(gl, 1024, 1024);
+        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
 
-        this.map = zen3d.Texture2D.createRenderTexture(gl, 1024, 1024);
+        this.map = this.renderTarget.texture;
 
-        this.renderTarget.bind().attachRenderBuffer("depth").bindTexture2D(this.map).unbind();
+        this._lookTarget = new zen3d.Vector3();
 
-        this.isInit = true;
+        this._up = new zen3d.Vector3(0, 1, 0);
     }
 
     /**

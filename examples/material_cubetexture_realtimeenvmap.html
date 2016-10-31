@@ -59,8 +59,7 @@
 			scene.add(ball2);
 
 			// plane
-			var pixels = zen3d.createCheckerBoardPixels(50, 50);
-			var texture = zen3d.Texture2D.fromRes(renderer.gl, pixels, 50, 50);
+			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			var plane_geometry = new zen3d.PlaneGeometry(80, 80);
 			var plane_material = new zen3d.BasicMaterial();
 			plane_material.color = 0xffffff;
@@ -70,9 +69,9 @@
 			scene.add(plane);
 
 			// sphere
-			var renderTexture = zen3d.TextureCube.createRenderTexture(renderer.gl, 480, 480);
-			var renderTarget = new zen3d.RenderTarget(renderer.gl, 480, 480);
-			renderTarget.bind().attachRenderBuffer("depth").unbind();
+			var renderTarget = new zen3d.RenderTargetCube(512, 512);
+			var renderTexture = renderTarget.texture;
+			renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 
 			var sphere_geometry = new zen3d.SphereGeometry(10, 30, 30);
 			var phong = new zen3d.PhongMaterial();
@@ -142,21 +141,16 @@
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				// render env map on six faces
-				renderer.setRenderTarget(renderTarget);
 			    phong.envMap = null;
 			    for(var i = 0; i < 6; i++) {
 			        lookTarget.set(targets[i].x + helpCamera.position.x, targets[i].y + helpCamera.position.y, targets[i].z + helpCamera.position.z);
-			        renderTarget.bindTextureCube(renderTexture, i);
-			        helpCamera.setLookAt(lookTarget, ups[i]);
+					helpCamera.setLookAt(lookTarget, ups[i]);
 
-			        renderer.clear();
+			        renderTarget.activeCubeFace = i;
 
-			        renderer.render(scene, helpCamera);
+			        renderer.render(scene, helpCamera, renderTarget);
 			    }
 			    phong.envMap = renderTexture;
-			    renderer.clearRenderTarget();
-
-				renderer.clear();
 
 	            renderer.render(scene, camera);
 	        }

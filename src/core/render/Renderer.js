@@ -22,14 +22,24 @@
         this.width = view.width;
         this.height = view.height;
 
+        this.autoClear = true;
+
         // init webgl
-        var state = new zen3d.WebGLState(gl);
+        var properties = new zen3d.WebGLProperties();
+        this.properties = properties;
+
+        var capabilities = new zen3d.WebGLCapabilities(gl);
+        this.capabilities = capabilities;
+
+        var state = new zen3d.WebGLState(gl, capabilities);
         state.enable(gl.STENCIL_TEST);
         state.enable(gl.DEPTH_TEST);
         state.setCullFace(CULL_FACE_TYPE.FRONT);
         state.viewport(0, 0, this.width, this.height);
         state.clearColor(0, 0, 0, 0);
         this.state = state;
+
+        this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -45,15 +55,15 @@
         // GL_OES_standard_derivatives
         var ext = zen3d.getExtension(gl, "GL_OES_standard_derivatives");
 
-        this.capabilities = new zen3d.WebGLCapabilities(gl);
-
         this._usedTextureUnits = 0;
+
+        this._currentRenderTarget = null;
     }
 
     /**
      * render scene with camera
      */
-    Renderer.prototype.render = function(scene, camera) {
+    Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
 
         scene.updateMatrix();
 
@@ -68,9 +78,23 @@
 
         this.renderShadow();
 
+        if(renderTarget === undefined) {
+            renderTarget = null;
+        }
+        this.setRenderTarget(renderTarget);
+
+        if(this.autoClear || forceClear) {
+            this.state.clearColor(0, 0, 0, 0);
+            this.clear(true, true, true);
+        }
+
         this.flush();
 
         this.cache.clear();
+
+        if(renderTarget) {
+            this.texture.updateRenderTargetMipmap(renderTarget);
+        }
     }
 
     /**
@@ -89,31 +113,25 @@
         for(var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
-            if(!light.shadow.isInit) {
-                light.shadow.init(gl);
-            }
-
             var shadow = light.shadow;
             var camera = shadow.camera;
             var shadowTarget = shadow.renderTarget;
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
 
-            this.setRenderTarget(shadowTarget);
-
             for(var j = 0; j < faces; j++) {
 
                 if(isPointLight) {
                     shadow.update(light, j);
-                    // bind faces
-                    shadowTarget.bindTextureCube(shadow.map, j);
+                    shadowTarget.activeCubeFace = j;
                 } else {
                     shadow.update(light);
                 }
 
+                this.setRenderTarget(shadowTarget);
+
                 this.state.clearColor(1, 1, 1, 1);
                 this.clear(true, true);
-                this.state.clearColor(0, 0, 0, 0);
 
                 for(var n = 0, l = renderList.length; n < l; n++) {
                     var object = renderList[n];
@@ -160,7 +178,8 @@
 
             }
 
-            this.clearRenderTarget();
+            this.texture.updateRenderTargetMipmap(shadowTarget);
+
         }
     }
 
@@ -255,22 +274,22 @@
 
                     case "texture":
                         var slot = this.allocTexUnit();
-                        this.setTexture2D(material.map, slot);
+                        this.texture.setTexture2D(material.map, slot);
                         gl.uniform1i(location, slot);
                         break;
                     case "normalMap":
                         var slot = this.allocTexUnit();
-                        this.setTexture2D(material.normalMap, slot);
+                        this.texture.setTexture2D(material.normalMap, slot);
                         gl.uniform1i(location, slot);
                         break;
                     case "envMap":
                         var slot = this.allocTexUnit();
-                        this.setTextureCube(material.envMap, slot);
+                        this.texture.setTextureCube(material.envMap, slot);
                         gl.uniform1i(location, slot);
                         break;
                     case "cubeMap":
                         var slot = this.allocTexUnit();
-                        this.setTextureCube(material.cubeMap, slot);
+                        this.texture.setTextureCube(material.cubeMap, slot);
                         gl.uniform1i(location, slot);
                         break;
 
@@ -345,13 +364,13 @@
                     var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
                     gl.uniform1i(u_Directional_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow && light.shadow.isInit) {
+                    if(light.castShadow && object.receiveShadow) {
                         var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"].location;
                         gl.uniformMatrix4fv(directionalShadowMatrix, false, light.shadow.matrix.elements);
 
                         var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"].location;
                         var slot = this.allocTexUnit();
-                        this.setTexture2D(light.shadow.map, slot);
+                        this.texture.setTexture2D(light.shadow.map, slot);
                         gl.uniform1i(directionalShadowMap, slot);
                     }
 
@@ -382,10 +401,10 @@
                     var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"].location;
                     gl.uniform1i(u_Point_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow && light.shadow.isInit) {
+                    if(light.castShadow && object.receiveShadow) {
                         var pointShadowMap = uniforms["pointShadowMap[" + k + "]"].location;
                         var slot = this.allocTexUnit();
-                        this.setTextureCube(light.shadow.map, slot);
+                        this.texture.setTextureCube(light.shadow.map, slot);
                         gl.uniform1i(pointShadowMap, slot);
                     }
                 }
@@ -429,13 +448,13 @@
                     var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"].location;
                     gl.uniform1i(u_Spot_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow && light.shadow.isInit) {
+                    if(light.castShadow && object.receiveShadow) {
                         var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"].location;
                         gl.uniformMatrix4fv(spotShadowMatrix, false, light.shadow.matrix.elements);
 
                         var spotShadowMap = uniforms["spotShadowMap[" + k + "]"].location;
                         var slot = this.allocTexUnit();
-                        this.setTexture2D(light.shadow.map, slot);
+                        this.texture.setTexture2D(light.shadow.map, slot);
                         gl.uniform1i(spotShadowMap, slot);
                     }
                 }
@@ -470,20 +489,38 @@
     Renderer.prototype.setRenderTarget = function(target) {
         var gl = this.gl;
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, target.frameBuffer);
+        if(!target) {
+            if(this._currentRenderTarget === target) {
+
+            } else {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+                this._currentRenderTarget = null;
+
+                this.state.viewport(0, 0, this.width, this.height);
+            }
+
+            return;
+        }
+
+        var isCube = target.activeCubeFace !== undefined;
+
+        if(this._currentRenderTarget !== target) {
+            if(!isCube) {
+                this.texture.setRenderTarget2D(target);
+            } else {
+                this.texture.setRenderTargetCube(target);
+            }
+
+            this._currentRenderTarget = target;
+        } else {
+            if(isCube) {
+                var textureProperties = this.properties.get(target.texture);
+    			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+            }
+        }
 
         this.state.viewport(0, 0, target.width, target.height);
-    }
-
-    /**
-     * clear render target
-     */
-    Renderer.prototype.clearRenderTarget = function() {
-        var gl = this.gl;
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-        this.state.viewport(0, 0, this.width, this.height);
     }
 
     /**
@@ -516,26 +553,6 @@
 		this._usedTextureUnits += 1;
 
 		return textureUnit;
-    }
-
-    /**
-     * set texture 2D
-     **/
-    Renderer.prototype.setTexture2D = function(texture, slot) {
-        var gl = this.gl;
-
-        gl.activeTexture(gl.TEXTURE0 + slot);
-        gl.bindTexture(gl.TEXTURE_2D, texture.glTexture);
-    }
-
-    /**
-     * set texture cube
-     **/
-    Renderer.prototype.setTextureCube = function(texture, slot) {
-        var gl = this.gl;
-
-        gl.activeTexture(gl.TEXTURE0 + slot);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.glTexture);
     }
 
     zen3d.Renderer = Renderer;

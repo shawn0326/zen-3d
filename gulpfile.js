@@ -28,11 +28,15 @@ var filesSrc = [
     // render
     "core/render/WebGL/WebGLCapabilities.js",
     "core/render/WebGL/WebGLState.js",
+    "core/render/WebGL/WebGLProperties.js",
+    "core/render/WebGL/WebGLTexture.js",
     "core/render/shader/ShaderLib.js",
     "core/render/shader/Program.js",
     "core/render/Renderer.js",
     "core/render/RenderCache.js",
-    "core/render/RenderTarget.js",
+    "core/render/RenderTargetBase.js",
+    "core/render/RenderTarget2D.js",
+    "core/render/RenderTargetCube.js",
 
     // objects
     "core/objects/Object3D.js",

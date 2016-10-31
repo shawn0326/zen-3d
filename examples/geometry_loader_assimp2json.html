@@ -43,16 +43,16 @@
 
 	        var scene = new zen3d.Scene();
 
-			var jeep = "./resources/models/assimp/jeep/jeep.assimp.json";
-			var interior = "./resources/models/assimp/interior/interior.assimp.json";
+			var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
+			var interior = "resources/models/assimp/interior/interior.assimp.json";
 
-			var loader1 = new zen3d.AssimpJsonLoader(renderer.gl);
+			var loader1 = new zen3d.AssimpJsonLoader();
 			loader1.load(jeep, function(object) {
 				object.scale.set(0.4, 0.4, 0.4);
 				scene.add(object);
 			});
 
-			var loader2 = new zen3d.AssimpJsonLoader(renderer.gl);
+			var loader2 = new zen3d.AssimpJsonLoader();
 			loader2.load(interior, function(object) {
 				scene.add(object);
 			});
@@ -85,8 +85,6 @@
 				camera.position.x = 10 * Math.sin(count / 1000 * .5);
 				camera.position.z = 10 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				renderer.clear();
 
 	            renderer.render(scene, camera);
 	        }

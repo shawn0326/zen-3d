@@ -3,81 +3,26 @@
      * TextureBase
      * @class
      */
-    var TextureBase = function(gl, options) {
-        this.gl = gl;
+    var TextureBase = function() {
+        this.uuid = zen3d.generateUUID();
 
-        this.width = 0;
-        this.height = 0;
+        this.textureType = "";
 
         this.border = 0;
 
-        this.dataFormat = gl.RGBA;
+        this.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.RGBA;
 
-        this.dataType = gl.UNSIGNED_BYTE;
+        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 
-        // gl.NEAREST, gl.LINEAR, gl.LINEAR_MIPMAP_LINEAR ...
-        this.magFilter = gl.LINEAR;
-        this.minFilter = gl.LINEAR_MIPMAP_LINEAR;
+        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 
-        // gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT
-        this.wrapS = gl.CLAMP_TO_EDGE;
-        this.wrapT = gl.CLAMP_TO_EDGE;
+        this.wrapS = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+        this.wrapT = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
-        this.glTexture = gl.createTexture();
+        this.generateMipmaps = true;
 
-        this.isRenderable = false;
-
-        this.generateMipMaps = true;
-        this.hasMipMaps = false;
-
-        // TODO this can set just as a global props?
-        // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        // gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-    }
-
-    /**
-     * bind texture
-     */
-    TextureBase.prototype.bind = function() {
-        // implemented in sub class
-    }
-
-    /**
-     * tex parameteri
-     */
-    TextureBase.prototype.texParam = function() {
-        // implemented in sub class
-    }
-
-    TextureBase.prototype._filterFallback = function(gl, filter) {
-		if ( filter === gl.NEAREST || filter === gl.NEAREST_MIPMAP_LINEAR || filter === gl.NEAREST_MIPMAP_NEAREST ) {
-			return gl.NEAREST;
-		}
-
-		return gl.LINEAR;
-	}
-
-    /**
-     * tex image
-     */
-    TextureBase.prototype.texImage = function() {
-        // implemented in sub class
-        // this.isRenderable = true;
-    }
-
-    /**
-     * generate mipmaps
-     */
-    TextureBase.prototype.generateMipMaps = function() {
-
-    }
-
-    /**
-     * destory
-     */
-    TextureBase.prototype.destory = function() {
-        var gl = this.gl;
-        gl.deleteTexture(this.glTexture);
+        this.version = 0;
     }
 
     zen3d.TextureBase = TextureBase;

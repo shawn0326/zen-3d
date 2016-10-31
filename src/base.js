@@ -20,6 +20,48 @@
     zen3d.inherit = inherit;
 
     /**
+     * generate uuid
+     */
+    var generateUUID = function () {
+
+		// http://www.broofa.com/Tools/Math.uuid.htm
+
+		var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split( '' );
+		var uuid = new Array( 36 );
+		var rnd = 0, r;
+
+		return function generateUUID() {
+
+			for ( var i = 0; i < 36; i ++ ) {
+
+				if ( i === 8 || i === 13 || i === 18 || i === 23 ) {
+
+					uuid[ i ] = '-';
+
+				} else if ( i === 14 ) {
+
+					uuid[ i ] = '4';
+
+				} else {
+
+					if ( rnd <= 0x02 ) rnd = 0x2000000 + ( Math.random() * 0x1000000 ) | 0;
+					r = rnd & 0xf;
+					rnd = rnd >> 4;
+					uuid[ i ] = chars[ ( i === 19 ) ? ( r & 0x3 ) | 0x8 : r ];
+
+				}
+
+			}
+
+			return uuid.join( '' );
+
+		};
+
+	};
+
+    zen3d.generateUUID = generateUUID();
+
+    /**
      * is mobile
      */
     var isMobile = function() {
@@ -30,7 +72,16 @@
         return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
     }
 
-    zen3d.isMobile = isMobile;
+    zen3d.isMobile = isMobile();
+
+    /**
+     * is web
+     */
+    var isWeb = function() {
+        return !!document;
+    }
+
+    zen3d.isWeb = isWeb();
 
     /**
      * webgl get extension
@@ -100,38 +151,17 @@
 
     zen3d.createCheckerBoardPixels = createCheckerBoardPixels;
 
-    var isPowerOf2 = function(value) {
+    var isPowerOfTwo = function(value) {
         return ( value & ( value - 1 ) ) === 0 && value !== 0;
     }
 
-    zen3d.isPowerOf2 = isPowerOf2;
+    zen3d.isPowerOfTwo = isPowerOfTwo;
 
-    var nearestPowerOf2 = function ( value ) {
+    var nearestPowerOfTwo = function ( value ) {
 		return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
 	}
 
-    zen3d.nearestPowerOf2 = nearestPowerOf2;
-
-    var makePowerOf2 = function( image ) {
-		if ( HTMLImageElement && (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement) ) {
-
-			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
-			canvas.width = nearestPowerOf2( image.width );
-			canvas.height = nearestPowerOf2( image.height );
-
-			var context = canvas.getContext( '2d' );
-			context.drawImage( image, 0, 0, canvas.width, canvas.height );
-
-			console.warn( 'image is not power of two (' + image.width + 'x' + image.height + '). Resized to ' + canvas.width + 'x' + canvas.height, image );
-
-			return canvas;
-
-		}
-
-		return image;
-	}
-
-    zen3d.makePowerOf2 = makePowerOf2;
+    zen3d.nearestPowerOfTwo = nearestPowerOfTwo;
 
     /**
      * require image

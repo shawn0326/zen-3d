@@ -51,17 +51,7 @@
 
 	        var scene = new zen3d.Scene();
 
-			var texture = new zen3d.Texture2D(renderer.gl);
-
-			var image = new Image();
-	        image.src = "resources/hardwood2_diffuse.jpg";
-	        image.onload = function() {
-
-	            texture.bind().texImage(
-	                image
-	            ).texParam();
-
-	        }.bind(this);
+			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 
 			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
 			var phong = new zen3d.PhongMaterial();
@@ -99,21 +89,19 @@
 			document.onkeydown = function(e) {
 				if(e.keyCode == 90) { // 'z'
 					texture.generateMipMaps = false;
-					texture.minFilter = renderer.gl.LINEAR;
+					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 				} else if(e.keyCode == 88) { // 'x'
 					texture.generateMipMaps = false;
-					texture.minFilter = renderer.gl.NEAREST;
+					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 				} else if(e.keyCode == 67) { // 'c'
 					texture.generateMipMaps = true;
-					texture.minFilter = renderer.gl.LINEAR_MIPMAP_LINEAR;
+					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 				} else if(e.keyCode == 86) { // 'v'
 					texture.generateMipMaps = true;
-					texture.minFilter = renderer.gl.NEAREST_MIPMAP_NEAREST;
+					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST_MIPMAP_NEAREST;
 				}
 
-				texture.bind().texImage(
-					image
-				).texParam();
+				texture.version++;
 	        }
 
 	        function loop(count) {
@@ -124,8 +112,6 @@
 				camera.position.x = 30 * Math.sin(count / 1000 * .5);
 				camera.position.z = 30 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				renderer.clear();
 
 	            renderer.render(scene, camera);
 	        }

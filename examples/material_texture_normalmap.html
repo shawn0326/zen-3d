@@ -44,8 +44,8 @@
 	        var scene = new zen3d.Scene();
 
 			// couch
-			var couch_texture = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/normal/couch.jpg");
-			var couch_norm_texture = zen3d.Texture2D.fromSrc(renderer.gl, "./resources/normal/counch_norm.jpg");
+			var couch_texture = zen3d.Texture2D.fromSrc("resources/normal/couch.jpg");
+			var couch_norm_texture = zen3d.Texture2D.fromSrc("resources/normal/counch_norm.jpg");
 			var couch_material = new zen3d.PhongMaterial();
 			couch_material.map = couch_texture;
 			couch_material.normalMap = couch_norm_texture;
@@ -88,8 +88,6 @@
 				camera.position.x = 80 * Math.sin(count / 1000 * .1);
 				camera.position.z = 80 * Math.cos(count / 1000 * .1);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				renderer.clear();
 
 	            renderer.render(scene, camera);
 	        }

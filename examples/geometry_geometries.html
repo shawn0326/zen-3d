@@ -43,8 +43,7 @@
 
 	        var scene = new zen3d.Scene();
 
-			var pixels = zen3d.createCheckerBoardPixels(50, 50);
-			var texture = zen3d.Texture2D.fromRes(renderer.gl, pixels, 50, 50);
+			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			var phong = new zen3d.PhongMaterial();
 	        phong.color = 0xffffff;
 			phong.map = texture;
@@ -109,8 +108,6 @@
 				camera.position.x = 100 * Math.sin(count / 1000 * .5);
 				camera.position.z = 100 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				renderer.clear();
 
 	            renderer.render(scene, camera);
 	        }

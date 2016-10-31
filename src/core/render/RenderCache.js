@@ -35,31 +35,29 @@
             case OBJECT_TYPE.MESH:
                 var material = object.material;
 
-                if(material.checkMapInit()) {
-
-                    var array;
-                    if(material.transparent) {
-                        array = this.transparentObjects;
-                    } else {
-                        array = this.opaqueObjects;
-                    }
-
-                    // TODO frustum test
-
-                    helpVector3.setFromMatrixPosition( object.worldMatrix );
-					helpVector3.applyMatrix4( camera.viewMatrix ).applyMatrix4( camera.projectionMatrix );
-
-                    array.push({
-                        object: object,
-                        geometry: object.geometry,
-                        material: object.material,
-                        z: helpVector3.z
-                    });
-
-                    if(object.castShadow) {
-                        this.shadowObjects.push(object);
-                    }
+                var array;
+                if(material.transparent) {
+                    array = this.transparentObjects;
+                } else {
+                    array = this.opaqueObjects;
                 }
+
+                // TODO frustum test
+
+                helpVector3.setFromMatrixPosition( object.worldMatrix );
+				helpVector3.applyMatrix4( camera.viewMatrix ).applyMatrix4( camera.projectionMatrix );
+
+                array.push({
+                    object: object,
+                    geometry: object.geometry,
+                    material: object.material,
+                    z: helpVector3.z
+                });
+
+                if(object.castShadow) {
+                    this.shadowObjects.push(object);
+                }
+                
                 break;
             case OBJECT_TYPE.LIGHT:
                 if(object.lightType == LIGHT_TYPE.AMBIENT) {

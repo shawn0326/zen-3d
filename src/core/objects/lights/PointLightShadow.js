@@ -4,16 +4,14 @@
      * @class
      */
     var PointLightShadow = function() {
-        this.camera = null;
+        this.camera = new zen3d.Camera();
 
-        this.matrix = null;
+        this.matrix = new zen3d.Matrix4();
 
         // size force to 1024x1024
-        this.renderTarget = null;
+        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
 
-        this.map = null;
-
-        this.isInit = false;
+        this.map = this.renderTarget.texture;
 
         this._targets = [
             new zen3d.Vector3( 1, 0, 0 ), new zen3d.Vector3( -1, 0, 0 ), new zen3d.Vector3( 0, 1, 0 ),
@@ -26,24 +24,6 @@
         ];
 
         this._lookTarget = new zen3d.Vector3();
-    }
-
-    /**
-     * init
-     */
-    PointLightShadow.prototype.init = function(gl) {
-        this.camera = new zen3d.Camera();
-
-        this.matrix = new zen3d.Matrix4();
-
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTarget(gl, 512, 512);
-
-        this.map = zen3d.TextureCube.createRenderTexture(gl, 512, 512);
-
-        this.renderTarget.bind().attachRenderBuffer("depth").unbind();
-
-        this.isInit = true;
     }
 
     /**

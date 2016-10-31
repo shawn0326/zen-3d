@@ -9,8 +9,7 @@
      * Supports any input format that assimp supports, including 3ds, obj, dae, blend,
      * fbx, x, ms3d, lwo (and many more).
      */
-    var AssimpJsonLoader = function(gl) {
-        this.gl = gl;
+    var AssimpJsonLoader = function() {
         this.texturePath = "./";
     }
 
@@ -63,10 +62,10 @@
                 if(prop.semantic == 1) {
                     var material_url = this.texturePath + prop.value;
 					material_url = material_url.replace( /.\\/g, '' );
-                    map = new zen3d.Texture2D.fromSrc(this.gl, material_url);
+                    map = new zen3d.Texture2D.fromSrc(material_url);
                     // TODO: read texture settings from assimp.
 					// Wrapping is the default, though.
-					map.wrapS = map.wrapT = this.gl.REPEAT;
+					map.wrapS = map.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
                 } else if(prop.semantic == 2) {
 
                 } else if(prop.semantic == 5) {
@@ -74,10 +73,10 @@
                 } else if(prop.semantic == 6) {
                     var material_url = this.texturePath + prop.value;
 					material_url = material_url.replace( /.\\/g, '' );
-                    normalMap = new zen3d.Texture2D.fromSrc(this.gl, material_url);
+                    normalMap = new zen3d.Texture2D.fromSrc(material_url);
                     // TODO: read texture settings from assimp.
 					// Wrapping is the default, though.
-					normalMap.wrapS = normalMap.wrapT = this.gl.REPEAT;
+					map.wrapS = map.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
                 }
             } else if ( prop.key === '?mat.name' ) {
 
