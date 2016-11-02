@@ -14,12 +14,12 @@
         // position
         this.position = new zen3d.Vector3();
         // scale
-    	this.scale = new zen3d.Vector3(1, 1, 1);
+        this.scale = new zen3d.Vector3(1, 1, 1);
 
         // euler rotate
         var euler = this.euler = new zen3d.Euler();
         // quaternion rotate
-    	var quaternion = this.quaternion = new zen3d.Quaternion();
+        var quaternion = this.quaternion = new zen3d.Quaternion();
 
         // bind euler and quaternion
         euler.onChange(function() {
@@ -41,7 +41,7 @@
 
         // shadow
         this.castShadow = false;
-	    this.receiveShadow = false;
+        this.receiveShadow = false;
 
     }
 
@@ -50,7 +50,7 @@
          * rotation set by euler
          **/
         rotation: {
-            get: function () {
+            get: function() {
                 return this.euler;
             },
             set: function(euler) {
@@ -75,40 +75,40 @@
      */
     Object3D.prototype.remove = function(object) {
         var index = this.children.indexOf(object);
-        if ( index !== - 1 ) {
-			this.children.splice(index, 1);
-		}
+        if (index !== -1) {
+            this.children.splice(index, 1);
+        }
         object.parent = null;
     }
 
     /**
      * get object by name
      */
-    Object3D.prototype.getObjectByName = function ( name ) {
-		return this.getObjectByProperty( 'name', name );
-	}
+    Object3D.prototype.getObjectByName = function(name) {
+        return this.getObjectByProperty('name', name);
+    }
 
     /**
      * get object by property
      */
-	Object3D.prototype.getObjectByProperty = function ( name, value ) {
-		if ( this[ name ] === value ) return this;
+    Object3D.prototype.getObjectByProperty = function(name, value) {
+        if (this[name] === value) return this;
 
-		for ( var i = 0, l = this.children.length; i < l; i ++ ) {
+        for (var i = 0, l = this.children.length; i < l; i++) {
 
-			var child = this.children[ i ];
-			var object = child.getObjectByProperty( name, value );
+            var child = this.children[i];
+            var object = child.getObjectByProperty(name, value);
 
-			if ( object !== undefined ) {
+            if (object !== undefined) {
 
-				return object;
+                return object;
 
-			}
+            }
 
-		}
+        }
 
-		return undefined;
-	}
+        return undefined;
+    }
 
     /**
      * update matrix
@@ -118,13 +118,13 @@
 
         this.worldMatrix.copy(matrix);
 
-        if(this.parent) {
+        if (this.parent) {
             var parentMatrix = this.parent.worldMatrix;
             this.worldMatrix.premultiply(parentMatrix);
         }
 
         var children = this.children;
-        for(var i = 0, l = children.length; i < l; i++) {
+        for (var i = 0, l = children.length; i < l; i++) {
             children[i].updateMatrix();
         }
     }
@@ -137,19 +137,19 @@
 
         var position = new zen3d.Vector3();
         var quaternion = new zen3d.Quaternion();
-		var scale = new zen3d.Vector3();
+        var scale = new zen3d.Vector3();
 
-        return function getWorldDirection( optionalTarget ) {
+        return function getWorldDirection(optionalTarget) {
 
-			var result = optionalTarget || new zen3d.Vector3();
+            var result = optionalTarget || new zen3d.Vector3();
 
-			this.worldMatrix.decompose(position, quaternion, scale );
+            this.worldMatrix.decompose(position, quaternion, scale);
 
             result.set(0, 0, 1).applyQuaternion(quaternion);
 
-			return result;
+            return result;
 
-		};
+        };
     }();
 
     zen3d.Object3D = Object3D;

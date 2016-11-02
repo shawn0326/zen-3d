@@ -178,7 +178,8 @@
 
             }
 
-            this.texture.updateRenderTargetMipmap(shadowTarget);
+            // set generateMipmaps false
+            // this.texture.updateRenderTargetMipmap(shadowTarget);
 
         }
     }

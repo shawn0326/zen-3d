@@ -5,12 +5,12 @@
 
     WebGLProperties.prototype.get = function(object) {
         var uuid = object.uuid;
-		var map = this.properties[uuid];
-		if ( map === undefined ) {
-			map = {};
-			this.properties[uuid] = map;
-		}
-		return map;
+        var map = this.properties[uuid];
+        if (map === undefined) {
+            map = {};
+            this.properties[uuid] = map;
+        }
+        return map;
     }
 
     WebGLProperties.prototype.delete = function(object) {

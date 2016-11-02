@@ -11,16 +11,20 @@
         // size force to 1024x1024
         this.renderTarget = new zen3d.RenderTargetCube(512, 512);
 
-        this.map = this.renderTarget.texture;
+        var map = this.renderTarget.texture;
+        map.generateMipmaps = false;
+        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+        this.map = map;
 
         this._targets = [
-            new zen3d.Vector3( 1, 0, 0 ), new zen3d.Vector3( -1, 0, 0 ), new zen3d.Vector3( 0, 1, 0 ),
-            new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ), new zen3d.Vector3( 0, 0, -1 )
+            new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
+            new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1), new zen3d.Vector3(0, 0, -1)
         ];
 
         this._ups = [
-            new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ),
-            new zen3d.Vector3( 0, 0, -1 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 )
+            new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1),
+            new zen3d.Vector3(0, 0, -1), new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, -1, 0)
         ];
 
         this._lookTarget = new zen3d.Vector3();

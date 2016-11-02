@@ -36,7 +36,7 @@
                 var material = object.material;
 
                 var array;
-                if(material.transparent) {
+                if (material.transparent) {
                     array = this.transparentObjects;
                 } else {
                     array = this.opaqueObjects;
@@ -44,8 +44,8 @@
 
                 // TODO frustum test
 
-                helpVector3.setFromMatrixPosition( object.worldMatrix );
-				helpVector3.applyMatrix4( camera.viewMatrix ).applyMatrix4( camera.projectionMatrix );
+                helpVector3.setFromMatrixPosition(object.worldMatrix);
+                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
                 array.push({
                     object: object,
@@ -54,23 +54,23 @@
                     z: helpVector3.z
                 });
 
-                if(object.castShadow) {
+                if (object.castShadow) {
                     this.shadowObjects.push(object);
                 }
-                
+
                 break;
             case OBJECT_TYPE.LIGHT:
-                if(object.lightType == LIGHT_TYPE.AMBIENT) {
+                if (object.lightType == LIGHT_TYPE.AMBIENT) {
                     this.ambientLights.push(object);
-                } else if(object.lightType == LIGHT_TYPE.DIRECT) {
+                } else if (object.lightType == LIGHT_TYPE.DIRECT) {
                     this.directLights.push(object);
-                } else if(object.lightType == LIGHT_TYPE.POINT) {
+                } else if (object.lightType == LIGHT_TYPE.POINT) {
                     this.pointLights.push(object);
-                } else if(object.lightType == LIGHT_TYPE.SPOT) {
+                } else if (object.lightType == LIGHT_TYPE.SPOT) {
                     this.spotLights.push(object);
                 }
 
-                if(object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
+                if (object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
                     this.shadowLights.push(object);
                 }
 
@@ -92,9 +92,9 @@
 
         // handle children by recursion
         var children = object.children;
-		for ( var i = 0, l = children.length; i < l; i ++ ) {
-			this.cache(children[i], camera);
-		}
+        for (var i = 0, l = children.length; i < l; i++) {
+            this.cache(children[i], camera);
+        }
     }
 
     /**

@@ -12,7 +12,7 @@
         gl.compileShader(shader);
         // if compile failed, log error
         var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-        if(!compiled) {
+        if (!compiled) {
             console.log("shader not compiled!")
             console.log(gl.getShaderInfoLog(shader))
         }
@@ -48,7 +48,7 @@
         for (var i = 0; i < totalUniforms; i++) {
             var uniformData = gl.getActiveUniform(program, i);
             var name = uniformData.name;
-            var type = uniformData.type;// analysis
+            var type = uniformData.type; // analysis
 
             // TODO get update method
 
@@ -91,21 +91,21 @@
      * @param precision {string} the expect precision, can be: "highp"|"mediump"|"lowp"
      */
     function getMaxPrecision(gl, precision) {
-		if ( precision === 'highp' ) {
-			if ( gl.getShaderPrecisionFormat( gl.VERTEX_SHADER, gl.HIGH_FLOAT ).precision > 0 &&
-			     gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_FLOAT ).precision > 0 ) {
-				return 'highp';
-			}
-			precision = 'mediump';
-		}
-		if ( precision === 'mediump' ) {
-			if ( gl.getShaderPrecisionFormat( gl.VERTEX_SHADER, gl.MEDIUM_FLOAT ).precision > 0 &&
-			     gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT ).precision > 0 ) {
-				return 'mediump';
-			}
-		}
-		return 'lowp';
-	}
+        if (precision === 'highp') {
+            if (gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT).precision > 0 &&
+                gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT).precision > 0) {
+                return 'highp';
+            }
+            precision = 'mediump';
+        }
+        if (precision === 'mediump') {
+            if (gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT).precision > 0 &&
+                gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT).precision > 0) {
+                return 'mediump';
+            }
+        }
+        return 'lowp';
+    }
 
     /**
      * WebGL Program
@@ -138,7 +138,7 @@
      */
     function generateProgramCode(props) {
         var code = "";
-        for(var key in props) {
+        for (var key in props) {
             code += props[key] + "_";
         }
         return code;
@@ -179,7 +179,7 @@
         }
 
         var vshader_define, fshader_define;
-        if(basic) {
+        if (basic) {
             vshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : ''
@@ -191,7 +191,7 @@
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
-        } else if(cube) {
+        } else if (cube) {
             vshader_define = [
                 ""
             ].join("\n");
@@ -263,9 +263,9 @@
         var material = object.material;
 
         var ambientLightNum = lightsNum[0],
-        directLightNum = lightsNum[1],
-        pointLightNum = lightsNum[2],
-        spotLightNum = lightsNum[3];
+            directLightNum = lightsNum[1],
+            pointLightNum = lightsNum[2],
+            spotLightNum = lightsNum[3];
 
         var precision = render.capabilities.maxPrecision;
 
@@ -290,7 +290,7 @@
         var map = programMap;
         var program;
 
-        if(map[code]) {
+        if (map[code]) {
             program = map[code];
         } else {
             program = createProgram(gl, props);
@@ -310,7 +310,7 @@
 
         var precision = render.capabilities.maxPrecision;
 
-        if(map[code]) {
+        if (map[code]) {
             program = map[code];
         } else {
             var vshader = [

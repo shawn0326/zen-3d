@@ -74,19 +74,19 @@
 
         var position = new zen3d.Vector3();
         var quaternion = new zen3d.Quaternion();
-		var scale = new zen3d.Vector3();
+        var scale = new zen3d.Vector3();
 
-        return function getWorldQuaternion( optionalTarget ) {
+        return function getWorldQuaternion(optionalTarget) {
 
-			var result = optionalTarget || new zen3d.Vector3();
+            var result = optionalTarget || new zen3d.Vector3();
 
-			this.worldMatrix.decompose(position, quaternion, scale );
+            this.worldMatrix.decompose(position, quaternion, scale);
 
             result.set(0, 0, -1).applyQuaternion(quaternion);
 
-			return result;
+            return result;
 
-		};
+        };
     }();
 
     zen3d.Camera = Camera;

@@ -11,7 +11,11 @@
         // size force to 1024x1024
         this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
 
-        this.map = this.renderTarget.texture;
+        var map = this.renderTarget.texture;
+        map.generateMipmaps = false;
+        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+        this.map = map;
 
         // the cast shadow window size
         this.windowSize = 500;
