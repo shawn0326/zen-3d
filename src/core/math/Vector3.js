@@ -20,6 +20,22 @@
         return this;
     }
 
+    Vector3.prototype.min = function(v) {
+        this.x = Math.min(this.x, v.x);
+        this.y = Math.min(this.y, v.y);
+        this.z = Math.min(this.z, v.z);
+
+        return this;
+    }
+
+    Vector3.prototype.max = function(v) {
+        this.x = Math.max(this.x, v.x);
+        this.y = Math.max(this.y, v.y);
+        this.z = Math.max(this.z, v.z);
+
+        return this;
+    }
+
     Vector3.prototype.getLength = function() {
         return Math.sqrt(this.getLengthSquared());
     }
@@ -79,94 +95,154 @@
      **/
     Vector3.prototype.applyQuaternion = function(q) {
 
-		var x = this.x, y = this.y, z = this.z;
-		var qx = q._x, qy = q._y, qz = q._z, qw = q._w;
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+        var qx = q._x,
+            qy = q._y,
+            qz = q._z,
+            qw = q._w;
 
-		// calculate quat * vector
+        // calculate quat * vector
 
-		var ix =  qw * x + qy * z - qz * y;
-		var iy =  qw * y + qz * x - qx * z;
-		var iz =  qw * z + qx * y - qy * x;
-		var iw = - qx * x - qy * y - qz * z;
+        var ix = qw * x + qy * z - qz * y;
+        var iy = qw * y + qz * x - qx * z;
+        var iz = qw * z + qx * y - qy * x;
+        var iw = -qx * x - qy * y - qz * z;
 
-		// calculate result * inverse quat
+        // calculate result * inverse quat
 
-		this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
-		this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
-		this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
+        this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+        this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+        this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
 
-		return this;
-	}
+        return this;
+    }
 
     /**
      * apply quaternion
      **/
-    Vector3.prototype.applyMatrix4 = function ( m ) {
+    Vector3.prototype.applyMatrix4 = function(m) {
 
-		// input: zen3d.Matrix4 affine matrix
+        // input: zen3d.Matrix4 affine matrix
 
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+        var e = m.elements;
 
-		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z + e[ 12 ];
-		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z + e[ 13 ];
-		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ];
+        this.x = e[0] * x + e[4] * y + e[8] * z + e[12];
+        this.y = e[1] * x + e[5] * y + e[9] * z + e[13];
+        this.z = e[2] * x + e[6] * y + e[10] * z + e[14];
 
-		return this;
+        return this;
 
-	}
+    }
 
     /**
      * transformDirection
      **/
-    Vector3.prototype.transformDirection = function ( m ) {
+    Vector3.prototype.transformDirection = function(m) {
 
-		// input: zen3d.Matrix4 affine matrix
-		// vector interpreted as a direction
+        // input: zen3d.Matrix4 affine matrix
+        // vector interpreted as a direction
 
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+        var e = m.elements;
 
-		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z;
-		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z;
-		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
+        this.x = e[0] * x + e[4] * y + e[8] * z;
+        this.y = e[1] * x + e[5] * y + e[9] * z;
+        this.z = e[2] * x + e[6] * y + e[10] * z;
 
-		return this.normalize();
+        return this.normalize();
 
-	}
+    }
 
     /**
      * setFromMatrixPosition
      **/
-    Vector3.prototype.setFromMatrixPosition = function ( m ) {
+    Vector3.prototype.setFromMatrixPosition = function(m) {
 
-		return this.setFromMatrixColumn( m, 3 );
+        return this.setFromMatrixColumn(m, 3);
 
-	}
+    }
 
     /**
      * setFromMatrixColumn
      **/
-    Vector3.prototype.setFromMatrixColumn = function ( m, index ) {
+    Vector3.prototype.setFromMatrixColumn = function(m, index) {
 
-		return this.fromArray( m.elements, index * 4 );
+        return this.fromArray(m.elements, index * 4);
 
-	}
+    }
 
     /**
      * fromArray
      **/
-    Vector3.prototype.fromArray = function ( array, offset ) {
+    Vector3.prototype.fromArray = function(array, offset) {
 
-		if ( offset === undefined ) offset = 0;
+        if (offset === undefined) offset = 0;
 
-		this.x = array[ offset ];
-		this.y = array[ offset + 1 ];
-		this.z = array[ offset + 2 ];
+        this.x = array[offset];
+        this.y = array[offset + 1];
+        this.z = array[offset + 2];
 
-		return this;
+        return this;
 
-	}
+    }
+
+    /**
+     * copy
+     */
+    Vector3.prototype.copy = function(v) {
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
+
+        return this;
+    }
+
+    /**
+     * addVectors
+     */
+    Vector3.prototype.addVectors = function(a, b) {
+        this.x = a.x + b.x;
+        this.y = a.y + b.y;
+        this.z = a.z + b.z;
+
+        return this;
+    }
+
+    /**
+     * multiplyScalar
+     */
+    Vector3.prototype.multiplyScalar = function(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+
+        return this;
+    }
+
+    /**
+     * distanceToSquared
+     */
+    Vector3.prototype.distanceToSquared = function(v) {
+        var dx = this.x - v.x,
+            dy = this.y - v.y,
+            dz = this.z - v.z;
+
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    /**
+     * distanceTo
+     */
+    Vector3.prototype.distanceTo = function(v) {
+        return Math.sqrt(this.distanceToSquared(v));
+    }
 
     zen3d.Vector3 = Vector3;
 })();

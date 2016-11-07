@@ -161,6 +161,9 @@
                 index += skip;
             }
         }
+
+        this.computeBoundingBox();
+        this.computeBoundingSphere();
     }
 
     zen3d.SphereGeometry = SphereGeometry;

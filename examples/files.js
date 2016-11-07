@@ -23,5 +23,8 @@ var files = {
 	],
 	"scene": [
 		"scene_fog"
+	],
+	"math": [
+		"math_frustumtest"
 	]
 };

@@ -21,18 +21,46 @@
         this.spotLights = new Array();
 
         this.shadowLights = new Array();
+
+        // camera
+        this.camera = null;
+
+        // fog
+        this.fog = null;
     }
 
     var helpVector3 = new zen3d.Vector3();
+    var helpFrustum = new zen3d.Frustum();
+    var helpMatrix = new zen3d.Matrix4();
+    var helpSphere = new zen3d.Sphere();
 
     /**
-     * cache object
+     * cache scene
      */
-    RenderCache.prototype.cache = function(object, camera) {
+    RenderCache.prototype.cacheScene = function(scene, camera) {
+        this.camera = camera;
+        this.fog = scene.fog;
+        this.cacheObject(scene);
+    }
+
+    RenderCache.prototype.cacheObject = function(object) {
+        var camera = this.camera;
 
         // cache all type of objects
         switch (object.type) {
             case OBJECT_TYPE.MESH:
+
+                // frustum test
+                if(object.frustumCulled) {
+                    helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
+        			helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
+        			helpFrustum.setFromMatrix(helpMatrix);
+                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
+                    if(!frustumTest) {
+                        break;
+                    }
+                }
+
                 var material = object.material;
 
                 var array;
@@ -41,8 +69,6 @@
                 } else {
                     array = this.opaqueObjects;
                 }
-
-                // TODO frustum test
 
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
@@ -93,7 +119,7 @@
         // handle children by recursion
         var children = object.children;
         for (var i = 0, l = children.length; i < l; i++) {
-            this.cache(children[i], camera);
+            this.cacheObject(children[i]);
         }
     }
 

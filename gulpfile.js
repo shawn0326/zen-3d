@@ -24,6 +24,10 @@ var filesSrc = [
     "core/math/Quaternion.js",
     "core/math/Vector3.js",
     "core/math/Vector4.js",
+    "core/math/Box3.js",
+    "core/math/Sphere.js",
+    "core/math/Plane.js",
+    "core/math/Frustum.js",
 
     // render
     "core/render/WebGL/WebGLCapabilities.js",

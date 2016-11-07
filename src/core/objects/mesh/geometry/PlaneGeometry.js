@@ -63,6 +63,9 @@
                 }
             }
         }
+
+        this.computeBoundingBox();
+        this.computeBoundingSphere();
     }
 
     zen3d.PlaneGeometry = PlaneGeometry;

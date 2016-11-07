@@ -80,6 +80,9 @@
                 24, 25, 26, 27, 28, 29,
                 30, 31, 32, 33, 34, 35);
         }
+
+        this.computeBoundingBox();
+        this.computeBoundingSphere();
     }
 
     zen3d.CubeGeometry = CubeGeometry;

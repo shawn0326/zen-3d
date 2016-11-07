@@ -43,6 +43,8 @@
         this.castShadow = false;
         this.receiveShadow = false;
 
+        // frustum test
+        this.frustumCulled = true;
     }
 
     Object.defineProperties(Object3D.prototype, {

@@ -19,6 +19,10 @@
 
         this.vertexSize = 17; // static
 
+        this.boundingBox = new zen3d.Box3();
+
+        this.boundingSphere = new zen3d.Sphere();
+
         this.dirty = true;
     }
 
@@ -54,6 +58,14 @@
 
         this.drawLen = this.indicesArray.length;
         this.vertexCount = this.verticesArray.length / this.vertexSize;
+    }
+
+    Geometry.prototype.computeBoundingBox = function() {
+        this.boundingBox.setFromArray(this.verticesArray, this.vertexSize);
+    }
+
+    Geometry.prototype.computeBoundingSphere = function() {
+        this.boundingSphere.setFromArray(this.verticesArray, this.vertexSize);
     }
 
     zen3d.Geometry = Geometry;
