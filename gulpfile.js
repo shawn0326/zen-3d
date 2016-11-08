@@ -29,6 +29,9 @@ var filesSrc = [
     "core/math/Plane.js",
     "core/math/Frustum.js",
 
+    // event
+    "core/EventDispatcher.js",
+
     // render
     "core/render/WebGL/WebGLCapabilities.js",
     "core/render/WebGL/WebGLState.js",

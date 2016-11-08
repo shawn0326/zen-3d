@@ -89,6 +89,16 @@
 	        }
 
 	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
 		})();
 	</script>
 </body>

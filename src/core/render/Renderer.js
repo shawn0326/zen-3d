@@ -55,6 +55,19 @@
     }
 
     /**
+     * resize
+     */
+    Renderer.prototype.resize = function(width, height) {
+        this.width = width;
+        this.height = height;
+
+        this.view.width = width;
+        this.view.height = height;
+
+        this.state.viewport(0, 0, width, height);
+    }
+
+    /**
      * render scene with camera
      */
     Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {

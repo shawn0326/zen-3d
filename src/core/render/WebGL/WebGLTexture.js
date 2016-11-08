@@ -90,6 +90,7 @@
         if (texture.version > 0 && textureProperties.__version !== texture.version) {
 
             if (textureProperties.__webglTexture === undefined) {
+                texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
 
@@ -144,6 +145,7 @@
         if (texture.version > 0 && textureProperties.__version !== texture.version) {
 
             if (textureProperties.__webglTexture === undefined) {
+                texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
 
@@ -220,6 +222,7 @@
         var textureProperties = this.properties.get(renderTarget.texture);
 
         if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
+            renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
             textureProperties.__webglTexture = gl.createTexture();
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
 
@@ -274,6 +277,7 @@
         var textureProperties = this.properties.get(renderTarget.texture);
 
         if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
+            renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
             textureProperties.__webglTexture = gl.createTexture();
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
 
@@ -341,6 +345,42 @@
             state.bindTexture(target, null);
 
         }
+    }
+
+    WebGLTexture.prototype.onTextureDispose = function(event) {
+        var gl = this.gl;
+        var texture = event.target;
+        var textureProperties = this.properties.get(texture);
+
+        texture.removeEventListener('dispose', this.onTextureDispose, this);
+
+        if(textureProperties.__webglTexture) {
+            gl.deleteTexture(textureProperties.__webglTexture);
+        }
+
+        this.properties.delete(texture);
+    }
+
+    WebGLTexture.prototype.onRenderTargetDispose = function(event) {
+        var gl = this.gl;
+        var renderTarget = event.target;
+        var renderTargetProperties = this.properties.get(renderTarget);
+
+        renderTarget.removeEventListener('dispose', this.onRenderTargetDispose, this);
+
+        if(renderTargetProperties.__webglTexture) {
+            gl.deleteTexture(textureProperties.__webglTexture);
+        }
+
+        if(renderTargetProperties.__webglFramebuffer) {
+            gl.deleteFramebuffer(renderTargetProperties.__webglFramebuffer)
+        }
+
+        if(renderTargetProperties.__webglDepthbuffer) {
+            gl.deleteRenderbuffer(renderTargetProperties.__webglDepthbuffer)
+        }
+
+        this.properties.delete(renderTarget);
     }
 
     zen3d.WebGLTexture = WebGLTexture;

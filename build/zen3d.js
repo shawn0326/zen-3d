@@ -1924,6 +1924,73 @@
     zen3d.Frustum = Frustum;
 })();
 (function() {
+    /**
+     * EventDispatcher Class
+     **/
+    var EventDispatcher = function() {
+        this.eventMap = {};
+    }
+
+    /**
+     * add a event listener
+     **/
+    EventDispatcher.prototype.addEventListener = function(type, listener, thisObject) {
+        var list = this.eventMap[type];
+
+        if(!list) {
+            list = this.eventMap[type] = [];
+        }
+
+        list.push({listener: listener, thisObject: thisObject || this});
+    }
+
+    /**
+     * remove a event listener
+     **/
+    EventDispatcher.prototype.removeEventListener = function(type, listener, thisObject) {
+        var list = this.eventMap[type];
+
+        if(!list) {
+            return;
+        }
+
+        for(var i = 0, len = list.length; i < len; i++) {
+            var bin = list[i];
+            if(bin.listener == listener && bin.thisObject == (thisObject || this)) {
+                list.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    /**
+     * dispatch a event
+     **/
+    EventDispatcher.prototype.dispatchEvent = function(event) {
+        event.target = this;
+        this.notifyListener(event);
+    }
+
+    /**
+     * notify listener
+     **/
+    EventDispatcher.prototype.notifyListener = function(event) {
+        var list = this.eventMap[event.type];
+
+        if(!list) {
+            return;
+        }
+
+        for(var i = 0, len = list.length; i < len; i++) {
+            var bin = list[i];
+            bin.listener.call(bin.thisObject, event);
+        }
+    }
+
+    zen3d.EventDispatcher = EventDispatcher;
+})();
+
+(function() {
 
     /**
      * get max precision
@@ -2253,6 +2320,7 @@
         if (texture.version > 0 && textureProperties.__version !== texture.version) {
 
             if (textureProperties.__webglTexture === undefined) {
+                texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
 
@@ -2307,6 +2375,7 @@
         if (texture.version > 0 && textureProperties.__version !== texture.version) {
 
             if (textureProperties.__webglTexture === undefined) {
+                texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
 
@@ -2383,6 +2452,7 @@
         var textureProperties = this.properties.get(renderTarget.texture);
 
         if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
+            renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
             textureProperties.__webglTexture = gl.createTexture();
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
 
@@ -2437,6 +2507,7 @@
         var textureProperties = this.properties.get(renderTarget.texture);
 
         if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
+            renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
             textureProperties.__webglTexture = gl.createTexture();
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
 
@@ -2504,6 +2575,42 @@
             state.bindTexture(target, null);
 
         }
+    }
+
+    WebGLTexture.prototype.onTextureDispose = function(event) {
+        var gl = this.gl;
+        var texture = event.target;
+        var textureProperties = this.properties.get(texture);
+
+        texture.removeEventListener('dispose', this.onTextureDispose, this);
+
+        if(textureProperties.__webglTexture) {
+            gl.deleteTexture(textureProperties.__webglTexture);
+        }
+
+        this.properties.delete(texture);
+    }
+
+    WebGLTexture.prototype.onRenderTargetDispose = function(event) {
+        var gl = this.gl;
+        var renderTarget = event.target;
+        var renderTargetProperties = this.properties.get(renderTarget);
+
+        renderTarget.removeEventListener('dispose', this.onRenderTargetDispose, this);
+
+        if(renderTargetProperties.__webglTexture) {
+            gl.deleteTexture(textureProperties.__webglTexture);
+        }
+
+        if(renderTargetProperties.__webglFramebuffer) {
+            gl.deleteFramebuffer(renderTargetProperties.__webglFramebuffer)
+        }
+
+        if(renderTargetProperties.__webglDepthbuffer) {
+            gl.deleteRenderbuffer(renderTargetProperties.__webglDepthbuffer)
+        }
+
+        this.properties.delete(renderTarget);
     }
 
     zen3d.WebGLTexture = WebGLTexture;
@@ -3745,6 +3852,19 @@
     }
 
     /**
+     * resize
+     */
+    Renderer.prototype.resize = function(width, height) {
+        this.width = width;
+        this.height = height;
+
+        this.view.width = width;
+        this.view.height = height;
+
+        this.state.viewport(0, 0, width, height);
+    }
+
+    /**
      * render scene with camera
      */
     Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
@@ -4403,6 +4523,8 @@
      * @class
      */
     var RenderTargetBase = function(width, height) {
+        RenderTargetBase.superClass.constructor.call(this);
+
         this.uuid = zen3d.generateUUID();
 
         this.width = width;
@@ -4414,12 +4536,24 @@
         this.stencilBuffer = true;
     }
 
+    zen3d.inherit(RenderTargetBase, zen3d.EventDispatcher);
+
     /**
      * resize render target
-     * so we can recycling a render target
      */
     RenderTargetBase.prototype.resize = function(width, height) {
-        // TODO
+        if(this.width !== width || this.height !== height) {
+            this.dispose();
+        }
+
+        this.width = width;
+        this.height = height;
+
+        this.viewport.copy(0, 0, width, height);
+    }
+
+    RenderTargetBase.prototype.dispose = function() {
+        this.dispatchEvent({type: 'dispose'});
     }
 
     zen3d.RenderTargetBase = RenderTargetBase;
@@ -5550,6 +5684,8 @@
      * @class
      */
     var TextureBase = function() {
+        TextureBase.superClass.constructor.call(this);
+
         this.uuid = zen3d.generateUUID();
 
         this.textureType = "";
@@ -5567,6 +5703,14 @@
         this.wrapT = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
         this.generateMipmaps = true;
+
+        this.version = 0;
+    }
+
+    zen3d.inherit(TextureBase, zen3d.EventDispatcher);
+
+    TextureBase.prototype.dispose = function() {
+        this.dispatchEvent({type: 'dispose'});
 
         this.version = 0;
     }

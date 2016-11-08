@@ -4,6 +4,8 @@
      * @class
      */
     var TextureBase = function() {
+        TextureBase.superClass.constructor.call(this);
+
         this.uuid = zen3d.generateUUID();
 
         this.textureType = "";
@@ -21,6 +23,14 @@
         this.wrapT = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
         this.generateMipmaps = true;
+
+        this.version = 0;
+    }
+
+    zen3d.inherit(TextureBase, zen3d.EventDispatcher);
+
+    TextureBase.prototype.dispose = function() {
+        this.dispatchEvent({type: 'dispose'});
 
         this.version = 0;
     }
