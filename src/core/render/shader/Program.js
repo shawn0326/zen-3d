@@ -174,6 +174,10 @@
                 vertex = zen3d.ShaderLib.cubeVertex;
                 fragment = zen3d.ShaderLib.cubeFragment;
                 break;
+            case MATERIAL_TYPE.POINT:
+                vertex = zen3d.ShaderLib.pointsVertex;
+                fragment = zen3d.ShaderLib.pointsFragment;
+                break;
             default:
 
         }
@@ -182,7 +186,8 @@
         if (basic) {
             vshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : ''
             ].join("\n");
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
@@ -212,7 +217,8 @@
                 props.useShadow ? '#define USE_SHADOW' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
+                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
+                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : ''
             ].join("\n");
             fshader_define = [
                 (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -283,7 +289,8 @@
             useShadow: object.receiveShadow,
             premultipliedAlpha: material.premultipliedAlpha,
             fog: !!fog,
-            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2)
+            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
+            sizeAttenuation: material.sizeAttenuation
         };
 
         var code = generateProgramCode(props);

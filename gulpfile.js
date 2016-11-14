@@ -83,8 +83,10 @@ var filesSrc = [
     "core/objects/mesh/material/LambertMaterial.js",
     "core/objects/mesh/material/PhongMaterial.js",
     "core/objects/mesh/material/CubeMaterial.js",
+    "core/objects/mesh/material/PointsMaterial.js",
 
     "core/objects/mesh/Mesh.js",
+    "core/objects/mesh/Points.js",
 
     //loader
     "core/loader/AssimpJsonLoader.js",

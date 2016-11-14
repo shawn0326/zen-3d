@@ -61,6 +61,16 @@
                 }
             }
 
+            if(blend === BLEND_TYPE.ADD) {
+                if (premultipliedAlpha) {
+                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
+                } else {
+                    gl.blendEquation(gl.FUNC_ADD);
+                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                }
+            }
+
             this.currentBlending = blend;
             this.currentPremultipliedAlpha = premultipliedAlpha;
         }

@@ -229,7 +229,8 @@
         LIGHT: "light",
         CAMERA: "camera",
         SCENE: "scene",
-        GROUP: "group"
+        GROUP: "group",
+        POINT: "point"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;
@@ -253,7 +254,8 @@
         BASIC: "basic",
         LAMBERT: "lambert",
         PHONG: "phong",
-        CUBE: "cube"
+        CUBE: "cube",
+        POINT: "point"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
@@ -273,7 +275,8 @@
      */
     var BLEND_TYPE = {
         NONE: "none",
-        NORMAL: "normal"
+        NORMAL: "normal",
+        ADD: "add"
     };
 
     zen3d.BLEND_TYPE = BLEND_TYPE;
@@ -2091,6 +2094,16 @@
                 }
             }
 
+            if(blend === BLEND_TYPE.ADD) {
+                if (premultipliedAlpha) {
+                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
+                } else {
+                    gl.blendEquation(gl.FUNC_ADD);
+                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                }
+            }
+
             this.currentBlending = blend;
             this.currentPremultipliedAlpha = premultipliedAlpha;
         }
@@ -3449,6 +3462,36 @@
             'void main() {',
                 'gl_FragColor = packDepthToRGBA(length(v_ModelPos - lightPos) / 1000.);',
             '}'
+        ].join("\n"),
+
+        // points shader
+        pointsVertex: [
+            vertexCommon,
+            'uniform float u_PointSize;',
+            'uniform float u_PointScale;',
+            'void main() {',
+                pvm_vert,
+                'vec4 mvPosition = u_View * u_Model * vec4(a_Position, 1.0);',
+                '#ifdef USE_SIZEATTENUATION',
+            		'gl_PointSize = u_PointSize * ( u_PointScale / - mvPosition.z );',
+            	'#else',
+            		'gl_PointSize = u_PointSize;',
+            	'#endif',
+            '}'
+        ].join("\n"),
+        pointsFragment: [
+            fragmentCommon,
+            diffuseMap_pars_frag,
+            fog_pars_frag,
+            'void main() {',
+                frag_begin,
+                '#ifdef USE_DIFFUSE_MAP',
+                    'outColor *= texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));',
+                '#endif',
+                frag_end,
+                premultipliedAlpha_frag,
+                fog_frag,
+            '}'
         ].join("\n")
 
     };
@@ -3632,6 +3675,10 @@
                 vertex = zen3d.ShaderLib.cubeVertex;
                 fragment = zen3d.ShaderLib.cubeFragment;
                 break;
+            case MATERIAL_TYPE.POINT:
+                vertex = zen3d.ShaderLib.pointsVertex;
+                fragment = zen3d.ShaderLib.pointsFragment;
+                break;
             default:
 
         }
@@ -3640,7 +3687,8 @@
         if (basic) {
             vshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : ''
+                props.useEnvMap ? '#define USE_ENV_MAP' : '',
+                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : ''
             ].join("\n");
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
@@ -3670,7 +3718,8 @@
                 props.useShadow ? '#define USE_SHADOW' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
+                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
+                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : ''
             ].join("\n");
             fshader_define = [
                 (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -3741,7 +3790,8 @@
             useShadow: object.receiveShadow,
             premultipliedAlpha: material.premultipliedAlpha,
             fog: !!fog,
-            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2)
+            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
+            sizeAttenuation: material.sizeAttenuation
         };
 
         var code = generateProgramCode(props);
@@ -3973,6 +4023,7 @@
                     }
 
                     this.state.setBlend(BLEND_TYPE.NONE);
+                    this.state.enable(gl.DEPTH_TEST);
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
@@ -4008,10 +4059,10 @@
             var renderItem = renderList[i];
             var object = renderItem.object;
             var material = renderItem.material;
+            var geometry = renderItem.geometry;
 
-            var offset = this._uploadGeometry(renderItem.geometry);
+            var offset = this._uploadGeometry(geometry);
 
-            // get program
             var program = zen3d.getProgram(gl, this, object, [
                 ambientLightsNum,
                 directLightsNum,
@@ -4026,13 +4077,13 @@
                 var location = attributes[key].location;
                 switch(key) {
                     case "a_Position":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 0);
                         break;
                     case "a_Normal":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
                         break;
                     case "a_Uv":
-                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
+                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
                         break;
                     default:
                         console.warn("attribute " + key + " not found!");
@@ -4120,14 +4171,23 @@
                         var far = fog.far;
                         gl.uniform1f(location, far);
                         break;
+                    case "u_PointSize":
+                        var size = material.size;
+                        gl.uniform1f(location, size);
+                        break;
+                    case "u_PointScale":
+                        var scale = this.height * 0.5;// three.js do this
+                        gl.uniform1f(location, scale);
+                        break;
                 }
             }
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
             var cube = material.type == MATERIAL_TYPE.CUBE;
+            var points = material.type === MATERIAL_TYPE.POINT;
 
-            if(!basic && !cube) {
+            if(!basic && !cube && !points) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
@@ -4257,14 +4317,26 @@
             }
             ///////
 
+            // set blend
             if(material.transparent) {
-                this.state.setBlend(BLEND_TYPE.NORMAL, material.premultipliedAlpha);
+                this.state.setBlend(material.blending, material.premultipliedAlpha);
             } else {
                 this.state.setBlend(BLEND_TYPE.NONE);
             }
 
+            // set depth test
+            if(material.depthTest) {
+                this.state.enable(gl.DEPTH_TEST);
+            } else {
+                this.state.disable(gl.DEPTH_TEST);
+            }
+
             // draw
-            gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+            if(object.type === zen3d.OBJECT_TYPE.POINT) {
+                gl.drawArrays(gl.POINTS, 0, geometry.vertexCount);
+            } else {
+                gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+            }
 
             // reset used tex Unit
             this._usedTextureUnits = 0;
@@ -4404,6 +4476,7 @@
 
         // cache all type of objects
         switch (object.type) {
+            case OBJECT_TYPE.POINT:
             case OBJECT_TYPE.MESH:
 
                 // frustum test
@@ -5307,7 +5380,10 @@
             var gl = render.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+
+            if(this.indicesArray.length > 0) {
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+            }
         }
 
         return this.drawLen;
@@ -5316,18 +5392,25 @@
     Geometry.prototype.upload = function(render) {
         var gl = render.gl;
 
-        if(!this.verticesBuffer || !this.indicesBuffer) {
+        if(!this.verticesBuffer) {
             this.verticesBuffer = gl.createBuffer();
-            this.indicesBuffer = gl.createBuffer();
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
 
         var vertices = new Float32Array(this.verticesArray);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-        var indices = new Uint16Array(this.indicesArray);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
+        if(this.indicesArray.length > 0) {
+            if(!this.indicesBuffer) {
+                this.indicesBuffer = gl.createBuffer();
+            }
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+
+            var indices = new Uint16Array(this.indicesArray);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+        }
 
         this.drawLen = this.indicesArray.length;
         this.vertexCount = this.verticesArray.length / this.vertexSize;
@@ -5849,6 +5932,11 @@
         this.envMap = null;
         this.envMapIntensity = 1;
 
+        //blending
+        this.blending = zen3d.BLEND_TYPE.NORMAL;
+
+        // depth test
+        this.depthTest = true;
     }
 
     zen3d.Material = Material;
@@ -5926,6 +6014,26 @@
 
 (function() {
     /**
+     * PointsMaterial
+     * @class
+     */
+    var PointsMaterial = function() {
+        PointsMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.POINT;
+
+        this.size = 1;
+
+        this.sizeAttenuation = true;
+    }
+
+    zen3d.inherit(PointsMaterial, zen3d.Material);
+
+    zen3d.PointsMaterial = PointsMaterial;
+})();
+
+(function() {
+    /**
      * Mesh
      * @class
      */
@@ -5942,6 +6050,26 @@
     zen3d.inherit(Mesh, zen3d.Object3D);
 
     zen3d.Mesh = Mesh;
+})();
+
+(function() {
+    /**
+     * Points
+     * @class
+     */
+    var Points = function(geometry, material) {
+        Points.superClass.constructor.call(this);
+
+        this.geometry = geometry;
+
+        this.material = material;
+
+        this.type = zen3d.OBJECT_TYPE.POINT;
+    }
+
+    zen3d.inherit(Points, zen3d.Object3D);
+
+    zen3d.Points = Points;
 })();
 
 (function() {

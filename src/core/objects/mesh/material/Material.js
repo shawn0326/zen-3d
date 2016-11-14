@@ -28,6 +28,11 @@
         this.envMap = null;
         this.envMapIntensity = 1;
 
+        //blending
+        this.blending = zen3d.BLEND_TYPE.NORMAL;
+
+        // depth test
+        this.depthTest = true;
     }
 
     zen3d.Material = Material;

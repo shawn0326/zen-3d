@@ -832,6 +832,36 @@
             'void main() {',
                 'gl_FragColor = packDepthToRGBA(length(v_ModelPos - lightPos) / 1000.);',
             '}'
+        ].join("\n"),
+
+        // points shader
+        pointsVertex: [
+            vertexCommon,
+            'uniform float u_PointSize;',
+            'uniform float u_PointScale;',
+            'void main() {',
+                pvm_vert,
+                'vec4 mvPosition = u_View * u_Model * vec4(a_Position, 1.0);',
+                '#ifdef USE_SIZEATTENUATION',
+            		'gl_PointSize = u_PointSize * ( u_PointScale / - mvPosition.z );',
+            	'#else',
+            		'gl_PointSize = u_PointSize;',
+            	'#endif',
+            '}'
+        ].join("\n"),
+        pointsFragment: [
+            fragmentCommon,
+            diffuseMap_pars_frag,
+            fog_pars_frag,
+            'void main() {',
+                frag_begin,
+                '#ifdef USE_DIFFUSE_MAP',
+                    'outColor *= texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));',
+                '#endif',
+                frag_end,
+                premultipliedAlpha_frag,
+                fog_frag,
+            '}'
         ].join("\n")
 
     };

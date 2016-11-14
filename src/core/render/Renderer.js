@@ -176,6 +176,7 @@
                     }
 
                     this.state.setBlend(BLEND_TYPE.NONE);
+                    this.state.enable(gl.DEPTH_TEST);
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
@@ -211,10 +212,10 @@
             var renderItem = renderList[i];
             var object = renderItem.object;
             var material = renderItem.material;
+            var geometry = renderItem.geometry;
 
-            var offset = this._uploadGeometry(renderItem.geometry);
+            var offset = this._uploadGeometry(geometry);
 
-            // get program
             var program = zen3d.getProgram(gl, this, object, [
                 ambientLightsNum,
                 directLightsNum,
@@ -229,13 +230,13 @@
                 var location = attributes[key].location;
                 switch(key) {
                     case "a_Position":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 0);
                         break;
                     case "a_Normal":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 4 * 3);
+                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
                         break;
                     case "a_Uv":
-                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * 17, 4 * 13);
+                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
                         break;
                     default:
                         console.warn("attribute " + key + " not found!");
@@ -323,14 +324,23 @@
                         var far = fog.far;
                         gl.uniform1f(location, far);
                         break;
+                    case "u_PointSize":
+                        var size = material.size;
+                        gl.uniform1f(location, size);
+                        break;
+                    case "u_PointScale":
+                        var scale = this.height * 0.5;// three.js do this
+                        gl.uniform1f(location, scale);
+                        break;
                 }
             }
 
             /////////////////light
             var basic = material.type == MATERIAL_TYPE.BASIC;
             var cube = material.type == MATERIAL_TYPE.CUBE;
+            var points = material.type === MATERIAL_TYPE.POINT;
 
-            if(!basic && !cube) {
+            if(!basic && !cube && !points) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
@@ -460,14 +470,26 @@
             }
             ///////
 
+            // set blend
             if(material.transparent) {
-                this.state.setBlend(BLEND_TYPE.NORMAL, material.premultipliedAlpha);
+                this.state.setBlend(material.blending, material.premultipliedAlpha);
             } else {
                 this.state.setBlend(BLEND_TYPE.NONE);
             }
 
+            // set depth test
+            if(material.depthTest) {
+                this.state.enable(gl.DEPTH_TEST);
+            } else {
+                this.state.disable(gl.DEPTH_TEST);
+            }
+
             // draw
-            gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+            if(object.type === zen3d.OBJECT_TYPE.POINT) {
+                gl.drawArrays(gl.POINTS, 0, geometry.vertexCount);
+            } else {
+                gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+            }
 
             // reset used tex Unit
             this._usedTextureUnits = 0;

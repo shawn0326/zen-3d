@@ -34,7 +34,10 @@
             var gl = render.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+
+            if(this.indicesArray.length > 0) {
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+            }
         }
 
         return this.drawLen;
@@ -43,18 +46,25 @@
     Geometry.prototype.upload = function(render) {
         var gl = render.gl;
 
-        if(!this.verticesBuffer || !this.indicesBuffer) {
+        if(!this.verticesBuffer) {
             this.verticesBuffer = gl.createBuffer();
-            this.indicesBuffer = gl.createBuffer();
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
 
         var vertices = new Float32Array(this.verticesArray);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-        var indices = new Uint16Array(this.indicesArray);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
+        if(this.indicesArray.length > 0) {
+            if(!this.indicesBuffer) {
+                this.indicesBuffer = gl.createBuffer();
+            }
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+
+            var indices = new Uint16Array(this.indicesArray);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+        }
 
         this.drawLen = this.indicesArray.length;
         this.vertexCount = this.verticesArray.length / this.vertexSize;

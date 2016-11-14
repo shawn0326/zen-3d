@@ -48,6 +48,7 @@
 
         // cache all type of objects
         switch (object.type) {
+            case OBJECT_TYPE.POINT:
             case OBJECT_TYPE.MESH:
 
                 // frustum test

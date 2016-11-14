@@ -7,7 +7,8 @@
         LIGHT: "light",
         CAMERA: "camera",
         SCENE: "scene",
-        GROUP: "group"
+        GROUP: "group",
+        POINT: "point"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;
@@ -31,7 +32,8 @@
         BASIC: "basic",
         LAMBERT: "lambert",
         PHONG: "phong",
-        CUBE: "cube"
+        CUBE: "cube",
+        POINT: "point"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
@@ -51,7 +53,8 @@
      */
     var BLEND_TYPE = {
         NONE: "none",
-        NORMAL: "normal"
+        NORMAL: "normal",
+        ADD: "add"
     };
 
     zen3d.BLEND_TYPE = BLEND_TYPE;
