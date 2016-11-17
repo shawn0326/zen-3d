@@ -45,19 +45,19 @@
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 	        var phong = new zen3d.PhongMaterial();
-	        phong.color = 0xffffff;
+	        phong.color.setHex(0xffffff);
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 
 	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color = 0xffffff;
+	        ambientLight.color.setHex(0xffffff);
 	        ambientLight.intensity = 0.2;
 	        scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight();
 	        directionalLight.intensity = 0.5;
 	        directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        directionalLight.color = 0xffffff;
+	        directionalLight.color.setHex(0xffffff);
 	        directionalLight.position.set(-40, 40, 0);
 	        scene.add(directionalLight);
 

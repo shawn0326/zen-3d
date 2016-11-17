@@ -10,7 +10,7 @@
 
         this.specular = 30;
 
-        this.specularColor = 0xffffff;
+        this.specularColor = new zen3d.Color3(0xffffff);
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);

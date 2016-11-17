@@ -99,19 +99,6 @@
     zen3d.getExtension = getExtension;
 
     /**
-     * hex to rgb
-     */
-    var hex2RGB = function(hex) {
-        var r = (hex >> 16) & 0xff;
-        var g = (hex >> 8) & 0xff;
-        var b = hex & 0xff;
-
-        return [r, g, b];
-    }
-
-    zen3d.hex2RGB = hex2RGB;
-
-    /**
      * create checker board pixels
      */
     var createCheckerBoardPixels = function(width, height, blockSize) {

@@ -11,7 +11,7 @@
         this.lightType = "";
 
         // default light color is white
-        this.color = 0xffffff;
+        this.color = new zen3d.Color3(0xffffff);
 
         // light intensity, default 1
         this.intensity = 1;

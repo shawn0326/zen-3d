@@ -28,6 +28,7 @@ var filesSrc = [
     "core/math/Sphere.js",
     "core/math/Plane.js",
     "core/math/Frustum.js",
+    "core/math/Color3.js",
 
     // event
     "core/EventDispatcher.js",

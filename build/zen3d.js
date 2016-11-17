@@ -99,19 +99,6 @@
     zen3d.getExtension = getExtension;
 
     /**
-     * hex to rgb
-     */
-    var hex2RGB = function(hex) {
-        var r = (hex >> 16) & 0xff;
-        var g = (hex >> 8) & 0xff;
-        var b = hex & 0xff;
-
-        return [r, g, b];
-    }
-
-    zen3d.hex2RGB = hex2RGB;
-
-    /**
      * create checker board pixels
      */
     var createCheckerBoardPixels = function(width, height, blockSize) {
@@ -1925,6 +1912,78 @@
     }();
 
     zen3d.Frustum = Frustum;
+})();
+(function() {
+    var Color3 = function(r, g, b) {
+        this.r = 0;
+        this.g = 0;
+        this.b = 0;
+
+        if(g === undefined && b === undefined) {
+            return this.setHex(r);
+        }
+
+        return this.setRGB(r, g, b);
+    }
+
+    // set from hex
+    Color3.prototype.setHex = function(hex) {
+        hex = Math.floor(hex);
+
+        this.r = (hex >> 16 & 255) / 255;
+        this.g = (hex >> 8 & 255) / 255;
+        this.b = (hex & 255) / 255;
+
+        return this;
+    }
+
+    // set from RGB
+    Color3.prototype.setRGB = function(r, g, b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+
+        return this;
+    }
+
+    // set from HSL
+    Color3.prototype.setHSL = function() {
+
+        function euclideanModulo(n, m) {
+            return ((n % m) + m) % m;
+        }
+
+        function hue2rgb(p, q, t) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * 6 * (2 / 3 - t);
+            return p;
+        }
+
+        return function setHSL(h, s, l) {
+            // h,s,l ranges are in 0.0 - 1.0
+            h = euclideanModulo(h, 1);
+            s = Math.max(0, Math.min(1, s));
+            l = Math.max(0, Math.min(1, l));
+
+            if (s === 0) {
+                this.r = this.g = this.b = l;
+            } else {
+                var p = l <= 0.5 ? l * (1 + s) : l + s - (l * s);
+                var q = (2 * l) - p;
+
+                this.r = hue2rgb(q, p, h + 1 / 3);
+                this.g = hue2rgb(q, p, h);
+                this.b = hue2rgb(q, p, h - 1 / 3);
+            }
+            return this;
+        };
+
+    }();
+
+    zen3d.Color3 = Color3;
 })();
 (function() {
     /**
@@ -4112,8 +4171,8 @@
                         break;
 
                     case "u_Color":
-                        var color = zen3d.hex2RGB(material.color);
-                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        var color = material.color;
+                        gl.uniform3f(location, color.r, color.g, color.b);
                         break;
                     case "u_Opacity":
                         gl.uniform1f(location, material.opacity);
@@ -4148,16 +4207,16 @@
                         gl.uniform1f(location, specular);
                         break;
                     case "u_SpecularColor":
-                        var color = zen3d.hex2RGB(material.specularColor);
-                        gl.uniform4f(location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                        var color = material.specularColor;
+                        gl.uniform4f(location, color.r, color.g, color.b, 1);
                         break;
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
                         gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
                         break;
                     case "u_FogColor":
-                        var color = zen3d.hex2RGB(fog.color);
-                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        var color = fog.color;
+                        gl.uniform3f(location, color.r, color.g, color.b);
                         break;
                     case "u_FogDensity":
                         var density = fog.density;
@@ -4192,11 +4251,11 @@
                     var light = ambientLights[k];
 
                     var intensity = light.intensity;
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
 
                     var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"].location;
                     var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"].location;
-                    gl.uniform4f(u_Ambient_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Ambient_color, color.r, color.g, color.b, 1);
                     gl.uniform1f(u_Ambient_intensity, intensity);
                 }
 
@@ -4207,14 +4266,14 @@
                     var intensity = light.intensity;
                     light.getWorldDirection(helpVector3);
                     helpVector3.transformDirection(camera.viewMatrix);
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
 
                     var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
                     var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"].location;
                     var u_Directional_color = uniforms["u_Directional[" + k + "].color"].location;
                     gl.uniform3f(u_Directional_direction, helpVector3.x, helpVector3.y, helpVector3.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
-                    gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Directional_color, color.r, color.g, color.b, 1);
 
                     // shadow
                     var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
@@ -4238,7 +4297,7 @@
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
 
                     var intensity = light.intensity;
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
                     var distance = light.distance;
                     var decay = light.decay;
 
@@ -4247,7 +4306,7 @@
                     var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"].location;
                     gl.uniform1f(u_Point_intensity, intensity);
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
-                    gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Point_color, color.r, color.g, color.b, 1);
                     var u_Point_distance = uniforms["u_Point[" + k + "].distance"].location;
                     gl.uniform1f(u_Point_distance, distance);
                     var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
@@ -4274,7 +4333,7 @@
                     gl.uniform3f(u_Spot_position, helpVector3.x, helpVector3.y, helpVector3.z);
 
                     var intensity = light.intensity;
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
                     var distance = light.distance;
                     var decay = light.decay;
 
@@ -4287,7 +4346,7 @@
                     var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"].location;
                     gl.uniform1f(u_Spot_intensity, intensity);
                     var u_Spot_color = uniforms["u_Spot[" + k + "].color"].location;
-                    gl.uniform4f(u_Spot_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Spot_color, color.r, color.g, color.b, 1);
                     var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"].location;
                     gl.uniform1f(u_Spot_distance, distance);
                     var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"].location;
@@ -4864,7 +4923,7 @@
 
         this.fogType = zen3d.FOG_TYPE.NORMAL;
 
-        this.color = color;
+        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
 
         this.near = (near !== undefined) ? near : 1;
         this.far = (far !== undefined) ? far : 1000;
@@ -4881,7 +4940,7 @@
 
         this.fogType = zen3d.FOG_TYPE.EXP2;
 
-        this.color = color;
+        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
 
         this.density = (density !== undefined) ? density : 0.00025;
     }
@@ -4917,7 +4976,7 @@
         this.lightType = "";
 
         // default light color is white
-        this.color = 0xffffff;
+        this.color = new zen3d.Color3(0xffffff);
 
         // light intensity, default 1
         this.intensity = 1;
@@ -5913,8 +5972,7 @@
         this.type = "";
 
         // material color
-        // TODO this should be a diffuse color ?
-        this.color = 0xffffff;
+        this.color = new zen3d.Color3(0xffffff);
 
         // material map
         this.map = null;
@@ -5986,7 +6044,7 @@
 
         this.specular = 30;
 
-        this.specularColor = 0xffffff;
+        this.specularColor = new zen3d.Color3(0xffffff);
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);

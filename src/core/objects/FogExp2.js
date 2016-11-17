@@ -7,7 +7,7 @@
 
         this.fogType = zen3d.FOG_TYPE.EXP2;
 
-        this.color = color;
+        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
 
         this.density = (density !== undefined) ? density : 0.00025;
     }

@@ -58,14 +58,14 @@
 			});
 
 			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color = 0xffffff;
+	        ambientLight.color.setHex(0xffffff);
 	        ambientLight.intensity = 0.5;
 	        scene.add(ambientLight);
 
 	        var spotLight = new zen3d.SpotLight();
 	        spotLight.intensity = 0.5;
 	        spotLight.euler.set(Math.PI / 2, 0, 0);
-	        spotLight.color = 0xffffff;
+	        spotLight.color.setHex(0xffffff);
 			spotLight.angle = Math.PI / 3;
 			spotLight.penumbra = 0.3;
 	        spotLight.position.set(0, 10, 0);

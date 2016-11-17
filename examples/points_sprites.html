@@ -75,7 +75,7 @@
 				var param = params[j];
 
 				var pointsMaterial = new zen3d.PointsMaterial();
-				pointsMaterial.color = 0xffffff;
+				pointsMaterial.color.setHex(0xffffff);
 				pointsMaterial.map = param[0];
 				pointsMaterial.size = param[1];
 				pointsMaterial.blending = zen3d.BLEND_TYPE.ADD;

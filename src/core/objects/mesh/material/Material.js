@@ -9,8 +9,7 @@
         this.type = "";
 
         // material color
-        // TODO this should be a diffuse color ?
-        this.color = 0xffffff;
+        this.color = new zen3d.Color3(0xffffff);
 
         // material map
         this.map = null;

@@ -265,8 +265,8 @@
                         break;
 
                     case "u_Color":
-                        var color = zen3d.hex2RGB(material.color);
-                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        var color = material.color;
+                        gl.uniform3f(location, color.r, color.g, color.b);
                         break;
                     case "u_Opacity":
                         gl.uniform1f(location, material.opacity);
@@ -301,16 +301,16 @@
                         gl.uniform1f(location, specular);
                         break;
                     case "u_SpecularColor":
-                        var color = zen3d.hex2RGB(material.specularColor);
-                        gl.uniform4f(location, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                        var color = material.specularColor;
+                        gl.uniform4f(location, color.r, color.g, color.b, 1);
                         break;
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
                         gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
                         break;
                     case "u_FogColor":
-                        var color = zen3d.hex2RGB(fog.color);
-                        gl.uniform3f(location, color[0] / 255, color[1] / 255, color[2] / 255);
+                        var color = fog.color;
+                        gl.uniform3f(location, color.r, color.g, color.b);
                         break;
                     case "u_FogDensity":
                         var density = fog.density;
@@ -345,11 +345,11 @@
                     var light = ambientLights[k];
 
                     var intensity = light.intensity;
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
 
                     var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"].location;
                     var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"].location;
-                    gl.uniform4f(u_Ambient_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Ambient_color, color.r, color.g, color.b, 1);
                     gl.uniform1f(u_Ambient_intensity, intensity);
                 }
 
@@ -360,14 +360,14 @@
                     var intensity = light.intensity;
                     light.getWorldDirection(helpVector3);
                     helpVector3.transformDirection(camera.viewMatrix);
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
 
                     var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
                     var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"].location;
                     var u_Directional_color = uniforms["u_Directional[" + k + "].color"].location;
                     gl.uniform3f(u_Directional_direction, helpVector3.x, helpVector3.y, helpVector3.z);
                     gl.uniform1f(u_Directional_intensity, intensity);
-                    gl.uniform4f(u_Directional_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Directional_color, color.r, color.g, color.b, 1);
 
                     // shadow
                     var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
@@ -391,7 +391,7 @@
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
 
                     var intensity = light.intensity;
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
                     var distance = light.distance;
                     var decay = light.decay;
 
@@ -400,7 +400,7 @@
                     var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"].location;
                     gl.uniform1f(u_Point_intensity, intensity);
                     var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
-                    gl.uniform4f(u_Point_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Point_color, color.r, color.g, color.b, 1);
                     var u_Point_distance = uniforms["u_Point[" + k + "].distance"].location;
                     gl.uniform1f(u_Point_distance, distance);
                     var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
@@ -427,7 +427,7 @@
                     gl.uniform3f(u_Spot_position, helpVector3.x, helpVector3.y, helpVector3.z);
 
                     var intensity = light.intensity;
-                    var color = zen3d.hex2RGB(light.color);
+                    var color = light.color;
                     var distance = light.distance;
                     var decay = light.decay;
 
@@ -440,7 +440,7 @@
                     var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"].location;
                     gl.uniform1f(u_Spot_intensity, intensity);
                     var u_Spot_color = uniforms["u_Spot[" + k + "].color"].location;
-                    gl.uniform4f(u_Spot_color, color[0] / 255, color[1] / 255, color[2] / 255, 1);
+                    gl.uniform4f(u_Spot_color, color.r, color.g, color.b, 1);
                     var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"].location;
                     gl.uniform1f(u_Spot_distance, distance);
                     var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"].location;

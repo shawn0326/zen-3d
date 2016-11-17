@@ -47,32 +47,32 @@
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 	        var phong = new zen3d.PhongMaterial();
-	        phong.color = 0xffffff;
+	        phong.color.setHex(0xffffff);
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.color = 0xffffff;
+	        lambert.color.setHex(0xffffff);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 	        scene.add(plane);
 
 	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color = 0xffffff;
+	        ambientLight.color.setHex(0xffffff);
 	        ambientLight.intensity = 0.2;
 	        scene.add(ambientLight);
 
 	        var pointLight = new zen3d.PointLight();
 	        pointLight.intensity = 0.8;
-	        pointLight.color = 0xffffff;
+	        pointLight.color.setHex(0xffffff);
 			pointLight.distance = 80;
 	        pointLight.position.set(-20, 20, 0);
 	        scene.add(pointLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.color = 0xffffff;
+	        basic.color.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(-20, 20, 0);
 	        scene.add(lightBall);

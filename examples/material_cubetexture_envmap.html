@@ -60,14 +60,14 @@
 
 			var sphere_geometry = new zen3d.SphereGeometry(20, 20, 20);
 			var phong = new zen3d.PhongMaterial();
-			phong.color = 0xffffff;
+			phong.color.setHex(0xffffff);
 			phong.envMap = cube_texture;
 			var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 
 			var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.intensity = 0.1;
-	        ambientLight.color = 0xffffff;
+	        ambientLight.color.setHex(0xffffff);
 	        scene.add(ambientLight);
 
 	        var camera = new zen3d.Camera();
