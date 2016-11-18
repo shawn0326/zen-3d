@@ -46,12 +46,33 @@ var filesSrc = [
     "core/render/RenderTarget2D.js",
     "core/render/RenderTargetCube.js",
 
+    // geometry
+    "core/geometry/Geometry.js",
+    "core/geometry/CubeGeometry.js",
+    "core/geometry/PlaneGeometry.js",
+    "core/geometry/SphereGeometry.js",
+
+    // texture
+    "core/texture/TextureBase.js",
+    "core/texture/Texture2D.js",
+    "core/texture/TextureCube.js",
+
+    // material
+    "core/material/Material.js",
+    "core/material/BasicMaterial.js",
+    "core/material/LambertMaterial.js",
+    "core/material/PhongMaterial.js",
+    "core/material/CubeMaterial.js",
+    "core/material/PointsMaterial.js",
+
     // objects
     "core/objects/Object3D.js",
+
     // scene
     "core/objects/Scene.js",
-    "core/objects/Fog.js",
-    "core/objects/FogExp2.js",
+    "core/objects/fog/Fog.js",
+    "core/objects/fog/FogExp2.js",
+
     // group
     "core/objects/Group.js",
 
@@ -68,26 +89,8 @@ var filesSrc = [
     // camera
     "core/objects/camera/Camera.js",
 
-    // mesh
-    "core/objects/mesh/geometry/Geometry.js",
-    "core/objects/mesh/geometry/CubeGeometry.js",
-    "core/objects/mesh/geometry/PlaneGeometry.js",
-    "core/objects/mesh/geometry/SphereGeometry.js",
-
-    // texture
-    "core/texture/TextureBase.js",
-    "core/texture/Texture2D.js",
-    "core/texture/TextureCube.js",
-
-    "core/objects/mesh/material/Material.js",
-    "core/objects/mesh/material/BasicMaterial.js",
-    "core/objects/mesh/material/LambertMaterial.js",
-    "core/objects/mesh/material/PhongMaterial.js",
-    "core/objects/mesh/material/CubeMaterial.js",
-    "core/objects/mesh/material/PointsMaterial.js",
-
-    "core/objects/mesh/Mesh.js",
-    "core/objects/mesh/Points.js",
+    "core/objects/Mesh.js",
+    "core/objects/Points.js",
 
     //loader
     "core/loader/AssimpJsonLoader.js",

@@ -4740,671 +4740,6 @@
 })();
 (function() {
     /**
-     * Object3D
-     * @class
-     */
-    var Object3D = function(geometry, material) {
-
-        // a custom name for this object
-        this.name = "";
-
-        // type of this object, set by subclass
-        this.type = "";
-
-        // position
-        this.position = new zen3d.Vector3();
-        // scale
-        this.scale = new zen3d.Vector3(1, 1, 1);
-
-        // euler rotate
-        var euler = this.euler = new zen3d.Euler();
-        // quaternion rotate
-        var quaternion = this.quaternion = new zen3d.Quaternion();
-
-        // bind euler and quaternion
-        euler.onChange(function() {
-            quaternion.setFromEuler(euler, false);
-        });
-        quaternion.onChange(function() {
-            euler.setFromQuaternion(quaternion, undefined, false);
-        });
-
-        // transform matrix
-        this.matrix = new zen3d.Matrix4();
-        // world transform matrix
-        this.worldMatrix = new zen3d.Matrix4();
-
-        // children
-        this.children = new Array();
-        // parent
-        this.parent = null;
-
-        // shadow
-        this.castShadow = false;
-        this.receiveShadow = false;
-
-        // frustum test
-        this.frustumCulled = true;
-    }
-
-    Object.defineProperties(Object3D.prototype, {
-        /**
-         * rotation set by euler
-         **/
-        rotation: {
-            get: function() {
-                return this.euler;
-            },
-            set: function(euler) {
-                var _euler = this.euler;
-                _euler.copyFrom(euler);
-
-                this.quaternion.setFromEuler(euler);
-            }
-        }
-    });
-
-    /**
-     * add child to object3d
-     */
-    Object3D.prototype.add = function(object) {
-        this.children.push(object);
-        object.parent = this;
-    }
-
-    /**
-     * remove child from object3d
-     */
-    Object3D.prototype.remove = function(object) {
-        var index = this.children.indexOf(object);
-        if (index !== -1) {
-            this.children.splice(index, 1);
-        }
-        object.parent = null;
-    }
-
-    /**
-     * get object by name
-     */
-    Object3D.prototype.getObjectByName = function(name) {
-        return this.getObjectByProperty('name', name);
-    }
-
-    /**
-     * get object by property
-     */
-    Object3D.prototype.getObjectByProperty = function(name, value) {
-        if (this[name] === value) return this;
-
-        for (var i = 0, l = this.children.length; i < l; i++) {
-
-            var child = this.children[i];
-            var object = child.getObjectByProperty(name, value);
-
-            if (object !== undefined) {
-
-                return object;
-
-            }
-
-        }
-
-        return undefined;
-    }
-
-    /**
-     * update matrix
-     */
-    Object3D.prototype.updateMatrix = function() {
-        var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
-
-        this.worldMatrix.copy(matrix);
-
-        if (this.parent) {
-            var parentMatrix = this.parent.worldMatrix;
-            this.worldMatrix.premultiply(parentMatrix);
-        }
-
-        var children = this.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            children[i].updateMatrix();
-        }
-    }
-
-    /*
-     * get world direction
-     * must call after world matrix updated
-     */
-    Object3D.prototype.getWorldDirection = function() {
-
-        var position = new zen3d.Vector3();
-        var quaternion = new zen3d.Quaternion();
-        var scale = new zen3d.Vector3();
-
-        return function getWorldDirection(optionalTarget) {
-
-            var result = optionalTarget || new zen3d.Vector3();
-
-            this.worldMatrix.decompose(position, quaternion, scale);
-
-            result.set(0, 0, 1).applyQuaternion(quaternion);
-
-            return result;
-
-        };
-    }();
-
-    zen3d.Object3D = Object3D;
-})();
-(function() {
-    /**
-     * Scene
-     * @class
-     */
-    var Scene = function() {
-        Scene.superClass.constructor.call(this);
-
-        this.type = zen3d.OBJECT_TYPE.SCENE;
-
-        this.fog = null;
-    }
-
-    zen3d.inherit(Scene, zen3d.Object3D);
-
-    zen3d.Scene = Scene;
-})();
-
-(function() {
-    /**
-     * Fog
-     * @class
-     */
-    var Fog = function(color, near, far) {
-
-        this.fogType = zen3d.FOG_TYPE.NORMAL;
-
-        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
-
-        this.near = (near !== undefined) ? near : 1;
-        this.far = (far !== undefined) ? far : 1000;
-    }
-
-    zen3d.Fog = Fog;
-})();
-(function() {
-    /**
-     * FogExp2
-     * @class
-     */
-    var FogExp2 = function(color, density) {
-
-        this.fogType = zen3d.FOG_TYPE.EXP2;
-
-        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
-
-        this.density = (density !== undefined) ? density : 0.00025;
-    }
-
-    zen3d.FogExp2 = FogExp2;
-})();
-(function() {
-    /**
-     * Group
-     * @class
-     */
-    var Group = function() {
-        Group.superClass.constructor.call(this);
-
-        this.type = zen3d.OBJECT_TYPE.GROUP;
-    }
-
-    zen3d.inherit(Group, zen3d.Object3D);
-
-    zen3d.Group = Group;
-})();
-
-(function() {
-    /**
-     * Light
-     * @class
-     */
-    var Light = function() {
-        Light.superClass.constructor.call(this);
-
-        this.type = zen3d.OBJECT_TYPE.LIGHT;
-
-        this.lightType = "";
-
-        // default light color is white
-        this.color = new zen3d.Color3(0xffffff);
-
-        // light intensity, default 1
-        this.intensity = 1;
-    }
-
-    zen3d.inherit(Light, zen3d.Object3D);
-
-    zen3d.Light = Light;
-})();
-
-(function() {
-    /**
-     * AmbientLight
-     * @class
-     */
-    var AmbientLight = function() {
-        AmbientLight.superClass.constructor.call(this);
-
-        this.lightType = zen3d.LIGHT_TYPE.AMBIENT;
-    }
-
-    zen3d.inherit(AmbientLight, zen3d.Light);
-
-    zen3d.AmbientLight = AmbientLight;
-})();
-
-(function() {
-    /**
-     * DirectionalLight
-     * @class
-     */
-    var DirectionalLight = function() {
-        DirectionalLight.superClass.constructor.call(this);
-
-        this.lightType = zen3d.LIGHT_TYPE.DIRECT;
-
-        this.shadow = new zen3d.DirectionalLightShadow();
-    }
-
-    zen3d.inherit(DirectionalLight, zen3d.Light);
-
-    zen3d.DirectionalLight = DirectionalLight;
-})();
-
-(function() {
-    /**
-     * PointLight
-     * @class
-     */
-    var PointLight = function() {
-        PointLight.superClass.constructor.call(this);
-
-        this.lightType = zen3d.LIGHT_TYPE.POINT;
-
-        // decay of this light
-        this.decay = 2;
-
-        // distance of this light
-        this.distance = 200;
-
-        this.shadow = new zen3d.PointLightShadow();
-    }
-
-    zen3d.inherit(PointLight, zen3d.Light);
-
-    zen3d.PointLight = PointLight;
-})();
-
-(function() {
-    /**
-     * SpotLight
-     * @class
-     */
-    var SpotLight = function() {
-        SpotLight.superClass.constructor.call(this);
-
-        this.lightType = zen3d.LIGHT_TYPE.SPOT;
-
-        // decay of this light
-        this.decay = 2;
-
-        // distance of this light
-        this.distance = 200;
-
-        // from 0 to 1
-        this.penumbra = 0;
-
-        this.angle = Math.PI / 6;
-
-        this.shadow = new zen3d.SpotLightShadow();
-    }
-
-    zen3d.inherit(SpotLight, zen3d.Light);
-
-    zen3d.SpotLight = SpotLight;
-})();
-
-(function() {
-    /**
-     * DirectionalLightShadow
-     * @class
-     */
-    var DirectionalLightShadow = function() {
-        this.camera = new zen3d.Camera();
-
-        this.matrix = new zen3d.Matrix4();
-
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
-
-        var map = this.renderTarget.texture;
-        map.generateMipmaps = false;
-        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
-        this.map = map;
-
-        // the cast shadow window size
-        this.windowSize = 500;
-
-        this._lookTarget = new zen3d.Vector3();
-
-        this._up = new zen3d.Vector3(0, 1, 0);
-    }
-
-    /**
-     * update by light
-     */
-    DirectionalLightShadow.prototype.update = function(light) {
-        this._updateCamera(light);
-        this._updateMatrix();
-    }
-
-    /**
-     * update camera matrix by light
-     */
-    DirectionalLightShadow.prototype._updateCamera = function(light) {
-        var camera = this.camera;
-        var lookTarget = this._lookTarget;
-
-        // set camera position and lookAt(rotation)
-        light.getWorldDirection(this._lookTarget);
-        camera.position.setFromMatrixPosition(light.worldMatrix);
-        lookTarget.set(lookTarget.x + camera.position.x, lookTarget.y + camera.position.y, lookTarget.z + camera.position.z);
-        camera.setLookAt(lookTarget, this._up);
-
-        // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
-
-        // update projection
-        var halfWindowSize = this.windowSize / 2;
-        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, 1, 1000);
-    }
-
-    /**
-     * update shadow matrix
-     */
-    DirectionalLightShadow.prototype._updateMatrix = function() {
-        var matrix = this.matrix;
-        var camera = this.camera;
-
-        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
-        matrix.set(
-            0.5, 0.0, 0.0, 0.5,
-            0.0, 0.5, 0.0, 0.5,
-            0.0, 0.0, 0.5, 0.5,
-            0.0, 0.0, 0.0, 1.0
-        );
-
-        matrix.multiply(camera.projectionMatrix);
-        matrix.multiply(camera.viewMatrix);
-    }
-
-    zen3d.DirectionalLightShadow = DirectionalLightShadow;
-})();
-(function() {
-    /**
-     * SpotLightShadow
-     * @class
-     */
-    var SpotLightShadow = function() {
-        this.camera = new zen3d.Camera();
-
-        this.matrix = new zen3d.Matrix4();
-
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
-
-        var map = this.renderTarget.texture;
-        map.generateMipmaps = false;
-        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
-        this.map = map;
-
-        this._lookTarget = new zen3d.Vector3();
-
-        this._up = new zen3d.Vector3(0, 1, 0);
-    }
-
-    /**
-     * update by light
-     */
-    SpotLightShadow.prototype.update = function(light) {
-        this._updateCamera(light);
-        this._updateMatrix();
-    }
-
-    /**
-     * update camera matrix by light
-     */
-    SpotLightShadow.prototype._updateCamera = function(light) {
-        var camera = this.camera;
-        var lookTarget = this._lookTarget;
-
-        // set camera position and lookAt(rotation)
-        light.getWorldDirection(this._lookTarget);
-        camera.position.setFromMatrixPosition(light.worldMatrix);
-        lookTarget.set(lookTarget.x + camera.position.x, lookTarget.y + camera.position.y, lookTarget.z + camera.position.z);
-        camera.setLookAt(lookTarget, this._up);
-
-        // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
-
-        // update projection
-        // TODO distance should be custom?
-        camera.setPerspective(light.angle * 2, 1, 1, 1000);
-    }
-
-    /**
-     * update shadow matrix
-     */
-    SpotLightShadow.prototype._updateMatrix = function() {
-        var matrix = this.matrix;
-        var camera = this.camera;
-
-        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
-        matrix.set(
-            0.5, 0.0, 0.0, 0.5,
-            0.0, 0.5, 0.0, 0.5,
-            0.0, 0.0, 0.5, 0.5,
-            0.0, 0.0, 0.0, 1.0
-        );
-
-        matrix.multiply(camera.projectionMatrix);
-        matrix.multiply(camera.viewMatrix);
-    }
-
-    zen3d.SpotLightShadow = SpotLightShadow;
-})();
-(function() {
-    /**
-     * PointLightShadow
-     * @class
-     */
-    var PointLightShadow = function() {
-        this.camera = new zen3d.Camera();
-
-        this.matrix = new zen3d.Matrix4();
-
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
-
-        var map = this.renderTarget.texture;
-        map.generateMipmaps = false;
-        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
-        this.map = map;
-
-        this._targets = [
-            new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
-            new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1), new zen3d.Vector3(0, 0, -1)
-        ];
-
-        this._ups = [
-            new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1),
-            new zen3d.Vector3(0, 0, -1), new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, -1, 0)
-        ];
-
-        this._lookTarget = new zen3d.Vector3();
-    }
-
-    /**
-     * update by light
-     */
-    PointLightShadow.prototype.update = function(light, face) {
-        this._updateCamera(light, face);
-        this._updateMatrix();
-    }
-
-    /**
-     * update camera matrix by light
-     */
-    PointLightShadow.prototype._updateCamera = function(light, face) {
-        var camera = this.camera;
-        var lookTarget = this._lookTarget;
-        var targets = this._targets;
-        var ups = this._ups;
-
-        // set camera position and lookAt(rotation)
-        camera.position.setFromMatrixPosition(light.worldMatrix);
-        lookTarget.set(targets[face].x + camera.position.x, targets[face].y + camera.position.y, targets[face].z + camera.position.z);
-        camera.setLookAt(lookTarget, ups[face]);
-
-        // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
-
-        // update projection
-        camera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
-    }
-
-    /**
-     * update shadow matrix
-     */
-    PointLightShadow.prototype._updateMatrix = function() {
-        var matrix = this.matrix;
-        var camera = this.camera;
-
-        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
-        matrix.set(
-            0.5, 0.0, 0.0, 0.5,
-            0.0, 0.5, 0.0, 0.5,
-            0.0, 0.0, 0.5, 0.5,
-            0.0, 0.0, 0.0, 1.0
-        );
-
-        matrix.multiply(camera.projectionMatrix);
-        matrix.multiply(camera.viewMatrix);
-    }
-
-    zen3d.PointLightShadow = PointLightShadow;
-})();
-(function() {
-    /**
-     * Camera
-     * @class
-     */
-    var Camera = function() {
-        Camera.superClass.constructor.call(this);
-
-        this.type = zen3d.OBJECT_TYPE.CAMERA;
-
-        // view matrix
-        this.viewMatrix = new zen3d.Matrix4();
-
-        // projection matrix
-        this.projectionMatrix = new zen3d.Matrix4();
-    }
-
-    zen3d.inherit(Camera, zen3d.Object3D);
-
-    /**
-     * set view by look at, this func will set quaternion of this camera
-     */
-    Camera.prototype.setLookAt = function(target, up) {
-        var eye = this.position;
-
-        var zaxis = new zen3d.Vector3();
-        eye.subtract(target, zaxis); // right-hand coordinates system
-        zaxis.normalize();
-
-        var xaxis = new zen3d.Vector3();
-        up.crossProduct(zaxis, xaxis);
-        xaxis.normalize();
-
-        var yaxis = new zen3d.Vector3();
-        zaxis.crossProduct(xaxis, yaxis);
-
-        this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
-            xaxis.x, yaxis.x, zaxis.x, 0,
-            xaxis.y, yaxis.y, zaxis.y, 0,
-            xaxis.z, yaxis.z, zaxis.z, 0,
-            0, 0, 0, 1
-        ));
-    }
-
-    /**
-     * set orthographic projection matrix
-     */
-    Camera.prototype.setOrtho = function(left, right, bottom, top, near, far) {
-        this.projectionMatrix.set(
-            2 / (right - left), 0, 0, -(right + left) / (right - left),
-            0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
-            0, 0, -2 / (far - near), -(far + near) / (far - near),
-            0, 0, 0, 1
-        );
-    }
-
-    /**
-     * set perspective projection matrix
-     */
-    Camera.prototype.setPerspective = function(fov, aspect, near, far) {
-        this.projectionMatrix.set(
-            1 / (aspect * Math.tan(fov / 2)), 0, 0, 0,
-            0, 1 / (Math.tan(fov / 2)), 0, 0,
-            0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
-            0, 0, -1, 0
-        );
-    }
-
-    /*
-     * get world direction (override)
-     * must call after world matrix updated
-     */
-    Camera.prototype.getWorldDirection = function() {
-
-        var position = new zen3d.Vector3();
-        var quaternion = new zen3d.Quaternion();
-        var scale = new zen3d.Vector3();
-
-        return function getWorldQuaternion(optionalTarget) {
-
-            var result = optionalTarget || new zen3d.Vector3();
-
-            this.worldMatrix.decompose(position, quaternion, scale);
-
-            result.set(0, 0, -1).applyQuaternion(quaternion);
-
-            return result;
-
-        };
-    }();
-
-    zen3d.Camera = Camera;
-})();
-(function() {
-    /**
      * Geometry data
      * @class
      */
@@ -6090,6 +5425,671 @@
     zen3d.PointsMaterial = PointsMaterial;
 })();
 
+(function() {
+    /**
+     * Object3D
+     * @class
+     */
+    var Object3D = function(geometry, material) {
+
+        // a custom name for this object
+        this.name = "";
+
+        // type of this object, set by subclass
+        this.type = "";
+
+        // position
+        this.position = new zen3d.Vector3();
+        // scale
+        this.scale = new zen3d.Vector3(1, 1, 1);
+
+        // euler rotate
+        var euler = this.euler = new zen3d.Euler();
+        // quaternion rotate
+        var quaternion = this.quaternion = new zen3d.Quaternion();
+
+        // bind euler and quaternion
+        euler.onChange(function() {
+            quaternion.setFromEuler(euler, false);
+        });
+        quaternion.onChange(function() {
+            euler.setFromQuaternion(quaternion, undefined, false);
+        });
+
+        // transform matrix
+        this.matrix = new zen3d.Matrix4();
+        // world transform matrix
+        this.worldMatrix = new zen3d.Matrix4();
+
+        // children
+        this.children = new Array();
+        // parent
+        this.parent = null;
+
+        // shadow
+        this.castShadow = false;
+        this.receiveShadow = false;
+
+        // frustum test
+        this.frustumCulled = true;
+    }
+
+    Object.defineProperties(Object3D.prototype, {
+        /**
+         * rotation set by euler
+         **/
+        rotation: {
+            get: function() {
+                return this.euler;
+            },
+            set: function(euler) {
+                var _euler = this.euler;
+                _euler.copyFrom(euler);
+
+                this.quaternion.setFromEuler(euler);
+            }
+        }
+    });
+
+    /**
+     * add child to object3d
+     */
+    Object3D.prototype.add = function(object) {
+        this.children.push(object);
+        object.parent = this;
+    }
+
+    /**
+     * remove child from object3d
+     */
+    Object3D.prototype.remove = function(object) {
+        var index = this.children.indexOf(object);
+        if (index !== -1) {
+            this.children.splice(index, 1);
+        }
+        object.parent = null;
+    }
+
+    /**
+     * get object by name
+     */
+    Object3D.prototype.getObjectByName = function(name) {
+        return this.getObjectByProperty('name', name);
+    }
+
+    /**
+     * get object by property
+     */
+    Object3D.prototype.getObjectByProperty = function(name, value) {
+        if (this[name] === value) return this;
+
+        for (var i = 0, l = this.children.length; i < l; i++) {
+
+            var child = this.children[i];
+            var object = child.getObjectByProperty(name, value);
+
+            if (object !== undefined) {
+
+                return object;
+
+            }
+
+        }
+
+        return undefined;
+    }
+
+    /**
+     * update matrix
+     */
+    Object3D.prototype.updateMatrix = function() {
+        var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
+
+        this.worldMatrix.copy(matrix);
+
+        if (this.parent) {
+            var parentMatrix = this.parent.worldMatrix;
+            this.worldMatrix.premultiply(parentMatrix);
+        }
+
+        var children = this.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            children[i].updateMatrix();
+        }
+    }
+
+    /*
+     * get world direction
+     * must call after world matrix updated
+     */
+    Object3D.prototype.getWorldDirection = function() {
+
+        var position = new zen3d.Vector3();
+        var quaternion = new zen3d.Quaternion();
+        var scale = new zen3d.Vector3();
+
+        return function getWorldDirection(optionalTarget) {
+
+            var result = optionalTarget || new zen3d.Vector3();
+
+            this.worldMatrix.decompose(position, quaternion, scale);
+
+            result.set(0, 0, 1).applyQuaternion(quaternion);
+
+            return result;
+
+        };
+    }();
+
+    zen3d.Object3D = Object3D;
+})();
+(function() {
+    /**
+     * Scene
+     * @class
+     */
+    var Scene = function() {
+        Scene.superClass.constructor.call(this);
+
+        this.type = zen3d.OBJECT_TYPE.SCENE;
+
+        this.fog = null;
+    }
+
+    zen3d.inherit(Scene, zen3d.Object3D);
+
+    zen3d.Scene = Scene;
+})();
+
+(function() {
+    /**
+     * Fog
+     * @class
+     */
+    var Fog = function(color, near, far) {
+
+        this.fogType = zen3d.FOG_TYPE.NORMAL;
+
+        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
+
+        this.near = (near !== undefined) ? near : 1;
+        this.far = (far !== undefined) ? far : 1000;
+    }
+
+    zen3d.Fog = Fog;
+})();
+(function() {
+    /**
+     * FogExp2
+     * @class
+     */
+    var FogExp2 = function(color, density) {
+
+        this.fogType = zen3d.FOG_TYPE.EXP2;
+
+        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
+
+        this.density = (density !== undefined) ? density : 0.00025;
+    }
+
+    zen3d.FogExp2 = FogExp2;
+})();
+(function() {
+    /**
+     * Group
+     * @class
+     */
+    var Group = function() {
+        Group.superClass.constructor.call(this);
+
+        this.type = zen3d.OBJECT_TYPE.GROUP;
+    }
+
+    zen3d.inherit(Group, zen3d.Object3D);
+
+    zen3d.Group = Group;
+})();
+
+(function() {
+    /**
+     * Light
+     * @class
+     */
+    var Light = function() {
+        Light.superClass.constructor.call(this);
+
+        this.type = zen3d.OBJECT_TYPE.LIGHT;
+
+        this.lightType = "";
+
+        // default light color is white
+        this.color = new zen3d.Color3(0xffffff);
+
+        // light intensity, default 1
+        this.intensity = 1;
+    }
+
+    zen3d.inherit(Light, zen3d.Object3D);
+
+    zen3d.Light = Light;
+})();
+
+(function() {
+    /**
+     * AmbientLight
+     * @class
+     */
+    var AmbientLight = function() {
+        AmbientLight.superClass.constructor.call(this);
+
+        this.lightType = zen3d.LIGHT_TYPE.AMBIENT;
+    }
+
+    zen3d.inherit(AmbientLight, zen3d.Light);
+
+    zen3d.AmbientLight = AmbientLight;
+})();
+
+(function() {
+    /**
+     * DirectionalLight
+     * @class
+     */
+    var DirectionalLight = function() {
+        DirectionalLight.superClass.constructor.call(this);
+
+        this.lightType = zen3d.LIGHT_TYPE.DIRECT;
+
+        this.shadow = new zen3d.DirectionalLightShadow();
+    }
+
+    zen3d.inherit(DirectionalLight, zen3d.Light);
+
+    zen3d.DirectionalLight = DirectionalLight;
+})();
+
+(function() {
+    /**
+     * PointLight
+     * @class
+     */
+    var PointLight = function() {
+        PointLight.superClass.constructor.call(this);
+
+        this.lightType = zen3d.LIGHT_TYPE.POINT;
+
+        // decay of this light
+        this.decay = 2;
+
+        // distance of this light
+        this.distance = 200;
+
+        this.shadow = new zen3d.PointLightShadow();
+    }
+
+    zen3d.inherit(PointLight, zen3d.Light);
+
+    zen3d.PointLight = PointLight;
+})();
+
+(function() {
+    /**
+     * SpotLight
+     * @class
+     */
+    var SpotLight = function() {
+        SpotLight.superClass.constructor.call(this);
+
+        this.lightType = zen3d.LIGHT_TYPE.SPOT;
+
+        // decay of this light
+        this.decay = 2;
+
+        // distance of this light
+        this.distance = 200;
+
+        // from 0 to 1
+        this.penumbra = 0;
+
+        this.angle = Math.PI / 6;
+
+        this.shadow = new zen3d.SpotLightShadow();
+    }
+
+    zen3d.inherit(SpotLight, zen3d.Light);
+
+    zen3d.SpotLight = SpotLight;
+})();
+
+(function() {
+    /**
+     * DirectionalLightShadow
+     * @class
+     */
+    var DirectionalLightShadow = function() {
+        this.camera = new zen3d.Camera();
+
+        this.matrix = new zen3d.Matrix4();
+
+        // size force to 1024x1024
+        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
+
+        var map = this.renderTarget.texture;
+        map.generateMipmaps = false;
+        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+        this.map = map;
+
+        // the cast shadow window size
+        this.windowSize = 500;
+
+        this._lookTarget = new zen3d.Vector3();
+
+        this._up = new zen3d.Vector3(0, 1, 0);
+    }
+
+    /**
+     * update by light
+     */
+    DirectionalLightShadow.prototype.update = function(light) {
+        this._updateCamera(light);
+        this._updateMatrix();
+    }
+
+    /**
+     * update camera matrix by light
+     */
+    DirectionalLightShadow.prototype._updateCamera = function(light) {
+        var camera = this.camera;
+        var lookTarget = this._lookTarget;
+
+        // set camera position and lookAt(rotation)
+        light.getWorldDirection(this._lookTarget);
+        camera.position.setFromMatrixPosition(light.worldMatrix);
+        lookTarget.set(lookTarget.x + camera.position.x, lookTarget.y + camera.position.y, lookTarget.z + camera.position.z);
+        camera.setLookAt(lookTarget, this._up);
+
+        // update view matrix
+        camera.updateMatrix(); // just copy matrix to world matrix
+        camera.viewMatrix.getInverse(camera.worldMatrix);
+
+        // update projection
+        var halfWindowSize = this.windowSize / 2;
+        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, 1, 1000);
+    }
+
+    /**
+     * update shadow matrix
+     */
+    DirectionalLightShadow.prototype._updateMatrix = function() {
+        var matrix = this.matrix;
+        var camera = this.camera;
+
+        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
+        matrix.set(
+            0.5, 0.0, 0.0, 0.5,
+            0.0, 0.5, 0.0, 0.5,
+            0.0, 0.0, 0.5, 0.5,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        matrix.multiply(camera.projectionMatrix);
+        matrix.multiply(camera.viewMatrix);
+    }
+
+    zen3d.DirectionalLightShadow = DirectionalLightShadow;
+})();
+(function() {
+    /**
+     * SpotLightShadow
+     * @class
+     */
+    var SpotLightShadow = function() {
+        this.camera = new zen3d.Camera();
+
+        this.matrix = new zen3d.Matrix4();
+
+        // size force to 1024x1024
+        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
+
+        var map = this.renderTarget.texture;
+        map.generateMipmaps = false;
+        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+        this.map = map;
+
+        this._lookTarget = new zen3d.Vector3();
+
+        this._up = new zen3d.Vector3(0, 1, 0);
+    }
+
+    /**
+     * update by light
+     */
+    SpotLightShadow.prototype.update = function(light) {
+        this._updateCamera(light);
+        this._updateMatrix();
+    }
+
+    /**
+     * update camera matrix by light
+     */
+    SpotLightShadow.prototype._updateCamera = function(light) {
+        var camera = this.camera;
+        var lookTarget = this._lookTarget;
+
+        // set camera position and lookAt(rotation)
+        light.getWorldDirection(this._lookTarget);
+        camera.position.setFromMatrixPosition(light.worldMatrix);
+        lookTarget.set(lookTarget.x + camera.position.x, lookTarget.y + camera.position.y, lookTarget.z + camera.position.z);
+        camera.setLookAt(lookTarget, this._up);
+
+        // update view matrix
+        camera.updateMatrix(); // just copy matrix to world matrix
+        camera.viewMatrix.getInverse(camera.worldMatrix);
+
+        // update projection
+        // TODO distance should be custom?
+        camera.setPerspective(light.angle * 2, 1, 1, 1000);
+    }
+
+    /**
+     * update shadow matrix
+     */
+    SpotLightShadow.prototype._updateMatrix = function() {
+        var matrix = this.matrix;
+        var camera = this.camera;
+
+        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
+        matrix.set(
+            0.5, 0.0, 0.0, 0.5,
+            0.0, 0.5, 0.0, 0.5,
+            0.0, 0.0, 0.5, 0.5,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        matrix.multiply(camera.projectionMatrix);
+        matrix.multiply(camera.viewMatrix);
+    }
+
+    zen3d.SpotLightShadow = SpotLightShadow;
+})();
+(function() {
+    /**
+     * PointLightShadow
+     * @class
+     */
+    var PointLightShadow = function() {
+        this.camera = new zen3d.Camera();
+
+        this.matrix = new zen3d.Matrix4();
+
+        // size force to 1024x1024
+        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
+
+        var map = this.renderTarget.texture;
+        map.generateMipmaps = false;
+        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+        this.map = map;
+
+        this._targets = [
+            new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
+            new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1), new zen3d.Vector3(0, 0, -1)
+        ];
+
+        this._ups = [
+            new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1),
+            new zen3d.Vector3(0, 0, -1), new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, -1, 0)
+        ];
+
+        this._lookTarget = new zen3d.Vector3();
+    }
+
+    /**
+     * update by light
+     */
+    PointLightShadow.prototype.update = function(light, face) {
+        this._updateCamera(light, face);
+        this._updateMatrix();
+    }
+
+    /**
+     * update camera matrix by light
+     */
+    PointLightShadow.prototype._updateCamera = function(light, face) {
+        var camera = this.camera;
+        var lookTarget = this._lookTarget;
+        var targets = this._targets;
+        var ups = this._ups;
+
+        // set camera position and lookAt(rotation)
+        camera.position.setFromMatrixPosition(light.worldMatrix);
+        lookTarget.set(targets[face].x + camera.position.x, targets[face].y + camera.position.y, targets[face].z + camera.position.z);
+        camera.setLookAt(lookTarget, ups[face]);
+
+        // update view matrix
+        camera.updateMatrix(); // just copy matrix to world matrix
+        camera.viewMatrix.getInverse(camera.worldMatrix);
+
+        // update projection
+        camera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
+    }
+
+    /**
+     * update shadow matrix
+     */
+    PointLightShadow.prototype._updateMatrix = function() {
+        var matrix = this.matrix;
+        var camera = this.camera;
+
+        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
+        matrix.set(
+            0.5, 0.0, 0.0, 0.5,
+            0.0, 0.5, 0.0, 0.5,
+            0.0, 0.0, 0.5, 0.5,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        matrix.multiply(camera.projectionMatrix);
+        matrix.multiply(camera.viewMatrix);
+    }
+
+    zen3d.PointLightShadow = PointLightShadow;
+})();
+(function() {
+    /**
+     * Camera
+     * @class
+     */
+    var Camera = function() {
+        Camera.superClass.constructor.call(this);
+
+        this.type = zen3d.OBJECT_TYPE.CAMERA;
+
+        // view matrix
+        this.viewMatrix = new zen3d.Matrix4();
+
+        // projection matrix
+        this.projectionMatrix = new zen3d.Matrix4();
+    }
+
+    zen3d.inherit(Camera, zen3d.Object3D);
+
+    /**
+     * set view by look at, this func will set quaternion of this camera
+     */
+    Camera.prototype.setLookAt = function(target, up) {
+        var eye = this.position;
+
+        var zaxis = new zen3d.Vector3();
+        eye.subtract(target, zaxis); // right-hand coordinates system
+        zaxis.normalize();
+
+        var xaxis = new zen3d.Vector3();
+        up.crossProduct(zaxis, xaxis);
+        xaxis.normalize();
+
+        var yaxis = new zen3d.Vector3();
+        zaxis.crossProduct(xaxis, yaxis);
+
+        this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
+            xaxis.x, yaxis.x, zaxis.x, 0,
+            xaxis.y, yaxis.y, zaxis.y, 0,
+            xaxis.z, yaxis.z, zaxis.z, 0,
+            0, 0, 0, 1
+        ));
+    }
+
+    /**
+     * set orthographic projection matrix
+     */
+    Camera.prototype.setOrtho = function(left, right, bottom, top, near, far) {
+        this.projectionMatrix.set(
+            2 / (right - left), 0, 0, -(right + left) / (right - left),
+            0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
+            0, 0, -2 / (far - near), -(far + near) / (far - near),
+            0, 0, 0, 1
+        );
+    }
+
+    /**
+     * set perspective projection matrix
+     */
+    Camera.prototype.setPerspective = function(fov, aspect, near, far) {
+        this.projectionMatrix.set(
+            1 / (aspect * Math.tan(fov / 2)), 0, 0, 0,
+            0, 1 / (Math.tan(fov / 2)), 0, 0,
+            0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
+            0, 0, -1, 0
+        );
+    }
+
+    /*
+     * get world direction (override)
+     * must call after world matrix updated
+     */
+    Camera.prototype.getWorldDirection = function() {
+
+        var position = new zen3d.Vector3();
+        var quaternion = new zen3d.Quaternion();
+        var scale = new zen3d.Vector3();
+
+        return function getWorldQuaternion(optionalTarget) {
+
+            var result = optionalTarget || new zen3d.Vector3();
+
+            this.worldMatrix.decompose(position, quaternion, scale);
+
+            result.set(0, 0, -1).applyQuaternion(quaternion);
+
+            return result;
+
+        };
+    }();
+
+    zen3d.Camera = Camera;
+})();
 (function() {
     /**
      * Mesh
