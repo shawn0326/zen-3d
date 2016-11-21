@@ -100,7 +100,7 @@
             var image = clampToMaxSize(texture.image, this.capabilities.maxTextureSize);
 
             if (textureNeedsPowerOfTwo(texture) && isPowerOfTwo(image) === false) {
-                image = makePowerOfTwo(image);
+                image = makePowerOf2(image);
             }
 
             var isPowerOfTwoImage = isPowerOfTwo(image);

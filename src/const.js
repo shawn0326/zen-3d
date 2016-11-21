@@ -8,7 +8,8 @@
         CAMERA: "camera",
         SCENE: "scene",
         GROUP: "group",
-        POINT: "point"
+        POINT: "point",
+        CANVAS2D: "canvas2d"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;
@@ -33,7 +34,8 @@
         LAMBERT: "lambert",
         PHONG: "phong",
         CUBE: "cube",
-        POINT: "point"
+        POINT: "point",
+        CANVAS2D: "canvas2d"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;

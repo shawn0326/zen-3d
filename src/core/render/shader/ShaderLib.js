@@ -862,6 +862,28 @@
                 premultipliedAlpha_frag,
                 fog_frag,
             '}'
+        ].join("\n"),
+
+        // canvas2d shader
+        canvas2dVertex: [
+            vertexCommon,
+            'attribute vec2 a_Uv;',
+            'varying vec2 v_Uv;',
+            'void main() {',
+                pvm_vert,
+                'v_Uv = a_Uv;',
+            '}'
+        ].join("\n"),
+        canvas2dFragment: [
+            fragmentCommon,
+            'varying vec2 v_Uv;',
+            'uniform sampler2D spriteTexture;',
+            'void main() {',
+                frag_begin,
+                'outColor *= texture2D(spriteTexture, v_Uv);',
+                frag_end,
+                premultipliedAlpha_frag,
+            '}'
         ].join("\n")
 
     };

@@ -29,5 +29,8 @@ var files = {
 	],
 	"points": [
 		"points_sprites"
+	],
+	"canvas2d": [
+		"canvas2d_canvas2d"
 	]
 };

@@ -217,7 +217,8 @@
         CAMERA: "camera",
         SCENE: "scene",
         GROUP: "group",
-        POINT: "point"
+        POINT: "point",
+        CANVAS2D: "canvas2d"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;
@@ -242,7 +243,8 @@
         LAMBERT: "lambert",
         PHONG: "phong",
         CUBE: "cube",
-        POINT: "point"
+        POINT: "point",
+        CANVAS2D: "canvas2d"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
@@ -2402,7 +2404,7 @@
             var image = clampToMaxSize(texture.image, this.capabilities.maxTextureSize);
 
             if (textureNeedsPowerOfTwo(texture) && isPowerOfTwo(image) === false) {
-                image = makePowerOfTwo(image);
+                image = makePowerOf2(image);
             }
 
             var isPowerOfTwoImage = isPowerOfTwo(image);
@@ -3551,6 +3553,28 @@
                 premultipliedAlpha_frag,
                 fog_frag,
             '}'
+        ].join("\n"),
+
+        // canvas2d shader
+        canvas2dVertex: [
+            vertexCommon,
+            'attribute vec2 a_Uv;',
+            'varying vec2 v_Uv;',
+            'void main() {',
+                pvm_vert,
+                'v_Uv = a_Uv;',
+            '}'
+        ].join("\n"),
+        canvas2dFragment: [
+            fragmentCommon,
+            'varying vec2 v_Uv;',
+            'uniform sampler2D spriteTexture;',
+            'void main() {',
+                frag_begin,
+                'outColor *= texture2D(spriteTexture, v_Uv);',
+                frag_end,
+                premultipliedAlpha_frag,
+            '}'
         ].join("\n")
 
     };
@@ -3828,6 +3852,10 @@
 
         var material = object.material;
 
+        if(material.type === MATERIAL_TYPE.CANVAS2D) {
+            return getCanvas2DProgram(gl, render);
+        }
+
         var ambientLightNum = lightsNum[0],
             directLightNum = lightsNum[1],
             pointLightNum = lightsNum[2],
@@ -3891,6 +3919,39 @@
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
                 zen3d.ShaderLib.depthFragment
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
+
+    /**
+     * get canvas2d program, used to render canvas 2d
+     */
+    var getCanvas2DProgram = function(gl, render) {
+        var program;
+        var map = programMap;
+        var code = "canvas2d";
+
+        var precision = render.capabilities.maxPrecision;
+
+        if (map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.canvas2dVertex
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.canvas2dFragment
             ].join("\n");
 
             program = new Program(gl, vshader, fshader);
@@ -4000,6 +4061,7 @@
 
         this.renderList(this.cache.opaqueObjects);
         this.renderList(this.cache.transparentObjects);
+        this.renderList(this.cache.canvas2dObjects);
 
         this.cache.clear();
 
@@ -4142,7 +4204,11 @@
                         gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
                         break;
                     case "a_Uv":
-                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
+                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
+                        } else {
+                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
+                        }
                         break;
                     default:
                         console.warn("attribute " + key + " not found!");
@@ -4242,11 +4308,12 @@
             }
 
             /////////////////light
-            var basic = material.type == MATERIAL_TYPE.BASIC;
-            var cube = material.type == MATERIAL_TYPE.CUBE;
+            var basic = material.type === MATERIAL_TYPE.BASIC;
+            var cube = material.type === MATERIAL_TYPE.CUBE;
             var points = material.type === MATERIAL_TYPE.POINT;
+            var canvas2d = object.type === zen3d.OBJECT_TYPE.CANVAS2D;
 
-            if(!basic && !cube && !points) {
+            if(!basic && !cube && !points && !canvas2d) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
@@ -4393,6 +4460,20 @@
             // draw
             if(object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.vertexCount);
+            } else if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+                var _offset = 0;
+                for(var j = 0; j < object.drawArray.length; j++) {
+                    var drawData = object.drawArray[j];
+
+                    var location = uniforms["spriteTexture"].location;
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(drawData.texture, slot);
+                    gl.uniform1i(location, slot);
+
+                    gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
+                    _offset += drawData.count * 6;
+                    this._usedTextureUnits = 0;
+                }
             } else {
                 gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
             }
@@ -4473,7 +4554,7 @@
 
 		if ( textureUnit >= this.capabilities.maxTextures ) {
 
-			console.warn( 'trying to use ' + textureUnit + ' texture units while this GPU supports only ' + capabilities.maxTextures );
+			console.warn( 'trying to use ' + textureUnit + ' texture units while this GPU supports only ' + this.capabilities.maxTextures );
 
 		}
 
@@ -4498,6 +4579,7 @@
         // render list
         this.opaqueObjects = new Array();
         this.transparentObjects = new Array();
+        this.canvas2dObjects = new Array();
 
         this.shadowObjects = new Array();
 
@@ -4536,6 +4618,7 @@
         // cache all type of objects
         switch (object.type) {
             case OBJECT_TYPE.POINT:
+            case OBJECT_TYPE.CANVAS2D:
             case OBJECT_TYPE.MESH:
 
                 // frustum test
@@ -4552,7 +4635,9 @@
                 var material = object.material;
 
                 var array;
-                if (material.transparent) {
+                if (object.type == OBJECT_TYPE.CANVAS2D) {
+                    array = this.canvas2dObjects;
+                } else if (material.transparent) {
                     array = this.transparentObjects;
                 } else {
                     array = this.opaqueObjects;
@@ -4636,6 +4721,7 @@
     RenderCache.prototype.clear = function() {
         this.transparentObjects.length = 0;
         this.opaqueObjects.length = 0;
+        this.canvas2dObjects.length = 0;
 
         this.shadowObjects.length = 0;
 
@@ -6374,4 +6460,145 @@
     }
 
     zen3d.HoverController = HoverController;
+})();
+(function() {
+    /**
+     * Canvas2D
+     * now is alway behind 3d objects...
+     *
+     * TODO maybe i can add another type of Canvas2D, it can insert to 3D depth test
+     * but i think this must request a framebuffer!! *_*
+     *
+     */
+    var Canvas2D = function(width, height) {
+        Canvas2D.superClass.constructor.call(this);
+
+        this.type = zen3d.OBJECT_TYPE.CANVAS2D;
+
+        this.geometry = new zen3d.Geometry();
+        this.geometry.vertexSize = 5;
+        this.material = new zen3d.Canvas2DMaterial();
+
+        this.width = (width !== undefined) ? width : 0;
+        this.height = (height !== undefined) ? height : 0;
+
+        this.sprites = [];
+        this.drawArray = [];
+    }
+
+    zen3d.inherit(Canvas2D, zen3d.Object3D);
+
+    Canvas2D.prototype.addSprite = function(sprite) {
+        this.sprites.push(sprite);
+    }
+
+    Canvas2D.prototype.updateSprites = function() {
+        var geometry = this.geometry;
+        var vertices = geometry.verticesArray;
+        var indices = geometry.indicesArray;
+        var vertexIndex = 0,
+            indexIndex = 0;
+
+        var sprites = this.sprites;
+
+        for(var i = 0; i < sprites.length; i++) {
+            var sprite = sprites[i];
+
+            var x = sprite.x - this.width / 2;
+            var y = sprite.y - this.height / 2;
+            var w = sprite.width;
+            var h = sprite.height;
+
+            vertices[vertexIndex++] = x;
+            vertices[vertexIndex++] = y;
+            vertices[vertexIndex++] = 0;
+            vertices[vertexIndex++] = 0;
+            vertices[vertexIndex++] = 1;
+
+            vertices[vertexIndex++] = x + w;
+            vertices[vertexIndex++] = y;
+            vertices[vertexIndex++] = 0;
+            vertices[vertexIndex++] = 1;
+            vertices[vertexIndex++] = 1;
+
+            vertices[vertexIndex++] = x + w;
+            vertices[vertexIndex++] = y + h;
+            vertices[vertexIndex++] = 0;
+            vertices[vertexIndex++] = 1;
+            vertices[vertexIndex++] = 0;
+
+            vertices[vertexIndex++] = x;
+            vertices[vertexIndex++] = y + h;
+            vertices[vertexIndex++] = 0;
+            vertices[vertexIndex++] = 0;
+            vertices[vertexIndex++] = 0;
+
+            var vertCount = vertexIndex / 5 - 4;
+
+            indices[indexIndex++] = vertCount + 2;
+            indices[indexIndex++] = vertCount + 1;
+            indices[indexIndex++] = vertCount + 0;
+            indices[indexIndex++] = vertCount + 0;
+            indices[indexIndex++] = vertCount + 3;
+            indices[indexIndex++] = vertCount + 2;
+        }
+        vertices.length = vertexIndex;
+        indices.length = indexIndex;
+
+        geometry.dirty = true;
+
+        // drawArray
+        this.drawArray = [];
+        var currentTexture;
+        for(var i = 0; i < sprites.length; i++) {
+            var sprite = sprites[i];
+            if(currentTexture !== sprite.texture) {
+                this.drawArray.push({texture: sprite.texture, count: 1});
+                currentTexture = sprite.texture;
+            } else {
+                this.drawArray[this.drawArray.length - 1].count++;
+            }
+        }
+
+    }
+
+    // override
+    Canvas2D.prototype.updateMatrix = function() {
+        Canvas2D.superClass.updateMatrix.call(this);
+
+        // update geometry
+        this.updateSprites();
+    }
+
+    zen3d.Canvas2D = Canvas2D;
+})();
+(function() {
+    /**
+     * Canvas2DMaterial
+     * @class
+     */
+    var Canvas2DMaterial = function() {
+        Canvas2DMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
+
+        this.depthTest = false;
+    }
+
+    zen3d.inherit(Canvas2DMaterial, zen3d.Material);
+
+    zen3d.Canvas2DMaterial = Canvas2DMaterial;
+})();
+
+(function() {
+    var Sprite2D = function() {
+        this.x = 0;
+        this.y = 0;
+        this.width = 0;
+        this.height = 0;
+
+        this.texture = null;
+    }
+
+    zen3d.Sprite2D = Sprite2D;
 })();

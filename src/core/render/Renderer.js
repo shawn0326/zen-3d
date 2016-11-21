@@ -94,6 +94,7 @@
 
         this.renderList(this.cache.opaqueObjects);
         this.renderList(this.cache.transparentObjects);
+        this.renderList(this.cache.canvas2dObjects);
 
         this.cache.clear();
 
@@ -236,7 +237,11 @@
                         gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
                         break;
                     case "a_Uv":
-                        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
+                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
+                        } else {
+                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
+                        }
                         break;
                     default:
                         console.warn("attribute " + key + " not found!");
@@ -336,11 +341,12 @@
             }
 
             /////////////////light
-            var basic = material.type == MATERIAL_TYPE.BASIC;
-            var cube = material.type == MATERIAL_TYPE.CUBE;
+            var basic = material.type === MATERIAL_TYPE.BASIC;
+            var cube = material.type === MATERIAL_TYPE.CUBE;
             var points = material.type === MATERIAL_TYPE.POINT;
+            var canvas2d = object.type === zen3d.OBJECT_TYPE.CANVAS2D;
 
-            if(!basic && !cube && !points) {
+            if(!basic && !cube && !points && !canvas2d) {
                 for(var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
@@ -487,6 +493,20 @@
             // draw
             if(object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.vertexCount);
+            } else if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+                var _offset = 0;
+                for(var j = 0; j < object.drawArray.length; j++) {
+                    var drawData = object.drawArray[j];
+
+                    var location = uniforms["spriteTexture"].location;
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(drawData.texture, slot);
+                    gl.uniform1i(location, slot);
+
+                    gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
+                    _offset += drawData.count * 6;
+                    this._usedTextureUnits = 0;
+                }
             } else {
                 gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
             }
@@ -567,7 +587,7 @@
 
 		if ( textureUnit >= this.capabilities.maxTextures ) {
 
-			console.warn( 'trying to use ' + textureUnit + ' texture units while this GPU supports only ' + capabilities.maxTextures );
+			console.warn( 'trying to use ' + textureUnit + ' texture units while this GPU supports only ' + this.capabilities.maxTextures );
 
 		}
 

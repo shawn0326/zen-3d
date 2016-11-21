@@ -11,6 +11,7 @@
         // render list
         this.opaqueObjects = new Array();
         this.transparentObjects = new Array();
+        this.canvas2dObjects = new Array();
 
         this.shadowObjects = new Array();
 
@@ -49,6 +50,7 @@
         // cache all type of objects
         switch (object.type) {
             case OBJECT_TYPE.POINT:
+            case OBJECT_TYPE.CANVAS2D:
             case OBJECT_TYPE.MESH:
 
                 // frustum test
@@ -65,7 +67,9 @@
                 var material = object.material;
 
                 var array;
-                if (material.transparent) {
+                if (object.type == OBJECT_TYPE.CANVAS2D) {
+                    array = this.canvas2dObjects;
+                } else if (material.transparent) {
                     array = this.transparentObjects;
                 } else {
                     array = this.opaqueObjects;
@@ -149,6 +153,7 @@
     RenderCache.prototype.clear = function() {
         this.transparentObjects.length = 0;
         this.opaqueObjects.length = 0;
+        this.canvas2dObjects.length = 0;
 
         this.shadowObjects.length = 0;
 

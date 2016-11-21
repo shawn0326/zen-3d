@@ -96,7 +96,12 @@ var filesSrc = [
     "core/loader/AssimpJsonLoader.js",
 
     // controller
-    "extension/controller/HoverController.js"
+    "extension/controller/HoverController.js",
+
+    // canvas2d
+    "extension/canvas2D/Canvas2D.js",
+    "extension/canvas2D/Canvas2DMaterial.js",
+    "extension/canvas2D/Sprite2D.js"
 
 ];
 

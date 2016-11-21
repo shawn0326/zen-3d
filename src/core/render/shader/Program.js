@@ -268,6 +268,10 @@
 
         var material = object.material;
 
+        if(material.type === MATERIAL_TYPE.CANVAS2D) {
+            return getCanvas2DProgram(gl, render);
+        }
+
         var ambientLightNum = lightsNum[0],
             directLightNum = lightsNum[1],
             pointLightNum = lightsNum[2],
@@ -331,6 +335,39 @@
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
                 zen3d.ShaderLib.depthFragment
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
+
+    /**
+     * get canvas2d program, used to render canvas 2d
+     */
+    var getCanvas2DProgram = function(gl, render) {
+        var program;
+        var map = programMap;
+        var code = "canvas2d";
+
+        var precision = render.capabilities.maxPrecision;
+
+        if (map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.canvas2dVertex
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.canvas2dFragment
             ].join("\n");
 
             program = new Program(gl, vshader, fshader);
