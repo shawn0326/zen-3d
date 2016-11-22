@@ -6498,6 +6498,8 @@
         // screen space canvas or world space canvas
         this.isScreenCanvas = true;
 
+        this.frustumCulled = false;
+
         // screen canvas used ortho camera
         this.orthoCamera = new zen3d.Camera();
         this.orthoCamera.setOrtho(- this.width / 2, this.width / 2, - this.height / 2, this.height / 2, 0, 1);
