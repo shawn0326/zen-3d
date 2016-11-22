@@ -21,6 +21,14 @@
 
         this.sprites = [];
         this.drawArray = [];
+
+        // screen space canvas or world space canvas
+        this.isScreenCanvas = true;
+
+        // screen canvas used ortho camera
+        this.orthoCamera = new zen3d.Camera();
+        this.orthoCamera.setOrtho(- this.width / 2, this.width / 2, - this.height / 2, this.height / 2, 0, 1);
+        this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix);// update view matrix
     }
 
     zen3d.inherit(Canvas2D, zen3d.Object3D);

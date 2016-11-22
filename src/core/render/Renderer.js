@@ -257,11 +257,21 @@
 
                     // pvm matrix
                     case "u_Projection":
-                        var projectionMat = camera.projectionMatrix.elements;
+                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                            var projectionMat = object.orthoCamera.projectionMatrix.elements;
+                        } else {
+                            var projectionMat = camera.projectionMatrix.elements;
+                        }
+
                         gl.uniformMatrix4fv(location, false, projectionMat);
                         break;
                     case "u_View":
-                        var viewMatrix = camera.viewMatrix.elements;
+                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                            var viewMatrix = object.orthoCamera.viewMatrix.elements;
+                        } else {
+                            var viewMatrix = camera.viewMatrix.elements;
+                        }
+
                         gl.uniformMatrix4fv(location, false, viewMatrix);
                         break;
                     case "u_Model":

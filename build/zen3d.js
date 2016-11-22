@@ -4224,11 +4224,21 @@
 
                     // pvm matrix
                     case "u_Projection":
-                        var projectionMat = camera.projectionMatrix.elements;
+                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                            var projectionMat = object.orthoCamera.projectionMatrix.elements;
+                        } else {
+                            var projectionMat = camera.projectionMatrix.elements;
+                        }
+
                         gl.uniformMatrix4fv(location, false, projectionMat);
                         break;
                     case "u_View":
-                        var viewMatrix = camera.viewMatrix.elements;
+                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                            var viewMatrix = object.orthoCamera.viewMatrix.elements;
+                        } else {
+                            var viewMatrix = camera.viewMatrix.elements;
+                        }
+
                         gl.uniformMatrix4fv(location, false, viewMatrix);
                         break;
                     case "u_Model":
@@ -6484,6 +6494,14 @@
 
         this.sprites = [];
         this.drawArray = [];
+
+        // screen space canvas or world space canvas
+        this.isScreenCanvas = true;
+
+        // screen canvas used ortho camera
+        this.orthoCamera = new zen3d.Camera();
+        this.orthoCamera.setOrtho(- this.width / 2, this.width / 2, - this.height / 2, this.height / 2, 0, 1);
+        this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix);// update view matrix
     }
 
     zen3d.inherit(Canvas2D, zen3d.Object3D);

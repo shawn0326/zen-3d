@@ -26,6 +26,8 @@
 
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - canvas2d
+		<br/>
+		press 's' to toggle canvas2d isScreenCanvas type
     </div>
 
 	<script>
@@ -51,13 +53,29 @@
 			scene.add(sphere);
 
 	        var canvas2d = new zen3d.Canvas2D(50, 50);
+			canvas2d.isScreenCanvas = true;
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			// var texture2 = new zen3d.Texture2D.fromSrc("resources/hi.png");
 			var sprites = [];
-			for(var i = 0; i < 500; i++) {
+			for(var i = 0; i < 20; i++) {
 				var sprite = new zen3d.Sprite2D();
-				sprite.x = Math.random() * 50;
-				sprite.y = Math.random() * 50;
+				if(i == 0) {
+					sprite.x = 0//Math.random() * 50;
+					sprite.y = 0//Math.random() * 50;
+				} else if(i == 1) {
+					sprite.x = 50 - 5//Math.random() * 50;
+					sprite.y = 0//Math.random() * 50;
+				} else if(i == 2) {
+					sprite.x = 0//Math.random() * 50;
+					sprite.y = 50 - 5//Math.random() * 50;
+				} else if(i == 3) {
+					sprite.x = 50 - 5//Math.random() * 50;
+					sprite.y = 50 - 5//Math.random() * 50;
+				} else {
+					sprite.x = Math.random() * 30 + 10 - 5;
+					sprite.y = Math.random() * 30 + 10 - 5;
+				}
+
 				sprite.width = 5;
 				sprite.height = 5;
 				sprite.texture = texture;
@@ -97,6 +115,14 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
+			// input
+
+			document.onkeydown = function(e) {
+				if(e.keyCode == 83) { // 's'
+					canvas2d.isScreenCanvas = !canvas2d.isScreenCanvas;
+				}
+	        }
+
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
@@ -108,8 +134,8 @@
 
 				//
 				for(var i = 0; i < sprites.length; i++) {
-					sprites[i].x += Math.random() - 0.5;
-					sprites[i].y += Math.random() - 0.5;
+					// sprites[i].x += Math.random() - 0.5;
+					// sprites[i].y += Math.random() - 0.5;
 				}
 
 	            renderer.render(scene, camera);
