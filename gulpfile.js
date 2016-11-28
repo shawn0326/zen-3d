@@ -20,10 +20,13 @@ var filesSrc = [
 
     // math
     "core/math/Euler.js",
+    "core/math/Matrix3.js",
     "core/math/Matrix4.js",
     "core/math/Quaternion.js",
+    "core/math/Vector2.js",
     "core/math/Vector3.js",
     "core/math/Vector4.js",
+    "core/math/Box2.js",
     "core/math/Box3.js",
     "core/math/Sphere.js",
     "core/math/Plane.js",
@@ -101,6 +104,7 @@ var filesSrc = [
     // canvas2d
     "extension/canvas2D/Canvas2D.js",
     "extension/canvas2D/Canvas2DMaterial.js",
+    "extension/canvas2D/Object2D.js",
     "extension/canvas2D/Sprite2D.js"
 
 ];

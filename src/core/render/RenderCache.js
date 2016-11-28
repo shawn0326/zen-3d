@@ -122,9 +122,11 @@
         }
 
         // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            this.cacheObject(children[i]);
+        if(OBJECT_TYPE.CANVAS2D !== object.type) {
+            var children = object.children;
+            for (var i = 0, l = children.length; i < l; i++) {
+                this.cacheObject(children[i]);
+            }
         }
     }
 

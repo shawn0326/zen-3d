@@ -57,7 +57,7 @@
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			// var texture2 = new zen3d.Texture2D.fromSrc("resources/hi.png");
 			var sprites = [];
-			for(var i = 0; i < 20; i++) {
+			for(var i = 0; i < 90; i++) {
 				var sprite = new zen3d.Sprite2D();
 				if(i == 0) {
 					sprite.x = 0//Math.random() * 50;
@@ -79,7 +79,9 @@
 				sprite.width = 5;
 				sprite.height = 5;
 				sprite.texture = texture;
-				canvas2d.addSprite(sprite);
+				sprite.anchorX = 0;
+				sprite.anchorY = 0;
+				canvas2d.add(sprite);
 				sprites.push(sprite);
 			}
 			scene.add(canvas2d);
@@ -133,9 +135,10 @@
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				//
-				for(var i = 0; i < sprites.length; i++) {
+				for(var i = 4; i < sprites.length; i++) {
 					// sprites[i].x += Math.random() - 0.5;
 					// sprites[i].y += Math.random() - 0.5;
+					sprites[i].rotation += 0.1;
 				}
 
 	            renderer.render(scene, camera);

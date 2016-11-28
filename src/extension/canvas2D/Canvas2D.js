@@ -29,14 +29,27 @@
 
         // screen canvas used ortho camera
         this.orthoCamera = new zen3d.Camera();
-        this.orthoCamera.setOrtho(- this.width / 2, this.width / 2, - this.height / 2, this.height / 2, 0, 1);
-        this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix);// update view matrix
+        this.orthoCamera.setOrtho(-this.width / 2, this.width / 2, -this.height / 2, this.height / 2, 0, 1);
+        this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix); // update view matrix
     }
 
     zen3d.inherit(Canvas2D, zen3d.Object3D);
 
-    Canvas2D.prototype.addSprite = function(sprite) {
-        this.sprites.push(sprite);
+    /**
+     * add child to canvas2d
+     */
+    Canvas2D.prototype.add = function(object) {
+        this.children.push(object);
+    }
+
+    /**
+     * remove child from canvas2d
+     */
+    Canvas2D.prototype.remove = function(object) {
+        var index = this.children.indexOf(object);
+        if (index !== -1) {
+            this.children.splice(index, 1);
+        }
     }
 
     Canvas2D.prototype.updateSprites = function() {
@@ -48,34 +61,51 @@
 
         var sprites = this.sprites;
 
-        for(var i = 0; i < sprites.length; i++) {
+        for (var i = 0; i < sprites.length; i++) {
             var sprite = sprites[i];
 
-            var x = sprite.x - this.width / 2;
-            var y = sprite.y - this.height / 2;
+            var x = 0;
+            var y = 0;
             var w = sprite.width;
             var h = sprite.height;
 
-            vertices[vertexIndex++] = x;
-            vertices[vertexIndex++] = y;
+            var _x, _y;
+            var t = sprite.worldMatrix.elements;
+            var a = t[0],
+                b = t[1],
+                c = t[3],
+                d = t[4],
+                tx = t[6] - this.width / 2,
+                ty = t[7] - this.height / 2;
+
+            _x = x;
+            _y = y;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 1;
 
-            vertices[vertexIndex++] = x + w;
-            vertices[vertexIndex++] = y;
+            _x = x + w;
+            _y = y;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 1;
             vertices[vertexIndex++] = 1;
 
-            vertices[vertexIndex++] = x + w;
-            vertices[vertexIndex++] = y + h;
+            _x = x + w;
+            _y = y + h;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 1;
             vertices[vertexIndex++] = 0;
 
-            vertices[vertexIndex++] = x;
-            vertices[vertexIndex++] = y + h;
+            _x = x;
+            _y = y + h;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 0;
@@ -97,10 +127,13 @@
         // drawArray
         this.drawArray = [];
         var currentTexture;
-        for(var i = 0; i < sprites.length; i++) {
+        for (var i = 0; i < sprites.length; i++) {
             var sprite = sprites[i];
-            if(currentTexture !== sprite.texture) {
-                this.drawArray.push({texture: sprite.texture, count: 1});
+            if (currentTexture !== sprite.texture) {
+                this.drawArray.push({
+                    texture: sprite.texture,
+                    count: 1
+                });
                 currentTexture = sprite.texture;
             } else {
                 this.drawArray[this.drawArray.length - 1].count++;
@@ -113,8 +146,30 @@
     Canvas2D.prototype.updateMatrix = function() {
         Canvas2D.superClass.updateMatrix.call(this);
 
+        this.sprites = [];
+
+        var children = this.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            this.cacheSprites(children[i]);
+        }
+
+        var sprites = this.sprites;
+        for (var i = 0, l = sprites.length; i < l; i++) {
+            sprites[i].updateMatrix();
+        }
+
         // update geometry
         this.updateSprites();
+    }
+
+    Canvas2D.prototype.cacheSprites = function(object) {
+        var sprites = this.sprites;
+
+        sprites.push(object);
+
+        for(var i = 0, l = object.children.length; i < l; i++) {
+            this.cacheSprites(object.children[i]);
+        }
     }
 
     zen3d.Canvas2D = Canvas2D;

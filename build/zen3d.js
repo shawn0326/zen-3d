@@ -587,6 +587,156 @@
 
 (function() {
     /**
+     * a 3x3 matrix class
+     * @class
+     */
+    var Matrix3 = function() {
+        this.elements = new Float32Array([
+            1, 0, 0,
+            0, 1, 0,
+            0, 0, 1
+        ]);
+    }
+
+    /**
+     * identity matrix
+     **/
+    Matrix3.prototype.identity = function() {
+        this.set(
+            1, 0, 0,
+            0, 1, 0,
+            0, 0, 1
+        );
+
+        return this;
+    }
+
+    /**
+     * set the value of matrix
+     **/
+    Matrix3.prototype.set = function(n11, n12, n13,
+        n21, n22, n23,
+        n31, n32, n33) {
+
+        var ele = this.elements;
+        ele[0] = n11;
+        ele[3] = n12;
+        ele[6] = n13;
+
+        ele[1] = n21;
+        ele[4] = n22;
+        ele[7] = n23;
+
+        ele[2] = n31;
+        ele[5] = n32;
+        ele[8] = n33;
+
+        return this;
+    }
+
+    /**
+     * copy matrix
+     **/
+    Matrix3.prototype.copy = function(m) {
+        this.elements.set(m.elements);
+
+        return this;
+    }
+
+    /**
+     * multiply matrix
+     **/
+    Matrix3.prototype.multiply = function(m) {
+
+        return this.multiplyMatrices(this, m);
+
+    }
+
+    Matrix3.prototype.premultiply = function(m) {
+
+        return this.multiplyMatrices(m, this);
+
+    }
+
+    Matrix3.prototype.multiplyMatrices = function(a, b) {
+
+        var ae = a.elements;
+        var be = b.elements;
+        var te = this.elements;
+
+        var a11 = ae[0],
+            a12 = ae[3],
+            a13 = ae[6];
+        var a21 = ae[1],
+            a22 = ae[4],
+            a23 = ae[7];
+        var a31 = ae[2],
+            a32 = ae[5],
+            a33 = ae[8];
+
+        var b11 = be[0],
+            b12 = be[3],
+            b13 = be[6];
+        var b21 = be[1],
+            b22 = be[4],
+            b23 = be[7];
+        var b31 = be[2],
+            b32 = be[5],
+            b33 = be[8];
+
+        te[0] = a11 * b11 + a12 * b21 + a13 * b31;
+        te[3] = a11 * b12 + a12 * b22 + a13 * b32;
+        te[6] = a11 * b13 + a12 * b23 + a13 * b33;
+
+        te[1] = a21 * b11 + a22 * b21 + a23 * b31;
+        te[4] = a21 * b12 + a22 * b22 + a23 * b32;
+        te[7] = a21 * b13 + a22 * b23 + a23 * b33;
+
+        te[2] = a31 * b11 + a32 * b21 + a33 * b31;
+        te[5] = a31 * b12 + a32 * b22 + a33 * b32;
+        te[8] = a31 * b13 + a32 * b23 + a33 * b33;
+
+        return this;
+
+    }
+
+    // transform 2d
+    Matrix3.prototype.transform = function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
+        var te = this.elements;
+
+        var cr = 1;
+        var sr = 0;
+        if (rotation % 360) {
+            var r = rotation;
+            cr = Math.cos(r);
+            sr = Math.sin(r);
+        }
+
+        te[0] = cr * scaleX;
+        te[3] = -sr * scaleY;
+        te[6] = x;
+
+        te[1] = sr * scaleX;
+        te[4] = cr * scaleY;
+        te[7] = y;
+
+        te[2] = 0;
+        te[5] = 0;
+        te[8] = 1;
+
+        if (anchorX || anchorY) {
+            // prepend the anchor offset:
+            te[6] -= anchorX * te[0] + anchorY * te[3];
+            te[7] -= anchorX * te[1] + anchorY * te[4];
+        }
+
+        return this;
+    }
+
+    zen3d.Matrix3 = Matrix3;
+})();
+(function() {
+    /**
      * a 4x4 matrix class
      * @class
      */
@@ -1299,6 +1449,122 @@
 
 (function() {
     /**
+     * a vector 2 class
+     * @class
+     */
+    var Vector2 = function(x, y) {
+        this.x = x || 0;
+        this.y = y || 0;
+    }
+
+    /**
+     * set values of this vector
+     **/
+    Vector2.prototype.set = function(x, y) {
+        this.x = x || 0;
+        this.y = y || 0;
+
+        return this;
+    }
+
+    Vector2.prototype.min = function(v) {
+        this.x = Math.min(this.x, v.x);
+        this.y = Math.min(this.y, v.y);
+
+        return this;
+    }
+
+    Vector2.prototype.max = function(v) {
+        this.x = Math.max(this.x, v.x);
+        this.y = Math.max(this.y, v.y);
+
+        return this;
+    }
+
+    Vector2.prototype.getLength = function() {
+        return Math.sqrt(this.getLengthSquared());
+    }
+
+    Vector2.prototype.getLengthSquared = function() {
+        return this.x * this.x + this.y * this.y;
+    }
+
+    /**
+     * normalize
+     **/
+    Vector2.prototype.normalize = function(thickness) {
+        thickness = thickness || 1;
+        var length = this.getLength();
+        if (length != 0) {
+            var invLength = thickness / length;
+            this.x *= invLength;
+            this.y *= invLength;
+            return this;
+        }
+    }
+
+    /**
+     * subtract a vector and return a new instance
+     **/
+    Vector2.prototype.subtract = function(a, target) {
+        if (!target) {
+            target = new Vector2();
+        }
+        target.set(this.x - a.x, this.y - a.y);
+        return target;
+    }
+
+    /**
+     * copy
+     */
+    Vector2.prototype.copy = function(v) {
+        this.x = v.x;
+        this.y = v.y;
+
+        return this;
+    }
+
+    /**
+     * addVectors
+     */
+    Vector2.prototype.addVectors = function(a, b) {
+        this.x = a.x + b.x;
+        this.y = a.y + b.y;
+
+        return this;
+    }
+
+    /**
+     * multiplyScalar
+     */
+    Vector2.prototype.multiplyScalar = function(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+
+        return this;
+    }
+
+    /**
+     * distanceToSquared
+     */
+    Vector2.prototype.distanceToSquared = function(v) {
+        var dx = this.x - v.x,
+            dy = this.y - v.y;
+
+        return dx * dx + dy * dy;
+    }
+
+    /**
+     * distanceTo
+     */
+    Vector2.prototype.distanceTo = function(v) {
+        return Math.sqrt(this.distanceToSquared(v));
+    }
+
+    zen3d.Vector2 = Vector2;
+})();
+(function() {
+    /**
      * a vector 3 class
      * @class
      */
@@ -1604,6 +1870,26 @@
 	}
 
     zen3d.Vector4 = Vector4;
+})();
+(function() {
+    var Box2 = function(min, max) {
+        this.min = (min !== undefined) ? min : new zen3d.Vector2(+Infinity, +Infinity);
+        this.max = (max !== undefined) ? max : new zen3d.Vector2(-Infinity, -Infinity);
+    }
+
+    Box2.prototype.set = function(x1, y1, x2, y2) {
+        this.min.set(x1, y1);
+        this.max.set(x2, y2);
+    }
+
+    Box2.prototype.copy = function(box) {
+        this.min.copy(box.min);
+        this.max.copy(box.max);
+
+        return this;
+    }
+
+    zen3d.Box2 = Box2;
 })();
 (function() {
     var Box3 = function(min, max) {
@@ -4700,9 +4986,11 @@
         }
 
         // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            this.cacheObject(children[i]);
+        if(OBJECT_TYPE.CANVAS2D !== object.type) {
+            var children = object.children;
+            for (var i = 0, l = children.length; i < l; i++) {
+                this.cacheObject(children[i]);
+            }
         }
     }
 
@@ -6502,14 +6790,27 @@
 
         // screen canvas used ortho camera
         this.orthoCamera = new zen3d.Camera();
-        this.orthoCamera.setOrtho(- this.width / 2, this.width / 2, - this.height / 2, this.height / 2, 0, 1);
-        this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix);// update view matrix
+        this.orthoCamera.setOrtho(-this.width / 2, this.width / 2, -this.height / 2, this.height / 2, 0, 1);
+        this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix); // update view matrix
     }
 
     zen3d.inherit(Canvas2D, zen3d.Object3D);
 
-    Canvas2D.prototype.addSprite = function(sprite) {
-        this.sprites.push(sprite);
+    /**
+     * add child to canvas2d
+     */
+    Canvas2D.prototype.add = function(object) {
+        this.children.push(object);
+    }
+
+    /**
+     * remove child from canvas2d
+     */
+    Canvas2D.prototype.remove = function(object) {
+        var index = this.children.indexOf(object);
+        if (index !== -1) {
+            this.children.splice(index, 1);
+        }
     }
 
     Canvas2D.prototype.updateSprites = function() {
@@ -6521,34 +6822,51 @@
 
         var sprites = this.sprites;
 
-        for(var i = 0; i < sprites.length; i++) {
+        for (var i = 0; i < sprites.length; i++) {
             var sprite = sprites[i];
 
-            var x = sprite.x - this.width / 2;
-            var y = sprite.y - this.height / 2;
+            var x = 0;
+            var y = 0;
             var w = sprite.width;
             var h = sprite.height;
 
-            vertices[vertexIndex++] = x;
-            vertices[vertexIndex++] = y;
+            var _x, _y;
+            var t = sprite.worldMatrix.elements;
+            var a = t[0],
+                b = t[1],
+                c = t[3],
+                d = t[4],
+                tx = t[6] - this.width / 2,
+                ty = t[7] - this.height / 2;
+
+            _x = x;
+            _y = y;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 1;
 
-            vertices[vertexIndex++] = x + w;
-            vertices[vertexIndex++] = y;
+            _x = x + w;
+            _y = y;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 1;
             vertices[vertexIndex++] = 1;
 
-            vertices[vertexIndex++] = x + w;
-            vertices[vertexIndex++] = y + h;
+            _x = x + w;
+            _y = y + h;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 1;
             vertices[vertexIndex++] = 0;
 
-            vertices[vertexIndex++] = x;
-            vertices[vertexIndex++] = y + h;
+            _x = x;
+            _y = y + h;
+            vertices[vertexIndex++] = a * _x + c * _y + tx;
+            vertices[vertexIndex++] = b * _x + d * _y + ty;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 0;
             vertices[vertexIndex++] = 0;
@@ -6570,10 +6888,13 @@
         // drawArray
         this.drawArray = [];
         var currentTexture;
-        for(var i = 0; i < sprites.length; i++) {
+        for (var i = 0; i < sprites.length; i++) {
             var sprite = sprites[i];
-            if(currentTexture !== sprite.texture) {
-                this.drawArray.push({texture: sprite.texture, count: 1});
+            if (currentTexture !== sprite.texture) {
+                this.drawArray.push({
+                    texture: sprite.texture,
+                    count: 1
+                });
                 currentTexture = sprite.texture;
             } else {
                 this.drawArray[this.drawArray.length - 1].count++;
@@ -6586,8 +6907,30 @@
     Canvas2D.prototype.updateMatrix = function() {
         Canvas2D.superClass.updateMatrix.call(this);
 
+        this.sprites = [];
+
+        var children = this.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            this.cacheSprites(children[i]);
+        }
+
+        var sprites = this.sprites;
+        for (var i = 0, l = sprites.length; i < l; i++) {
+            sprites[i].updateMatrix();
+        }
+
         // update geometry
         this.updateSprites();
+    }
+
+    Canvas2D.prototype.cacheSprites = function(object) {
+        var sprites = this.sprites;
+
+        sprites.push(object);
+
+        for(var i = 0, l = object.children.length; i < l; i++) {
+            this.cacheSprites(object.children[i]);
+        }
     }
 
     zen3d.Canvas2D = Canvas2D;
@@ -6611,14 +6954,113 @@
 })();
 
 (function() {
-    var Sprite2D = function() {
-        this.x = 0;
-        this.y = 0;
+    var Object2D = function() {
         this.width = 0;
         this.height = 0;
 
+        // bla bla ...
+        this.x = 0;
+        this.y = 0;
+        this.rotation = 0;
+        this.scaleX = 1;
+        this.scaleY = 1;
+        this.anchorX = 0;
+        this.anchorY = 0;
+
+        // a 3x3 transform matrix
+        this.matrix = new zen3d.Matrix3();
+        // used to cache world transform
+        this.worldMatrix = new zen3d.Matrix3();
+
+        // children
+        this.children = new Array();
+        // parent
+        this.parent = null;
+
+        this.boundingBox = new zen3d.Box2();
+    }
+
+    /**
+     * add child to object2d
+     */
+    Object2D.prototype.add = function(object) {
+        this.children.push(object);
+        object.parent = this;
+    }
+
+    /**
+     * remove child from object2d
+     */
+    Object2D.prototype.remove = function(object) {
+        var index = this.children.indexOf(object);
+        if (index !== -1) {
+            this.children.splice(index, 1);
+        }
+        object.parent = null;
+    }
+
+    /**
+     * get object by name
+     */
+    Object2D.prototype.getObjectByName = function(name) {
+        return this.getObjectByProperty('name', name);
+    }
+
+    /**
+     * get object by property
+     */
+    Object2D.prototype.getObjectByProperty = function(name, value) {
+        if (this[name] === value) return this;
+
+        for (var i = 0, l = this.children.length; i < l; i++) {
+
+            var child = this.children[i];
+            var object = child.getObjectByProperty(name, value);
+
+            if (object !== undefined) {
+
+                return object;
+
+            }
+
+        }
+
+        return undefined;
+    }
+
+    /**
+     * update matrix
+     */
+    Object2D.prototype.updateMatrix = function() {
+        var matrix = this.matrix.transform(this.x, this.y, this.scaleX, this.scaleY, this.rotation, this.anchorX * this.width, this.anchorY * this.height);
+
+        this.worldMatrix.copy(matrix);
+
+        if (this.parent) {
+            var parentMatrix = this.parent.worldMatrix;
+            this.worldMatrix.premultiply(parentMatrix);
+        }
+
+        var children = this.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            children[i].updateMatrix();
+        }
+    }
+
+    Object2D.prototype.computeBoundingBox = function() {
+        this.boundingBox.set(this.x, this.y, this.x + this.width, this.y + this.height);
+    }
+
+    zen3d.Object2D = Object2D;
+})();
+(function() {
+    var Sprite2D = function() {
+        Sprite2D.superClass.constructor.call(this);
+
         this.texture = null;
     }
+
+    zen3d.inherit(Sprite2D, zen3d.Object2D);
 
     zen3d.Sprite2D = Sprite2D;
 })();
