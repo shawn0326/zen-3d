@@ -6837,7 +6837,7 @@
                 c = t[3],
                 d = t[4],
                 tx = t[6] - this.width / 2,
-                ty = t[7] - this.height / 2;
+                ty = this.height / 2 - t[7] - h;
 
             _x = x;
             _y = y;
