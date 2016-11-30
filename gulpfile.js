@@ -67,6 +67,7 @@ var filesSrc = [
     "core/material/PhongMaterial.js",
     "core/material/CubeMaterial.js",
     "core/material/PointsMaterial.js",
+    "core/material/SpriteMaterial.js",
 
     // objects
     "core/objects/Object3D.js",
@@ -94,6 +95,7 @@ var filesSrc = [
 
     "core/objects/Mesh.js",
     "core/objects/Points.js",
+    "core/objects/Sprite.js",
 
     //loader
     "core/loader/AssimpJsonLoader.js",

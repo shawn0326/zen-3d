@@ -27,6 +27,9 @@ var files = {
 	"math": [
 		"math_frustumtest"
 	],
+	"sprite": [
+		"sprite_sprites"
+	],
 	"points": [
 		"points_sprites"
 	],

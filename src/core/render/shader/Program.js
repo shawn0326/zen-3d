@@ -377,7 +377,40 @@
         return program;
     }
 
+    /**
+     * get sprite program, used to render sprites
+     */
+    var getSpriteProgram = function(gl, render) {
+        var program;
+        var map = programMap;
+        var code = "sprite";
+
+        var precision = render.capabilities.maxPrecision;
+
+        if(map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.spriteVertex
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.spriteFragment
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
 
     zen3d.getProgram = getProgram;
     zen3d.getDepthProgram = getDepthProgram;
+    zen3d.getSpriteProgram = getSpriteProgram;
 })();

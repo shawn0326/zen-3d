@@ -218,7 +218,8 @@
         SCENE: "scene",
         GROUP: "group",
         POINT: "point",
-        CANVAS2D: "canvas2d"
+        CANVAS2D: "canvas2d",
+        SPRITE: "sprite"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;
@@ -244,7 +245,8 @@
         PHONG: "phong",
         CUBE: "cube",
         POINT: "point",
-        CANVAS2D: "canvas2d"
+        CANVAS2D: "canvas2d",
+        SPRITE: "sprite"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
@@ -3861,6 +3863,87 @@
                 frag_end,
                 premultipliedAlpha_frag,
             '}'
+        ].join("\n"),
+
+        // sprite shader
+        spriteVertex: [
+            'uniform mat4 modelMatrix;',
+            'uniform mat4 viewMatrix;',
+			'uniform mat4 projectionMatrix;',
+			'uniform float rotation;',
+			'uniform vec2 scale;',
+			'uniform vec2 uvOffset;',
+			'uniform vec2 uvScale;',
+
+			'attribute vec2 position;',
+			'attribute vec2 uv;',
+
+			'varying vec2 vUV;',
+
+			'void main() {',
+
+				'vUV = uvOffset + uv * uvScale;',
+
+				'vec2 alignedPosition = position * scale;',
+
+				'vec2 rotatedPosition;',
+				'rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;',
+				'rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;',
+
+				'vec4 finalPosition;',
+
+				'finalPosition = viewMatrix * modelMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );',
+				'finalPosition.xy += rotatedPosition;',
+				'finalPosition = projectionMatrix * finalPosition;',
+
+				'gl_Position = finalPosition;',
+
+			'}'
+        ].join("\n"),
+        spriteFragment: [
+            'uniform vec3 color;',
+			'uniform sampler2D map;',
+			'uniform float opacity;',
+
+			'uniform int fogType;',
+			'uniform vec3 fogColor;',
+			'uniform float fogDensity;',
+			'uniform float fogNear;',
+			'uniform float fogFar;',
+			'uniform float alphaTest;',
+
+			'varying vec2 vUV;',
+
+			'void main() {',
+
+				'vec4 texture = texture2D( map, vUV );',
+
+				'if ( texture.a < alphaTest ) discard;',
+
+				'gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );',
+
+				'if ( fogType > 0 ) {',
+
+					'float depth = gl_FragCoord.z / gl_FragCoord.w;',
+					'float fogFactor = 0.0;',
+
+					'if ( fogType == 1 ) {',
+
+						'fogFactor = smoothstep( fogNear, fogFar, depth );',
+
+					'} else {',
+
+						'const float LOG2 = 1.442695;',
+						'fogFactor = exp2( - fogDensity * fogDensity * depth * depth * LOG2 );',
+						'fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );',
+
+					'}',
+
+					'gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );',
+
+				'}',
+
+			'}'
         ].join("\n")
 
     };
@@ -4247,9 +4330,42 @@
         return program;
     }
 
+    /**
+     * get sprite program, used to render sprites
+     */
+    var getSpriteProgram = function(gl, render) {
+        var program;
+        var map = programMap;
+        var code = "sprite";
+
+        var precision = render.capabilities.maxPrecision;
+
+        if(map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.spriteVertex
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                zen3d.ShaderLib.spriteFragment
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
 
     zen3d.getProgram = getProgram;
     zen3d.getDepthProgram = getDepthProgram;
+    zen3d.getSpriteProgram = getSpriteProgram;
 })();
 (function() {
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
@@ -4327,7 +4443,7 @@
 
         scene.updateMatrix();
 
-        camera.viewMatrix.getInverse(camera.worldMatrix);// update view matrix
+        camera.viewMatrix.getInverse(camera.worldMatrix); // update view matrix
 
         this.cache.cacheScene(scene, camera);
 
@@ -4335,12 +4451,12 @@
 
         this.renderShadow();
 
-        if(renderTarget === undefined) {
+        if (renderTarget === undefined) {
             renderTarget = null;
         }
         this.setRenderTarget(renderTarget);
 
-        if(this.autoClear || forceClear) {
+        if (this.autoClear || forceClear) {
             this.state.clearColor(0, 0, 0, 0);
             this.clear(true, true, true);
         }
@@ -4349,9 +4465,11 @@
         this.renderList(this.cache.transparentObjects);
         this.renderList(this.cache.canvas2dObjects);
 
+        this.renderSprites(this.cache.sprites);
+
         this.cache.clear();
 
-        if(renderTarget) {
+        if (renderTarget) {
             this.texture.updateRenderTargetMipmap(renderTarget);
         }
     }
@@ -4362,14 +4480,14 @@
     Renderer.prototype.renderShadow = function() {
         var renderList = this.cache.shadowObjects;
 
-        if(renderList.length == 0) {
+        if (renderList.length == 0) {
             return;
         }
 
         var gl = this.gl;
 
         var lights = this.cache.shadowLights;
-        for(var i = 0; i < lights.length; i++) {
+        for (var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
             var shadow = light.shadow;
@@ -4378,9 +4496,9 @@
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
 
-            for(var j = 0; j < faces; j++) {
+            for (var j = 0; j < faces; j++) {
 
-                if(isPointLight) {
+                if (isPointLight) {
                     shadow.update(light, j);
                     shadowTarget.activeCubeFace = j;
                 } else {
@@ -4392,7 +4510,7 @@
                 this.state.clearColor(1, 1, 1, 1);
                 this.clear(true, true);
 
-                for(var n = 0, l = renderList.length; n < l; n++) {
+                for (var n = 0, l = renderList.length; n < l; n++) {
                     var object = renderList[n];
                     var material = object.material;
 
@@ -4407,9 +4525,9 @@
 
                     // update uniforms
                     var uniforms = program.uniforms;
-                    for(var key in uniforms) {
+                    for (var key in uniforms) {
                         var location = uniforms[key].location;
-                        switch(key) {
+                        switch (key) {
                             // pvm matrix
                             case "u_Projection":
                                 var projectionMat = camera.projectionMatrix.elements;
@@ -4461,7 +4579,7 @@
         var spotLightsNum = spotLights.length;
         var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum + spotLightsNum;
 
-        for(var i = 0, l = renderList.length; i < l; i++) {
+        for (var i = 0, l = renderList.length; i < l; i++) {
 
             var renderItem = renderList[i];
             var object = renderItem.object;
@@ -4480,9 +4598,9 @@
 
             // update attributes
             var attributes = program.attributes;
-            for(var key in attributes) {
+            for (var key in attributes) {
                 var location = attributes[key].location;
-                switch(key) {
+                switch (key) {
                     case "a_Position":
                         gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 0);
                         break;
@@ -4490,7 +4608,7 @@
                         gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
                         break;
                     case "a_Uv":
-                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+                        if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                             gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
                         } else {
                             gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
@@ -4504,13 +4622,13 @@
 
             // update uniforms
             var uniforms = program.uniforms;
-            for(var key in uniforms) {
+            for (var key in uniforms) {
                 var location = uniforms[key].location;
-                switch(key) {
+                switch (key) {
 
                     // pvm matrix
                     case "u_Projection":
-                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                        if (object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
                             var projectionMat = object.orthoCamera.projectionMatrix.elements;
                         } else {
                             var projectionMat = camera.projectionMatrix.elements;
@@ -4519,7 +4637,7 @@
                         gl.uniformMatrix4fv(location, false, projectionMat);
                         break;
                     case "u_View":
-                        if(object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                        if (object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
                             var viewMatrix = object.orthoCamera.viewMatrix.elements;
                         } else {
                             var viewMatrix = camera.viewMatrix.elements;
@@ -4597,7 +4715,7 @@
                         gl.uniform1f(location, size);
                         break;
                     case "u_PointScale":
-                        var scale = this.height * 0.5;// three.js do this
+                        var scale = this.height * 0.5; // three.js do this
                         gl.uniform1f(location, scale);
                         break;
                 }
@@ -4609,8 +4727,8 @@
             var points = material.type === MATERIAL_TYPE.POINT;
             var canvas2d = object.type === zen3d.OBJECT_TYPE.CANVAS2D;
 
-            if(!basic && !cube && !points && !canvas2d) {
-                for(var k = 0; k < ambientLightsNum; k++) {
+            if (!basic && !cube && !points && !canvas2d) {
+                for (var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
                     var intensity = light.intensity;
@@ -4623,7 +4741,7 @@
                 }
 
 
-                for(var k = 0; k < directLightsNum; k++) {
+                for (var k = 0; k < directLightsNum; k++) {
                     var light = directLights[k];
 
                     var intensity = light.intensity;
@@ -4642,7 +4760,7 @@
                     var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
                     gl.uniform1i(u_Directional_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow) {
+                    if (light.castShadow && object.receiveShadow) {
                         var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"].location;
                         gl.uniformMatrix4fv(directionalShadowMatrix, false, light.shadow.matrix.elements);
 
@@ -4654,7 +4772,7 @@
 
                 }
 
-                for(var k = 0; k < pointLightsNum; k++) {
+                for (var k = 0; k < pointLightsNum; k++) {
                     var light = pointLights[k];
 
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
@@ -4679,7 +4797,7 @@
                     var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"].location;
                     gl.uniform1i(u_Point_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow) {
+                    if (light.castShadow && object.receiveShadow) {
                         var pointShadowMap = uniforms["pointShadowMap[" + k + "]"].location;
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(light.shadow.map, slot);
@@ -4687,7 +4805,7 @@
                     }
                 }
 
-                for(var k = 0; k < spotLightsNum; k++) {
+                for (var k = 0; k < spotLightsNum; k++) {
                     var light = spotLights[k];
 
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
@@ -4715,8 +4833,8 @@
                     var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"].location;
                     gl.uniform1f(u_Spot_decay, decay);
 
-                    var coneCos = Math.cos( light.angle );
-                    var penumbraCos = Math.cos( light.angle * ( 1 - light.penumbra ) );
+                    var coneCos = Math.cos(light.angle);
+                    var penumbraCos = Math.cos(light.angle * (1 - light.penumbra));
                     var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"].location;
                     gl.uniform1f(u_Spot_coneCos, coneCos);
                     var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"].location;
@@ -4726,7 +4844,7 @@
                     var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"].location;
                     gl.uniform1i(u_Spot_shadow, light.castShadow ? 1 : 0);
 
-                    if(light.castShadow && object.receiveShadow) {
+                    if (light.castShadow && object.receiveShadow) {
                         var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"].location;
                         gl.uniformMatrix4fv(spotShadowMatrix, false, light.shadow.matrix.elements);
 
@@ -4740,25 +4858,25 @@
             ///////
 
             // set blend
-            if(material.transparent) {
+            if (material.transparent) {
                 this.state.setBlend(material.blending, material.premultipliedAlpha);
             } else {
                 this.state.setBlend(BLEND_TYPE.NONE);
             }
 
             // set depth test
-            if(material.depthTest) {
+            if (material.depthTest) {
                 this.state.enable(gl.DEPTH_TEST);
             } else {
                 this.state.disable(gl.DEPTH_TEST);
             }
 
             // draw
-            if(object.type === zen3d.OBJECT_TYPE.POINT) {
+            if (object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.vertexCount);
-            } else if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+            } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
-                for(var j = 0; j < object.drawArray.length; j++) {
+                for (var j = 0; j < object.drawArray.length; j++) {
                     var drawData = object.drawArray[j];
 
                     var location = uniforms["spriteTexture"].location;
@@ -4779,6 +4897,147 @@
         }
     }
 
+    var spritePosition = new zen3d.Vector3();
+    var spriteRotation = new zen3d.Quaternion();
+    var spriteScale = new zen3d.Vector3();
+    var vertexBuffer, elementBuffer;
+
+    Renderer.prototype.initSprite = function() {
+        var gl = this.gl;
+
+        var vertices = new Float32Array([-0.5, -0.5, 0, 0,
+            0.5, -0.5, 1, 0,
+            0.5, 0.5, 1, 1, -0.5, 0.5, 0, 1
+        ]);
+
+        var faces = new Uint16Array([
+            2, 1, 0,
+            3, 2, 0
+        ]);
+
+        vertexBuffer = gl.createBuffer();
+        elementBuffer = gl.createBuffer();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, faces, gl.STATIC_DRAW);
+    }
+
+    Renderer.prototype.renderSprites = function(sprites) {
+        var camera = this.cache.camera;
+        var fog = this.cache.fog;
+        var gl = this.gl;
+
+        if(!vertexBuffer) {
+            this.initSprite();
+        } else {
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
+        }
+
+        var program = zen3d.getSpriteProgram(gl, this);
+        gl.useProgram(program.id);
+
+        var attributes = program.attributes;
+        var location = attributes.position.location;
+        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 2 * 8, 0);
+        gl.enableVertexAttribArray(location);
+        var location = attributes.uv.location;
+        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 2 * 8, 8);
+        gl.enableVertexAttribArray(location);
+
+        var uniforms = program.uniforms;
+        gl.uniformMatrix4fv(uniforms.projectionMatrix.location, false, camera.projectionMatrix.elements);
+
+        // fog
+        var sceneFogType = 0;
+        if (fog) {
+            gl.uniform3f(uniforms.fogColor.location, fog.color.r, fog.color.g, fog.color.b);
+
+            if (fog.fogType === zen3d.FOG_TYPE.NORMAL) {
+                gl.uniform1f(uniforms.fogNear.location, fog.near);
+                gl.uniform1f(uniforms.fogFar.location, fog.far);
+
+                gl.uniform1i(uniforms.fogType.location, 1);
+                sceneFogType = 1;
+            } else if (fog.fogType === zen3d.FOG_TYPE.EXP2) {
+                gl.uniform1f(uniforms.fogDensity.location, fog.density);
+                gl.uniform1i(uniforms.fogType.location, 2);
+                sceneFogType = 2;
+            }
+        } else {
+            gl.uniform1i(uniforms.fogType.location, 0);
+            sceneFogType = 0;
+        }
+
+        // render
+        var scale = [];
+
+        for (var i = 0, l = sprites.length; i < l; i++) {
+            var sprite = sprites[i].object;
+            var material = sprite.material;
+
+            gl.uniform1f(uniforms.alphaTest.location, 0);
+            gl.uniformMatrix4fv(uniforms.viewMatrix.location, false, camera.viewMatrix.elements);
+            gl.uniformMatrix4fv(uniforms.modelMatrix.location, false, sprite.worldMatrix.elements);
+
+            sprite.worldMatrix.decompose(spritePosition, spriteRotation, spriteScale);
+
+            scale[0] = spriteScale.x;
+            scale[1] = spriteScale.y;
+
+            var fogType = 0;
+
+            if (fog && material.fog) {
+                fogType = sceneFogType;
+            }
+
+            gl.uniform1i(uniforms.fogType.location, fogType);
+
+            if (material.map !== null) {
+                // gl.uniform2f(uniforms.uvOffset, material.map.offset.x, material.map.offset.y);
+                // gl.uniform2f(uniforms.uvScale, material.map.repeat.x, material.map.repeat.y);
+                gl.uniform2f(uniforms.uvOffset.location, 0, 0);
+                gl.uniform2f(uniforms.uvScale.location, 1, 1);
+            } else {
+                gl.uniform2f(uniforms.uvOffset.location, 0, 0);
+                gl.uniform2f(uniforms.uvScale.location, 1, 1);
+            }
+
+            gl.uniform1f(uniforms.opacity.location, material.opacity);
+            gl.uniform3f(uniforms.color.location, material.color.r, material.color.g, material.color.b);
+
+            gl.uniform1f(uniforms.rotation.location, material.rotation);
+            gl.uniform2fv(uniforms.scale.location, scale);
+
+            // set blend
+            if (material.transparent) {
+                this.state.setBlend(material.blending, material.premultipliedAlpha);
+            } else {
+                this.state.setBlend(BLEND_TYPE.NONE);
+            }
+
+            // set depth test
+            if (material.depthTest) {
+                this.state.enable(gl.DEPTH_TEST);
+            } else {
+                this.state.disable(gl.DEPTH_TEST);
+            }
+
+            var slot = this.allocTexUnit();
+            this.texture.setTexture2D(material.map, slot);
+            gl.uniform1i(uniforms.map.location, slot);
+
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+            // reset used tex Unit
+            this._usedTextureUnits = 0;
+        }
+
+    }
+
     /**
      * update geometry to GPU
      * @return offset {number}
@@ -4793,8 +5052,8 @@
     Renderer.prototype.setRenderTarget = function(target) {
         var gl = this.gl;
 
-        if(!target) {
-            if(this._currentRenderTarget === target) {
+        if (!target) {
+            if (this._currentRenderTarget === target) {
 
             } else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -4809,8 +5068,8 @@
 
         var isCube = target.activeCubeFace !== undefined;
 
-        if(this._currentRenderTarget !== target) {
-            if(!isCube) {
+        if (this._currentRenderTarget !== target) {
+            if (!isCube) {
                 this.texture.setRenderTarget2D(target);
             } else {
                 this.texture.setRenderTargetCube(target);
@@ -4818,9 +5077,9 @@
 
             this._currentRenderTarget = target;
         } else {
-            if(isCube) {
+            if (isCube) {
                 var textureProperties = this.properties.get(target.texture);
-    			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
             }
         }
 
@@ -4835,11 +5094,11 @@
 
         var bits = 0;
 
-		if ( color === undefined || color ) bits |= gl.COLOR_BUFFER_BIT;
-		if ( depth === undefined || depth ) bits |= gl.DEPTH_BUFFER_BIT;
-		if ( stencil === undefined || stencil ) bits |= gl.STENCIL_BUFFER_BIT;
+        if (color === undefined || color) bits |= gl.COLOR_BUFFER_BIT;
+        if (depth === undefined || depth) bits |= gl.DEPTH_BUFFER_BIT;
+        if (stencil === undefined || stencil) bits |= gl.STENCIL_BUFFER_BIT;
 
-		gl.clear( bits );
+        gl.clear(bits);
     }
 
     /**
@@ -4848,20 +5107,19 @@
     Renderer.prototype.allocTexUnit = function() {
         var textureUnit = this._usedTextureUnits;
 
-		if ( textureUnit >= this.capabilities.maxTextures ) {
+        if (textureUnit >= this.capabilities.maxTextures) {
 
-			console.warn( 'trying to use ' + textureUnit + ' texture units while this GPU supports only ' + this.capabilities.maxTextures );
+            console.warn('trying to use ' + textureUnit + ' texture units while this GPU supports only ' + this.capabilities.maxTextures);
 
-		}
+        }
 
-		this._usedTextureUnits += 1;
+        this._usedTextureUnits += 1;
 
-		return textureUnit;
+        return textureUnit;
     }
 
     zen3d.Renderer = Renderer;
 })();
-
 (function() {
     var OBJECT_TYPE = zen3d.OBJECT_TYPE;
     var LIGHT_TYPE = zen3d.LIGHT_TYPE;
@@ -4878,6 +5136,8 @@
         this.canvas2dObjects = new Array();
 
         this.shadowObjects = new Array();
+
+        this.sprites = new Array();
 
         // lights
         this.ambientLights = new Array();
@@ -4954,6 +5214,33 @@
                 }
 
                 break;
+            case OBJECT_TYPE.SPRITE:
+                // frustum test
+                if(object.frustumCulled) {
+                    helpSphere.center.set(0, 0, 0);
+                    helpSphere.radius = 0.7071067811865476;
+                    helpSphere.applyMatrix4(object.worldMatrix);
+                    helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
+                    helpFrustum.setFromMatrix(helpMatrix);
+                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
+                    if(!frustumTest) {
+                        break;
+                    }
+                }
+
+                var array = this.sprites;
+
+                helpVector3.setFromMatrixPosition(object.worldMatrix);
+                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+                array.push({
+                    object: object,
+                    material: object.material,
+                    z: helpVector3.z
+                });
+
+                // no shadow
+                break;
             case OBJECT_TYPE.LIGHT:
                 if (object.lightType == LIGHT_TYPE.AMBIENT) {
                     this.ambientLights.push(object);
@@ -5011,6 +5298,13 @@
             var zb = b.z;
             return zb - za;
         });
+
+        // sprites render from back to front
+        this.sprites.sort(function(a, b) {
+            var za = a.z;
+            var zb = b.z;
+            return zb - za;
+        });
     }
 
     /**
@@ -5022,6 +5316,8 @@
         this.canvas2dObjects.length = 0;
 
         this.shadowObjects.length = 0;
+
+        this.sprites.length = 0;
 
         this.ambientLights.length = 0;
         this.directLights.length = 0;
@@ -5811,10 +6107,30 @@
 
 (function() {
     /**
+     * SpriteMaterial
+     * @class
+     */
+    var SpriteMaterial = function() {
+        SpriteMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.SPRITE;
+
+        this.rotation = 0;
+
+    	this.fog = false;
+    }
+
+    zen3d.inherit(SpriteMaterial, zen3d.Material);
+
+    zen3d.SpriteMaterial = SpriteMaterial;
+})();
+
+(function() {
+    /**
      * Object3D
      * @class
      */
-    var Object3D = function(geometry, material) {
+    var Object3D = function() {
 
         // a custom name for this object
         this.name = "";
@@ -6512,6 +6828,24 @@
     zen3d.inherit(Points, zen3d.Object3D);
 
     zen3d.Points = Points;
+})();
+
+(function() {
+    /**
+     * Sprite
+     * @class
+     */
+    var Sprite = function(material) {
+        Sprite.superClass.constructor.call(this);
+
+        this.material = (material !== undefined) ? material : new zen3d.SpriteMaterial();
+
+        this.type = zen3d.OBJECT_TYPE.SPRITE;
+    }
+
+    zen3d.inherit(Sprite, zen3d.Object3D);
+
+    zen3d.Sprite = Sprite;
 })();
 
 (function() {

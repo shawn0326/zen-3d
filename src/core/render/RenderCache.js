@@ -15,6 +15,8 @@
 
         this.shadowObjects = new Array();
 
+        this.sprites = new Array();
+
         // lights
         this.ambientLights = new Array();
         this.directLights = new Array();
@@ -90,6 +92,33 @@
                 }
 
                 break;
+            case OBJECT_TYPE.SPRITE:
+                // frustum test
+                if(object.frustumCulled) {
+                    helpSphere.center.set(0, 0, 0);
+                    helpSphere.radius = 0.7071067811865476;
+                    helpSphere.applyMatrix4(object.worldMatrix);
+                    helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
+                    helpFrustum.setFromMatrix(helpMatrix);
+                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
+                    if(!frustumTest) {
+                        break;
+                    }
+                }
+
+                var array = this.sprites;
+
+                helpVector3.setFromMatrixPosition(object.worldMatrix);
+                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+                array.push({
+                    object: object,
+                    material: object.material,
+                    z: helpVector3.z
+                });
+
+                // no shadow
+                break;
             case OBJECT_TYPE.LIGHT:
                 if (object.lightType == LIGHT_TYPE.AMBIENT) {
                     this.ambientLights.push(object);
@@ -147,6 +176,13 @@
             var zb = b.z;
             return zb - za;
         });
+
+        // sprites render from back to front
+        this.sprites.sort(function(a, b) {
+            var za = a.z;
+            var zb = b.z;
+            return zb - za;
+        });
     }
 
     /**
@@ -158,6 +194,8 @@
         this.canvas2dObjects.length = 0;
 
         this.shadowObjects.length = 0;
+
+        this.sprites.length = 0;
 
         this.ambientLights.length = 0;
         this.directLights.length = 0;

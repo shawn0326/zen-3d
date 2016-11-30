@@ -3,7 +3,7 @@
      * Object3D
      * @class
      */
-    var Object3D = function(geometry, material) {
+    var Object3D = function() {
 
         // a custom name for this object
         this.name = "";

@@ -9,7 +9,8 @@
         SCENE: "scene",
         GROUP: "group",
         POINT: "point",
-        CANVAS2D: "canvas2d"
+        CANVAS2D: "canvas2d",
+        SPRITE: "sprite"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;
@@ -35,7 +36,8 @@
         PHONG: "phong",
         CUBE: "cube",
         POINT: "point",
-        CANVAS2D: "canvas2d"
+        CANVAS2D: "canvas2d",
+        SPRITE: "sprite"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
