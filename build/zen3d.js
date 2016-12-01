@@ -2417,6 +2417,8 @@
         this.currentTextureSlot = null;
         this.currentBoundTextures = {};
 
+        this.currentBoundBuffers = {};
+
         this.emptyTextures = {};
         this.emptyTextures[gl.TEXTURE_2D] = createTexture(gl, gl.TEXTURE_2D, gl.TEXTURE_2D, 1);
         this.emptyTextures[gl.TEXTURE_CUBE_MAP] = createTexture(gl, gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6);
@@ -2546,6 +2548,17 @@
             gl.bindTexture(type, texture || this.emptyTextures[type]);
             boundTexture.type = type;
             boundTexture.texture = texture;
+        }
+    }
+
+    WebGLState.prototype.bindBuffer = function(type, buffer) {
+        var gl = this.gl;
+
+        var boundBuffer = this.currentBoundBuffers[type];
+
+        if(boundBuffer !== buffer) {
+            gl.bindBuffer(type, buffer);
+            this.currentBoundBuffers[type] = buffer;
         }
     }
 
@@ -2976,6 +2989,77 @@
     }
 
     zen3d.WebGLTexture = WebGLTexture;
+})();
+(function() {
+    var WebGLGeometry = function(gl, state, properties, capabilities) {
+        this.gl = gl;
+
+        this.state = state;
+
+        this.properties = properties;
+
+        this.capabilities = capabilities;
+    }
+
+    WebGLGeometry.prototype.setGeometry = function(geometry) {
+        var gl = this.gl;
+        var state = this.state;
+
+        var geometryProperties = this.properties.get(geometry);
+
+        if(geometry.dirty) {
+
+            if(geometryProperties.__webglVAO === undefined) {
+                geometry.addEventListener('dispose', this.onGeometryDispose, this);
+                geometryProperties.__webglVAO = gl.createBuffer();
+            }
+
+            state.bindBuffer(gl.ARRAY_BUFFER, geometryProperties.__webglVAO);
+
+            var vertices = new Float32Array(geometry.verticesArray);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            if(geometry.indicesArray.length > 0) {
+                if(geometryProperties.__webglEAO === undefined) {
+                    geometryProperties.__webglEAO = gl.createBuffer();
+                }
+
+                state.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometryProperties.__webglEAO);
+
+                var indices = new Uint16Array(geometry.indicesArray);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+            }
+
+            geometry.dirty = false;
+
+            return;
+        }
+
+        state.bindBuffer(gl.ARRAY_BUFFER, geometryProperties.__webglVAO);
+        if(geometry.indicesArray.length > 0) {
+            state.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometryProperties.__webglEAO);
+        }
+    }
+
+    WebGLGeometry.prototype.onGeometryDispose = function(event) {
+        var gl = this.gl;
+        var geometry = event.target;
+        var geometryProperties = this.properties.get(geometry);
+
+        geometry.removeEventListener('dispose', this.onGeometryDispose, this);
+
+        if(geometryProperties.__webglVAO) {
+            gl.deleteBuffer(geometryProperties.__webglVAO);
+        }
+
+        if(geometryProperties.__webglEAO) {
+            gl.deleteBuffer(geometryProperties.__webglEAO);
+        }
+
+        this.properties.delete(geometry);
+    }
+
+    zen3d.WebGLGeometry = WebGLGeometry;
 })();
 (function() {
 
@@ -4410,6 +4494,8 @@
 
         this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
 
+        this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
+
         // object cache
         this.cache = new zen3d.RenderCache();
 
@@ -4514,7 +4600,7 @@
                     var object = renderList[n];
                     var material = object.material;
 
-                    var offset = this._uploadGeometry(object.geometry);
+                    this.geometry.setGeometry(object.geometry);
 
                     var program = zen3d.getDepthProgram(gl, this);
                     gl.useProgram(program.id);
@@ -4551,7 +4637,7 @@
                     this.state.enable(gl.DEPTH_TEST);
 
                     // draw
-                    gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+                    gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
                 }
 
             }
@@ -4586,7 +4672,7 @@
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            var offset = this._uploadGeometry(geometry);
+            this.geometry.setGeometry(geometry);
 
             var program = zen3d.getProgram(gl, this, object, [
                 ambientLightsNum,
@@ -4873,7 +4959,7 @@
 
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
-                gl.drawArrays(gl.POINTS, 0, geometry.vertexCount);
+                gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
@@ -4889,7 +4975,7 @@
                     this._usedTextureUnits = 0;
                 }
             } else {
-                gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLES, geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
             }
 
             // reset used tex Unit
@@ -4900,42 +4986,18 @@
     var spritePosition = new zen3d.Vector3();
     var spriteRotation = new zen3d.Quaternion();
     var spriteScale = new zen3d.Vector3();
-    var vertexBuffer, elementBuffer;
-
-    Renderer.prototype.initSprite = function() {
-        var gl = this.gl;
-
-        var vertices = new Float32Array([-0.5, -0.5, 0, 0,
-            0.5, -0.5, 1, 0,
-            0.5, 0.5, 1, 1, -0.5, 0.5, 0, 1
-        ]);
-
-        var faces = new Uint16Array([
-            2, 1, 0,
-            3, 2, 0
-        ]);
-
-        vertexBuffer = gl.createBuffer();
-        elementBuffer = gl.createBuffer();
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, faces, gl.STATIC_DRAW);
-    }
 
     Renderer.prototype.renderSprites = function(sprites) {
+        if (this.cache.sprites.length === 0) {
+            return;
+        }
+
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
 
-        if(!vertexBuffer) {
-            this.initSprite();
-        } else {
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
-        }
+        // bind a shared geometry
+        this.geometry.setGeometry(zen3d.Sprite.geometry);
 
         var program = zen3d.getSpriteProgram(gl, this);
         gl.useProgram(program.id);
@@ -5036,14 +5098,6 @@
             this._usedTextureUnits = 0;
         }
 
-    }
-
-    /**
-     * update geometry to GPU
-     * @return offset {number}
-     */
-    Renderer.prototype._uploadGeometry = function(geometry) {
-        return geometry.bind(this);
     }
 
     /**
@@ -5424,18 +5478,13 @@
      * @class
      */
     var Geometry = function() {
+        Geometry.superClass.constructor.call(this);
+
+        this.uuid = zen3d.generateUUID();
 
         this.verticesArray = new Array();
 
         this.indicesArray = new Array();
-
-        this.verticesBuffer = null;
-
-        this.indicesBuffer = null;
-
-        this.drawLen = 0;
-
-        this.vertexCount = 0;
 
         this.vertexSize = 17; // static
 
@@ -5446,49 +5495,7 @@
         this.dirty = true;
     }
 
-    Geometry.prototype.bind = function(render) {
-        if(this.dirty) {
-            this.upload(render);
-            this.dirty = false;
-        } else {
-            var gl = render.gl;
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-
-            if(this.indicesArray.length > 0) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-            }
-        }
-
-        return this.drawLen;
-    }
-
-    Geometry.prototype.upload = function(render) {
-        var gl = render.gl;
-
-        if(!this.verticesBuffer) {
-            this.verticesBuffer = gl.createBuffer();
-        }
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-
-        var vertices = new Float32Array(this.verticesArray);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-        if(this.indicesArray.length > 0) {
-            if(!this.indicesBuffer) {
-                this.indicesBuffer = gl.createBuffer();
-            }
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-
-            var indices = new Uint16Array(this.indicesArray);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-        }
-
-        this.drawLen = this.indicesArray.length;
-        this.vertexCount = this.verticesArray.length / this.vertexSize;
-    }
+    zen3d.inherit(Geometry, zen3d.EventDispatcher);
 
     Geometry.prototype.computeBoundingBox = function() {
         this.boundingBox.setFromArray(this.verticesArray, this.vertexSize);
@@ -5496,6 +5503,20 @@
 
     Geometry.prototype.computeBoundingSphere = function() {
         this.boundingSphere.setFromArray(this.verticesArray, this.vertexSize);
+    }
+
+    Geometry.prototype.getVerticesCount = function() {
+        return this.verticesArray.length / this.vertexSize;
+    }
+
+    Geometry.prototype.getIndicesCount = function() {
+        return this.indicesArray.length;
+    }
+
+    Geometry.prototype.dispose = function() {
+        this.dispatchEvent({type: 'dispose'});
+
+        this.dirty = true;
     }
 
     zen3d.Geometry = Geometry;
@@ -6831,12 +6852,27 @@
 })();
 
 (function() {
+
+    // all sprites used one shared geometry
+    var sharedGeometry = new zen3d.Geometry();
+    sharedGeometry.verticesArray = [-0.5, -0.5, 0, 0,
+        0.5, -0.5, 1, 0,
+        0.5, 0.5, 1, 1, -0.5, 0.5, 0, 1
+    ];
+    sharedGeometry.indicesArray = [
+        2, 1, 0,
+        3, 2, 0
+    ];
+    sharedGeometry.vertexSize = 4;
+
     /**
      * Sprite
      * @class
      */
     var Sprite = function(material) {
         Sprite.superClass.constructor.call(this);
+
+        this.geometry = sharedGeometry;
 
         this.material = (material !== undefined) ? material : new zen3d.SpriteMaterial();
 
@@ -6845,9 +6881,10 @@
 
     zen3d.inherit(Sprite, zen3d.Object3D);
 
+    Sprite.geometry = sharedGeometry;
+
     zen3d.Sprite = Sprite;
 })();
-
 (function() {
     /**
      * AssimpJsonLoader

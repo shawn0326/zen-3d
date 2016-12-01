@@ -35,6 +35,8 @@
         this.currentTextureSlot = null;
         this.currentBoundTextures = {};
 
+        this.currentBoundBuffers = {};
+
         this.emptyTextures = {};
         this.emptyTextures[gl.TEXTURE_2D] = createTexture(gl, gl.TEXTURE_2D, gl.TEXTURE_2D, 1);
         this.emptyTextures[gl.TEXTURE_CUBE_MAP] = createTexture(gl, gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6);
@@ -164,6 +166,17 @@
             gl.bindTexture(type, texture || this.emptyTextures[type]);
             boundTexture.type = type;
             boundTexture.texture = texture;
+        }
+    }
+
+    WebGLState.prototype.bindBuffer = function(type, buffer) {
+        var gl = this.gl;
+
+        var boundBuffer = this.currentBoundBuffers[type];
+
+        if(boundBuffer !== buffer) {
+            gl.bindBuffer(type, buffer);
+            this.currentBoundBuffers[type] = buffer;
         }
     }
 

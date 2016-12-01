@@ -41,6 +41,8 @@
 
         this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
 
+        this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
+
         // object cache
         this.cache = new zen3d.RenderCache();
 
@@ -145,7 +147,7 @@
                     var object = renderList[n];
                     var material = object.material;
 
-                    var offset = this._uploadGeometry(object.geometry);
+                    this.geometry.setGeometry(object.geometry);
 
                     var program = zen3d.getDepthProgram(gl, this);
                     gl.useProgram(program.id);
@@ -182,7 +184,7 @@
                     this.state.enable(gl.DEPTH_TEST);
 
                     // draw
-                    gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+                    gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
                 }
 
             }
@@ -217,7 +219,7 @@
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            var offset = this._uploadGeometry(geometry);
+            this.geometry.setGeometry(geometry);
 
             var program = zen3d.getProgram(gl, this, object, [
                 ambientLightsNum,
@@ -504,7 +506,7 @@
 
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
-                gl.drawArrays(gl.POINTS, 0, geometry.vertexCount);
+                gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
@@ -520,7 +522,7 @@
                     this._usedTextureUnits = 0;
                 }
             } else {
-                gl.drawElements(gl.TRIANGLES, offset, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLES, geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
             }
 
             // reset used tex Unit
@@ -531,42 +533,18 @@
     var spritePosition = new zen3d.Vector3();
     var spriteRotation = new zen3d.Quaternion();
     var spriteScale = new zen3d.Vector3();
-    var vertexBuffer, elementBuffer;
-
-    Renderer.prototype.initSprite = function() {
-        var gl = this.gl;
-
-        var vertices = new Float32Array([-0.5, -0.5, 0, 0,
-            0.5, -0.5, 1, 0,
-            0.5, 0.5, 1, 1, -0.5, 0.5, 0, 1
-        ]);
-
-        var faces = new Uint16Array([
-            2, 1, 0,
-            3, 2, 0
-        ]);
-
-        vertexBuffer = gl.createBuffer();
-        elementBuffer = gl.createBuffer();
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, faces, gl.STATIC_DRAW);
-    }
 
     Renderer.prototype.renderSprites = function(sprites) {
+        if (this.cache.sprites.length === 0) {
+            return;
+        }
+
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
 
-        if(!vertexBuffer) {
-            this.initSprite();
-        } else {
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
-        }
+        // bind a shared geometry
+        this.geometry.setGeometry(zen3d.Sprite.geometry);
 
         var program = zen3d.getSpriteProgram(gl, this);
         gl.useProgram(program.id);
@@ -667,14 +645,6 @@
             this._usedTextureUnits = 0;
         }
 
-    }
-
-    /**
-     * update geometry to GPU
-     * @return offset {number}
-     */
-    Renderer.prototype._uploadGeometry = function(geometry) {
-        return geometry.bind(this);
     }
 
     /**

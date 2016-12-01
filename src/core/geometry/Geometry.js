@@ -4,18 +4,13 @@
      * @class
      */
     var Geometry = function() {
+        Geometry.superClass.constructor.call(this);
+
+        this.uuid = zen3d.generateUUID();
 
         this.verticesArray = new Array();
 
         this.indicesArray = new Array();
-
-        this.verticesBuffer = null;
-
-        this.indicesBuffer = null;
-
-        this.drawLen = 0;
-
-        this.vertexCount = 0;
 
         this.vertexSize = 17; // static
 
@@ -26,49 +21,7 @@
         this.dirty = true;
     }
 
-    Geometry.prototype.bind = function(render) {
-        if(this.dirty) {
-            this.upload(render);
-            this.dirty = false;
-        } else {
-            var gl = render.gl;
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-
-            if(this.indicesArray.length > 0) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-            }
-        }
-
-        return this.drawLen;
-    }
-
-    Geometry.prototype.upload = function(render) {
-        var gl = render.gl;
-
-        if(!this.verticesBuffer) {
-            this.verticesBuffer = gl.createBuffer();
-        }
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-
-        var vertices = new Float32Array(this.verticesArray);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-        if(this.indicesArray.length > 0) {
-            if(!this.indicesBuffer) {
-                this.indicesBuffer = gl.createBuffer();
-            }
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-
-            var indices = new Uint16Array(this.indicesArray);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-        }
-
-        this.drawLen = this.indicesArray.length;
-        this.vertexCount = this.verticesArray.length / this.vertexSize;
-    }
+    zen3d.inherit(Geometry, zen3d.EventDispatcher);
 
     Geometry.prototype.computeBoundingBox = function() {
         this.boundingBox.setFromArray(this.verticesArray, this.vertexSize);
@@ -76,6 +29,20 @@
 
     Geometry.prototype.computeBoundingSphere = function() {
         this.boundingSphere.setFromArray(this.verticesArray, this.vertexSize);
+    }
+
+    Geometry.prototype.getVerticesCount = function() {
+        return this.verticesArray.length / this.vertexSize;
+    }
+
+    Geometry.prototype.getIndicesCount = function() {
+        return this.indicesArray.length;
+    }
+
+    Geometry.prototype.dispose = function() {
+        this.dispatchEvent({type: 'dispose'});
+
+        this.dirty = true;
     }
 
     zen3d.Geometry = Geometry;
