@@ -48,15 +48,8 @@
         for (var i = 0; i < totalUniforms; i++) {
             var uniformData = gl.getActiveUniform(program, i);
             var name = uniformData.name;
-            var type = uniformData.type; // analysis
-
-            // TODO get update method
-
-            uniforms[name] = {
-                type: type,
-                size: uniformData.size,
-                location: gl.getUniformLocation(program, name)
-            };
+            var uniform = new zen3d.WebGLUniform(gl, program, uniformData);
+            uniforms[name] = uniform;
         }
 
         return uniforms;

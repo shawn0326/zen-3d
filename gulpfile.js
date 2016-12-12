@@ -42,6 +42,7 @@ var filesSrc = [
     "core/render/WebGL/WebGLProperties.js",
     "core/render/WebGL/WebGLTexture.js",
     "core/render/WebGL/WebGLGeometry.js",
+    "core/render/WebGL/WebGLUniform.js",
     "core/render/shader/ShaderLib.js",
     "core/render/shader/Program.js",
     "core/render/Renderer.js",

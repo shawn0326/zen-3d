@@ -345,6 +345,34 @@
 
     zen3d.WEBGL_TEXTURE_WRAP = WEBGL_TEXTURE_WRAP;
 
+    // Taken from the WebGl spec:
+    // http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14
+    var WEBGL_UNIFORM_TYPE = {
+        FLOAT_VEC2: 0x8B50,
+        FLOAT_VEC3: 0x8B51,
+        FLOAT_VEC4: 0x8B52,
+        INT_VEC2: 0x8B53,
+        INT_VEC3: 0x8B54,
+        INT_VEC4: 0x8B55,
+        BOOL: 0x8B56,
+        BOOL_VEC2: 0x8B57,
+        BOOL_VEC3: 0x8B58,
+        BOOL_VEC4: 0x8B59,
+        FLOAT_MAT2: 0x8B5A,
+        FLOAT_MAT3: 0x8B5B,
+        FLOAT_MAT4: 0x8B5C,
+        SAMPLER_2D: 0x8B5E,
+        SAMPLER_CUBE: 0x8B60,
+        BYTE: 0xffff,
+        UNSIGNED_BYTE: 0x1401,
+        SHORT: 0x1402,
+        UNSIGNED_SHORT: 0x1403,
+        INT: 0x1404,
+        UNSIGNED_INT: 0x1405,
+        FLOAT: 0x1406
+    }
+
+    zen3d.WEBGL_UNIFORM_TYPE = WEBGL_UNIFORM_TYPE;
 })();
 
 (function() {
@@ -3062,6 +3090,223 @@
     zen3d.WebGLGeometry = WebGLGeometry;
 })();
 (function() {
+    var WEBGL_UNIFORM_TYPE = zen3d.WEBGL_UNIFORM_TYPE;
+
+    var WebGLUniform = function(gl, program, uniformData) {
+        this.gl = gl;
+
+        this.name = uniformData.name;
+
+        // WEBGL_UNIFORM_TYPE
+        this.type = uniformData.type;
+
+        this.size = uniformData.size;
+
+        this.location = gl.getUniformLocation(program, this.name);
+
+        this.value = undefined;
+        this._setDefaultValue();
+
+        this.setValue = undefined;
+        this._generateSetValue();
+
+        this.upload = undefined;
+        this._generateUpload();
+    }
+
+    WebGLUniform.prototype._setDefaultValue = function() {
+        var type = this.type;
+
+        switch (type) {
+            case WEBGL_UNIFORM_TYPE.FLOAT:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_2D:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
+            case WEBGL_UNIFORM_TYPE.BOOL:
+            case WEBGL_UNIFORM_TYPE.INT:
+                this.value = 0;
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC2:
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC2:
+            case WEBGL_UNIFORM_TYPE.INT_VEC2:
+                this.value = [0, 0];
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC3:
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC3:
+            case WEBGL_UNIFORM_TYPE.INT_VEC3:
+                this.value = [0, 0, 0];
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC4:
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC4:
+            case WEBGL_UNIFORM_TYPE.INT_VEC4:
+                this.value = [0, 0, 0, 0];
+                break;
+
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT2:
+                this.value = new Float32Array([
+                    1, 0,
+                    0, 1
+                ]);
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT3:
+                this.value = new Float32Array([
+                    1, 0, 0,
+                    0, 1, 0,
+                    0, 0, 1
+                ]);
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT4:
+                this.value = new Float32Array([
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1
+                ]);
+                break;
+        }
+    }
+
+    WebGLUniform.prototype._generateSetValue = function() {
+        var type = this.type;
+
+        switch (type) {
+            case WEBGL_UNIFORM_TYPE.FLOAT:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_2D:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
+            case WEBGL_UNIFORM_TYPE.BOOL:
+            case WEBGL_UNIFORM_TYPE.INT:
+                this.setValue = function(p1) {
+                    this.value = p1;
+                    this.upload();
+                }
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC2:
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC2:
+            case WEBGL_UNIFORM_TYPE.INT_VEC2:
+                this.setValue = function(p1, p2) {
+                    this.value[0] = p1;
+                    this.value[1] = p2;
+                    this.upload();
+                }
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC3:
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC3:
+            case WEBGL_UNIFORM_TYPE.INT_VEC3:
+                this.setValue = function(p1, p2, p3) {
+                    this.value[0] = p1;
+                    this.value[1] = p2;
+                    this.value[2] = p3;
+                    this.upload();
+                }
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC4:
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC4:
+            case WEBGL_UNIFORM_TYPE.INT_VEC4:
+                this.setValue = function(p1, p2, p3, p4) {
+                    this.value[0] = p1;
+                    this.value[1] = p2;
+                    this.value[2] = p3;
+                    this.value[3] = p4;
+                    this.upload();
+                }
+                break;
+
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT2:
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT3:
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT4:
+                this.setValue = function(p1) {
+                    this.value.set(p1);
+                    this.upload();
+                }
+                break;
+        }
+    }
+
+    WebGLUniform.prototype._generateUpload = function() {
+        var gl = this.gl;
+        var type = this.type;
+        var location = this.location;
+
+        switch (type) {
+            case WEBGL_UNIFORM_TYPE.FLOAT:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform1f(location, value);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC2:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform2f(location, value[0], value[1]);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC3:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform3f(location, value[0], value[1], value[2]);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_VEC4:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform4f(location, value[0], value[1], value[2], value[3]);
+                };
+                break;
+
+            case WEBGL_UNIFORM_TYPE.SAMPLER_2D:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
+            case WEBGL_UNIFORM_TYPE.BOOL:
+            case WEBGL_UNIFORM_TYPE.INT:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform1i(location, value);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC2:
+            case WEBGL_UNIFORM_TYPE.INT_VEC2:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform2i(location, value[0], value[1]);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC3:
+            case WEBGL_UNIFORM_TYPE.INT_VEC3:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform3i(location, value[0], value[1], value[2]);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.BOOL_VEC4:
+            case WEBGL_UNIFORM_TYPE.INT_VEC4:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniform4i(location, value[0], value[1], value[2], value[3]);
+                };
+                break;
+
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT2:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniformMatrix2fv(location, false, value);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT3:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniformMatrix3fv(location, false, value);
+                };
+                break;
+            case WEBGL_UNIFORM_TYPE.FLOAT_MAT4:
+                this.upload = function() {
+                    var value = this.value;
+                    gl.uniformMatrix4fv(location, false, value);
+                };
+                break;
+        }
+    }
+
+    zen3d.WebGLUniform = WebGLUniform;
+})();
+(function() {
 
     var packing = [
         "const float PackUpscale = 256. / 255.;", // fraction -> 0..1 (including 1)
@@ -4085,15 +4330,8 @@
         for (var i = 0; i < totalUniforms; i++) {
             var uniformData = gl.getActiveUniform(program, i);
             var name = uniformData.name;
-            var type = uniformData.type; // analysis
-
-            // TODO get update method
-
-            uniforms[name] = {
-                type: type,
-                size: uniformData.size,
-                location: gl.getUniformLocation(program, name)
-            };
+            var uniform = new zen3d.WebGLUniform(gl, program, uniformData);
+            uniforms[name] = uniform;
         }
 
         return uniforms;
@@ -4612,24 +4850,24 @@
                     // update uniforms
                     var uniforms = program.uniforms;
                     for (var key in uniforms) {
-                        var location = uniforms[key].location;
+                        var uniform = uniforms[key];
                         switch (key) {
                             // pvm matrix
                             case "u_Projection":
                                 var projectionMat = camera.projectionMatrix.elements;
-                                gl.uniformMatrix4fv(location, false, projectionMat);
+                                uniform.setValue(projectionMat);
                                 break;
                             case "u_View":
                                 var viewMatrix = camera.viewMatrix.elements;
-                                gl.uniformMatrix4fv(location, false, viewMatrix);
+                                uniform.setValue(viewMatrix);
                                 break;
                             case "u_Model":
                                 var modelMatrix = object.worldMatrix.elements;
-                                gl.uniformMatrix4fv(location, false, modelMatrix);
+                                uniform.setValue(modelMatrix);
                                 break;
                             case "lightPos":
                                 helpVector3.setFromMatrixPosition(light.worldMatrix);
-                                gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
+                                uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                         }
                     }
 
@@ -4709,7 +4947,7 @@
             // update uniforms
             var uniforms = program.uniforms;
             for (var key in uniforms) {
-                var location = uniforms[key].location;
+                var uniform = uniforms[key];
                 switch (key) {
 
                     // pvm matrix
@@ -4720,7 +4958,7 @@
                             var projectionMat = camera.projectionMatrix.elements;
                         }
 
-                        gl.uniformMatrix4fv(location, false, projectionMat);
+                        uniform.setValue(projectionMat);
                         break;
                     case "u_View":
                         if (object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
@@ -4729,80 +4967,75 @@
                             var viewMatrix = camera.viewMatrix.elements;
                         }
 
-                        gl.uniformMatrix4fv(location, false, viewMatrix);
+                        uniform.setValue(viewMatrix);
                         break;
                     case "u_Model":
                         var modelMatrix = object.worldMatrix.elements;
-                        gl.uniformMatrix4fv(location, false, modelMatrix);
+                        uniform.setValue(modelMatrix);
                         break;
 
                     case "u_Color":
                         var color = material.color;
-                        gl.uniform3f(location, color.r, color.g, color.b);
+                        uniform.setValue(color.r, color.g, color.b);
                         break;
                     case "u_Opacity":
-                        gl.uniform1f(location, material.opacity);
+                        uniform.setValue(material.opacity);
                         break;
 
                     case "texture":
                         var slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.map, slot);
-                        gl.uniform1i(location, slot);
+                        uniform.setValue(slot);
                         break;
                     case "normalMap":
                         var slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.normalMap, slot);
-                        gl.uniform1i(location, slot);
+                        uniform.setValue(slot);
                         break;
                     case "envMap":
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.envMap, slot);
-                        gl.uniform1i(location, slot);
+                        uniform.setValue(slot);
                         break;
                     case "cubeMap":
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.cubeMap, slot);
-                        gl.uniform1i(location, slot);
+                        uniform.setValue(slot);
                         break;
 
                     case "u_EnvMap_Intensity":
-                        gl.uniform1f(location, material.envMapIntensity);
+                        uniform.setValue(material.envMapIntensity);
                         break;
                     case "u_Specular":
-                        var specular = material.specular;
-                        gl.uniform1f(location, specular);
+                        uniform.setValue(material.specular);
                         break;
                     case "u_SpecularColor":
                         var color = material.specularColor;
-                        gl.uniform4f(location, color.r, color.g, color.b, 1);
+                        uniform.setValue(color.r, color.g, color.b, 1);
                         break;
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
-                        gl.uniform3f(location, helpVector3.x, helpVector3.y, helpVector3.z);
+                        uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                         break;
                     case "u_FogColor":
                         var color = fog.color;
-                        gl.uniform3f(location, color.r, color.g, color.b);
+                        uniform.setValue(color.r, color.g, color.b);
                         break;
                     case "u_FogDensity":
-                        var density = fog.density;
-                        gl.uniform1f(location, density);
+                        uniform.setValue(fog.density);
                         break;
                     case "u_FogNear":
-                        var near = fog.near;
-                        gl.uniform1f(location, near);
+                        uniform.setValue(fog.near);
                         break;
                     case "u_FogFar":
-                        var far = fog.far;
-                        gl.uniform1f(location, far);
+                        uniform.setValue(fog.far);
                         break;
                     case "u_PointSize":
-                        var size = material.size;
-                        gl.uniform1f(location, size);
+                        uniform.setValue(material.size);
                         break;
                     case "u_PointScale":
                         var scale = this.height * 0.5; // three.js do this
-                        gl.uniform1f(location, scale);
+                        uniform.setValue(scale);
                         break;
                 }
             }
@@ -4820,10 +5053,10 @@
                     var intensity = light.intensity;
                     var color = light.color;
 
-                    var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"].location;
-                    var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"].location;
-                    gl.uniform4f(u_Ambient_color, color.r, color.g, color.b, 1);
-                    gl.uniform1f(u_Ambient_intensity, intensity);
+                    var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"];
+                    var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"];
+                    u_Ambient_intensity.setValue(intensity);
+                    u_Ambient_color.setValue(color.r, color.g, color.b, 1);
                 }
 
 
@@ -4835,25 +5068,25 @@
                     helpVector3.transformDirection(camera.viewMatrix);
                     var color = light.color;
 
-                    var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"].location;
-                    var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"].location;
-                    var u_Directional_color = uniforms["u_Directional[" + k + "].color"].location;
-                    gl.uniform3f(u_Directional_direction, helpVector3.x, helpVector3.y, helpVector3.z);
-                    gl.uniform1f(u_Directional_intensity, intensity);
-                    gl.uniform4f(u_Directional_color, color.r, color.g, color.b, 1);
+                    var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"];
+                    var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"];
+                    var u_Directional_color = uniforms["u_Directional[" + k + "].color"];
+                    u_Directional_direction.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+                    u_Directional_intensity.setValue(intensity);
+                    u_Directional_color.setValue(color.r, color.g, color.b, 1);
 
                     // shadow
-                    var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"].location;
-                    gl.uniform1i(u_Directional_shadow, light.castShadow ? 1 : 0);
+                    var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"];
+                    u_Directional_shadow.setValue(light.castShadow ? 1 : 0);
 
                     if (light.castShadow && object.receiveShadow) {
-                        var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"].location;
-                        gl.uniformMatrix4fv(directionalShadowMatrix, false, light.shadow.matrix.elements);
+                        var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"];
+                        directionalShadowMatrix.setValue(light.shadow.matrix.elements);
 
-                        var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"].location;
+                        var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"];
                         var slot = this.allocTexUnit();
                         this.texture.setTexture2D(light.shadow.map, slot);
-                        gl.uniform1i(directionalShadowMap, slot);
+                        directionalShadowMap.setValue(slot);
                     }
 
                 }
@@ -4868,26 +5101,26 @@
                     var distance = light.distance;
                     var decay = light.decay;
 
-                    var u_Point_position = uniforms["u_Point[" + k + "].position"].location;
-                    gl.uniform3f(u_Point_position, helpVector3.x, helpVector3.y, helpVector3.z);
-                    var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"].location;
-                    gl.uniform1f(u_Point_intensity, intensity);
-                    var u_Point_color = uniforms["u_Point[" + k + "].color"].location;
-                    gl.uniform4f(u_Point_color, color.r, color.g, color.b, 1);
-                    var u_Point_distance = uniforms["u_Point[" + k + "].distance"].location;
-                    gl.uniform1f(u_Point_distance, distance);
-                    var u_Point_decay = uniforms["u_Point[" + k + "].decay"].location;
-                    gl.uniform1f(u_Point_decay, decay);
+                    var u_Point_position = uniforms["u_Point[" + k + "].position"];
+                    u_Point_position.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+                    var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"];
+                    u_Point_intensity.setValue(intensity);
+                    var u_Point_color = uniforms["u_Point[" + k + "].color"];
+                    u_Point_color.setValue(color.r, color.g, color.b, 1);
+                    var u_Point_distance = uniforms["u_Point[" + k + "].distance"];
+                    u_Point_distance.setValue(distance);
+                    var u_Point_decay = uniforms["u_Point[" + k + "].decay"];
+                    u_Point_decay.setValue(decay);
 
                     // shadow
-                    var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"].location;
-                    gl.uniform1i(u_Point_shadow, light.castShadow ? 1 : 0);
+                    var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"];
+                    u_Point_shadow.setValue(light.castShadow ? 1 : 0);
 
                     if (light.castShadow && object.receiveShadow) {
-                        var pointShadowMap = uniforms["pointShadowMap[" + k + "]"].location;
+                        var pointShadowMap = uniforms["pointShadowMap[" + k + "]"];
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(light.shadow.map, slot);
-                        gl.uniform1i(pointShadowMap, slot);
+                        pointShadowMap.setValue(slot);
                     }
                 }
 
@@ -4896,8 +5129,8 @@
 
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
 
-                    var u_Spot_position = uniforms["u_Spot[" + k + "].position"].location;
-                    gl.uniform3f(u_Spot_position, helpVector3.x, helpVector3.y, helpVector3.z);
+                    var u_Spot_position = uniforms["u_Spot[" + k + "].position"];
+                    u_Spot_position.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
 
                     var intensity = light.intensity;
                     var color = light.color;
@@ -4907,37 +5140,37 @@
                     light.getWorldDirection(helpVector3);
                     helpVector3.transformDirection(camera.viewMatrix);
 
-                    var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"].location;
-                    gl.uniform3f(u_Spot_direction, helpVector3.x, helpVector3.y, helpVector3.z);
+                    var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"];
+                    u_Spot_direction.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
 
-                    var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"].location;
-                    gl.uniform1f(u_Spot_intensity, intensity);
-                    var u_Spot_color = uniforms["u_Spot[" + k + "].color"].location;
-                    gl.uniform4f(u_Spot_color, color.r, color.g, color.b, 1);
-                    var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"].location;
-                    gl.uniform1f(u_Spot_distance, distance);
-                    var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"].location;
-                    gl.uniform1f(u_Spot_decay, decay);
+                    var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"];
+                    u_Spot_intensity.setValue(intensity);
+                    var u_Spot_color = uniforms["u_Spot[" + k + "].color"];
+                    u_Spot_color.setValue(color.r, color.g, color.b, 1);
+                    var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"];
+                    u_Spot_distance.setValue(distance);
+                    var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"];
+                    u_Spot_decay.setValue(decay);
 
                     var coneCos = Math.cos(light.angle);
                     var penumbraCos = Math.cos(light.angle * (1 - light.penumbra));
-                    var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"].location;
-                    gl.uniform1f(u_Spot_coneCos, coneCos);
-                    var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"].location;
-                    gl.uniform1f(u_Spot_penumbraCos, penumbraCos);
+                    var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"];
+                    u_Spot_coneCos.setValue(coneCos);
+                    var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"];
+                    u_Spot_penumbraCos.setValue(penumbraCos);
 
                     // shadow
-                    var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"].location;
-                    gl.uniform1i(u_Spot_shadow, light.castShadow ? 1 : 0);
+                    var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"];
+                    u_Spot_shadow.setValue(light.castShadow ? 1 : 0);
 
                     if (light.castShadow && object.receiveShadow) {
-                        var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"].location;
-                        gl.uniformMatrix4fv(spotShadowMatrix, false, light.shadow.matrix.elements);
+                        var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"];
+                        spotShadowMatrix.setValue(light.shadow.matrix.elements);
 
-                        var spotShadowMap = uniforms["spotShadowMap[" + k + "]"].location;
+                        var spotShadowMap = uniforms["spotShadowMap[" + k + "]"];
                         var slot = this.allocTexUnit();
                         this.texture.setTexture2D(light.shadow.map, slot);
-                        gl.uniform1i(spotShadowMap, slot);
+                        spotShadowMap.setValue(slot);
                     }
                 }
             }
@@ -4965,10 +5198,9 @@
                 for (var j = 0; j < object.drawArray.length; j++) {
                     var drawData = object.drawArray[j];
 
-                    var location = uniforms["spriteTexture"].location;
                     var slot = this.allocTexUnit();
                     this.texture.setTexture2D(drawData.texture, slot);
-                    gl.uniform1i(location, slot);
+                    uniforms.spriteTexture.setValue(slot);
 
                     gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
                     _offset += drawData.count * 6;
@@ -5011,26 +5243,26 @@
         gl.enableVertexAttribArray(location);
 
         var uniforms = program.uniforms;
-        gl.uniformMatrix4fv(uniforms.projectionMatrix.location, false, camera.projectionMatrix.elements);
+        uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
 
         // fog
         var sceneFogType = 0;
         if (fog) {
-            gl.uniform3f(uniforms.fogColor.location, fog.color.r, fog.color.g, fog.color.b);
+            uniforms.fogColor.setValue(fog.color.r, fog.color.g, fog.color.b);
 
             if (fog.fogType === zen3d.FOG_TYPE.NORMAL) {
-                gl.uniform1f(uniforms.fogNear.location, fog.near);
-                gl.uniform1f(uniforms.fogFar.location, fog.far);
+                uniforms.fogNear.setValue(fog.near);
+                uniforms.fogFar.setValue(fog.far);
 
-                gl.uniform1i(uniforms.fogType.location, 1);
+                uniforms.fogType.setValue(1);
                 sceneFogType = 1;
             } else if (fog.fogType === zen3d.FOG_TYPE.EXP2) {
-                gl.uniform1f(uniforms.fogDensity.location, fog.density);
-                gl.uniform1i(uniforms.fogType.location, 2);
+                uniforms.fogDensity.setValue(fog.density);
+                uniforms.fogType.setValue(2);
                 sceneFogType = 2;
             }
         } else {
-            gl.uniform1i(uniforms.fogType.location, 0);
+            uniforms.fogType.setValue(0);
             sceneFogType = 0;
         }
 
@@ -5041,9 +5273,9 @@
             var sprite = sprites[i].object;
             var material = sprite.material;
 
-            gl.uniform1f(uniforms.alphaTest.location, 0);
-            gl.uniformMatrix4fv(uniforms.viewMatrix.location, false, camera.viewMatrix.elements);
-            gl.uniformMatrix4fv(uniforms.modelMatrix.location, false, sprite.worldMatrix.elements);
+            uniforms.alphaTest.setValue(0);
+            uniforms.viewMatrix.setValue(camera.viewMatrix.elements);
+            uniforms.modelMatrix.setValue(sprite.worldMatrix.elements);
 
             sprite.worldMatrix.decompose(spritePosition, spriteRotation, spriteScale);
 
@@ -5056,23 +5288,24 @@
                 fogType = sceneFogType;
             }
 
-            gl.uniform1i(uniforms.fogType.location, fogType);
+            uniforms.fogType.setValue(fogType);
 
             if (material.map !== null) {
-                // gl.uniform2f(uniforms.uvOffset, material.map.offset.x, material.map.offset.y);
-                // gl.uniform2f(uniforms.uvScale, material.map.repeat.x, material.map.repeat.y);
-                gl.uniform2f(uniforms.uvOffset.location, 0, 0);
-                gl.uniform2f(uniforms.uvScale.location, 1, 1);
+                // TODO offset
+                // uniforms.uvOffset.setValue(uniforms.uvOffset, material.map.offset.x, material.map.offset.y);
+                // uniforms.uvScale.setValue(uniforms.uvScale, material.map.repeat.x, material.map.repeat.y);
+                uniforms.uvOffset.setValue(0, 0);
+                uniforms.uvScale.setValue(1, 1);
             } else {
-                gl.uniform2f(uniforms.uvOffset.location, 0, 0);
-                gl.uniform2f(uniforms.uvScale.location, 1, 1);
+                uniforms.uvOffset.setValue(0, 0);
+                uniforms.uvScale.setValue(1, 1);
             }
 
-            gl.uniform1f(uniforms.opacity.location, material.opacity);
-            gl.uniform3f(uniforms.color.location, material.color.r, material.color.g, material.color.b);
+            uniforms.opacity.setValue(material.opacity);
+            uniforms.color.setValue(material.color.r, material.color.g, material.color.b);
 
-            gl.uniform1f(uniforms.rotation.location, material.rotation);
-            gl.uniform2fv(uniforms.scale.location, scale);
+            uniforms.rotation.setValue(material.rotation);
+            uniforms.scale.setValue(scale);
 
             // set blend
             if (material.transparent) {
@@ -5090,7 +5323,7 @@
 
             var slot = this.allocTexUnit();
             this.texture.setTexture2D(material.map, slot);
-            gl.uniform1i(uniforms.map.location, slot);
+            uniforms.map.setValue(slot);
 
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
