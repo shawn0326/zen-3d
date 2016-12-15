@@ -12,6 +12,7 @@
 
         this.indicesArray = new Array();
 
+        // maybe need something to discrib vertex format
         this.vertexSize = 17; // static
 
         this.boundingBox = new zen3d.Box3();

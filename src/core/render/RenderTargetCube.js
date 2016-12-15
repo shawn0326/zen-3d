@@ -13,13 +13,5 @@
 
     zen3d.inherit(RenderTargetCube, zen3d.RenderTargetBase);
 
-    /**
-     * resize render target
-     * so we can recycling a render target
-     */
-    RenderTargetCube.prototype.resize = function(width, height) {
-        // TODO
-    }
-
     zen3d.RenderTargetCube = RenderTargetCube;
 })();

@@ -373,6 +373,18 @@
     }
 
     zen3d.WEBGL_UNIFORM_TYPE = WEBGL_UNIFORM_TYPE;
+
+    var WEBGL_ATTRIBUTE_TYPE = {
+        FLOAT_VEC2: 0x8B50,
+        FLOAT_VEC3: 0x8B51,
+        FLOAT_VEC4: 0x8B52,
+        FLOAT: 0x1406,
+        BYTE: 0xffff,
+        UNSIGNED_BYTE: 0x1401,
+        UNSIGNED_SHORT: 0x1403
+    }
+
+    zen3d.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
 })();
 
 (function() {
@@ -3307,6 +3319,74 @@
     zen3d.WebGLUniform = WebGLUniform;
 })();
 (function() {
+    var WEBGL_ATTRIBUTE_TYPE = zen3d.WEBGL_ATTRIBUTE_TYPE;
+
+    var WebGLAttribute = function(gl, program, attributeData) {
+        this.gl = gl;
+
+        this.name = attributeData.name;
+
+        // WEBGL_ATTRIBUTE_TYPE
+        this.type = attributeData.type;
+
+        this.size = attributeData.size;
+
+        this.location = gl.getAttribLocation(program, this.name);
+
+        this.count = 0;
+        this.initCount(gl);
+
+        this.format = gl.FLOAT;
+        this.initFormat(gl);
+    }
+
+    WebGLAttribute.prototype.initCount = function(gl) {
+        var type = this.type;
+
+        switch (type) {
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT:
+            case WEBGL_ATTRIBUTE_TYPE.BYTE:
+            case WEBGL_ATTRIBUTE_TYPE.UNSIGNED_BYTE:
+            case WEBGL_ATTRIBUTE_TYPE.UNSIGNED_SHORT:
+                this.count = 1;
+                break;
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT_VEC2:
+                this.count = 2;
+                break;
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT_VEC3:
+                this.count = 3;
+                break;
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT_VEC4:
+                this.count = 4;
+                break;
+        }
+    }
+
+    WebGLAttribute.prototype.initFormat = function(gl) {
+        var type = this.type;
+
+        switch (type) {
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT:
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT_VEC2:
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT_VEC3:
+            case WEBGL_ATTRIBUTE_TYPE.FLOAT_VEC4:
+                this.format = gl.FLOAT;
+                break;
+            case WEBGL_ATTRIBUTE_TYPE.UNSIGNED_BYTE:
+                this.format = gl.UNSIGNED_BYTE;
+                break;
+            case WEBGL_ATTRIBUTE_TYPE.UNSIGNED_SHORT:
+                this.format = gl.UNSIGNED_SHORT;
+                break;
+            case WEBGL_ATTRIBUTE_TYPE.BYTE:
+                this.format = gl.BYTE;
+                break;
+        }
+    }
+
+    zen3d.WebGLAttribute = WebGLAttribute;
+})();
+(function() {
 
     var packing = [
         "const float PackUpscale = 256. / 255.;", // fraction -> 0..1 (including 1)
@@ -4282,6 +4362,9 @@
 
 (function() {
 
+    // TODO this could move to a new class named WebGLProgram
+    // like other WebGL object, program can managed by WebGLProperties
+
     /**
      * create a shader
      **/
@@ -4348,13 +4431,8 @@
         for (var i = 0; i < totalAttributes; i++) {
             var attribData = gl.getActiveAttrib(program, i);
             var name = attribData.name;
-            var type = attribData.type;
-
-            attributes[name] = {
-                type: type,
-                size: 1,
-                location: gl.getAttribLocation(program, name)
-            };
+            var attribute = new zen3d.WebGLAttribute(gl, program, attribData);
+            attributes[name] = attribute;
         }
 
         return attributes;
@@ -4843,9 +4921,9 @@
                     var program = zen3d.getDepthProgram(gl, this);
                     gl.useProgram(program.id);
 
-                    var location = program.attributes.a_Position.location;
-                    gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
-                    gl.enableVertexAttribArray(location);
+                    var a_Position = program.attributes.a_Position;
+                    gl.vertexAttribPointer(a_Position.location, a_Position.count, a_Position.format, false, 4 * 17, 0);
+                    gl.enableVertexAttribArray(a_Position.location);
 
                     // update uniforms
                     var uniforms = program.uniforms;
@@ -4923,25 +5001,25 @@
             // update attributes
             var attributes = program.attributes;
             for (var key in attributes) {
-                var location = attributes[key].location;
+                var attribute = attributes[key];
                 switch (key) {
                     case "a_Position":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 0);
+                        gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 0);
                         break;
                     case "a_Normal":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
+                        gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 3);
                         break;
                     case "a_Uv":
                         if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
-                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
+                            gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 3);
                         } else {
-                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
+                            gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 13);
                         }
                         break;
                     default:
                         console.warn("attribute " + key + " not found!");
                 }
-                gl.enableVertexAttribArray(location);
+                gl.enableVertexAttribArray(attribute.location);
             }
 
             // update uniforms
@@ -5235,12 +5313,12 @@
         gl.useProgram(program.id);
 
         var attributes = program.attributes;
-        var location = attributes.position.location;
-        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 2 * 8, 0);
-        gl.enableVertexAttribArray(location);
-        var location = attributes.uv.location;
-        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 2 * 8, 8);
-        gl.enableVertexAttribArray(location);
+        var position = attributes.position;
+        gl.vertexAttribPointer(position.location, position.count, position.format, false, 2 * 8, 0);
+        gl.enableVertexAttribArray(position.location);
+        var uv = attributes.uv;
+        gl.vertexAttribPointer(uv.location, uv.count, uv.format, false, 2 * 8, 8);
+        gl.enableVertexAttribArray(uv.location);
 
         var uniforms = program.uniforms;
         uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
@@ -5670,14 +5748,6 @@
 
     zen3d.inherit(RenderTarget2D, zen3d.RenderTargetBase);
 
-    /**
-     * resize render target
-     * so we can recycling a render target
-     */
-    RenderTarget2D.prototype.resize = function(width, height) {
-        // TODO
-    }
-
     zen3d.RenderTarget2D = RenderTarget2D;
 })();
 (function() {
@@ -5695,14 +5765,6 @@
 
     zen3d.inherit(RenderTargetCube, zen3d.RenderTargetBase);
 
-    /**
-     * resize render target
-     * so we can recycling a render target
-     */
-    RenderTargetCube.prototype.resize = function(width, height) {
-        // TODO
-    }
-
     zen3d.RenderTargetCube = RenderTargetCube;
 })();
 (function() {
@@ -5719,6 +5781,7 @@
 
         this.indicesArray = new Array();
 
+        // maybe need something to discrib vertex format
         this.vertexSize = 17; // static
 
         this.boundingBox = new zen3d.Box3();

@@ -152,9 +152,9 @@
                     var program = zen3d.getDepthProgram(gl, this);
                     gl.useProgram(program.id);
 
-                    var location = program.attributes.a_Position.location;
-                    gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * 17, 0);
-                    gl.enableVertexAttribArray(location);
+                    var a_Position = program.attributes.a_Position;
+                    gl.vertexAttribPointer(a_Position.location, a_Position.count, a_Position.format, false, 4 * 17, 0);
+                    gl.enableVertexAttribArray(a_Position.location);
 
                     // update uniforms
                     var uniforms = program.uniforms;
@@ -232,25 +232,25 @@
             // update attributes
             var attributes = program.attributes;
             for (var key in attributes) {
-                var location = attributes[key].location;
+                var attribute = attributes[key];
                 switch (key) {
                     case "a_Position":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 0);
+                        gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 0);
                         break;
                     case "a_Normal":
-                        gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
+                        gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 3);
                         break;
                     case "a_Uv":
                         if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
-                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 3);
+                            gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 3);
                         } else {
-                            gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 4 * geometry.vertexSize, 4 * 13);
+                            gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 13);
                         }
                         break;
                     default:
                         console.warn("attribute " + key + " not found!");
                 }
-                gl.enableVertexAttribArray(location);
+                gl.enableVertexAttribArray(attribute.location);
             }
 
             // update uniforms
@@ -544,12 +544,12 @@
         gl.useProgram(program.id);
 
         var attributes = program.attributes;
-        var location = attributes.position.location;
-        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 2 * 8, 0);
-        gl.enableVertexAttribArray(location);
-        var location = attributes.uv.location;
-        gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 2 * 8, 8);
-        gl.enableVertexAttribArray(location);
+        var position = attributes.position;
+        gl.vertexAttribPointer(position.location, position.count, position.format, false, 2 * 8, 0);
+        gl.enableVertexAttribArray(position.location);
+        var uv = attributes.uv;
+        gl.vertexAttribPointer(uv.location, uv.count, uv.format, false, 2 * 8, 8);
+        gl.enableVertexAttribArray(uv.location);
 
         var uniforms = program.uniforms;
         uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);

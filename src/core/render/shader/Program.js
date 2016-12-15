@@ -1,5 +1,8 @@
 (function() {
 
+    // TODO this could move to a new class named WebGLProgram
+    // like other WebGL object, program can managed by WebGLProperties
+
     /**
      * create a shader
      **/
@@ -66,13 +69,8 @@
         for (var i = 0; i < totalAttributes; i++) {
             var attribData = gl.getActiveAttrib(program, i);
             var name = attribData.name;
-            var type = attribData.type;
-
-            attributes[name] = {
-                type: type,
-                size: 1,
-                location: gl.getAttribLocation(program, name)
-            };
+            var attribute = new zen3d.WebGLAttribute(gl, program, attribData);
+            attributes[name] = attribute;
         }
 
         return attributes;

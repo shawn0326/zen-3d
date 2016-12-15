@@ -11,13 +11,5 @@
 
     zen3d.inherit(RenderTarget2D, zen3d.RenderTargetBase);
 
-    /**
-     * resize render target
-     * so we can recycling a render target
-     */
-    RenderTarget2D.prototype.resize = function(width, height) {
-        // TODO
-    }
-
     zen3d.RenderTarget2D = RenderTarget2D;
 })();

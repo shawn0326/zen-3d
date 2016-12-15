@@ -164,4 +164,16 @@
     }
 
     zen3d.WEBGL_UNIFORM_TYPE = WEBGL_UNIFORM_TYPE;
+
+    var WEBGL_ATTRIBUTE_TYPE = {
+        FLOAT_VEC2: 0x8B50,
+        FLOAT_VEC3: 0x8B51,
+        FLOAT_VEC4: 0x8B52,
+        FLOAT: 0x1406,
+        BYTE: 0xffff,
+        UNSIGNED_BYTE: 0x1401,
+        UNSIGNED_SHORT: 0x1403
+    }
+
+    zen3d.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
 })();
