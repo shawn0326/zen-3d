@@ -32,9 +32,14 @@ var filesSrc = [
     "core/math/Plane.js",
     "core/math/Frustum.js",
     "core/math/Color3.js",
+    "core/math/Ray.js",
+    "core/math/Triangle.js",
 
     // event
     "core/EventDispatcher.js",
+
+    // raycaster
+    "core/Raycaster.js",
 
     // render
     "core/render/WebGL/WebGLCapabilities.js",

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - raycaster</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - raycaster
+		<br/>
+		move mouse to raycast objects
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var group = new zen3d.Group();
+
+	        var cube_geometry = new zen3d.CubeGeometry(20, 20, 20);
+
+			for(var i = 0; i < 30; i++) {
+		        var phong = new zen3d.PhongMaterial();
+		        phong.color.setHex(0xffffff);
+		        var sphere = new zen3d.Mesh(cube_geometry, phong);
+				sphere.position.x = Math.random() * 200 - 100;
+				sphere.position.y = Math.random() * 200 - 100;
+				sphere.position.z = Math.random() * 200 - 100;
+				group.add(sphere);
+			}
+
+			scene.add(group);
+
+			var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xffffff);
+	        ambientLight.intensity = 0.3;
+	        scene.add(ambientLight);
+
+			var pointLight = new zen3d.PointLight();
+	        pointLight.intensity = 0.7;
+	        pointLight.color.setHex(0xffffff);
+	        scene.add(pointLight);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 0, 400);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+	        scene.add(camera);
+
+			// input
+			var raycaster = new zen3d.Raycaster();
+
+			var mouse = new zen3d.Vector2();
+
+			document.addEventListener("mousemove", function(e) {
+				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+				mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+				raycaster.setFromCamera(mouse, camera);
+
+				for(var i = 0, l = group.children.length; i < l; i++) {
+					var child = group.children[i];
+					child.material.color.setHex(0xffffff);
+				}
+
+				var array = raycaster.intersectObject(scene, true);
+				for(var i = 0, l = array.length; i < l; i++) {
+					var object = array[i].object;
+					if(i === 0){
+						object.material.color.setHex(0xff0000);
+					}
+
+				}
+			});
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 600 * Math.sin(count / 1000 * .5);
+				camera.position.z = 600 * Math.cos(count / 1000 * .5);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

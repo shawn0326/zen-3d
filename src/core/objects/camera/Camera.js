@@ -28,11 +28,11 @@
         zaxis.normalize();
 
         var xaxis = new zen3d.Vector3();
-        up.crossProduct(zaxis, xaxis);
+        xaxis.crossVectors(up, zaxis);
         xaxis.normalize();
 
         var yaxis = new zen3d.Vector3();
-        zaxis.crossProduct(xaxis, yaxis);
+        yaxis.crossVectors(zaxis, xaxis);
 
         this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
             xaxis.x, yaxis.x, zaxis.x, 0,

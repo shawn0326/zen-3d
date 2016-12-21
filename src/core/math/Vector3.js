@@ -71,22 +71,42 @@
     }
 
     /**
-     * cross product a vector and return a new instance
+     * cross vectors
      **/
-    Vector3.prototype.crossProduct = function(a, target) {
-        if (!target) {
-            target = new Vector3();
-        }
-        target.x = this.y * a.z - this.z * a.y;
-        target.y = this.z * a.x - this.x * a.z;
-        target.z = this.x * a.y - this.y * a.x;
-        return target;
+    Vector3.prototype.crossVectors = function(a, b) {
+        var ax = a.x,
+            ay = a.y,
+            az = a.z;
+        var bx = b.x,
+            by = b.y,
+            bz = b.z;
+
+        this.x = ay * bz - az * by;
+        this.y = az * bx - ax * bz;
+        this.z = ax * by - ay * bx;
+
+        return this;
+    }
+
+    /**
+     * cross
+     **/
+    Vector3.prototype.cross = function(v) {
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+
+        this.x = y * v.z - z * v.y;
+        this.y = z * v.x - x * v.z;
+        this.z = x * v.y - y * v.x;
+
+        return this;
     }
 
     /**
      * dot product a vector and return a new instance
      **/
-    Vector3.prototype.dotProduct = function(a) {
+    Vector3.prototype.dot = function(a) {
         return this.x * a.x + this.y * a.y + this.z * a.z;
     }
 
@@ -215,6 +235,33 @@
         return this;
     }
 
+    Vector3.prototype.add = function(v) {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+
+        return this;
+    }
+
+    /**
+     * subVectors
+     */
+    Vector3.prototype.subVectors = function(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        this.z = a.z - b.z;
+
+        return this;
+    }
+
+    Vector3.prototype.sub = function(v) {
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
+
+        return this;
+    }
+
     /**
      * multiplyScalar
      */
@@ -242,6 +289,45 @@
      */
     Vector3.prototype.distanceTo = function(v) {
         return Math.sqrt(this.distanceToSquared(v));
+    }
+
+    /**
+     * unproject
+     */
+    Vector3.prototype.unproject = function() {
+        var matrix;
+
+        return function unproject(camera) {
+            if (matrix === undefined) matrix = new zen3d.Matrix4();
+
+            matrix.multiplyMatrices(camera.worldMatrix, matrix.getInverse(camera.projectionMatrix));
+            return this.applyProjection(matrix);
+        };
+    }()
+
+    /**
+     * applyProjection
+     */
+    Vector3.prototype.applyProjection = function(m) {
+        // input: zen3d.Matrix4 projection matrix
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+        var e = m.elements;
+        var d = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]); // perspective divide
+
+        this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * d;
+        this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * d;
+        this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
+
+        return this;
+    }
+
+    /**
+     * clone
+     */
+    Vector3.prototype.clone = function() {
+        return new Vector3(this.x, this.y, this.z);
     }
 
     zen3d.Vector3 = Vector3;

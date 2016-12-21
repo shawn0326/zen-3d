@@ -154,5 +154,12 @@
         };
     }();
 
+    /**
+     * raycast
+     */
+    Object3D.prototype.raycast = function() {
+        // implemental by subclass
+    }
+
     zen3d.Object3D = Object3D;
 })();

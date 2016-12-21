@@ -29,7 +29,7 @@
     }
 
     Plane.prototype.distanceToPoint = function(point) {
-        return this.normal.dotProduct(point) + this.constant;
+        return this.normal.dot(point) + this.constant;
     }
 
     zen3d.Plane = Plane;

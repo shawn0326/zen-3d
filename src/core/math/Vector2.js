@@ -112,5 +112,31 @@
         return Math.sqrt(this.distanceToSquared(v));
     }
 
+    /**
+     * fromArray
+     **/
+    Vector2.prototype.fromArray = function(array, offset) {
+        if (offset === undefined) offset = 0;
+
+        this.x = array[offset];
+        this.y = array[offset + 1];
+
+        return this;
+    }
+
+    Vector2.prototype.add = function(v) {
+        this.x += v.x;
+        this.y += v.y;
+
+        return this;
+    }
+
+    /**
+     * clone
+     */
+    Vector2.prototype.clone = function() {
+        return new Vector2(this.x, this.y);
+    }
+
     zen3d.Vector2 = Vector2;
 })();

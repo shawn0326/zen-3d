@@ -35,5 +35,8 @@ var files = {
 	],
 	"canvas2d": [
 		"canvas2d_canvas2d"
+	],
+	"raycast": [
+		"raycast_raycaster"
 	]
 };

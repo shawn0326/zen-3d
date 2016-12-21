@@ -1603,6 +1603,32 @@
         return Math.sqrt(this.distanceToSquared(v));
     }
 
+    /**
+     * fromArray
+     **/
+    Vector2.prototype.fromArray = function(array, offset) {
+        if (offset === undefined) offset = 0;
+
+        this.x = array[offset];
+        this.y = array[offset + 1];
+
+        return this;
+    }
+
+    Vector2.prototype.add = function(v) {
+        this.x += v.x;
+        this.y += v.y;
+
+        return this;
+    }
+
+    /**
+     * clone
+     */
+    Vector2.prototype.clone = function() {
+        return new Vector2(this.x, this.y);
+    }
+
     zen3d.Vector2 = Vector2;
 })();
 (function() {
@@ -1678,22 +1704,42 @@
     }
 
     /**
-     * cross product a vector and return a new instance
+     * cross vectors
      **/
-    Vector3.prototype.crossProduct = function(a, target) {
-        if (!target) {
-            target = new Vector3();
-        }
-        target.x = this.y * a.z - this.z * a.y;
-        target.y = this.z * a.x - this.x * a.z;
-        target.z = this.x * a.y - this.y * a.x;
-        return target;
+    Vector3.prototype.crossVectors = function(a, b) {
+        var ax = a.x,
+            ay = a.y,
+            az = a.z;
+        var bx = b.x,
+            by = b.y,
+            bz = b.z;
+
+        this.x = ay * bz - az * by;
+        this.y = az * bx - ax * bz;
+        this.z = ax * by - ay * bx;
+
+        return this;
+    }
+
+    /**
+     * cross
+     **/
+    Vector3.prototype.cross = function(v) {
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+
+        this.x = y * v.z - z * v.y;
+        this.y = z * v.x - x * v.z;
+        this.z = x * v.y - y * v.x;
+
+        return this;
     }
 
     /**
      * dot product a vector and return a new instance
      **/
-    Vector3.prototype.dotProduct = function(a) {
+    Vector3.prototype.dot = function(a) {
         return this.x * a.x + this.y * a.y + this.z * a.z;
     }
 
@@ -1822,6 +1868,33 @@
         return this;
     }
 
+    Vector3.prototype.add = function(v) {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+
+        return this;
+    }
+
+    /**
+     * subVectors
+     */
+    Vector3.prototype.subVectors = function(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        this.z = a.z - b.z;
+
+        return this;
+    }
+
+    Vector3.prototype.sub = function(v) {
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
+
+        return this;
+    }
+
     /**
      * multiplyScalar
      */
@@ -1849,6 +1922,45 @@
      */
     Vector3.prototype.distanceTo = function(v) {
         return Math.sqrt(this.distanceToSquared(v));
+    }
+
+    /**
+     * unproject
+     */
+    Vector3.prototype.unproject = function() {
+        var matrix;
+
+        return function unproject(camera) {
+            if (matrix === undefined) matrix = new zen3d.Matrix4();
+
+            matrix.multiplyMatrices(camera.worldMatrix, matrix.getInverse(camera.projectionMatrix));
+            return this.applyProjection(matrix);
+        };
+    }()
+
+    /**
+     * applyProjection
+     */
+    Vector3.prototype.applyProjection = function(m) {
+        // input: zen3d.Matrix4 projection matrix
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+        var e = m.elements;
+        var d = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]); // perspective divide
+
+        this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * d;
+        this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * d;
+        this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
+
+        return this;
+    }
+
+    /**
+     * clone
+     */
+    Vector3.prototype.clone = function() {
+        return new Vector3(this.x, this.y, this.z);
     }
 
     zen3d.Vector3 = Vector3;
@@ -2134,7 +2246,7 @@
     }
 
     Plane.prototype.distanceToPoint = function(point) {
-        return this.normal.dotProduct(point) + this.constant;
+        return this.normal.dot(point) + this.constant;
     }
 
     zen3d.Plane = Plane;
@@ -2316,6 +2428,307 @@
     zen3d.Color3 = Color3;
 })();
 (function() {
+    var Ray = function(origin, direction) {
+        this.origin = (origin !== undefined) ? origin : new zen3d.Vector3();
+        this.direction = (direction !== undefined) ? direction : new zen3d.Vector3();
+    }
+
+    Ray.prototype.set = function(origin, direction) {
+        this.origin.copy(origin);
+        this.direction.copy(direction);
+    }
+
+    Ray.prototype.at = function(t, optionalTarget) {
+        var result = optionalTarget || new zen3d.Vector3();
+
+        return result.copy(this.direction).multiplyScalar(t).add(this.origin);
+    }
+
+    Ray.prototype.intersectsSphere = function() {
+        var v1 = new zen3d.Vector3();
+
+        return function intersectSphere(sphere, optionalTarget) {
+            v1.subVectors(sphere.center, this.origin);
+            var tca = v1.dot(this.direction);
+            var d2 = v1.dot(v1) - tca * tca;
+            var radius2 = sphere.radius * sphere.radius;
+            if (d2 > radius2) {
+                return null;
+            }
+
+            var thc = Math.sqrt(radius2 - d2);
+
+            // t0 = first intersect point - entrance on front of sphere
+            var t0 = tca - thc;
+
+            // t1 = second intersect point - exit point on back of sphere
+            var t1 = tca + thc;
+            // console.log(t0, t1);
+            // test to see if both t0 and t1 are behind the ray - if so, return null
+            if (t0 < 0 && t1 < 0) {
+                return null;
+            }
+            // test to see if t0 is behind the ray:
+            // if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
+            // in order to always return an intersect point that is in front of the ray.
+            if (t0 < 0) {
+                return this.at(t1, optionalTarget);
+            }
+
+            // else t0 is in front of the ray, so return the first collision point scaled by t0
+            return this.at(t0, optionalTarget);
+        };
+    }()
+
+    Ray.prototype.intersectsBox = function(box, optionalTarget) {
+        var tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+        var invdirx = 1 / this.direction.x,
+            invdiry = 1 / this.direction.y,
+            invdirz = 1 / this.direction.z;
+
+        var origin = this.origin;
+
+        if (invdirx >= 0) {
+
+            tmin = (box.min.x - origin.x) * invdirx;
+            tmax = (box.max.x - origin.x) * invdirx;
+
+        } else {
+
+            tmin = (box.max.x - origin.x) * invdirx;
+            tmax = (box.min.x - origin.x) * invdirx;
+
+        }
+
+        if (invdiry >= 0) {
+
+            tymin = (box.min.y - origin.y) * invdiry;
+            tymax = (box.max.y - origin.y) * invdiry;
+
+        } else {
+
+            tymin = (box.max.y - origin.y) * invdiry;
+            tymax = (box.min.y - origin.y) * invdiry;
+
+        }
+
+        if ((tmin > tymax) || (tymin > tmax)) return null;
+
+        // These lines also handle the case where tmin or tmax is NaN
+        // (result of 0 * Infinity). x !== x returns true if x is NaN
+
+        if (tymin > tmin || tmin !== tmin) tmin = tymin;
+
+        if (tymax < tmax || tmax !== tmax) tmax = tymax;
+
+        if (invdirz >= 0) {
+
+            tzmin = (box.min.z - origin.z) * invdirz;
+            tzmax = (box.max.z - origin.z) * invdirz;
+
+        } else {
+
+            tzmin = (box.max.z - origin.z) * invdirz;
+            tzmax = (box.min.z - origin.z) * invdirz;
+
+        }
+
+        if ((tmin > tzmax) || (tzmin > tmax)) return null;
+
+        if (tzmin > tmin || tmin !== tmin) tmin = tzmin;
+
+        if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
+
+        //return point closest to the ray (positive side)
+
+        if (tmax < 0) return null;
+
+        return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
+    }
+
+    Ray.prototype.intersectTriangle = function() {
+
+        // Compute the offset origin, edges, and normal.
+        var diff = new zen3d.Vector3();
+        var edge1 = new zen3d.Vector3();
+        var edge2 = new zen3d.Vector3();
+        var normal = new zen3d.Vector3();
+
+        return function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
+            // from http://www.geometrictools.com/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
+
+            edge1.subVectors(b, a);
+            edge2.subVectors(c, a);
+            normal.crossVectors(edge1, edge2);
+
+            // Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
+            // E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
+            //   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
+            //   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
+            //   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
+            var DdN = this.direction.dot(normal);
+            var sign;
+            if (DdN > 0) {
+
+                if (backfaceCulling) return null;
+                sign = 1;
+
+            } else if (DdN < 0) {
+
+                sign = -1;
+                DdN = -DdN;
+
+            } else {
+
+                return null;
+
+            }
+
+            diff.subVectors(this.origin, a);
+            var DdQxE2 = sign * this.direction.dot(edge2.crossVectors(diff, edge2));
+
+            // b1 < 0, no intersection
+            if (DdQxE2 < 0) {
+
+                return null;
+
+            }
+
+            var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
+
+            // b2 < 0, no intersection
+            if (DdE1xQ < 0) {
+
+                return null;
+
+            }
+
+            // b1+b2 > 1, no intersection
+            if (DdQxE2 + DdE1xQ > DdN) {
+
+                return null;
+
+            }
+
+            // Line intersects triangle, check if ray does.
+            var QdN = -sign * diff.dot(normal);
+
+            // t < 0, no intersection
+            if (QdN < 0) {
+
+                return null;
+
+            }
+
+            // Ray intersects triangle.
+            return this.at(QdN / DdN, optionalTarget);
+        }
+    }()
+
+    Ray.prototype.copy = function(ray) {
+        this.origin.copy(ray.origin);
+        this.direction.copy(ray.direction);
+
+        return this;
+    }
+
+    Ray.prototype.applyMatrix4 = function(matrix4) {
+        this.direction.add(this.origin).applyMatrix4(matrix4);
+        this.origin.applyMatrix4(matrix4);
+        this.direction.sub(this.origin);
+        this.direction.normalize();
+
+        return this;
+    }
+
+    zen3d.Ray = Ray;
+})();
+(function() {
+    function Triangle(a, b, c) {
+        this.a = (a !== undefined) ? a : new zen3d.Vector3();
+        this.b = (b !== undefined) ? b : new zen3d.Vector3();
+        this.c = (c !== undefined) ? c : new zen3d.Vector3();
+    }
+
+    Triangle.prototype.set = function(a, b, c) {
+        this.a.copy(a);
+        this.b.copy(b);
+        this.c.copy(c);
+
+        return this;
+    }
+
+    Triangle.normal = function() {
+        var v0 = new zen3d.Vector3();
+
+        return function normal(a, b, c, optionalTarget) {
+            var result = optionalTarget || new zen3d.Vector3();
+
+            result.subVectors(c, b);
+            v0.subVectors(a, b);
+            result.cross(v0);
+
+            var resultLengthSq = result.getLengthSquared();
+            if (resultLengthSq > 0) {
+                return result.multiplyScalar(1 / Math.sqrt(resultLengthSq));
+            }
+
+            return result.set(0, 0, 0);
+        };
+    }();
+
+    // static/instance method to calculate barycentric coordinates
+    // based on: http://www.blackpawn.com/texts/pointinpoly/default.html
+    Triangle.barycoordFromPoint = function() {
+        var v0 = new zen3d.Vector3();
+        var v1 = new zen3d.Vector3();
+        var v2 = new zen3d.Vector3();
+
+        return function barycoordFromPoint(point, a, b, c, optionalTarget) {
+            v0.subVectors(c, a);
+            v1.subVectors(b, a);
+            v2.subVectors(point, a);
+
+            var dot00 = v0.dot(v0);
+            var dot01 = v0.dot(v1);
+            var dot02 = v0.dot(v2);
+            var dot11 = v1.dot(v1);
+            var dot12 = v1.dot(v2);
+
+            var denom = (dot00 * dot11 - dot01 * dot01);
+
+            var result = optionalTarget || new zen3d.Vector3();
+
+            // collinear or singular triangle
+            if (denom === 0) {
+                // arbitrary location outside of triangle?
+                // not sure if this is the best idea, maybe should be returning undefined
+                return result.set(-2, -1, -1);
+            }
+
+            var invDenom = 1 / denom;
+            var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+            var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+            // barycentric coordinates must always sum to 1
+            return result.set(1 - u - v, v, u);
+        };
+    }();
+
+    Triangle.containsPoint = function() {
+        var v1 = new zen3d.Vector3();
+
+        return function containsPoint(point, a, b, c) {
+            var result = Triangle.barycoordFromPoint(point, a, b, c, v1);
+
+            return (result.x >= 0) && (result.y >= 0) && ((result.x + result.y) <= 1);
+        };
+    }();
+
+    zen3d.Triangle = Triangle;
+})();
+(function() {
     /**
      * EventDispatcher Class
      **/
@@ -2382,6 +2795,76 @@
     zen3d.EventDispatcher = EventDispatcher;
 })();
 
+(function() {
+    var Raycaster = function(origin, direction, near, far) {
+        this.ray = new zen3d.Ray(origin, direction);
+
+        this.near = near || 0;
+
+        this.far = far || Infinity;
+    }
+
+    Raycaster.prototype.set = function(origin, direction) {
+        this.ray.set(origin, direction);
+    }
+
+    Raycaster.prototype.setFromCamera = function(coords, camera) {
+        // if ((camera && camera.isPerspectiveCamera)) {
+            this.ray.origin.setFromMatrixPosition(camera.worldMatrix);
+            this.ray.direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(this.ray.origin).normalize();
+        // } else if ((camera && camera.isOrthographicCamera)) {
+        //     this.ray.origin.set(coords.x, coords.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera); // set origin in plane of camera
+        //     this.ray.direction.set(0, 0, -1).transformDirection(camera.worldMatrix);
+        // } else {
+        //     console.error('Raycaster: Unsupported camera type.');
+        // }
+    }
+
+    function ascSort(a, b) {
+        return a.distance - b.distance;
+    }
+
+    function intersectObject(object, raycaster, intersects, recursive) {
+        object.raycast(raycaster, intersects);
+
+        if (recursive === true) {
+            var children = object.children;
+
+            for (var i = 0, l = children.length; i < l; i++) {
+                intersectObject(children[i], raycaster, intersects, true);
+            }
+        }
+    }
+
+    Raycaster.prototype.intersectObject = function(object, recursive) {
+        var intersects = [];
+
+        intersectObject(object, this, intersects, recursive);
+
+        intersects.sort(ascSort);
+
+        return intersects;
+    }
+
+    Raycaster.prototype.intersectObjects = function(objects, recursive) {
+        var intersects = [];
+
+        if (Array.isArray(objects) === false) {
+            console.warn('Raycaster.intersectObjects: objects is not an Array.');
+            return intersects;
+        }
+
+        for (var i = 0, l = objects.length; i < l; i++) {
+            intersectObject(objects[i], this, intersects, recursive);
+        }
+
+        intersects.sort(ascSort);
+
+        return intersects;
+    }
+
+    zen3d.Raycaster = Raycaster;
+})();
 (function() {
 
     /**
@@ -6598,6 +7081,13 @@
         };
     }();
 
+    /**
+     * raycast
+     */
+    Object3D.prototype.raycast = function() {
+        // implemental by subclass
+    }
+
     zen3d.Object3D = Object3D;
 })();
 (function() {
@@ -7044,11 +7534,11 @@
         zaxis.normalize();
 
         var xaxis = new zen3d.Vector3();
-        up.crossProduct(zaxis, xaxis);
+        xaxis.crossVectors(up, zaxis);
         xaxis.normalize();
 
         var yaxis = new zen3d.Vector3();
-        zaxis.crossProduct(xaxis, yaxis);
+        yaxis.crossVectors(zaxis, xaxis);
 
         this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
             xaxis.x, yaxis.x, zaxis.x, 0,
@@ -7124,9 +7614,121 @@
 
     zen3d.inherit(Mesh, zen3d.Object3D);
 
+    // override
+    Mesh.prototype.raycast = function() {
+        var sphere = new zen3d.Sphere();
+        var box = new zen3d.Box3();
+        var inverseMatrix = new zen3d.Matrix4();
+        var ray = new zen3d.Ray();
+
+        var barycoord = new zen3d.Vector3();
+
+        var vA = new zen3d.Vector3();
+        var vB = new zen3d.Vector3();
+        var vC = new zen3d.Vector3();
+
+        var uvA = new zen3d.Vector2();
+        var uvB = new zen3d.Vector2();
+        var uvC = new zen3d.Vector2();
+
+        var intersectionPoint = new zen3d.Vector3();
+        var intersectionPointWorld = new zen3d.Vector3();
+
+        function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
+            zen3d.Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
+
+            uv1.multiplyScalar(barycoord.x);
+            uv2.multiplyScalar(barycoord.y);
+            uv3.multiplyScalar(barycoord.z);
+
+            uv1.add(uv2).add(uv3);
+
+            return uv1.clone();
+        }
+
+        function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
+            var intersect;
+            var material = object.material;
+
+            // if (material.side === BackSide) {
+            //     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+            // } else {
+                // intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
+            // }
+            intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+
+            if (intersect === null) return null;
+
+            intersectionPointWorld.copy(point);
+            intersectionPointWorld.applyMatrix4(object.worldMatrix);
+
+            var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
+
+            if (distance < raycaster.near || distance > raycaster.far) return null;
+
+            return {
+                distance: distance,
+                point: intersectionPointWorld.clone(),
+                object: object
+            };
+        }
+
+        return function raycast(raycaster, intersects) {
+            var geometry = this.geometry;
+            var worldMatrix = this.worldMatrix;
+
+            // sphere test
+            sphere.copy(geometry.boundingSphere);
+            sphere.applyMatrix4(worldMatrix);
+            if (!raycaster.ray.intersectsSphere(sphere)) {
+                return;
+            }
+
+            // box test
+            box.copy(geometry.boundingBox);
+            box.applyMatrix4(worldMatrix);
+            if (!raycaster.ray.intersectsBox(box)) {
+                return;
+            }
+
+            // vertex test
+            inverseMatrix.getInverse(worldMatrix);
+            ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+
+            var index = geometry.indicesArray;
+            var vertex = geometry.verticesArray;
+            var a, b, c;
+
+            for (var i = 0; i < index.length; i += 3) {
+                a = index[i];
+                b = index[i + 1];
+                c = index[i + 2];
+
+                vA.fromArray(vertex, a * geometry.vertexSize);
+                vB.fromArray(vertex, b * geometry.vertexSize);
+                vC.fromArray(vertex, c * geometry.vertexSize);
+
+                var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
+
+                if (intersection) {
+                    // uv
+                    uvA.fromArray(vertex, a * geometry.vertexSize + 13);
+                    uvB.fromArray(vertex, b * geometry.vertexSize + 13);
+                    uvC.fromArray(vertex, c * geometry.vertexSize + 13);
+
+                    intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
+
+                    intersection.face = [a, b, c];
+                    intersection.faceIndex = a;
+
+                    intersects.push(intersection);
+                }
+            }
+        }
+    }()
+
     zen3d.Mesh = Mesh;
 })();
-
 (function() {
     /**
      * Points
