@@ -614,7 +614,7 @@
             uniforms.color.setValue(material.color.r, material.color.g, material.color.b);
 
             uniforms.rotation.setValue(material.rotation);
-            uniforms.scale.setValue(scale);
+            uniforms.scale.setValue(scale[0], scale[1]);
 
             // set blend
             if (material.transparent) {
