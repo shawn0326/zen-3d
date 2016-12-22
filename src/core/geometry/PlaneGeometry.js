@@ -53,12 +53,12 @@
                     var mult = 1;
 
                     indexData[numIndices++] = base * mult;
-                    indexData[numIndices++] = (base + tw + 1) * mult;
                     indexData[numIndices++] = (base + tw) * mult;
+                    indexData[numIndices++] = (base + tw + 1) * mult;
 
                     indexData[numIndices++] = base * mult;
-                    indexData[numIndices++] = (base + 1) * mult;
                     indexData[numIndices++] = (base + tw + 1) * mult;
+                    indexData[numIndices++] = (base + 1) * mult;
 
                 }
             }

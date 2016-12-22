@@ -48,13 +48,18 @@
 	        phong.color.setHex(0xffffff);
 			phong.map = texture;
 
+			var phong2 = new zen3d.PhongMaterial();
+	        phong2.color.setHex(0xffffff);
+			phong2.map = texture;
+			phong2.side = zen3d.DRAW_SIDE.DOUBLE;
+
 	        var sphere_geometry = new zen3d.SphereGeometry(7, 20, 20);
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			sphere.position.x = -20;
 			scene.add(sphere);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(10, 10);
-	        var plane = new zen3d.Mesh(plane_geometry, phong);
+	        var plane = new zen3d.Mesh(plane_geometry, phong2);
 	        plane.position.x = 0;
 	        scene.add(plane);
 

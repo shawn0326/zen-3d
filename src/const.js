@@ -76,6 +76,17 @@
     zen3d.CULL_FACE_TYPE = CULL_FACE_TYPE;
 
     /**
+     * DRAW_SIDE
+     */
+    var DRAW_SIDE = {
+        FRONT: "front",
+        BACK: "back",
+        DOUBLE: "double"
+    };
+
+    zen3d.DRAW_SIDE = DRAW_SIDE;
+
+    /**
      * WEBGL_TEXTURE_TYPE
      */
     var WEBGL_TEXTURE_TYPE = {

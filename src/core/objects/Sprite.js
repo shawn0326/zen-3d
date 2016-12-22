@@ -7,8 +7,8 @@
         0.5, 0.5, 1, 1, -0.5, 0.5, 0, 1
     ];
     sharedGeometry.indicesArray = [
-        2, 1, 0,
-        3, 2, 0
+        0, 1, 2,
+        0, 2, 3
     ];
     sharedGeometry.vertexSize = 4;
 

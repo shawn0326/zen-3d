@@ -32,6 +32,9 @@
 
         // depth test
         this.depthTest = true;
+
+        // draw side
+        this.side = zen3d.DRAW_SIDE.FRONT;
     }
 
     zen3d.Material = Material;

@@ -147,9 +147,9 @@
 
         var g_i = geometry.indicesArray;
         for(var i = 0; i < faces.length; i++) {
-            g_i.push(faces[i][2]);
-            g_i.push(faces[i][1]);
             g_i.push(faces[i][0]);
+            g_i.push(faces[i][1]);
+            g_i.push(faces[i][2]);
         }
 
         return geometry;

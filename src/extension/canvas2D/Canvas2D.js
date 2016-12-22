@@ -112,12 +112,12 @@
 
             var vertCount = vertexIndex / 5 - 4;
 
-            indices[indexIndex++] = vertCount + 2;
+            indices[indexIndex++] = vertCount + 0;
             indices[indexIndex++] = vertCount + 1;
-            indices[indexIndex++] = vertCount + 0;
-            indices[indexIndex++] = vertCount + 0;
-            indices[indexIndex++] = vertCount + 3;
             indices[indexIndex++] = vertCount + 2;
+            indices[indexIndex++] = vertCount + 2;
+            indices[indexIndex++] = vertCount + 3;
+            indices[indexIndex++] = vertCount + 0;
         }
         vertices.length = vertexIndex;
         indices.length = indexIndex;

@@ -40,6 +40,8 @@
         this.emptyTextures = {};
         this.emptyTextures[gl.TEXTURE_2D] = createTexture(gl, gl.TEXTURE_2D, gl.TEXTURE_2D, 1);
         this.emptyTextures[gl.TEXTURE_CUBE_MAP] = createTexture(gl, gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6);
+
+        this.currentFlipSided = false;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -63,7 +65,7 @@
                 }
             }
 
-            if(blend === BLEND_TYPE.ADD) {
+            if (blend === BLEND_TYPE.ADD) {
                 if (premultipliedAlpha) {
                     gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
                     gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
@@ -78,11 +80,21 @@
         }
     }
 
+    WebGLState.prototype.setFlipSided = function(flipSided) {
+        var gl = this.gl;
+
+        if (this.currentFlipSided !== flipSided) {
+            if (flipSided) {
+                gl.frontFace(gl.CW);
+            } else {
+                gl.frontFace(gl.CCW);
+            }
+
+            this.currentFlipSided = flipSided;
+        }
+    }
+
     WebGLState.prototype.setCullFace = function(cullFace) {
-
-        // gl.CW, gl.CCW, default is CCW
-        // state.frontFace(gl.CCW);
-
         var gl = this.gl;
 
         if (cullFace !== CULL_FACE_TYPE.NONE) {
@@ -174,7 +186,7 @@
 
         var boundBuffer = this.currentBoundBuffers[type];
 
-        if(boundBuffer !== buffer) {
+        if (boundBuffer !== buffer) {
             gl.bindBuffer(type, buffer);
             this.currentBoundBuffers[type] = buffer;
         }

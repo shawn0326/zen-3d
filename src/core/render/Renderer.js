@@ -2,6 +2,7 @@
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
     var BLEND_TYPE = zen3d.BLEND_TYPE;
+    var DRAW_SIDE = zen3d.DRAW_SIDE;
 
     /**
      * Renderer
@@ -34,7 +35,8 @@
         var state = new zen3d.WebGLState(gl, capabilities);
         state.enable(gl.STENCIL_TEST);
         state.enable(gl.DEPTH_TEST);
-        state.setCullFace(CULL_FACE_TYPE.FRONT);
+        state.setCullFace(CULL_FACE_TYPE.BACK);
+        state.setFlipSided(false);
         state.viewport(0, 0, this.width, this.height);
         state.clearColor(0, 0, 0, 0);
         this.state = state;
@@ -182,6 +184,13 @@
 
                     this.state.setBlend(BLEND_TYPE.NONE);
                     this.state.enable(gl.DEPTH_TEST);
+                    // set draw side
+                    this.state.setCullFace(
+                        (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
+                    );
+                    this.state.setFlipSided(
+                        material.side === DRAW_SIDE.BACK
+                    );
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
@@ -499,6 +508,14 @@
                 this.state.disable(gl.DEPTH_TEST);
             }
 
+            // set draw side
+            this.state.setCullFace(
+                (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
+            );
+            this.state.setFlipSided(
+                material.side === DRAW_SIDE.BACK
+            );
+
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
@@ -629,6 +646,14 @@
             } else {
                 this.state.disable(gl.DEPTH_TEST);
             }
+
+            // set draw side
+            this.state.setCullFace(
+                (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
+            );
+            this.state.setFlipSided(
+                material.side === DRAW_SIDE.BACK
+            );
 
             var slot = this.allocTexUnit();
             this.texture.setTexture2D(material.map, slot);

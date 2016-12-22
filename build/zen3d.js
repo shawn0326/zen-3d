@@ -285,6 +285,17 @@
     zen3d.CULL_FACE_TYPE = CULL_FACE_TYPE;
 
     /**
+     * DRAW_SIDE
+     */
+    var DRAW_SIDE = {
+        FRONT: "front",
+        BACK: "back",
+        DOUBLE: "double"
+    };
+
+    zen3d.DRAW_SIDE = DRAW_SIDE;
+
+    /**
      * WEBGL_TEXTURE_TYPE
      */
     var WEBGL_TEXTURE_TYPE = {
@@ -2945,6 +2956,8 @@
         this.emptyTextures = {};
         this.emptyTextures[gl.TEXTURE_2D] = createTexture(gl, gl.TEXTURE_2D, gl.TEXTURE_2D, 1);
         this.emptyTextures[gl.TEXTURE_CUBE_MAP] = createTexture(gl, gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6);
+
+        this.currentFlipSided = false;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -2968,7 +2981,7 @@
                 }
             }
 
-            if(blend === BLEND_TYPE.ADD) {
+            if (blend === BLEND_TYPE.ADD) {
                 if (premultipliedAlpha) {
                     gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
                     gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
@@ -2983,11 +2996,21 @@
         }
     }
 
+    WebGLState.prototype.setFlipSided = function(flipSided) {
+        var gl = this.gl;
+
+        if (this.currentFlipSided !== flipSided) {
+            if (flipSided) {
+                gl.frontFace(gl.CW);
+            } else {
+                gl.frontFace(gl.CCW);
+            }
+
+            this.currentFlipSided = flipSided;
+        }
+    }
+
     WebGLState.prototype.setCullFace = function(cullFace) {
-
-        // gl.CW, gl.CCW, default is CCW
-        // state.frontFace(gl.CCW);
-
         var gl = this.gl;
 
         if (cullFace !== CULL_FACE_TYPE.NONE) {
@@ -3079,7 +3102,7 @@
 
         var boundBuffer = this.currentBoundBuffers[type];
 
-        if(boundBuffer !== buffer) {
+        if (boundBuffer !== buffer) {
             gl.bindBuffer(type, buffer);
             this.currentBoundBuffers[type] = buffer;
         }
@@ -5254,6 +5277,7 @@
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
     var BLEND_TYPE = zen3d.BLEND_TYPE;
+    var DRAW_SIDE = zen3d.DRAW_SIDE;
 
     /**
      * Renderer
@@ -5286,7 +5310,8 @@
         var state = new zen3d.WebGLState(gl, capabilities);
         state.enable(gl.STENCIL_TEST);
         state.enable(gl.DEPTH_TEST);
-        state.setCullFace(CULL_FACE_TYPE.FRONT);
+        state.setCullFace(CULL_FACE_TYPE.BACK);
+        state.setFlipSided(false);
         state.viewport(0, 0, this.width, this.height);
         state.clearColor(0, 0, 0, 0);
         this.state = state;
@@ -5434,6 +5459,13 @@
 
                     this.state.setBlend(BLEND_TYPE.NONE);
                     this.state.enable(gl.DEPTH_TEST);
+                    // set draw side
+                    this.state.setCullFace(
+                        (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
+                    );
+                    this.state.setFlipSided(
+                        material.side === DRAW_SIDE.BACK
+                    );
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
@@ -5751,6 +5783,14 @@
                 this.state.disable(gl.DEPTH_TEST);
             }
 
+            // set draw side
+            this.state.setCullFace(
+                (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
+            );
+            this.state.setFlipSided(
+                material.side === DRAW_SIDE.BACK
+            );
+
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
@@ -5881,6 +5921,14 @@
             } else {
                 this.state.disable(gl.DEPTH_TEST);
             }
+
+            // set draw side
+            this.state.setCullFace(
+                (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
+            );
+            this.state.setFlipSided(
+                material.side === DRAW_SIDE.BACK
+            );
 
             var slot = this.allocTexUnit();
             this.texture.setTexture2D(material.map, slot);
@@ -6309,7 +6357,7 @@
     var CubeGeometry = function(width, height, depth, front) {
         CubeGeometry.superClass.constructor.call(this);
 
-        this.buildGeometry(width, height, depth, (front == void 0) ? true : front);
+        this.buildGeometry(width, height, depth, (front === undefined) ? true : front);
     }
 
     zen3d.inherit(CubeGeometry, zen3d.Geometry);
@@ -6368,20 +6416,20 @@
 
         if (front) {
             this.indicesArray.push(
-                0, 2, 1, 3, 5, 4,
-                6, 8, 7, 9, 11, 10,
-                12, 14, 13, 15, 17, 16,
-                18, 20, 19, 21, 23, 22,
-                24, 26, 25, 27, 29, 28,
-                30, 32, 31, 33, 35, 34);
-        } else {
-            this.indicesArray.push(
                 0, 1, 2, 3, 4, 5,
                 6, 7, 8, 9, 10, 11,
                 12, 13, 14, 15, 16, 17,
                 18, 19, 20, 21, 22, 23,
                 24, 25, 26, 27, 28, 29,
                 30, 31, 32, 33, 34, 35);
+        } else {
+            this.indicesArray.push(
+                0, 2, 1, 3, 5, 4,
+                6, 8, 7, 9, 11, 10,
+                12, 14, 13, 15, 17, 16,
+                18, 20, 19, 21, 23, 22,
+                24, 26, 25, 27, 29, 28,
+                30, 32, 31, 33, 35, 34);
         }
 
         this.computeBoundingBox();
@@ -6446,12 +6494,12 @@
                     var mult = 1;
 
                     indexData[numIndices++] = base * mult;
-                    indexData[numIndices++] = (base + tw + 1) * mult;
                     indexData[numIndices++] = (base + tw) * mult;
+                    indexData[numIndices++] = (base + tw + 1) * mult;
 
                     indexData[numIndices++] = base * mult;
-                    indexData[numIndices++] = (base + 1) * mult;
                     indexData[numIndices++] = (base + tw + 1) * mult;
+                    indexData[numIndices++] = (base + 1) * mult;
 
                 }
             }
@@ -6469,17 +6517,15 @@
      * SphereGeometry data
      * @class
      */
-    var SphereGeometry = function(radius, segmentsW, segmentsH) {
+    var SphereGeometry = function(radius, segmentsW, segmentsH, front) {
         SphereGeometry.superClass.constructor.call(this);
 
-        this.buildGeometry(radius, segmentsW || 20, segmentsH || 20);
+        this.buildGeometry(radius, segmentsW || 20, segmentsH || 20, (front === undefined) ? true : front);
     }
 
     zen3d.inherit(SphereGeometry, zen3d.Geometry);
 
-    SphereGeometry.prototype.buildGeometry = function(radius, segmentsW, segmentsH) {
-        var front = true;
-
+    SphereGeometry.prototype.buildGeometry = function(radius, segmentsW, segmentsH, front) {
         var i = 0, j = 0, triIndex = 0;
         var numVerts = (segmentsH + 1) * (segmentsW + 1);
 
@@ -6563,13 +6609,13 @@
 
                         if (front) {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = d;
                             indexData[triIndex++] = c;
+                            indexData[triIndex++] = d;
                         }
                         else {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
                             indexData[triIndex++] = d;
+                            indexData[triIndex++] = c;
                         }
 
 
@@ -6577,13 +6623,13 @@
 
                         if (front) {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
                             indexData[triIndex++] = b;
+                            indexData[triIndex++] = c;
                         }
                         else {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = b;
                             indexData[triIndex++] = c;
+                            indexData[triIndex++] = b;
                         }
 
 
@@ -6591,19 +6637,19 @@
 
                         if (front) {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = d
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = b;
-                        }
-                        else {
-                            indexData[triIndex++] = a;
                             indexData[triIndex++] = c
                             indexData[triIndex++] = d;
                             indexData[triIndex++] = a;
                             indexData[triIndex++] = b;
                             indexData[triIndex++] = c;
+                        }
+                        else {
+                            indexData[triIndex++] = a;
+                            indexData[triIndex++] = d
+                            indexData[triIndex++] = c;
+                            indexData[triIndex++] = a;
+                            indexData[triIndex++] = c;
+                            indexData[triIndex++] = b;
                         }
                     }
                 }
@@ -6810,6 +6856,9 @@
 
         // depth test
         this.depthTest = true;
+
+        // draw side
+        this.side = zen3d.DRAW_SIDE.FRONT;
     }
 
     zen3d.Material = Material;
@@ -7758,8 +7807,8 @@
         0.5, 0.5, 1, 1, -0.5, 0.5, 0, 1
     ];
     sharedGeometry.indicesArray = [
-        2, 1, 0,
-        3, 2, 0
+        0, 1, 2,
+        0, 2, 3
     ];
     sharedGeometry.vertexSize = 4;
 
@@ -7932,9 +7981,9 @@
 
         var g_i = geometry.indicesArray;
         for(var i = 0; i < faces.length; i++) {
-            g_i.push(faces[i][2]);
-            g_i.push(faces[i][1]);
             g_i.push(faces[i][0]);
+            g_i.push(faces[i][1]);
+            g_i.push(faces[i][2]);
         }
 
         return geometry;
@@ -8142,12 +8191,12 @@
 
             var vertCount = vertexIndex / 5 - 4;
 
-            indices[indexIndex++] = vertCount + 2;
+            indices[indexIndex++] = vertCount + 0;
             indices[indexIndex++] = vertCount + 1;
-            indices[indexIndex++] = vertCount + 0;
-            indices[indexIndex++] = vertCount + 0;
-            indices[indexIndex++] = vertCount + 3;
             indices[indexIndex++] = vertCount + 2;
+            indices[indexIndex++] = vertCount + 2;
+            indices[indexIndex++] = vertCount + 3;
+            indices[indexIndex++] = vertCount + 0;
         }
         vertices.length = vertexIndex;
         indices.length = indexIndex;

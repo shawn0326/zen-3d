@@ -3,17 +3,15 @@
      * SphereGeometry data
      * @class
      */
-    var SphereGeometry = function(radius, segmentsW, segmentsH) {
+    var SphereGeometry = function(radius, segmentsW, segmentsH, front) {
         SphereGeometry.superClass.constructor.call(this);
 
-        this.buildGeometry(radius, segmentsW || 20, segmentsH || 20);
+        this.buildGeometry(radius, segmentsW || 20, segmentsH || 20, (front === undefined) ? true : front);
     }
 
     zen3d.inherit(SphereGeometry, zen3d.Geometry);
 
-    SphereGeometry.prototype.buildGeometry = function(radius, segmentsW, segmentsH) {
-        var front = true;
-
+    SphereGeometry.prototype.buildGeometry = function(radius, segmentsW, segmentsH, front) {
         var i = 0, j = 0, triIndex = 0;
         var numVerts = (segmentsH + 1) * (segmentsW + 1);
 
@@ -97,13 +95,13 @@
 
                         if (front) {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = d;
                             indexData[triIndex++] = c;
+                            indexData[triIndex++] = d;
                         }
                         else {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
                             indexData[triIndex++] = d;
+                            indexData[triIndex++] = c;
                         }
 
 
@@ -111,13 +109,13 @@
 
                         if (front) {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
                             indexData[triIndex++] = b;
+                            indexData[triIndex++] = c;
                         }
                         else {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = b;
                             indexData[triIndex++] = c;
+                            indexData[triIndex++] = b;
                         }
 
 
@@ -125,19 +123,19 @@
 
                         if (front) {
                             indexData[triIndex++] = a;
-                            indexData[triIndex++] = d
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = b;
-                        }
-                        else {
-                            indexData[triIndex++] = a;
                             indexData[triIndex++] = c
                             indexData[triIndex++] = d;
                             indexData[triIndex++] = a;
                             indexData[triIndex++] = b;
                             indexData[triIndex++] = c;
+                        }
+                        else {
+                            indexData[triIndex++] = a;
+                            indexData[triIndex++] = d
+                            indexData[triIndex++] = c;
+                            indexData[triIndex++] = a;
+                            indexData[triIndex++] = c;
+                            indexData[triIndex++] = b;
                         }
                     }
                 }
