@@ -38,5 +38,8 @@ var files = {
 	],
 	"raycast": [
 		"raycast_raycaster"
+	],
+	"webvr": [
+		"webvr_car"
 	]
 };

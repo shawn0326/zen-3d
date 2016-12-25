@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - car</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./files/webvr-polyfill.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - car
+		<br/>
+		it's a webvr demo
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+			renderer.autoClear = false;
+
+	        var scene = new zen3d.Scene();
+
+			var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
+			var interior = "resources/models/assimp/interior/interior.assimp.json";
+
+			var loader1 = new zen3d.AssimpJsonLoader();
+			loader1.load(jeep, function(object) {
+				object.position.y = -2.3;
+				object.position.x = -3.2;
+				object.scale.set(0.4, 0.4, 0.4);
+				scene.add(object);
+			});
+
+			var loader2 = new zen3d.AssimpJsonLoader();
+			loader2.load(interior, function(object) {
+				object.position.y = -2.3;
+				object.position.x = -3.2;
+				scene.add(object);
+			});
+
+			var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xffffff);
+	        ambientLight.intensity = 0.5;
+	        scene.add(ambientLight);
+
+	        var spotLight = new zen3d.SpotLight();
+	        spotLight.intensity = 0.5;
+	        spotLight.euler.set(Math.PI / 2, 0, 0);
+	        spotLight.color.setHex(0xffffff);
+			spotLight.angle = Math.PI / 3;
+			spotLight.penumbra = 0.3;
+	        spotLight.position.set(0, 10, 0);
+	        scene.add(spotLight);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.color.setHex(0xffffff);
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(-40, 40, 0);
+	        scene.add(lightBall);
+
+	        var camera = new zen3d.Camera();
+	        scene.add(camera);
+
+			// webvr
+			var vrDisplays;
+
+			function gotVRDisplays( displays ) {
+
+				vrDisplays = displays;
+
+				if ( displays.length > 0 ) {
+
+					vrDisplay = displays[ 0 ];
+
+				} else {
+
+					if ( onError ) onError( 'HMD not available' );
+
+				}
+
+				vrDisplay.requestAnimationFrame(loop);
+
+			}
+
+			if ( navigator.getVRDisplays ) {
+
+				navigator.getVRDisplays().then( gotVRDisplays ).catch( function() {
+
+					console.warn( 'VREffect: Unable to get VR Displays' );
+
+				} );
+
+			}
+
+			var frameData = null;
+
+			if ( 'VRFrameData' in window ) {
+
+				frameData = new window.VRFrameData();
+
+			}
+
+			var viewMatrix = new zen3d.Matrix4();
+
+	        function loop(count) {
+
+				vrDisplay.requestAnimationFrame(loop);
+
+				vrDisplay.depthNear = 1;
+				vrDisplay.depthFar = 1000;
+
+				vrDisplay.getFrameData( frameData );
+
+				camera.projectionMatrix.elements = frameData.leftProjectionMatrix;
+				viewMatrix.elements = frameData.leftViewMatrix;
+				viewMatrix.inverse().decompose(camera.position, camera.quaternion, camera.scale);
+				renderer.state.viewport(0, 0, width / 2, height);
+	            renderer.render(scene, camera, undefined, true);
+
+				camera.projectionMatrix.elements = frameData.rightProjectionMatrix;
+				viewMatrix.elements = frameData.rightViewMatrix;
+				viewMatrix.inverse().decompose(camera.position, camera.quaternion, camera.scale);
+				renderer.state.viewport(width / 2, 0, width / 2, height);
+	            renderer.render(scene, camera);
+
+				vrDisplay.submitFrame();
+	        }
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
