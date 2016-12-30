@@ -64,14 +64,14 @@
         cameraR.updateMatrix();
 
         // render Left view
-        this.state.viewport(0, 0, this.width / 2, this.height);
+        this.setViewport(0, 0, this.width / 2, this.height);
         RendererVR.superClass.render.call(this, scene, cameraL, renderTarget, forceClear);
 
         var autoClear = this.autoClear;
         this.autoClear = false;
 
         // render Right view
-        this.state.viewport(this.width / 2, 0, this.width / 2, this.height);
+        this.setViewport(this.width / 2, 0, this.width / 2, this.height);
         RendererVR.superClass.render.call(this, scene, cameraR, renderTarget, false);
 
         this.autoClear = autoClear;

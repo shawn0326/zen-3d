@@ -5331,6 +5331,8 @@
         this._usedTextureUnits = 0;
 
         this._currentRenderTarget = null;
+
+        this._currentViewport = new zen3d.Vector4(0, 0, this.width, this.height);
     }
 
     /**
@@ -5343,7 +5345,15 @@
         this.view.width = width;
         this.view.height = height;
 
-        this.state.viewport(0, 0, width, height);
+        this.setViewport(0, 0, width, height);
+    }
+
+    /**
+     * setViewport
+     */
+    Renderer.prototype.setViewport = function(x, y, width, height) {
+        this._currentViewport.set(x, y, width, height);
+        this.state.viewport(x, y, width, height);
     }
 
     /**
@@ -5956,7 +5966,11 @@
 
                 this._currentRenderTarget = null;
 
-                this.state.viewport(0, 0, this.width, this.height);
+                this.state.viewport(
+                    this._currentViewport.x,
+                    this._currentViewport.y,
+                    this._currentViewport.z,
+                    this._currentViewport.w);
             }
 
             return;
@@ -8448,14 +8462,14 @@
         cameraR.updateMatrix();
 
         // render Left view
-        this.state.viewport(0, 0, this.width / 2, this.height);
+        this.setViewport(0, 0, this.width / 2, this.height);
         RendererVR.superClass.render.call(this, scene, cameraL, renderTarget, forceClear);
 
         var autoClear = this.autoClear;
         this.autoClear = false;
 
         // render Right view
-        this.state.viewport(this.width / 2, 0, this.width / 2, this.height);
+        this.setViewport(this.width / 2, 0, this.width / 2, this.height);
         RendererVR.superClass.render.call(this, scene, cameraR, renderTarget, false);
 
         this.autoClear = autoClear;

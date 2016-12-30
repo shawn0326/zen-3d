@@ -56,6 +56,8 @@
         this._usedTextureUnits = 0;
 
         this._currentRenderTarget = null;
+
+        this._currentViewport = new zen3d.Vector4(0, 0, this.width, this.height);
     }
 
     /**
@@ -68,7 +70,15 @@
         this.view.width = width;
         this.view.height = height;
 
-        this.state.viewport(0, 0, width, height);
+        this.setViewport(0, 0, width, height);
+    }
+
+    /**
+     * setViewport
+     */
+    Renderer.prototype.setViewport = function(x, y, width, height) {
+        this._currentViewport.set(x, y, width, height);
+        this.state.viewport(x, y, width, height);
     }
 
     /**
@@ -681,7 +691,11 @@
 
                 this._currentRenderTarget = null;
 
-                this.state.viewport(0, 0, this.width, this.height);
+                this.state.viewport(
+                    this._currentViewport.x,
+                    this._currentViewport.y,
+                    this._currentViewport.z,
+                    this._currentViewport.w);
             }
 
             return;
