@@ -115,7 +115,11 @@ var filesSrc = [
     "extension/canvas2D/Canvas2D.js",
     "extension/canvas2D/Canvas2DMaterial.js",
     "extension/canvas2D/Object2D.js",
-    "extension/canvas2D/Sprite2D.js"
+    "extension/canvas2D/Sprite2D.js",
+
+    // webvr
+    "extension/webvr/RendererVR.js",
+    "extension/webvr/CameraVR.js"
 
 ];
 

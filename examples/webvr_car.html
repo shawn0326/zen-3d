@@ -42,8 +42,7 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
-	        var renderer = new zen3d.Renderer(canvas);
-			renderer.autoClear = false;
+	        var renderer = new zen3d.RendererVR(canvas);
 
 	        var scene = new zen3d.Scene();
 
@@ -52,16 +51,12 @@
 
 			var loader1 = new zen3d.AssimpJsonLoader();
 			loader1.load(jeep, function(object) {
-				object.position.y = -2.3;
-				object.position.x = -3.2;
 				object.scale.set(0.4, 0.4, 0.4);
 				scene.add(object);
 			});
 
 			var loader2 = new zen3d.AssimpJsonLoader();
 			loader2.load(interior, function(object) {
-				object.position.y = -2.3;
-				object.position.x = -3.2;
 				scene.add(object);
 			});
 
@@ -86,73 +81,20 @@
 	        lightBall.position.set(-40, 40, 0);
 	        scene.add(lightBall);
 
-	        var camera = new zen3d.Camera();
+	        var camera = new zen3d.CameraVR();
+			camera.position.set(3.0, 2.3, 1.0);
+			camera.near = 1;
+			camera.far = 1000;
 	        scene.add(camera);
-
-			// webvr
-			var vrDisplays;
-
-			function gotVRDisplays( displays ) {
-
-				vrDisplays = displays;
-
-				if ( displays.length > 0 ) {
-
-					vrDisplay = displays[ 0 ];
-
-				} else {
-
-					if ( onError ) onError( 'HMD not available' );
-
-				}
-
-				vrDisplay.requestAnimationFrame(loop);
-
-			}
-
-			if ( navigator.getVRDisplays ) {
-
-				navigator.getVRDisplays().then( gotVRDisplays ).catch( function() {
-
-					console.warn( 'VREffect: Unable to get VR Displays' );
-
-				} );
-
-			}
-
-			var frameData = null;
-
-			if ( 'VRFrameData' in window ) {
-
-				frameData = new window.VRFrameData();
-
-			}
-
-			var viewMatrix = new zen3d.Matrix4();
 
 	        function loop(count) {
 
-				vrDisplay.requestAnimationFrame(loop);
+				requestAnimationFrame(loop);
 
-				vrDisplay.depthNear = 1;
-				vrDisplay.depthFar = 1000;
-
-				vrDisplay.getFrameData( frameData );
-
-				camera.projectionMatrix.elements = frameData.leftProjectionMatrix;
-				viewMatrix.elements = frameData.leftViewMatrix;
-				viewMatrix.inverse().decompose(camera.position, camera.quaternion, camera.scale);
-				renderer.state.viewport(0, 0, width / 2, height);
-	            renderer.render(scene, camera, undefined, true);
-
-				camera.projectionMatrix.elements = frameData.rightProjectionMatrix;
-				viewMatrix.elements = frameData.rightViewMatrix;
-				viewMatrix.inverse().decompose(camera.position, camera.quaternion, camera.scale);
-				renderer.state.viewport(width / 2, 0, width / 2, height);
-	            renderer.render(scene, camera);
-
-				vrDisplay.submitFrame();
+				renderer.render(scene, camera);
 	        }
+
+			loop(0);
 
 			function onWindowResize() {
 				width = window.innerWidth || 2;
