@@ -64,6 +64,20 @@
     }
 
     /**
+     * copy
+     */
+    Quaternion.prototype.copy = function(v) {
+        this._x = v.x;
+		this._y = v.y;
+		this._z = v.z;
+		this._w = ( v.w !== undefined ) ? v.w : 1;
+
+        this.onChangeCallback();
+
+		return this;
+	}
+
+    /**
      * set values from euler
      **/
     Quaternion.prototype.setFromEuler = function(euler, update) {

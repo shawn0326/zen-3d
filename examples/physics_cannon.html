@@ -147,14 +147,10 @@
 				world.step(time / 1000);
 
 				for(var i = 0; i < size; i++) {
-					// Copy coordinates from Cannon.js to Three.js
+					// Copy transform from Cannon.js to Three.js
 					sphere_meshes[i].position.copy(sphere_bodys[i].position);
-					sphere_meshes[i].quaternion.x = sphere_bodys[i].quaternion.x;
-					sphere_meshes[i].quaternion.y = sphere_bodys[i].quaternion.y;
-					sphere_meshes[i].quaternion.z = sphere_bodys[i].quaternion.z;
-					sphere_meshes[i].quaternion.w = sphere_bodys[i].quaternion.w;
+					sphere_meshes[i].quaternion.copy(sphere_bodys[i].quaternion);
 				}
-
 
 	            renderer.render(scene, camera);
 	        }
