@@ -5412,12 +5412,6 @@
      * render shadow map for lights
      */
     Renderer.prototype.renderShadow = function() {
-        var renderList = this.cache.shadowObjects;
-
-        if (renderList.length == 0) {
-            return;
-        }
-
         var gl = this.gl;
 
         var lights = this.cache.shadowLights;
@@ -5429,6 +5423,7 @@
             var shadowTarget = shadow.renderTarget;
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
+            var renderList = this.cache.shadowObjects;
 
             for (var j = 0; j < faces; j++) {
 
@@ -5443,6 +5438,10 @@
 
                 this.state.clearColor(1, 1, 1, 1);
                 this.clear(true, true);
+                
+                if (renderList.length == 0) {
+                    return;
+                }
 
                 for (var n = 0, l = renderList.length; n < l; n++) {
                     var object = renderList[n];
