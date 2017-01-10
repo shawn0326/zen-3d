@@ -41,5 +41,8 @@ var files = {
 	],
 	"webvr": [
 		"webvr_car"
+	],
+	"physics": [
+		"physics_cannon"
 	]
 };

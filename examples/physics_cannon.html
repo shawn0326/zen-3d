@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - cannon</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./files/cannon.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - physics cannon
+		<br/>
+        use <a href="http://schteppe.github.io/cannon.js" target="_blank">cannon.js</a>
+        <br/>
+        touch screen to add a cube
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.color.setHex(0xffffff);
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        plane.position.y = 0;
+			plane.receiveShadow = true;
+	        scene.add(plane);
+
+	        var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xffffff);
+	        ambientLight.intensity = 0.2;
+	        scene.add(ambientLight);
+
+	        var directionalLight = new zen3d.DirectionalLight();
+	        directionalLight.intensity = 0.5;
+	        directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+	        directionalLight.color.setHex(0xffffff);
+	        directionalLight.position.set(-40, 40, 0);
+			directionalLight.castShadow = true;
+			directionalLight.shadow.windowSize = 20;
+	        scene.add(directionalLight);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.color.setHex(0xffffff);
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(-40, 40, 0);
+	        scene.add(lightBall);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 30, 45);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+			// cannon.js init
+			var world = new CANNON.World();
+          	world.gravity.set(0,-9.8,0);
+          	world.broadphase = new CANNON.NaiveBroadphase();
+          	world.solver.iterations = 10;
+
+          	var c_plane_shape = new CANNON.Plane();
+			var c_plane_body = new CANNON.Body({
+				mass: 0
+			});
+			c_plane_body.addShape(c_plane_shape);
+			c_plane_body.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+			world.addBody(c_plane_body);
+
+			var position = new zen3d.Vector3();
+			var sphere_meshes = [];
+			var sphere_bodys = [];
+			var size = 0;
+			function addOneCube() {
+				size++;
+
+				position.x = Math.random() * 10 - 5;
+				position.y = Math.random() * 10 + 3;
+				position.z = Math.random() * 10 - 5;
+
+				var sphere_geometry = new zen3d.CubeGeometry(2, 2, 2);
+		        var phong = new zen3d.PhongMaterial();
+		        phong.color.setHSL(Math.random(), 1, Math.random());
+		        var sphere = new zen3d.Mesh(sphere_geometry, phong);
+				sphere.position.copy(position);
+				sphere.castShadow = true;
+				scene.add(sphere);
+				sphere_meshes.push(sphere);
+
+				var c_sphere_shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+				var c_sphere_body = new CANNON.Body({
+					mass: 20
+				});
+				c_sphere_body.addShape(c_sphere_shape);
+				c_sphere_body.position.copy(position);
+				c_sphere_body.angularVelocity.set(0,10,0);
+				c_sphere_body.velocity.set(0,0,0);
+				c_sphere_body.angularDamping = 0.5;
+				world.addBody(c_sphere_body);
+				sphere_bodys.push(c_sphere_body);
+			}
+
+			document.addEventListener("mouseup", addOneCube);
+			document.addEventListener("touchend", addOneCube);
+
+			addOneCube();
+
+			var timeTamp = 0;
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				var time = count - timeTamp;
+				timeTamp = count;
+
+				// Step the physics world
+				world.step(time / 1000);
+
+				for(var i = 0; i < size; i++) {
+					// Copy coordinates from Cannon.js to Three.js
+					sphere_meshes[i].position.copy(sphere_bodys[i].position);
+					sphere_meshes[i].quaternion.x = sphere_bodys[i].quaternion.x;
+					sphere_meshes[i].quaternion.y = sphere_bodys[i].quaternion.y;
+					sphere_meshes[i].quaternion.z = sphere_bodys[i].quaternion.z;
+					sphere_meshes[i].quaternion.w = sphere_bodys[i].quaternion.w;
+				}
+
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
