@@ -145,33 +145,36 @@
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
         var cube = props.materialType == MATERIAL_TYPE.CUBE;
 
-        var vertex = zen3d.ShaderLib.vertexBase;
-        var fragment = zen3d.ShaderLib.fragmentBase;
+        var vertex = zen3d.ShaderLib.basic_vert;
+        var fragment = zen3d.ShaderLib.basic_frag;
 
         switch (props.materialType) {
             case MATERIAL_TYPE.BASIC:
-                vertex = zen3d.ShaderLib.basicVertex;
-                fragment = zen3d.ShaderLib.basicFragment;
+                vertex = zen3d.ShaderLib.basic_vert;
+                fragment = zen3d.ShaderLib.basic_frag;
                 break;
             case MATERIAL_TYPE.LAMBERT:
-                vertex = zen3d.ShaderLib.lambertVertex;
-                fragment = zen3d.ShaderLib.lambertFragment;
+                vertex = zen3d.ShaderLib.lambert_vert;
+                fragment = zen3d.ShaderLib.lambert_frag;
                 break;
             case MATERIAL_TYPE.PHONG:
-                vertex = zen3d.ShaderLib.phongVertex;
-                fragment = zen3d.ShaderLib.phongFragment;
+                vertex = zen3d.ShaderLib.phong_vert;
+                fragment = zen3d.ShaderLib.phong_frag;
                 break;
             case MATERIAL_TYPE.CUBE:
-                vertex = zen3d.ShaderLib.cubeVertex;
-                fragment = zen3d.ShaderLib.cubeFragment;
+                vertex = zen3d.ShaderLib.cube_vert;
+                fragment = zen3d.ShaderLib.cube_frag;
                 break;
             case MATERIAL_TYPE.POINT:
-                vertex = zen3d.ShaderLib.pointsVertex;
-                fragment = zen3d.ShaderLib.pointsFragment;
+                vertex = zen3d.ShaderLib.points_vert;
+                fragment = zen3d.ShaderLib.points_frag;
                 break;
             default:
 
         }
+
+        vertex = parseIncludes(vertex);
+        fragment = parseIncludes(fragment);
 
         var vshader_define, fshader_define;
         if (basic) {
@@ -252,6 +255,28 @@
         return new Program(gl, vshader, fshader);
     }
 
+    var parseIncludes = function(string) {
+
+        var pattern = /#include +<([\w\d.]+)>/g;
+
+        function replace(match, include) {
+
+            var replace = zen3d.ShaderChunk[include];
+
+            if (replace === undefined) {
+
+                throw new Error('Can not resolve #include <' + include + '>');
+
+            }
+
+            return parseIncludes(replace);
+
+        }
+
+        return string.replace(pattern, replace);
+
+    }
+
     /**
      * get a suitable program by object & lights & fog
      */
@@ -259,7 +284,7 @@
 
         var material = object.material;
 
-        if(material.type === MATERIAL_TYPE.CANVAS2D) {
+        if (material.type === MATERIAL_TYPE.CANVAS2D) {
             return getCanvas2DProgram(gl, render);
         }
 
@@ -318,14 +343,14 @@
             var vshader = [
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
-                zen3d.ShaderLib.depthVertex
+                parseIncludes(zen3d.ShaderLib.depth_vert)
             ].join("\n");
 
             var fshader = [
                 '#extension GL_OES_standard_derivatives : enable',
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
-                zen3d.ShaderLib.depthFragment
+                parseIncludes(zen3d.ShaderLib.depth_frag)
             ].join("\n");
 
             program = new Program(gl, vshader, fshader);
@@ -351,14 +376,14 @@
             var vshader = [
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
-                zen3d.ShaderLib.canvas2dVertex
+                parseIncludes(zen3d.ShaderLib.canvas2d_vert)
             ].join("\n");
 
             var fshader = [
                 '#extension GL_OES_standard_derivatives : enable',
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
-                zen3d.ShaderLib.canvas2dFragment
+                parseIncludes(zen3d.ShaderLib.canvas2d_frag)
             ].join("\n");
 
             program = new Program(gl, vshader, fshader);
@@ -378,20 +403,20 @@
 
         var precision = render.capabilities.maxPrecision;
 
-        if(map[code]) {
+        if (map[code]) {
             program = map[code];
         } else {
             var vshader = [
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
-                zen3d.ShaderLib.spriteVertex
+                parseIncludes(zen3d.ShaderLib.sprite_vert)
             ].join("\n");
 
             var fshader = [
                 '#extension GL_OES_standard_derivatives : enable',
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
-                zen3d.ShaderLib.spriteFragment
+                parseIncludes(zen3d.ShaderLib.sprite_frag)
             ].join("\n");
 
             program = new Program(gl, vshader, fshader);

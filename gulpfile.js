@@ -4,6 +4,7 @@ var concat = require('gulp-concat');
 var rename = require('gulp-rename');
 var notify = require('gulp-notify');
 var watch = require('gulp-watch');
+var shaderCompile = require("./tools/shaderCompiler.js");
 // var jsdoc = require('gulp-jsdoc');
 
 // base dir of src
@@ -49,6 +50,7 @@ var filesSrc = [
     "core/render/WebGL/WebGLGeometry.js",
     "core/render/WebGL/WebGLUniform.js",
     "core/render/WebGL/WebGLAttribute.js",
+    "core/render/shader/ShaderChunk.js",
     "core/render/shader/ShaderLib.js",
     "core/render/shader/Program.js",
     "core/render/Renderer.js",
@@ -127,7 +129,7 @@ for(var i = 0, l = filesSrc.length; i < l; i++) {
     filesSrc[i] = baseDir + filesSrc[i];
 }
 
-gulp.task('default', ['build'], function() {
+gulp.task('default', ["shader", 'build'], function() {
     // do nothing
 });
 
@@ -143,4 +145,10 @@ gulp.task("build", function() {
 
 gulp.task("watch", ['build'], function() {
     gulp.watch(filesSrc, ['build']);
+});
+
+gulp.task("shader", function() {
+    var root = "./src/core/render/shader/";
+    shaderCompile.compileShader(root + "shaderLib/", root, "ShaderLib", "zen3d");
+    shaderCompile.compileShader(root + "shaderChunk/", root, "ShaderChunk", "zen3d");
 });
