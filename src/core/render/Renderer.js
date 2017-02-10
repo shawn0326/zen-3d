@@ -45,6 +45,8 @@
 
         this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
+        this.performance = new zen3d.Performance();
+
         // object cache
         this.cache = new zen3d.RenderCache();
 
@@ -85,16 +87,26 @@
      * render scene with camera
      */
     Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
+        var performance = this.performance;
 
+        performance.updateFps();
+
+        performance.startCounter("render", 60);
+
+        performance.startCounter("updateMatrix", 60);
         scene.updateMatrix();
+        performance.endCounter("updateMatrix");
 
         camera.viewMatrix.getInverse(camera.worldMatrix); // update view matrix
 
+        performance.startCounter("cacheScene", 60);
         this.cache.cacheScene(scene, camera);
-
         this.cache.sort();
+        performance.endCounter("cacheScene");
 
+        performance.startCounter("renderShadow", 60);
         this.renderShadow();
+        performance.endCounter("renderShadow");
 
         if (renderTarget === undefined) {
             renderTarget = null;
@@ -106,17 +118,20 @@
             this.clear(true, true, true);
         }
 
+        performance.startCounter("renderList", 60);
         this.renderList(this.cache.opaqueObjects);
         this.renderList(this.cache.transparentObjects);
         this.renderList(this.cache.canvas2dObjects);
-
         this.renderSprites(this.cache.sprites);
+        performance.endCounter("renderList");
 
         this.cache.clear();
 
         if (renderTarget) {
             this.texture.updateRenderTargetMipmap(renderTarget);
         }
+
+        this.performance.endCounter("render");
     }
 
     /**
@@ -149,7 +164,7 @@
 
                 this.state.clearColor(1, 1, 1, 1);
                 this.clear(true, true);
-                
+
                 if (renderList.length == 0) {
                     return;
                 }

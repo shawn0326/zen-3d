@@ -44,5 +44,8 @@ var files = {
 	],
 	"physics": [
 		"physics_cannon"
+	],
+	"help": [
+		"help_performance"
 	]
 };

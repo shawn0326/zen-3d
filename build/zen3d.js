@@ -4452,6 +4452,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
+        this.performance = new zen3d.Performance();
+
         // object cache
         this.cache = new zen3d.RenderCache();
 
@@ -4492,16 +4494,26 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * render scene with camera
      */
     Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
+        var performance = this.performance;
 
+        performance.updateFps();
+
+        performance.startCounter("render", 60);
+
+        performance.startCounter("updateMatrix", 60);
         scene.updateMatrix();
+        performance.endCounter("updateMatrix");
 
         camera.viewMatrix.getInverse(camera.worldMatrix); // update view matrix
 
+        performance.startCounter("cacheScene", 60);
         this.cache.cacheScene(scene, camera);
-
         this.cache.sort();
+        performance.endCounter("cacheScene");
 
+        performance.startCounter("renderShadow", 60);
         this.renderShadow();
+        performance.endCounter("renderShadow");
 
         if (renderTarget === undefined) {
             renderTarget = null;
@@ -4513,17 +4525,20 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             this.clear(true, true, true);
         }
 
+        performance.startCounter("renderList", 60);
         this.renderList(this.cache.opaqueObjects);
         this.renderList(this.cache.transparentObjects);
         this.renderList(this.cache.canvas2dObjects);
-
         this.renderSprites(this.cache.sprites);
+        performance.endCounter("renderList");
 
         this.cache.clear();
 
         if (renderTarget) {
             this.texture.updateRenderTargetMipmap(renderTarget);
         }
+
+        this.performance.endCounter("render");
     }
 
     /**
@@ -7164,6 +7179,88 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.AssimpJsonLoader = AssimpJsonLoader;
 })();
 (function() {
+    var Performance = function() {
+        this._entities = {};
+
+        this.enableCounter = false;
+    }
+
+    Performance.prototype.getEntity = function(key) {
+        return this._entities[key];
+    }
+
+    Performance.prototype.getFps = function() {
+        var entity = this.getEntity("fps");
+        return (entity && entity.averageDelta) ? Math.floor(1000 / entity.averageDelta) : 0;
+    }
+
+    Performance.prototype.updateFps = function() {
+        if(!this.enableCounter) {
+            return;
+        }
+        this.endCounter("fps");
+        this.startCounter("fps", 60);
+    }
+
+    Performance.prototype.getNow = function() {
+        if(window.performance) {
+            return window.performance.now();
+        }
+        return new Date().getTime();
+    }
+
+    Performance.prototype.startCounter = function(key, averageRange) {
+        if(!this.enableCounter) {
+            return;
+        }
+
+        var entity = this._entities[key];
+        if(!entity) {
+            entity = {
+                start: 0,
+                end: 0,
+                delta: 0,
+                _cache: [],
+                averageRange: 1,
+                averageDelta: 0
+            };
+            this._entities[key] = entity;
+        }
+        entity.start = this.getNow();
+        entity.averageRange = averageRange || 1;
+    }
+
+    Performance.prototype.endCounter = function(key) {
+        if(!this.enableCounter) {
+            return;
+        }
+
+        var entity = this._entities[key];
+        if(entity) {
+            entity.end = this.getNow();
+            entity.delta = entity.end - entity.start;
+
+            if(entity.averageRange > 1) {
+                entity._cache.push(entity.delta);
+                var length = entity._cache.length;
+                if(length >= entity.averageRange) {
+                    if(length > entity.averageRange) {
+                        entity._cache.shift();
+                        length--;
+                    }
+                    var sum = 0;
+                    for(var i = 0; i < length; i++) {
+                        sum += entity._cache[i];
+                    }
+                    entity.averageDelta = sum / length;
+                }
+            }
+        }
+    }
+
+    zen3d.Performance = Performance;
+})();
+(function() {
     /**
      * HoverController Class
      * @class
@@ -7626,4 +7723,134 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.inherit(CameraVR, zen3d.Object3D);
 
     zen3d.CameraVR = CameraVR;
+})();
+(function() {
+
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+
+    function countObject(object, result) {
+        result = result || {
+            point: 0,
+            canvas2D: 0,
+            mesh: 0,
+            sprite: 0,
+            ambientLight: 0,
+            directLight: 0,
+            pointLight: 0,
+            spotLight: 0,
+            shadowLight: 0,
+            spotLight: 0,
+            group: 0
+        };
+
+        for(var i = 0; i < object.children.length; i++) {
+            countObject(object.children[i], result);
+        }
+
+        // cache all type of objects
+        switch (object.type) {
+            case OBJECT_TYPE.POINT:
+                result.point++;
+                break;
+            case OBJECT_TYPE.CANVAS2D:
+                result.canvas2D++;
+                break;
+            case OBJECT_TYPE.MESH:
+                result.mesh++;
+                break;
+            case OBJECT_TYPE.SPRITE:
+                result.sprite++;
+                break;
+            case OBJECT_TYPE.LIGHT:
+                if (object.lightType == LIGHT_TYPE.AMBIENT) {
+                    result.ambientLight++;
+                } else if (object.lightType == LIGHT_TYPE.DIRECT) {
+                    result.directLight++;
+                } else if (object.lightType == LIGHT_TYPE.POINT) {
+                    result.pointLight++;
+                } else if (object.lightType == LIGHT_TYPE.SPOT) {
+                    result.spotLight++;
+                }
+
+                if (object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
+                    result.shadowLight++;
+                }
+                break;
+            case OBJECT_TYPE.CAMERA:
+                // do nothing
+                break;
+            case OBJECT_TYPE.SCENE:
+                // do nothing
+                break;
+            case OBJECT_TYPE.GROUP:
+                result.group++;
+                break;
+            default:
+                console.log("undefined object type")
+        }
+
+        return result;
+    }
+
+    var Inspector = function() {
+        this.performancePanel = null;
+
+        this.scenePanel = null;
+    }
+
+    Inspector.prototype.showPerformanceInfo = function(performance) {
+        performance.enableCounter = true;
+
+        if(!this.performancePanel) {
+            var performancePanel = document.createElement("div");
+            performancePanel.style.position = "absolute";
+            performancePanel.style.top = "0px";
+            performancePanel.style.left = "0px";
+            performancePanel.style.backgroundColor = "rgba(0,0,0,0.6)";
+            performancePanel.style.color = "rgba(255,255,255,1)";
+            document.body.appendChild(performancePanel);
+
+            this.performancePanel = performancePanel;
+        }
+
+        var renderPerformance = performance.getEntity("render");
+    	var updateMatrixPerformance = performance.getEntity("updateMatrix");
+        var cacheScenePerformance = performance.getEntity("cacheScene");
+    	var renderShadowPerformance = performance.getEntity("renderShadow");
+    	var renderListPerformance = performance.getEntity("renderList");
+
+        var fps = performance.getFps();
+        this.performancePanel.innerHTML =
+            "<span>fps: </span>" + (fps || "--") + "<br/>" +
+            "<span>all render cost: </span>" + (renderPerformance ? Math.floor(renderPerformance.averageDelta) : "--") + "ms<br/>" +
+            "<span>matrix cost: </span>" + (updateMatrixPerformance ? Math.floor(updateMatrixPerformance.averageDelta): "--") + "ms<br/>" +
+            "<span>cache cost: </span>" + (cacheScenePerformance ? Math.floor(cacheScenePerformance.averageDelta) : "--") + "ms<br/>" +
+            "<span>renderShadow cost: </span>" + (renderShadowPerformance ? Math.floor(renderShadowPerformance.averageDelta) : "--") + "ms<br/>" +
+            "<span>renderList cost: </span>" + (renderListPerformance ? Math.floor(renderListPerformance.averageDelta) : "--") + "ms";
+    }
+
+    Inspector.prototype.showSceneInfo = function(scene) {
+        if(!this.scenePanel) {
+            var scenePanel = document.createElement("div");
+            scenePanel.style.position = "absolute";
+            scenePanel.style.top = "200px";
+            scenePanel.style.left = "0px";
+            scenePanel.style.backgroundColor = "rgba(0,0,0,0.6)";
+            scenePanel.style.color = "rgba(255,255,255,1)";
+            document.body.appendChild(scenePanel);
+
+            this.scenePanel = scenePanel;
+        }
+
+        var result = countObject(scene);
+
+        var html = "";
+        for(var key in result) {
+            html += "<span>" + key + ": </span>" + result[key] + "<br/>";
+        }
+        this.scenePanel.innerHTML = html;
+    }
+
+    zen3d.Inspector = Inspector;
 })();

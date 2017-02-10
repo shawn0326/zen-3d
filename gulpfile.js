@@ -110,6 +110,9 @@ var filesSrc = [
     //loader
     "core/loader/AssimpJsonLoader.js",
 
+    //performance
+    "core/Performance.js",
+
     // controller
     "extension/controller/HoverController.js",
 
@@ -121,8 +124,10 @@ var filesSrc = [
 
     // webvr
     "extension/webvr/RendererVR.js",
-    "extension/webvr/CameraVR.js"
+    "extension/webvr/CameraVR.js",
 
+    // inspector
+    "extension/inspector/Inspector.js"
 ];
 
 for(var i = 0, l = filesSrc.length; i < l; i++) {
