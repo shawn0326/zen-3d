@@ -114,25 +114,31 @@ var filesSrc = [
     "core/Performance.js",
 
     // controller
-    "extension/controller/HoverController.js",
-
-    // canvas2d
-    "extension/canvas2D/Canvas2D.js",
-    "extension/canvas2D/Canvas2DMaterial.js",
-    "extension/canvas2D/Object2D.js",
-    "extension/canvas2D/Sprite2D.js",
-
-    // webvr
-    "extension/webvr/RendererVR.js",
-    "extension/webvr/CameraVR.js",
-
-    // inspector
-    "extension/inspector/Inspector.js"
+    "extension/controller/HoverController.js"
 ];
 
 for(var i = 0, l = filesSrc.length; i < l; i++) {
     filesSrc[i] = baseDir + filesSrc[i];
 }
+
+var canvas2DSrc = [
+    // canvas2d
+    "src/extension/canvas2D/Canvas2D.js",
+    "src/extension/canvas2D/Canvas2DMaterial.js",
+    "src/extension/canvas2D/Object2D.js",
+    "src/extension/canvas2D/Sprite2D.js"
+];
+
+var webVRSrc = [
+    // webvr
+    "src/extension/webvr/RendererVR.js",
+    "src/extension/webvr/CameraVR.js"
+];
+
+var inspectorSrc = [
+    // inspector
+    "src/extension/inspector/Inspector.js"
+];
 
 gulp.task('default', ["shader", 'build'], function() {
     // do nothing
@@ -156,4 +162,30 @@ gulp.task("shader", function() {
     var root = "./src/core/render/shader/";
     shaderCompile.compileShader(root + "shaderLib/", root, "ShaderLib", "zen3d");
     shaderCompile.compileShader(root + "shaderChunk/", root, "ShaderChunk", "zen3d");
+});
+
+gulp.task("extension", function() {
+    gulp.src(canvas2DSrc)
+    .pipe(concat(outputName + '.canvas2d.js'))
+    .pipe(gulp.dest('build'))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(uglify())
+    .pipe(gulp.dest('build'))
+    .pipe(notify({ message: 'extension canvas2d build success' }));
+
+    gulp.src(webVRSrc)
+    .pipe(concat(outputName + '.webvr.js'))
+    .pipe(gulp.dest('build'))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(uglify())
+    .pipe(gulp.dest('build'))
+    .pipe(notify({ message: 'extension webvr build success' }));
+
+    gulp.src(inspectorSrc)
+    .pipe(concat(outputName + '.inspector.js'))
+    .pipe(gulp.dest('build'))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(uglify())
+    .pipe(gulp.dest('build'))
+    .pipe(notify({ message: 'extension inspector build success' }));
 });
