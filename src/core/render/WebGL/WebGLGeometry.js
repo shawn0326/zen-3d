@@ -20,12 +20,23 @@
             if(geometryProperties.__webglVAO === undefined) {
                 geometry.addEventListener('dispose', this.onGeometryDispose, this);
                 geometryProperties.__webglVAO = gl.createBuffer();
+                geometry.dirtyRange.enable = false;
             }
 
             state.bindBuffer(gl.ARRAY_BUFFER, geometryProperties.__webglVAO);
 
-            var vertices = new Float32Array(geometry.verticesArray);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            // geometry.dirtyRange.enable = false;
+            if(geometry.dirtyRange.enable) {
+                var vertices = new Float32Array(geometry.verticesArray);
+                vertices = vertices.subarray(geometry.dirtyRange.start, geometry.dirtyRange.start + geometry.dirtyRange.count);
+                gl.bufferSubData(gl.ARRAY_BUFFER, geometry.dirtyRange.start * 4, vertices)
+                geometry.dirtyRange.enable = false;
+                geometry.dirtyRange.start = 0;
+                geometry.dirtyRange.count = 0;
+            } else {
+                var vertices = new Float32Array(geometry.verticesArray);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            }
 
             if(geometry.indicesArray.length > 0) {
                 if(geometryProperties.__webglEAO === undefined) {

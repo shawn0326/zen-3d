@@ -20,6 +20,9 @@
         this.boundingSphere = new zen3d.Sphere();
 
         this.dirty = true;
+
+        // if part dirty, update part of buffers
+        this.dirtyRange = {enable: false, start: 0, count: 0};
     }
 
     zen3d.inherit(Geometry, zen3d.EventDispatcher);

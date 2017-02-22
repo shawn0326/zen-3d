@@ -17,6 +17,8 @@
 
         this.sprites = new Array();
 
+        this.particles = new Array();
+
         // lights
         this.ambientLights = new Array();
         this.directLights = new Array();
@@ -119,6 +121,18 @@
 
                 // no shadow
                 break;
+            case OBJECT_TYPE.PARTICLE:
+                var array = this.particles;
+
+                helpVector3.setFromMatrixPosition(object.worldMatrix);
+                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+                array.push({
+                    object: object,
+                    geometry: object.geometry,
+                    z: helpVector3.z
+                });
+                break;
             case OBJECT_TYPE.LIGHT:
                 if (object.lightType == LIGHT_TYPE.AMBIENT) {
                     this.ambientLights.push(object);
@@ -183,6 +197,13 @@
             var zb = b.z;
             return zb - za;
         });
+
+        // particles render from back to front
+        this.particles.sort(function(a, b) {
+            var za = a.z;
+            var zb = b.z;
+            return zb - za;
+        });
     }
 
     /**
@@ -196,6 +217,8 @@
         this.shadowObjects.length = 0;
 
         this.sprites.length = 0;
+
+        this.particles.length = 0;
 
         this.ambientLights.length = 0;
         this.directLights.length = 0;

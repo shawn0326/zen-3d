@@ -426,7 +426,41 @@
         return program;
     }
 
+    /**
+     * get particle program, used to render sprites
+     */
+    var getParticleProgram = function(gl, render) {
+        var program;
+        var map = programMap;
+        var code = "particle";
+
+        var precision = render.capabilities.maxPrecision;
+
+        if (map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                parseIncludes(zen3d.ShaderLib.particle_vert)
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                parseIncludes(zen3d.ShaderLib.particle_frag)
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
+
     zen3d.getProgram = getProgram;
     zen3d.getDepthProgram = getDepthProgram;
     zen3d.getSpriteProgram = getSpriteProgram;
+    zen3d.getParticleProgram = getParticleProgram;
 })();

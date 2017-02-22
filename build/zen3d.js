@@ -219,7 +219,8 @@
         GROUP: "group",
         POINT: "point",
         CANVAS2D: "canvas2d",
-        SPRITE: "sprite"
+        SPRITE: "sprite",
+        PARTICLE: "particle"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;
@@ -2393,6 +2394,17 @@
         return this.setRGB(r, g, b);
     }
 
+    /**
+     * copy
+     */
+    Color3.prototype.copy = function(v) {
+        this.r = v.r;
+        this.g = v.g;
+        this.b = v.b;
+
+        return this;
+    }
+
     // set from hex
     Color3.prototype.setHex = function(hex) {
         hex = Math.floor(hex);
@@ -2804,6 +2816,8 @@
             return this._cubic_bezier(A0.y, B0.y, B1.y, A1.y, t);
         }
     }();
+
+    // TODO: a smarter curve sampler?????
 
     // average x sampler
     // first x and last x must in result
@@ -3671,12 +3685,23 @@
             if(geometryProperties.__webglVAO === undefined) {
                 geometry.addEventListener('dispose', this.onGeometryDispose, this);
                 geometryProperties.__webglVAO = gl.createBuffer();
+                geometry.dirtyRange.enable = false;
             }
 
             state.bindBuffer(gl.ARRAY_BUFFER, geometryProperties.__webglVAO);
 
-            var vertices = new Float32Array(geometry.verticesArray);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            // geometry.dirtyRange.enable = false;
+            if(geometry.dirtyRange.enable) {
+                var vertices = new Float32Array(geometry.verticesArray);
+                vertices = vertices.subarray(geometry.dirtyRange.start, geometry.dirtyRange.start + geometry.dirtyRange.count);
+                gl.bufferSubData(gl.ARRAY_BUFFER, geometry.dirtyRange.start * 4, vertices)
+                geometry.dirtyRange.enable = false;
+                geometry.dirtyRange.start = 0;
+                geometry.dirtyRange.count = 0;
+            } else {
+                var vertices = new Float32Array(geometry.verticesArray);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            }
 
             if(geometry.indicesArray.length > 0) {
                 if(geometryProperties.__webglEAO === undefined) {
@@ -4064,6 +4089,8 @@ depth_frag: "#include <common_frag>\nuniform vec3 lightPos;\nvarying vec3 v_Mode
 depth_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\nvoid main() {\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(a_Position, 1.0)).xyz;\n}",
 lambert_frag: "#include <common_frag>\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 lambert_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\nvoid main() {\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
+particle_frag: "float scaleLinear(float value, vec2 valueDomain) {\n    return (value - valueDomain.x) / (valueDomain.y - valueDomain.x);\n}\nfloat scaleLinear(float value, vec2 valueDomain, vec2 valueRange) {\n    return mix(valueRange.x, valueRange.y, scaleLinear(value, valueDomain));\n}\nvarying vec4 vColor;\nvarying float lifeLeft;\nuniform sampler2D tSprite;\nvoid main() {\n    float alpha = 0.;\n    if( lifeLeft > .995 ) {\n        alpha = scaleLinear( lifeLeft, vec2(1., .995), vec2(0., 1.));\n    } else {\n        alpha = lifeLeft * .75;\n    }\n    vec4 tex = texture2D( tSprite, gl_PointCoord );\n    gl_FragColor = vec4( vColor.rgb * tex.a, alpha * tex.a );\n}",
+particle_vert: "const vec4 bitSh = vec4(256. * 256. * 256., 256. * 256., 256., 1.);\nconst vec4 bitMsk = vec4(0.,vec3(1./256.0));\nconst vec4 bitShifts = vec4(1.) / bitSh;\n#define FLOAT_MAX\t1.70141184e38\n#define FLOAT_MIN\t1.17549435e-38\nlowp vec4 encode_float(highp float v) {\n    highp float av = abs(v);\n    if(av < FLOAT_MIN) {\n        return vec4(0.0, 0.0, 0.0, 0.0);\n    } else if(v > FLOAT_MAX) {\n        return vec4(127.0, 128.0, 0.0, 0.0) / 255.0;\n    } else if(v < -FLOAT_MAX) {\n        return vec4(255.0, 128.0, 0.0, 0.0) / 255.0;\n    }\n    highp vec4 c = vec4(0,0,0,0);\n    highp float e = floor(log2(av));\n    highp float m = av * pow(2.0, -e) - 1.0;\n    c[1] = floor(128.0 * m);\n    m -= c[1] / 128.0;\n    c[2] = floor(32768.0 * m);\n    m -= c[2] / 32768.0;\n    c[3] = floor(8388608.0 * m);\n    highp float ebias = e + 127.0;\n    c[0] = floor(ebias / 2.0);\n    ebias -= c[0] * 2.0;\n    c[1] += floor(ebias) * 128.0;\n    c[0] += 128.0 * step(0.0, -v);\n    return c / 255.0;\n}\nvec4 pack(const in float depth)\n{\n    const vec4 bit_shift = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0);\n    const vec4 bit_mask\t= vec4(0.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);\n    vec4 res = mod(depth*bit_shift*vec4(255), vec4(256))/vec4(255);\n    res -= res.xxyz * bit_mask;\n    return res;\n}\nfloat unpack(const in vec4 rgba_depth)\n{\n    const vec4 bit_shift = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);\n    float depth = dot(rgba_depth, bit_shift);\n    return depth;\n}\nuniform float uTime;\nuniform float uScale;\nuniform sampler2D tNoise;\nuniform mat4 u_Projection;\nuniform mat4 u_View;\nuniform mat4 u_Model;\nattribute vec4 particlePositionsStartTime;\nattribute vec4 particleVelColSizeLife;\nvarying vec4 vColor;\nvarying float lifeLeft;\nvoid main() {\n    vColor = encode_float( particleVelColSizeLife.y );\n    vec4 velTurb = encode_float( particleVelColSizeLife.x );\n    vec3 velocity = vec3( velTurb.xyz );\n    float turbulence = velTurb.w;\n    vec3 newPosition;\n    float timeElapsed = uTime - particlePositionsStartTime.a;\n    lifeLeft = 1. - (timeElapsed / particleVelColSizeLife.w);\n    gl_PointSize = ( uScale * particleVelColSizeLife.z ) * lifeLeft;\n    velocity.x = ( velocity.x - .5 ) * 3.;\n    velocity.y = ( velocity.y - .5 ) * 3.;\n    velocity.z = ( velocity.z - .5 ) * 3.;\n    newPosition = particlePositionsStartTime.xyz + ( velocity * 10. ) * ( uTime - particlePositionsStartTime.a );\n    vec3 noise = texture2D( tNoise, vec2( newPosition.x * .015 + (uTime * .05), newPosition.y * .02 + (uTime * .015) )).rgb;\n    vec3 noiseVel = ( noise.rgb - .5 ) * 30.;\n    newPosition = mix(newPosition, newPosition + vec3(noiseVel * ( turbulence * 5. ) ), (timeElapsed / particleVelColSizeLife.a) );\n    if( velocity.y > 0. && velocity.y < .05 ) {\n        lifeLeft = 0.;\n    }\n    if( velocity.x < -1.45 ) {\n        lifeLeft = 0.;\n    }\n    if( timeElapsed > 0. ) {\n        gl_Position = u_Projection * u_View * u_Model * vec4( newPosition, 1.0 );\n    } else {\n        gl_Position = u_Projection * u_View * u_Model * vec4( particlePositionsStartTime.xyz, 1.0 );\n        lifeLeft = 0.;\n        gl_PointSize = 0.;\n    }\n}",
 phong_frag: "#include <common_frag>\nuniform float u_Specular;\nuniform vec4 u_SpecularColor;\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <RE_Phong>\n#include <RE_BlinnPhong>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 phong_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\nvoid main() {\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
 points_frag: "#include <common_frag>\n#include <diffuseMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #ifdef USE_DIFFUSE_MAP\n        outColor *= texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));\n    #endif\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
@@ -4500,9 +4527,43 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         return program;
     }
 
+    /**
+     * get particle program, used to render sprites
+     */
+    var getParticleProgram = function(gl, render) {
+        var program;
+        var map = programMap;
+        var code = "particle";
+
+        var precision = render.capabilities.maxPrecision;
+
+        if (map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                parseIncludes(zen3d.ShaderLib.particle_vert)
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                parseIncludes(zen3d.ShaderLib.particle_frag)
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
+
     zen3d.getProgram = getProgram;
     zen3d.getDepthProgram = getDepthProgram;
     zen3d.getSpriteProgram = getSpriteProgram;
+    zen3d.getParticleProgram = getParticleProgram;
 })();
 (function() {
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
@@ -4629,6 +4690,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.renderList(this.cache.transparentObjects);
         this.renderList(this.cache.canvas2dObjects);
         this.renderSprites(this.cache.sprites);
+        this.renderParticles(this.cache.particles);
         performance.endCounter("renderList");
 
         this.cache.clear();
@@ -5197,6 +5259,58 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     }
 
+    Renderer.prototype.renderParticles = function(particles) {
+        if (this.cache.particles.length === 0) {
+            return;
+        }
+
+        var camera = this.cache.camera;
+        var gl = this.gl;
+
+        for (var i = 0, l = particles.length; i < l; i++) {
+            var particle = particles[i].object;
+            var geometry = particles[i].geometry;
+
+            this.geometry.setGeometry(geometry);
+
+            var program = zen3d.getParticleProgram(gl, this);
+            gl.useProgram(program.id);
+
+            var attributes = program.attributes;
+            var particlePositionsStartTime = attributes.particlePositionsStartTime;
+            gl.vertexAttribPointer(particlePositionsStartTime.location, particlePositionsStartTime.count, particlePositionsStartTime.format, false, 4 * geometry.vertexSize, 0);
+            gl.enableVertexAttribArray(particlePositionsStartTime.location);
+            var particleVelColSizeLife = attributes.particleVelColSizeLife;
+            gl.vertexAttribPointer(particleVelColSizeLife.location, particleVelColSizeLife.count, particleVelColSizeLife.format, false, 4 * geometry.vertexSize, 4 * 4);
+            gl.enableVertexAttribArray(particleVelColSizeLife.location);
+
+            var uniforms = program.uniforms;
+            uniforms.uTime.setValue(particle.time);
+            uniforms.uScale.setValue(1);
+
+            uniforms.u_Projection.setValue(camera.projectionMatrix.elements);
+            uniforms.u_View.setValue(camera.viewMatrix.elements);
+            uniforms.u_Model.setValue(particle.worldMatrix.elements);
+
+            var slot = this.allocTexUnit();
+            this.texture.setTexture2D(particle.particleNoiseTex, slot);
+            uniforms.tNoise.setValue(slot);
+
+            var slot = this.allocTexUnit();
+            this.texture.setTexture2D(particle.particleSpriteTex, slot);
+            uniforms.tSprite.setValue(slot);
+
+            this.state.setBlend(BLEND_TYPE.ADD);
+            this.state.disable(gl.DEPTH_TEST);
+            this.state.setCullFace(CULL_FACE_TYPE.BACK);
+            this.state.setFlipSided(false);
+
+            gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+
+            this._usedTextureUnits = 0;
+        }
+    }
+
     /**
      * set render target
      */
@@ -5293,6 +5407,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.shadowObjects = new Array();
 
         this.sprites = new Array();
+
+        this.particles = new Array();
 
         // lights
         this.ambientLights = new Array();
@@ -5396,6 +5512,18 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 // no shadow
                 break;
+            case OBJECT_TYPE.PARTICLE:
+                var array = this.particles;
+
+                helpVector3.setFromMatrixPosition(object.worldMatrix);
+                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+                array.push({
+                    object: object,
+                    geometry: object.geometry,
+                    z: helpVector3.z
+                });
+                break;
             case OBJECT_TYPE.LIGHT:
                 if (object.lightType == LIGHT_TYPE.AMBIENT) {
                     this.ambientLights.push(object);
@@ -5460,6 +5588,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var zb = b.z;
             return zb - za;
         });
+
+        // particles render from back to front
+        this.particles.sort(function(a, b) {
+            var za = a.z;
+            var zb = b.z;
+            return zb - za;
+        });
     }
 
     /**
@@ -5473,6 +5608,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.shadowObjects.length = 0;
 
         this.sprites.length = 0;
+
+        this.particles.length = 0;
 
         this.ambientLights.length = 0;
         this.directLights.length = 0;
@@ -5579,6 +5716,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.boundingSphere = new zen3d.Sphere();
 
         this.dirty = true;
+
+        // if part dirty, update part of buffers
+        this.dirtyRange = {enable: false, start: 0, count: 0};
     }
 
     zen3d.inherit(Geometry, zen3d.EventDispatcher);
@@ -7090,6 +7230,151 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     Sprite.geometry = sharedGeometry;
 
     zen3d.Sprite = Sprite;
+})();
+(function() {
+
+    // construct a couple small arrays used for packing variables into floats etc
+	var UINT8_VIEW = new Uint8Array(4);
+	var FLOAT_VIEW = new Float32Array(UINT8_VIEW.buffer);
+
+	function decodeFloat(x, y, z, w) {
+		UINT8_VIEW[0] = Math.floor(w);
+		UINT8_VIEW[1] = Math.floor(z);
+		UINT8_VIEW[2] = Math.floor(y);
+		UINT8_VIEW[3] = Math.floor(x);
+		return FLOAT_VIEW[0];
+	}
+
+	/*
+	 * a particle container
+	 * reference three.js - flimshaw - Charlie Hoey - http://charliehoey.com
+	 */
+    var ParticleContainer = function(options) {
+        ParticleContainer.superClass.constructor.call(this);
+
+        var options = options || {};
+
+        this.maxParticleCount = options.maxParticleCount || 10000;
+        this.particleNoiseTex = options.particleNoiseTex || null;
+        this.particleSpriteTex = options.particleSpriteTex || null;
+
+        this.geometry = new zen3d.Geometry();
+        var vertices = this.geometry.verticesArray = [];
+        for(var i = 0; i < this.maxParticleCount; i++) {
+            vertices[i * 8 + 0] = 100                        ; //x
+            vertices[i * 8 + 1] = 0                          ; //y
+            vertices[i * 8 + 2] = 0                          ; //z
+            vertices[i * 8 + 3] = 0.0                        ; //startTime
+            vertices[i * 8 + 4] = decodeFloat(128, 128, 0, 0); //vel
+            vertices[i * 8 + 5] = decodeFloat(0, 254, 0, 254); //color
+            vertices[i * 8 + 6] = 1.0                        ; //size
+            vertices[i * 8 + 7] = 0.0                        ; //lifespan
+        }
+        this.geometry.vertexSize = 8;
+
+        this.particleCursor = 0;
+        this.time = 0;
+
+        this.type = zen3d.OBJECT_TYPE.PARTICLE;
+    }
+
+    zen3d.inherit(ParticleContainer, zen3d.Object3D);
+
+    var position = new zen3d.Vector3();
+    var velocity = new zen3d.Vector3();
+    var positionRandomness = 0;
+    var velocityRandomness = 0;
+    var color = new zen3d.Color3();
+	var colorRandomness = 0;
+	var turbulence = 0;
+	var lifetime = 0;
+	var size = 0;
+	var sizeRandomness = 0;
+	var smoothPosition = false;
+
+    var maxVel = 2;
+	var maxSource = 250;
+
+    ParticleContainer.prototype.spawn = function(options) {
+        var options = options || {};
+
+        position = options.position !== undefined ? position.copy(options.position) : position.set(0., 0., 0.);
+        velocity = options.velocity !== undefined ? velocity.copy(options.velocity) : velocity.set(0., 0., 0.);
+        positionRandomness = options.positionRandomness !== undefined ? options.positionRandomness : 0.0;
+        velocityRandomness = options.velocityRandomness !== undefined ? options.velocityRandomness : 0.0;
+        color = options.color !== undefined ? color.copy(options.color) : color.setRGB(1, 1, 1);
+		colorRandomness = options.colorRandomness !== undefined ? options.colorRandomness : 1.0;
+		turbulence = options.turbulence !== undefined ? options.turbulence : 1.0;
+		lifetime = options.lifetime !== undefined ? options.lifetime : 5.0;
+		size = options.size !== undefined ? options.size : 10;
+		sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0.0;
+
+        var cursor = this.particleCursor;
+        var vertices = this.geometry.verticesArray;
+        var vertexSize = this.geometry.vertexSize;
+
+        vertices[cursor * vertexSize + 0] = position.x + (Math.random() - 0.5) * positionRandomness; //x
+        vertices[cursor * vertexSize + 1] = position.y + (Math.random() - 0.5) * positionRandomness; //y
+        vertices[cursor * vertexSize + 2] = position.z + (Math.random() - 0.5) * positionRandomness; //z
+        vertices[cursor * vertexSize + 3] = this.time + (Math.random() - 0.5) * 2e-2; //startTime
+
+        var velX = velocity.x + (Math.random() - 0.5) * velocityRandomness;
+        var velY = velocity.y + (Math.random() - 0.5) * velocityRandomness;
+        var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
+
+        // convert turbulence rating to something we can pack into a vec4
+		var turbulence = Math.floor(turbulence * 254);
+
+        // clamp our value to between 0. and 1.
+		velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
+		velY = Math.floor(maxSource * ((velY - -maxVel) / (maxVel - -maxVel)));
+		velZ = Math.floor(maxSource * ((velZ - -maxVel) / (maxVel - -maxVel)));
+
+        vertices[cursor * vertexSize + 4] = decodeFloat(velX, velY, velZ, turbulence); //velocity
+
+        var r = color.r * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+        var g = color.g * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+        var b = color.b * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+        if(r > 254) r = 254;
+        if(r < 0) r = 0;
+        if(g > 254) g = 254;
+        if(g < 0) g = 0;
+        if(b > 254) b = 254;
+        if(b < 0) b = 0;
+        vertices[cursor * vertexSize + 5] = decodeFloat(r, g, b, 254); //color
+
+        vertices[cursor * vertexSize + 6] = size + (Math.random() - 0.5) * sizeRandomness; //size
+
+        vertices[cursor * vertexSize + 7] = lifetime; //lifespan
+
+        this.particleCursor++;
+
+        if(this.particleCursor >= this.maxParticleCount) {
+            this.particleCursor = 0;
+			this.geometry.dirty = true;
+			this.geometry.dirtyRange.enable = false;
+			this.geometry.dirtyRange.start = 0;
+			this.geometry.dirtyRange.count = 0;
+        } else {
+			this.geometry.dirty = true;
+			if(this.geometry.dirtyRange.enable) {
+				this.geometry.dirtyRange.count = this.particleCursor * vertexSize - this.geometry.dirtyRange.start;
+			} else {
+				this.geometry.dirtyRange.enable = true;
+				this.geometry.dirtyRange.start = cursor * vertexSize;
+				this.geometry.dirtyRange.count = vertexSize;
+			}
+
+		}
+
+
+    }
+
+    ParticleContainer.prototype.update = function(time) {
+        this.time = time;
+    }
+
+	zen3d.ParticleContainer = ParticleContainer;
 })();
 (function() {
     /**

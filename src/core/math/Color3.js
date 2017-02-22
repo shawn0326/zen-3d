@@ -11,6 +11,17 @@
         return this.setRGB(r, g, b);
     }
 
+    /**
+     * copy
+     */
+    Color3.prototype.copy = function(v) {
+        this.r = v.r;
+        this.g = v.g;
+        this.b = v.b;
+
+        return this;
+    }
+
     // set from hex
     Color3.prototype.setHex = function(hex) {
         hex = Math.floor(hex);

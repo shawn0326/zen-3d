@@ -10,7 +10,8 @@
         GROUP: "group",
         POINT: "point",
         CANVAS2D: "canvas2d",
-        SPRITE: "sprite"
+        SPRITE: "sprite",
+        PARTICLE: "particle"
     };
 
     zen3d.OBJECT_TYPE = OBJECT_TYPE;

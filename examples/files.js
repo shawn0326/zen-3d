@@ -47,5 +47,8 @@ var files = {
 	],
 	"help": [
 		"help_performance"
+	],
+	"particle": [
+		"particle_particle"
 	]
 };

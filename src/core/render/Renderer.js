@@ -123,6 +123,7 @@
         this.renderList(this.cache.transparentObjects);
         this.renderList(this.cache.canvas2dObjects);
         this.renderSprites(this.cache.sprites);
+        this.renderParticles(this.cache.particles);
         performance.endCounter("renderList");
 
         this.cache.clear();
@@ -689,6 +690,58 @@
             this._usedTextureUnits = 0;
         }
 
+    }
+
+    Renderer.prototype.renderParticles = function(particles) {
+        if (this.cache.particles.length === 0) {
+            return;
+        }
+
+        var camera = this.cache.camera;
+        var gl = this.gl;
+
+        for (var i = 0, l = particles.length; i < l; i++) {
+            var particle = particles[i].object;
+            var geometry = particles[i].geometry;
+
+            this.geometry.setGeometry(geometry);
+
+            var program = zen3d.getParticleProgram(gl, this);
+            gl.useProgram(program.id);
+
+            var attributes = program.attributes;
+            var particlePositionsStartTime = attributes.particlePositionsStartTime;
+            gl.vertexAttribPointer(particlePositionsStartTime.location, particlePositionsStartTime.count, particlePositionsStartTime.format, false, 4 * geometry.vertexSize, 0);
+            gl.enableVertexAttribArray(particlePositionsStartTime.location);
+            var particleVelColSizeLife = attributes.particleVelColSizeLife;
+            gl.vertexAttribPointer(particleVelColSizeLife.location, particleVelColSizeLife.count, particleVelColSizeLife.format, false, 4 * geometry.vertexSize, 4 * 4);
+            gl.enableVertexAttribArray(particleVelColSizeLife.location);
+
+            var uniforms = program.uniforms;
+            uniforms.uTime.setValue(particle.time);
+            uniforms.uScale.setValue(1);
+
+            uniforms.u_Projection.setValue(camera.projectionMatrix.elements);
+            uniforms.u_View.setValue(camera.viewMatrix.elements);
+            uniforms.u_Model.setValue(particle.worldMatrix.elements);
+
+            var slot = this.allocTexUnit();
+            this.texture.setTexture2D(particle.particleNoiseTex, slot);
+            uniforms.tNoise.setValue(slot);
+
+            var slot = this.allocTexUnit();
+            this.texture.setTexture2D(particle.particleSpriteTex, slot);
+            uniforms.tSprite.setValue(slot);
+
+            this.state.setBlend(BLEND_TYPE.ADD);
+            this.state.disable(gl.DEPTH_TEST);
+            this.state.setCullFace(CULL_FACE_TYPE.BACK);
+            this.state.setFlipSided(false);
+
+            gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+
+            this._usedTextureUnits = 0;
+        }
     }
 
     /**

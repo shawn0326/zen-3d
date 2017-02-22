@@ -108,6 +108,8 @@ var filesSrc = [
     "core/objects/Points.js",
     "core/objects/Sprite.js",
 
+    "core/objects/particle/ParticleContainer.js",
+
     //loader
     "core/loader/AssimpJsonLoader.js",
 
