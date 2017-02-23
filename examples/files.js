@@ -25,7 +25,8 @@ var files = {
 		"scene_fog"
 	],
 	"math": [
-		"math_frustumtest"
+		"math_frustumtest",
+		"math_curve"
 	],
 	"sprite": [
 		"sprite_sprites"
