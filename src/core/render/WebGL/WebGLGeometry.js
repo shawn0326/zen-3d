@@ -35,7 +35,7 @@
                 geometry.dirtyRange.count = 0;
             } else {
                 var vertices = new Float32Array(geometry.verticesArray);
-                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, geometry.usageType);
             }
 
             if(geometry.indicesArray.length > 0) {
@@ -46,7 +46,7 @@
                 state.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometryProperties.__webglEAO);
 
                 var indices = new Uint16Array(geometry.indicesArray);
-                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, geometry.usageType);
             }
 
             geometry.dirty = false;

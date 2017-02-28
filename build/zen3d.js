@@ -397,6 +397,14 @@
     }
 
     zen3d.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
+
+    var WEBGL_BUFFER_USAGE = {
+        STREAM_DRAW: 0x88e0,
+        STATIC_DRAW: 0x88E4,
+        DYNAMIC_DRAW: 0x88E8
+    }
+
+    zen3d.WEBGL_BUFFER_USAGE = WEBGL_BUFFER_USAGE;
 })();
 
 (function() {
@@ -3700,7 +3708,7 @@
                 geometry.dirtyRange.count = 0;
             } else {
                 var vertices = new Float32Array(geometry.verticesArray);
-                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, geometry.usageType);
             }
 
             if(geometry.indicesArray.length > 0) {
@@ -3711,7 +3719,7 @@
                 state.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometryProperties.__webglEAO);
 
                 var indices = new Uint16Array(geometry.indicesArray);
-                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, geometry.usageType);
             }
 
             geometry.dirty = false;
@@ -5711,6 +5719,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // maybe need something to discrib vertex format
         this.vertexSize = 17; // static
 
+        this.usageType = zen3d.WEBGL_BUFFER_USAGE.STATIC_DRAW;
+
         this.boundingBox = new zen3d.Box3();
 
         this.boundingSphere = new zen3d.Sphere();
@@ -7271,6 +7281,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             vertices[i * 8 + 7] = 0.0                        ; //lifespan
         }
         this.geometry.vertexSize = 8;
+		this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
 
         this.particleCursor = 0;
         this.time = 0;

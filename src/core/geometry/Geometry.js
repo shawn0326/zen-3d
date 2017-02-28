@@ -15,6 +15,8 @@
         // maybe need something to discrib vertex format
         this.vertexSize = 17; // static
 
+        this.usageType = zen3d.WEBGL_BUFFER_USAGE.STATIC_DRAW;
+
         this.boundingBox = new zen3d.Box3();
 
         this.boundingSphere = new zen3d.Sphere();
