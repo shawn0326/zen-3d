@@ -173,15 +173,13 @@
                 for (var n = 0, l = renderList.length; n < l; n++) {
                     var object = renderList[n];
                     var material = object.material;
-
-                    this.geometry.setGeometry(object.geometry);
+                    var geometry = object.geometry;
 
                     var program = zen3d.getDepthProgram(gl, this);
                     gl.useProgram(program.id);
 
-                    var a_Position = program.attributes.a_Position;
-                    gl.vertexAttribPointer(a_Position.location, a_Position.count, a_Position.format, false, 4 * 17, 0);
-                    gl.enableVertexAttribArray(a_Position.location);
+                    this.geometry.setGeometry(geometry);
+                    this.setupVertexAttributes(program, geometry);
 
                     // update uniforms
                     var uniforms = program.uniforms;
@@ -253,8 +251,6 @@
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            this.geometry.setGeometry(geometry);
-
             var program = zen3d.getProgram(gl, this, object, [
                 ambientLightsNum,
                 directLightsNum,
@@ -263,29 +259,8 @@
             ], fog);
             gl.useProgram(program.id);
 
-            // update attributes
-            var attributes = program.attributes;
-            for (var key in attributes) {
-                var attribute = attributes[key];
-                switch (key) {
-                    case "a_Position":
-                        gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 0);
-                        break;
-                    case "a_Normal":
-                        gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 3);
-                        break;
-                    case "a_Uv":
-                        if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
-                            gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 3);
-                        } else {
-                            gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, false, 4 * geometry.vertexSize, 4 * 13);
-                        }
-                        break;
-                    default:
-                        console.warn("attribute " + key + " not found!");
-                }
-                gl.enableVertexAttribArray(attribute.location);
-            }
+            this.geometry.setGeometry(geometry);
+            this.setupVertexAttributes(program, geometry);
 
             // update uniforms
             var uniforms = program.uniforms;
@@ -578,20 +553,14 @@
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
-
-        // bind a shared geometry
-        this.geometry.setGeometry(zen3d.Sprite.geometry);
+        var geometry = zen3d.Sprite.geometry;
 
         var program = zen3d.getSpriteProgram(gl, this);
         gl.useProgram(program.id);
 
-        var attributes = program.attributes;
-        var position = attributes.position;
-        gl.vertexAttribPointer(position.location, position.count, position.format, false, 2 * 8, 0);
-        gl.enableVertexAttribArray(position.location);
-        var uv = attributes.uv;
-        gl.vertexAttribPointer(uv.location, uv.count, uv.format, false, 2 * 8, 8);
-        gl.enableVertexAttribArray(uv.location);
+        // bind a shared geometry
+        this.geometry.setGeometry(geometry);
+        this.setupVertexAttributes(program, geometry);
 
         var uniforms = program.uniforms;
         uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
@@ -704,18 +673,11 @@
             var particle = particles[i].object;
             var geometry = particles[i].geometry;
 
-            this.geometry.setGeometry(geometry);
-
             var program = zen3d.getParticleProgram(gl, this);
             gl.useProgram(program.id);
 
-            var attributes = program.attributes;
-            var particlePositionsStartTime = attributes.particlePositionsStartTime;
-            gl.vertexAttribPointer(particlePositionsStartTime.location, particlePositionsStartTime.count, particlePositionsStartTime.format, false, 4 * geometry.vertexSize, 0);
-            gl.enableVertexAttribArray(particlePositionsStartTime.location);
-            var particleVelColSizeLife = attributes.particleVelColSizeLife;
-            gl.vertexAttribPointer(particleVelColSizeLife.location, particleVelColSizeLife.count, particleVelColSizeLife.format, false, 4 * geometry.vertexSize, 4 * 4);
-            gl.enableVertexAttribArray(particleVelColSizeLife.location);
+            this.geometry.setGeometry(geometry);
+            this.setupVertexAttributes(program, geometry);
 
             var uniforms = program.uniforms;
             uniforms.uTime.setValue(particle.time);
@@ -818,6 +780,24 @@
         this._usedTextureUnits += 1;
 
         return textureUnit;
+    }
+
+    Renderer.prototype.setupVertexAttributes = function(program, geometry) {
+        var gl = this.gl;
+        var attributes = program.attributes;
+        for (var key in attributes) {
+            var attribute = attributes[key];
+            var format = geometry.vertexFormat[key];
+            if(format) {
+                if(attribute.count !== format.size) {
+                    console.warn("Renderer: attribute " + key + " size not match!");
+                }
+                gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, format.normalized, 4 * format.stride, 4 * format.offset);
+                gl.enableVertexAttribArray(attribute.location);
+            } else {
+                console.warn("Renderer: attribute " + key + " not found!");
+            }
+        }
     }
 
     zen3d.Renderer = Renderer;

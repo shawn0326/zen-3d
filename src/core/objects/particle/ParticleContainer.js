@@ -38,6 +38,10 @@
             vertices[i * 8 + 7] = 0.0                        ; //lifespan
         }
         this.geometry.vertexSize = 8;
+		this.geometry.vertexFormat = {
+            "particlePositionsStartTime": {size: 4, normalized: false, stride: 8, offset: 0},
+            "particleVelColSizeLife": {size: 4, normalized: false, stride: 8, offset: 4}
+        };
 		this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
 
         this.particleCursor = 0;

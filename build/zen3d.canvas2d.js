@@ -14,6 +14,11 @@
 
         this.geometry = new zen3d.Geometry();
         this.geometry.vertexSize = 5;
+        this.geometry.vertexFormat = {
+            "a_Position": {size: 3, normalized: false, stride: 5, offset: 0},
+            "a_Uv": {size: 2, normalized: false, stride: 5, offset: 3}
+        };
+        this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
         this.material = new zen3d.Canvas2DMaterial();
 
         this.width = (width !== undefined) ? width : 0;

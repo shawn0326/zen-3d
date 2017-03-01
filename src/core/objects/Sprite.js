@@ -11,6 +11,10 @@
         0, 2, 3
     ];
     sharedGeometry.vertexSize = 4;
+    sharedGeometry.vertexFormat = {
+        "position": {size: 2, normalized: false, stride: 4, offset: 0},
+        "uv": {size: 2, normalized: false, stride: 4, offset: 2}
+    };
 
     /**
      * Sprite

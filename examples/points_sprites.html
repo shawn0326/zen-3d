@@ -60,6 +60,9 @@
 				);
 			}
 			pointsGeometry.vertexSize = 3;
+			pointsGeometry.vertexFormat = {
+	            "a_Position": {size: 3, normalized: false, stride: 3, offset: 0}
+	        };
 			pointsGeometry.computeBoundingBox();
 			pointsGeometry.computeBoundingSphere();
 

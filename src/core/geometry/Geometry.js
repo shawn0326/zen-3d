@@ -15,6 +15,13 @@
         // maybe need something to discrib vertex format
         this.vertexSize = 17; // static
 
+        // vertex format
+        this.vertexFormat = {
+            "a_Position": {size: 3, normalized: false, stride: 17, offset: 0},
+            "a_Normal": {size: 3, normalized: false, stride: 17, offset: 3},
+            "a_Uv": {size: 2, normalized: false, stride: 17, offset: 13}
+        };
+
         this.usageType = zen3d.WEBGL_BUFFER_USAGE.STATIC_DRAW;
 
         this.boundingBox = new zen3d.Box3();
