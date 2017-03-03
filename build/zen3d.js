@@ -3045,6 +3045,8 @@
 
         this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
         this.maxCubemapSize = gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE);
+
+        this.maxVertexUniformVectors = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
     }
 
     zen3d.WebGLCapabilities = WebGLCapabilities;
@@ -4143,6 +4145,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         gl.attachShader(program, fragmentShader);
         // link vertex shader and fragment shader
         gl.linkProgram(program);
+        // if link failed, log error
+        var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if(!linked) {
+            console.log("program not linked!")
+            console.log(gl.getProgramInfoLog(program))
+        }
 
         return program;
     }

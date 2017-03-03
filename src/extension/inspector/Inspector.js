@@ -71,6 +71,8 @@
         this.performancePanel = null;
 
         this.scenePanel = null;
+
+        this.capabilitiesPanel = null;
     }
 
     Inspector.prototype.showPerformanceInfo = function(performance) {
@@ -124,6 +126,29 @@
             html += "<span>" + key + ": </span>" + result[key] + "<br/>";
         }
         this.scenePanel.innerHTML = html;
+    }
+
+    Inspector.prototype.showCapabilitiesInfo = function(capabilities) {
+        if(!this.capabilitiesPanel) {
+            var capabilitiesPanel = document.createElement("div");
+            capabilitiesPanel.style.position = "absolute";
+            capabilitiesPanel.style.top = "100px";
+            capabilitiesPanel.style.left = "0px";
+            capabilitiesPanel.style.backgroundColor = "rgba(0,0,0,0.6)";
+            capabilitiesPanel.style.color = "rgba(255,255,255,1)";
+            document.body.appendChild(capabilitiesPanel);
+
+            this.capabilitiesPanel = capabilitiesPanel;
+        }
+
+        var html = "";
+        html += "<span>maxPrecision: </span>" + capabilities.maxPrecision + "<br/>";
+        html += "<span>maxTextures: </span>" + capabilities.maxTextures + "<br/>";
+        html += "<span>maxTextureSize: </span>" + capabilities.maxTextureSize + "<br/>";
+        html += "<span>maxCubemapSize: </span>" + capabilities.maxCubemapSize + "<br/>";
+        html += "<span>maxVertexUniformVectors: </span>" + capabilities.maxVertexUniformVectors + "<br/>";
+
+        this.capabilitiesPanel.innerHTML = html;
     }
 
     zen3d.Inspector = Inspector;

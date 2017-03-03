@@ -34,6 +34,12 @@
         gl.attachShader(program, fragmentShader);
         // link vertex shader and fragment shader
         gl.linkProgram(program);
+        // if link failed, log error
+        var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if(!linked) {
+            console.log("program not linked!")
+            console.log(gl.getProgramInfoLog(program))
+        }
 
         return program;
     }
