@@ -1,11 +1,6 @@
 (function() {
     /**
      * Canvas2D
-     * now is alway behind 3d objects...
-     *
-     * TODO maybe i can add another type of Canvas2D, it can insert to 3D depth test
-     * but i think this must request a framebuffer!! *_*
-     *
      */
     var Canvas2D = function(width, height) {
         Canvas2D.superClass.constructor.call(this);

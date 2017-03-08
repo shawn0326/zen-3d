@@ -5604,6 +5604,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var zb = b.z;
             return zb - za;
         });
+
+        // TODO canvas2d object should render in order
     }
 
     /**

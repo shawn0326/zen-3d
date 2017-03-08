@@ -204,6 +204,8 @@
             var zb = b.z;
             return zb - za;
         });
+
+        // TODO canvas2d object should render in order
     }
 
     /**
