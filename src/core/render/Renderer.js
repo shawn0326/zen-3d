@@ -206,7 +206,7 @@
                     }
 
                     this.state.setBlend(BLEND_TYPE.NONE);
-                    this.state.enable(gl.DEPTH_TEST);
+                    this.state.disable(gl.DEPTH_TEST);
                     // set draw side
                     this.state.setCullFace(
                         (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
@@ -504,6 +504,7 @@
             // set depth test
             if (material.depthTest) {
                 this.state.enable(gl.DEPTH_TEST);
+                this.state.depthMask(material.depthWrite);
             } else {
                 this.state.disable(gl.DEPTH_TEST);
             }
@@ -637,6 +638,7 @@
             // set depth test
             if (material.depthTest) {
                 this.state.enable(gl.DEPTH_TEST);
+                this.state.depthMask(material.depthWrite);
             } else {
                 this.state.disable(gl.DEPTH_TEST);
             }
@@ -696,7 +698,8 @@
             uniforms.tSprite.setValue(slot);
 
             this.state.setBlend(BLEND_TYPE.ADD);
-            this.state.disable(gl.DEPTH_TEST);
+            this.state.enable(gl.DEPTH_TEST);
+            this.state.depthMask(false);
             this.state.setCullFace(CULL_FACE_TYPE.BACK);
             this.state.setFlipSided(false);
 

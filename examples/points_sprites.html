@@ -82,7 +82,7 @@
 				pointsMaterial.map = param[0];
 				pointsMaterial.size = param[1];
 				pointsMaterial.blending = zen3d.BLEND_TYPE.ADD;
-				pointsMaterial.depthTest = false;
+				pointsMaterial.depthWrite = false;
 				pointsMaterial.transparent = true;
 
 				var points = new zen3d.Points(pointsGeometry, pointsMaterial);

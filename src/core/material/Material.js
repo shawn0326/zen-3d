@@ -32,6 +32,7 @@
 
         // depth test
         this.depthTest = true;
+        this.depthWrite = true;
 
         // draw side
         this.side = zen3d.DRAW_SIDE.FRONT;

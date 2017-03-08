@@ -3095,6 +3095,8 @@
         this.emptyTextures[gl.TEXTURE_CUBE_MAP] = createTexture(gl, gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6);
 
         this.currentFlipSided = false;
+
+        this.currentDepthMask = true;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -3256,6 +3258,14 @@
         if (this.states[id] !== false) {
             this.gl.disable(id);
             this.states[id] = false;
+        }
+    }
+
+    // depth mask should attach to a frame buffer???
+    WebGLState.prototype.depthMask = function(flag) {
+        if(flag !== this.currentDepthMask) {
+            this.gl.depthMask(flag);
+            this.currentDepthMask = flag;
         }
     }
 
@@ -4789,7 +4799,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
 
                     this.state.setBlend(BLEND_TYPE.NONE);
-                    this.state.enable(gl.DEPTH_TEST);
+                    this.state.disable(gl.DEPTH_TEST);
                     // set draw side
                     this.state.setCullFace(
                         (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
@@ -5087,6 +5097,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             // set depth test
             if (material.depthTest) {
                 this.state.enable(gl.DEPTH_TEST);
+                this.state.depthMask(material.depthWrite);
             } else {
                 this.state.disable(gl.DEPTH_TEST);
             }
@@ -5220,6 +5231,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             // set depth test
             if (material.depthTest) {
                 this.state.enable(gl.DEPTH_TEST);
+                this.state.depthMask(material.depthWrite);
             } else {
                 this.state.disable(gl.DEPTH_TEST);
             }
@@ -5279,7 +5291,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             uniforms.tSprite.setValue(slot);
 
             this.state.setBlend(BLEND_TYPE.ADD);
-            this.state.disable(gl.DEPTH_TEST);
+            this.state.enable(gl.DEPTH_TEST);
+            this.state.depthMask(false);
             this.state.setCullFace(CULL_FACE_TYPE.BACK);
             this.state.setFlipSided(false);
 
@@ -6260,6 +6273,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // depth test
         this.depthTest = true;
+        this.depthWrite = true;
 
         // draw side
         this.side = zen3d.DRAW_SIDE.FRONT;

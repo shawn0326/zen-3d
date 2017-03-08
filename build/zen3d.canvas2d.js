@@ -189,7 +189,7 @@
 
         this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
 
-        this.depthTest = false;
+        this.depthWrite = false;
     }
 
     zen3d.inherit(Canvas2DMaterial, zen3d.Material);

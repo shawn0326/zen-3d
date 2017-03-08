@@ -42,6 +42,8 @@
         this.emptyTextures[gl.TEXTURE_CUBE_MAP] = createTexture(gl, gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6);
 
         this.currentFlipSided = false;
+
+        this.currentDepthMask = true;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -203,6 +205,14 @@
         if (this.states[id] !== false) {
             this.gl.disable(id);
             this.states[id] = false;
+        }
+    }
+
+    // depth mask should attach to a frame buffer???
+    WebGLState.prototype.depthMask = function(flag) {
+        if(flag !== this.currentDepthMask) {
+            this.gl.depthMask(flag);
+            this.currentDepthMask = flag;
         }
     }
 
