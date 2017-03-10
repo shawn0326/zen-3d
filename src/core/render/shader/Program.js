@@ -151,33 +151,8 @@
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
         var cube = props.materialType == MATERIAL_TYPE.CUBE;
 
-        var vertex = zen3d.ShaderLib.basic_vert;
-        var fragment = zen3d.ShaderLib.basic_frag;
-
-        switch (props.materialType) {
-            case MATERIAL_TYPE.BASIC:
-                vertex = zen3d.ShaderLib.basic_vert;
-                fragment = zen3d.ShaderLib.basic_frag;
-                break;
-            case MATERIAL_TYPE.LAMBERT:
-                vertex = zen3d.ShaderLib.lambert_vert;
-                fragment = zen3d.ShaderLib.lambert_frag;
-                break;
-            case MATERIAL_TYPE.PHONG:
-                vertex = zen3d.ShaderLib.phong_vert;
-                fragment = zen3d.ShaderLib.phong_frag;
-                break;
-            case MATERIAL_TYPE.CUBE:
-                vertex = zen3d.ShaderLib.cube_vert;
-                fragment = zen3d.ShaderLib.cube_frag;
-                break;
-            case MATERIAL_TYPE.POINT:
-                vertex = zen3d.ShaderLib.points_vert;
-                fragment = zen3d.ShaderLib.points_frag;
-                break;
-            default:
-
-        }
+        var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || zen3d.ShaderLib.basic_vert;
+        var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || zen3d.ShaderLib.basic_frag;
 
         vertex = parseIncludes(vertex);
         fragment = parseIncludes(fragment);
@@ -292,6 +267,8 @@
 
         if (material.type === MATERIAL_TYPE.CANVAS2D) {
             return getCanvas2DProgram(gl, render);
+        } else if(material.type === MATERIAL_TYPE.SHADER) {
+            return getCustomProgram(gl, render, object);
         }
 
         var ambientLightNum = lightsNum[0],
@@ -456,6 +433,43 @@
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
                 parseIncludes(zen3d.ShaderLib.particle_frag)
+            ].join("\n");
+
+            program = new Program(gl, vshader, fshader);
+            map[code] = program;
+        }
+
+        return program;
+    }
+
+    /**
+     * get custom program, used to render object with shaderMaterial
+     */
+    var getCustomProgram = function(gl, render, object) {
+        var material = object.material;
+        var vertexShader = material.vertexShader;
+        var fragmentShader = material.fragmentShader;
+
+        var program;
+        var map = programMap;
+        var code = vertexShader + fragmentShader;
+
+        var precision = render.capabilities.maxPrecision;
+
+        if (map[code]) {
+            program = map[code];
+        } else {
+            var vshader = [
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                parseIncludes(vertexShader)
+            ].join("\n");
+
+            var fshader = [
+                '#extension GL_OES_standard_derivatives : enable',
+                'precision ' + precision + ' float;',
+                'precision ' + precision + ' int;',
+                parseIncludes(fragmentShader)
             ].join("\n");
 
             program = new Program(gl, vshader, fshader);

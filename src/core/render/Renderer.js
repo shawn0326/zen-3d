@@ -3,6 +3,7 @@
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
     var BLEND_TYPE = zen3d.BLEND_TYPE;
     var DRAW_SIDE = zen3d.DRAW_SIDE;
+    var WEBGL_UNIFORM_TYPE = zen3d.WEBGL_UNIFORM_TYPE;
 
     /**
      * Renderer
@@ -14,7 +15,7 @@
         this.view = view;
         // gl context
         var gl = this.gl = view.getContext("webgl", {
-            antialias: true, // effect performance!! default false
+            antialias: true, // antialias
             alpha: false, // effect performance, default false
             // premultipliedAlpha: false, // effect performance, default false
             stencil: true
@@ -263,6 +264,7 @@
             this.setupVertexAttributes(program, geometry);
 
             // update uniforms
+            // TODO need a better upload method
             var uniforms = program.uniforms;
             for (var key in uniforms) {
                 var uniform = uniforms[key];
@@ -355,16 +357,28 @@
                         var scale = this.height * 0.5; // three.js do this
                         uniform.setValue(scale);
                         break;
+                    default:
+                        // upload custom uniforms
+                        if(material.uniforms && material.uniforms[key]) {
+                            if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D) {
+                                var slot = this.allocTexUnit();
+                                this.texture.setTexture2D(material.uniforms[key], slot);
+                                uniform.setValue(slot);
+                            } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE) {
+                                var slot = this.allocTexUnit();
+                                this.texture.setTextureCube(material.uniforms[key], slot);
+                                uniform.setValue(slot);
+                            } else {
+                                uniform.set(material.uniforms[key]);
+                            }
+                        }
+                        break;
                 }
             }
 
             /////////////////light
-            var basic = material.type === MATERIAL_TYPE.BASIC;
-            var cube = material.type === MATERIAL_TYPE.CUBE;
-            var points = material.type === MATERIAL_TYPE.POINT;
-            var canvas2d = object.type === zen3d.OBJECT_TYPE.CANVAS2D;
-
-            if (!basic && !cube && !points && !canvas2d) {
+            // only lambert & phong material support light
+            if (material.type === MATERIAL_TYPE.LAMBERT || material.type === MATERIAL_TYPE.PHONG) {
                 for (var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 

@@ -17,6 +17,7 @@
         this._setDefaultValue();
 
         this.setValue = undefined;
+        this.set = undefined;
         this._generateSetValue();
 
         this.upload = undefined;
@@ -87,6 +88,10 @@
                     this.value = p1;
                     this.upload();
                 }
+                this.set = function(value) {
+                    this.value = value;
+                    this.upload();
+                }
                 break;
             case WEBGL_UNIFORM_TYPE.FLOAT_VEC2:
             case WEBGL_UNIFORM_TYPE.BOOL_VEC2:
@@ -94,6 +99,10 @@
                 this.setValue = function(p1, p2) {
                     this.value[0] = p1;
                     this.value[1] = p2;
+                    this.upload();
+                }
+                this.set = function(value) {
+                    this.value.set(value);
                     this.upload();
                 }
                 break;
@@ -104,6 +113,10 @@
                     this.value[0] = p1;
                     this.value[1] = p2;
                     this.value[2] = p3;
+                    this.upload();
+                }
+                this.set = function(value) {
+                    this.value.set(value);
                     this.upload();
                 }
                 break;
@@ -117,6 +130,10 @@
                     this.value[3] = p4;
                     this.upload();
                 }
+                this.set = function(value) {
+                    this.value.set(value);
+                    this.upload();
+                }
                 break;
 
             case WEBGL_UNIFORM_TYPE.FLOAT_MAT2:
@@ -124,6 +141,10 @@
             case WEBGL_UNIFORM_TYPE.FLOAT_MAT4:
                 this.setValue = function(p1) {
                     this.value.set(p1);
+                    this.upload();
+                }
+                this.set = function(value) {
+                    this.value.set(value);
                     this.upload();
                 }
                 break;

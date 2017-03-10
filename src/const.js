@@ -38,7 +38,8 @@
         CUBE: "cube",
         POINT: "point",
         CANVAS2D: "canvas2d",
-        SPRITE: "sprite"
+        SPRITE: "sprite",
+        SHADER: "shader"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;

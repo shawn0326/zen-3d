@@ -79,6 +79,7 @@ var filesSrc = [
     "core/material/CubeMaterial.js",
     "core/material/PointsMaterial.js",
     "core/material/SpriteMaterial.js",
+    "core/material/ShaderMaterial.js",
 
     // objects
     "core/objects/Object3D.js",

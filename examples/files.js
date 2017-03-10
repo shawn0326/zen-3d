@@ -15,7 +15,8 @@ var files = {
 		"material_cubetexture_skybox",
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",
-		"material_transparent"
+		"material_transparent",
+		"material_shadermaterial"
 	],
 	"camera": [
 		"camera_cameras",
