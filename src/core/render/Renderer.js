@@ -176,7 +176,7 @@
                     var material = object.material;
                     var geometry = object.geometry;
 
-                    var program = zen3d.getDepthProgram(gl, this);
+                    var program = zen3d.getDepthProgram(gl, this, object);
                     gl.useProgram(program.id);
 
                     this.geometry.setGeometry(geometry);
@@ -203,7 +203,20 @@
                             case "lightPos":
                                 helpVector3.setFromMatrixPosition(light.worldMatrix);
                                 uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+                            case "bindMatrix":
+                                uniform.setValue(object.skeleton.bindMatrix.elements);
+                                break;
+                            case "bindMatrixInverse":
+                                uniform.setValue(object.skeleton.bindMatrixInverse.elements);
+                                break;
                         }
+                    }
+
+                    // boneMatrices
+                    if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
+                        // TODO a cache for uniform location
+                        var location = gl.getUniformLocation(program.id, "boneMatrices");
+                        gl.uniformMatrix4fv(location, false, object.skeleton.boneMatrices);
                     }
 
                     this.state.setBlend(BLEND_TYPE.NONE);
@@ -357,6 +370,12 @@
                         var scale = this.height * 0.5; // three.js do this
                         uniform.setValue(scale);
                         break;
+                    case "bindMatrix":
+                        uniform.setValue(object.skeleton.bindMatrix.elements);
+                        break;
+                    case "bindMatrixInverse":
+                        uniform.setValue(object.skeleton.bindMatrixInverse.elements);
+                        break;
                     default:
                         // upload custom uniforms
                         if(material.uniforms && material.uniforms[key]) {
@@ -374,6 +393,13 @@
                         }
                         break;
                 }
+            }
+
+            // boneMatrices
+            if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
+                // TODO a cache for uniform location
+                var location = gl.getUniformLocation(program.id, "boneMatrices");
+                gl.uniformMatrix4fv(location, false, object.skeleton.boneMatrices);
             }
 
             /////////////////light

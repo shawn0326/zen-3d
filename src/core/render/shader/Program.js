@@ -162,7 +162,10 @@
             vshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
                 props.useEnvMap ? '#define USE_ENV_MAP' : '',
-                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : ''
+                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
+
+                props.useSkinning ? '#define USE_SKINNING' : '',
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : ''
             ].join("\n");
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
@@ -193,7 +196,10 @@
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
-                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : ''
+                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
+
+                props.useSkinning ? '#define USE_SKINNING' : '',
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : ''
             ].join("\n");
             fshader_define = [
                 (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -293,7 +299,9 @@
             premultipliedAlpha: material.premultipliedAlpha,
             fog: !!fog,
             fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
-            sizeAttenuation: material.sizeAttenuation
+            sizeAttenuation: material.sizeAttenuation,
+            useSkinning: object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton,
+            bonesNum: object.skeleton ? object.skeleton.bones.length : 0
         };
 
         var code = generateProgramCode(props);
@@ -313,7 +321,7 @@
     /**
      * get depth program, used to render depth map
      */
-    var getDepthProgram = function(gl, render) {
+    var getDepthProgram = function(gl, render, object) {
         var program;
         var map = programMap;
         var code = "depth";
@@ -326,6 +334,10 @@
             var vshader = [
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
+
+                (object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton) ? '#define USE_SKINNING' : '',
+                (object.skeleton && object.skeleton.bones.length > 0) ? ('#define MAX_BONES ' + object.skeleton.bones.length) : '',
+
                 parseIncludes(zen3d.ShaderLib.depth_vert)
             ].join("\n");
 

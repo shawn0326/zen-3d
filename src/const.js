@@ -4,6 +4,7 @@
      */
     var OBJECT_TYPE = {
         MESH: "mesh",
+        SKINNED_MESH: "skinned_mesh",
         LIGHT: "light",
         CAMERA: "camera",
         SCENE: "scene",

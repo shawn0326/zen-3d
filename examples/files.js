@@ -52,5 +52,8 @@ var files = {
 	],
 	"particle": [
 		"particle_particle"
+	],
+	"animation": [
+		"animation_skinned_mesh"
 	]
 };

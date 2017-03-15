@@ -4,7 +4,10 @@
 #include <viewModelPos_pars_vert>
 #include <envMap_pars_vert>
 #include <shadowMap_pars_vert>
+#include <skinning_pars_vert>
 void main() {
+    #include <begin_vert>
+    #include <skinning_vert>
     #include <pvm_vert>
     #include <normal_vert>
     #include <uv_vert>

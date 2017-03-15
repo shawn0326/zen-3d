@@ -237,11 +237,9 @@
 
 				( function ( file ) {
 
-					var name = getName( file );
-
 					var link = document.createElement( 'a' );
 					link.className = 'link';
-					link.textContent = name;
+					link.textContent = file;
 					link.href = file + '.html';
 					link.setAttribute( 'target', 'viewer' );
 					link.addEventListener( 'click', function ( event ) {
@@ -283,14 +281,6 @@
 			panel.classList.toggle( 'collapsed' );
 
 			selected = file;
-
-		}
-
-        function getName( file ) {
-
-			var name = file.split( '_' );
-			name.shift();
-			return name.join( ' / ' );
 
 		}
 

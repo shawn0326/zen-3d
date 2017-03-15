@@ -1,0 +1,53 @@
+(function() {
+    // extends from Object3D only for use the updateMatrix method
+    // so all bones should be the children of skeleton
+    // like this:
+    // Skeleton
+    //    |-- Bone
+    //    |    |-- Bone
+    //    |    |-- Bone
+    //    |         |
+    //    |         |--Bone
+    //    |         |--Bone
+    //    |
+    //    |-- Bone
+    //    |-- Bone
+    var Skeleton = function(bones) {
+        Skeleton.superClass.constructor.call(this);
+
+        this.type = "skeleton";
+
+        // bones in array
+        this.bones = bones || [];
+
+        // bone matrices data
+        this.boneMatrices = new Float32Array(16 * this.bones.length);
+
+        // skeleton bind matrix
+        this.bindMatrix = new zen3d.Matrix4();
+        this.bindMatrixInverse = new zen3d.Matrix4();
+    }
+
+    zen3d.inherit(Skeleton, zen3d.Object3D);
+
+    var offsetMatrix = new zen3d.Matrix4();
+
+    Skeleton.prototype.updateBones = function() {
+        // the world matrix of bones, is based skeleton
+        this.updateMatrix();
+
+        for(var i = 0; i < this.bones.length; i++) {
+            var bone = this.bones[i];
+            offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
+            offsetMatrix.toArray(this.boneMatrices, i * 16);
+        }
+    }
+
+    // the skeleton matrix
+    Skeleton.prototype.updateBindMatrices = function(skinnedMesh) {
+        this.bindMatrix.copy(skinnedMesh.worldMatrix);
+        this.bindMatrixInverse.getInverse(this.bindMatrix);
+    }
+
+    zen3d.Skeleton = Skeleton;
+})();

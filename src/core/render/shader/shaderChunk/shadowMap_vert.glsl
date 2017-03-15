@@ -1,6 +1,6 @@
 #ifdef USE_SHADOW
 
-    vec4 worldPosition = u_Model * vec4(a_Position, 1.0);
+    vec4 worldPosition = u_Model * vec4(transformed, 1.0);
 
     #ifdef USE_DIRECT_LIGHT
 

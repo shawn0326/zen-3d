@@ -106,10 +106,14 @@ var filesSrc = [
     "core/objects/camera/Camera.js",
 
     "core/objects/Mesh.js",
+    "core/objects/SkinnedMesh.js",
     "core/objects/Points.js",
     "core/objects/Sprite.js",
 
     "core/objects/particle/ParticleContainer.js",
+
+    "core/animation/armature/Bone.js",
+    "core/animation/armature/Skeleton.js",
 
     //loader
     "core/loader/AssimpJsonLoader.js",

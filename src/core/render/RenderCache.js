@@ -56,6 +56,7 @@
             case OBJECT_TYPE.POINT:
             case OBJECT_TYPE.CANVAS2D:
             case OBJECT_TYPE.MESH:
+            case OBJECT_TYPE.SKINNED_MESH:
 
                 // frustum test
                 if(object.frustumCulled) {
