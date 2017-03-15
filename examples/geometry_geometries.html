@@ -68,6 +68,11 @@
 	        cube.position.x = 20;
 	        scene.add(cube);
 
+			var cylinder_geometry = new zen3d.CylinderGeometry(5, 5, 10, 20, 1);
+	        var cylinder = new zen3d.Mesh(cylinder_geometry, phong);
+	        cylinder.position.x = 40;
+	        scene.add(cylinder);
+
 	        var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.color.setHex(0xffffff);
 	        ambientLight.intensity = 0.2;
@@ -108,6 +113,8 @@
 				plane.euler.y += delta / 1000 * Math.PI / 5;
 				cube.euler.x += delta / 1000 * Math.PI / 5;
 				cube.euler.y += delta / 1000 * Math.PI / 5;
+				cylinder.euler.x += delta / 1000 * Math.PI / 5;
+				cylinder.euler.y += delta / 1000 * Math.PI / 5;
 
 				// rotate camera
 				camera.position.x = 100 * Math.sin(count / 1000 * .5);

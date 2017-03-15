@@ -65,6 +65,7 @@ var filesSrc = [
     "core/geometry/CubeGeometry.js",
     "core/geometry/PlaneGeometry.js",
     "core/geometry/SphereGeometry.js",
+    "core/geometry/CylinderGeometry.js",
 
     // texture
     "core/texture/TextureBase.js",
