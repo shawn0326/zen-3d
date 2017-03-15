@@ -203,6 +203,7 @@
                             case "lightPos":
                                 helpVector3.setFromMatrixPosition(light.worldMatrix);
                                 uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+                                break;
                             case "bindMatrix":
                                 uniform.setValue(object.skeleton.bindMatrix.elements);
                                 break;

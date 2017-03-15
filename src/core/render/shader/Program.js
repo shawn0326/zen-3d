@@ -324,7 +324,12 @@
     var getDepthProgram = function(gl, render, object) {
         var program;
         var map = programMap;
-        var code = "depth";
+
+        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
+        // TODO maxBones adjust uniform size
+        var maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+
+        var code = "depth_" + maxBones.toString();
 
         var precision = render.capabilities.maxPrecision;
 
@@ -335,8 +340,8 @@
                 'precision ' + precision + ' float;',
                 'precision ' + precision + ' int;',
 
-                (object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton) ? '#define USE_SKINNING' : '',
-                (object.skeleton && object.skeleton.bones.length > 0) ? ('#define MAX_BONES ' + object.skeleton.bones.length) : '',
+                useSkinning ? '#define USE_SKINNING' : '',
+                (maxBones > 0) ? ('#define MAX_BONES ' + maxBones) : '',
 
                 parseIncludes(zen3d.ShaderLib.depth_vert)
             ].join("\n");
