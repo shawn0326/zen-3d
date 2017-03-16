@@ -22,10 +22,6 @@
 
         // bone matrices data
         this.boneMatrices = new Float32Array(16 * this.bones.length);
-
-        // skeleton bind matrix
-        this.bindMatrix = new zen3d.Matrix4();
-        this.bindMatrixInverse = new zen3d.Matrix4();
     }
 
     zen3d.inherit(Skeleton, zen3d.Object3D);
@@ -41,12 +37,6 @@
             offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
             offsetMatrix.toArray(this.boneMatrices, i * 16);
         }
-    }
-
-    // the skeleton matrix
-    Skeleton.prototype.updateBindMatrices = function(skinnedMesh) {
-        this.bindMatrix.copy(skinnedMesh.worldMatrix);
-        this.bindMatrixInverse.getInverse(this.bindMatrix);
     }
 
     zen3d.Skeleton = Skeleton;

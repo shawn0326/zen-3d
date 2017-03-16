@@ -4138,8 +4138,8 @@ shadowMap_frag: "#ifdef USE_SHADOW\n    outColor *= getShadowMask();\n#endif",
 shadowMap_pars_frag: "#ifdef USE_SHADOW\n    #include <packing>\n    #ifdef USE_DIRECT_LIGHT\n        uniform sampler2D directionalShadowMap[ USE_DIRECT_LIGHT ];\n        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];\n    #endif\n    #ifdef USE_POINT_LIGHT\n        uniform samplerCube pointShadowMap[ USE_POINT_LIGHT ];\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];\n        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];\n    #endif\n    float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n    }\n    float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );\n    }\n    float getShadow( sampler2D shadowMap, vec4 shadowCoord ) {\n        shadowCoord.xyz /= shadowCoord.w;\n        shadowCoord.z += 0.0003;\n        bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\n        bool inFrustum = all( inFrustumVec );\n        bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );\n        bool frustumTest = all( frustumTestVec );\n        if ( frustumTest ) {\n            return texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );\n        }\n        return 1.0;\n    }\n    float getPointShadow( samplerCube shadowMap, vec3 V ) {\n        return textureCubeCompare( shadowMap, normalize(V), length(V) / 1000.);\n    }\n    float getShadowMask() {\n        float shadow = 1.0;\n        #ifdef USE_DIRECT_LIGHT\n            for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {\n                shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;\n            }\n        #endif\n        #ifdef USE_POINT_LIGHT\n            for ( int i = 0; i < USE_POINT_LIGHT; i ++ ) {\n                vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;\n                shadow *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV ) : 1.0;\n            }\n        #endif\n        #ifdef USE_SPOT_LIGHT\n            for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {\n                shadow *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;\n            }\n        #endif\n        return shadow;\n    }\n#endif",
 shadowMap_pars_vert: "#ifdef USE_SHADOW\n    #ifdef USE_DIRECT_LIGHT\n        uniform mat4 directionalShadowMatrix[ USE_DIRECT_LIGHT ];\n        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];\n    #endif\n    #ifdef USE_POINT_LIGHT\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        uniform mat4 spotShadowMatrix[ USE_SPOT_LIGHT ];\n        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];\n    #endif\n#endif",
 shadowMap_vert: "#ifdef USE_SHADOW\n    vec4 worldPosition = u_Model * vec4(transformed, 1.0);\n    #ifdef USE_DIRECT_LIGHT\n        for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {\n            vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;\n        }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {\n            vSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * worldPosition;\n        }\n    #endif\n#endif",
-skinning_pars_vert: "#ifdef USE_SKINNING\n    attribute vec4 skinIndex;\n\tattribute vec4 skinWeight;\n    uniform mat4 bindMatrix;\n    uniform mat4 bindMatrixInverse;\n    uniform mat4 boneMatrices[MAX_BONES];\n    mat4 getBoneMatrix(const in float i) {\n\t\tmat4 bone = boneMatrices[int(i)];\n\t\treturn bone;\n\t}\n#endif",
-skinning_vert: "#ifdef USE_SKINNING\n    mat4 boneMatX = getBoneMatrix( skinIndex.x );\n    mat4 boneMatY = getBoneMatrix( skinIndex.y );\n    mat4 boneMatZ = getBoneMatrix( skinIndex.z );\n    mat4 boneMatW = getBoneMatrix( skinIndex.w );\n    vec4 skinVertex = bindMatrix * vec4(transformed, 1.0);\n    vec4 skinned = vec4( 0.0 );\n\tskinned += boneMatX * skinVertex * skinWeight.x;\n\tskinned += boneMatY * skinVertex * skinWeight.y;\n\tskinned += boneMatZ * skinVertex * skinWeight.z;\n\tskinned += boneMatW * skinVertex * skinWeight.w;\n\tskinned  = bindMatrixInverse * skinned;\n    transformed = vec3(skinned.xyz / skinned.w);\n    #if defined(USE_NORMAL) || defined(USE_ENV_MAP)\n        mat4 skinMatrix = mat4( 0.0 );\n        skinMatrix += skinWeight.x * boneMatX;\n        skinMatrix += skinWeight.y * boneMatY;\n        skinMatrix += skinWeight.z * boneMatZ;\n        skinMatrix += skinWeight.w * boneMatW;\n        skinMatrix  = bindMatrixInverse * skinMatrix * bindMatrix;\n        objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;\n    #endif\n#endif",
+skinning_pars_vert: "#ifdef USE_SKINNING\n    attribute vec4 skinIndex;\n\tattribute vec4 skinWeight;\n    \n    uniform mat4 boneMatrices[MAX_BONES];\n    mat4 getBoneMatrix(const in float i) {\n\t\tmat4 bone = boneMatrices[int(i)];\n\t\treturn bone;\n\t}\n#endif",
+skinning_vert: "#ifdef USE_SKINNING\n    mat4 boneMatX = getBoneMatrix( skinIndex.x );\n    mat4 boneMatY = getBoneMatrix( skinIndex.y );\n    mat4 boneMatZ = getBoneMatrix( skinIndex.z );\n    mat4 boneMatW = getBoneMatrix( skinIndex.w );\n    vec4 skinVertex = vec4(transformed, 1.0);\n    vec4 skinned = vec4( 0.0 );\n\tskinned += boneMatX * skinVertex * skinWeight.x;\n\tskinned += boneMatY * skinVertex * skinWeight.y;\n\tskinned += boneMatZ * skinVertex * skinWeight.z;\n\tskinned += boneMatW * skinVertex * skinWeight.w;\n    transformed = vec3(skinned.xyz / skinned.w);\n    #if defined(USE_NORMAL) || defined(USE_ENV_MAP)\n        mat4 skinMatrix = mat4( 0.0 );\n        skinMatrix += skinWeight.x * boneMatX;\n        skinMatrix += skinWeight.y * boneMatY;\n        skinMatrix += skinWeight.z * boneMatZ;\n        skinMatrix += skinWeight.w * boneMatW;\n        objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;\n    #endif\n#endif",
 spotlight_pars_frag: "struct SpotLight\n{\n    vec3 position;\n    vec4 color;\n    float intensity;\n    float distance;\n    float decay;\n    float coneCos;\n    float penumbraCos;\n    vec3 direction;\n    int shadow;\n};\nuniform SpotLight u_Spot[USE_SPOT_LIGHT];",
 tbn: "mat3 tbn(vec3 N, vec3 p, vec2 uv) {\n    vec3 dp1 = dFdx(p.xyz);\n    vec3 dp2 = dFdy(p.xyz);\n    vec2 duv1 = dFdx(uv.st);\n    vec2 duv2 = dFdy(uv.st);\n    vec3 dp2perp = cross(dp2, N);\n    vec3 dp1perp = cross(N, dp1);\n    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;\n    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;\n    float invmax = 1.0 / sqrt(max(dot(T,T), dot(B,B)));\n    return mat3(T * invmax, B * invmax, N);\n}",
 transpose: "mat4 transpose(mat4 inMatrix) {\n    vec4 i0 = inMatrix[0];\n    vec4 i1 = inMatrix[1];\n    vec4 i2 = inMatrix[2];\n    vec4 i3 = inMatrix[3];\n    mat4 outMatrix = mat4(\n        vec4(i0.x, i1.x, i2.x, i3.x),\n        vec4(i0.y, i1.y, i2.y, i3.y),\n        vec4(i0.z, i1.z, i2.z, i3.z),\n        vec4(i0.w, i1.w, i2.w, i3.w)\n    );\n    return outMatrix;\n}",
@@ -4883,12 +4883,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                                 helpVector3.setFromMatrixPosition(light.worldMatrix);
                                 uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                                 break;
-                            case "bindMatrix":
-                                uniform.setValue(object.skeleton.bindMatrix.elements);
-                                break;
-                            case "bindMatrixInverse":
-                                uniform.setValue(object.skeleton.bindMatrixInverse.elements);
-                                break;
                         }
                     }
 
@@ -5049,12 +5043,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     case "u_PointScale":
                         var scale = this.height * 0.5; // three.js do this
                         uniform.setValue(scale);
-                        break;
-                    case "bindMatrix":
-                        uniform.setValue(object.skeleton.bindMatrix.elements);
-                        break;
-                    case "bindMatrixInverse":
-                        uniform.setValue(object.skeleton.bindMatrixInverse.elements);
                         break;
                     default:
                         // upload custom uniforms
@@ -7534,7 +7522,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         if(this.skeleton) {
             this.skeleton.updateBones();
-            this.skeleton.updateBindMatrices(this);
         }
     }
 
@@ -7791,10 +7778,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // bone matrices data
         this.boneMatrices = new Float32Array(16 * this.bones.length);
-
-        // skeleton bind matrix
-        this.bindMatrix = new zen3d.Matrix4();
-        this.bindMatrixInverse = new zen3d.Matrix4();
     }
 
     zen3d.inherit(Skeleton, zen3d.Object3D);
@@ -7810,12 +7793,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
             offsetMatrix.toArray(this.boneMatrices, i * 16);
         }
-    }
-
-    // the skeleton matrix
-    Skeleton.prototype.updateBindMatrices = function(skinnedMesh) {
-        this.bindMatrix.copy(skinnedMesh.worldMatrix);
-        this.bindMatrixInverse.getInverse(this.bindMatrix);
     }
 
     zen3d.Skeleton = Skeleton;

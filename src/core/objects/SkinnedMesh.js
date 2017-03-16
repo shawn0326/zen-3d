@@ -18,7 +18,6 @@
 
         if(this.skeleton) {
             this.skeleton.updateBones();
-            this.skeleton.updateBindMatrices(this);
         }
     }
 

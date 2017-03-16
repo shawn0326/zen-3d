@@ -204,12 +204,6 @@
                                 helpVector3.setFromMatrixPosition(light.worldMatrix);
                                 uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                                 break;
-                            case "bindMatrix":
-                                uniform.setValue(object.skeleton.bindMatrix.elements);
-                                break;
-                            case "bindMatrixInverse":
-                                uniform.setValue(object.skeleton.bindMatrixInverse.elements);
-                                break;
                         }
                     }
 
@@ -370,12 +364,6 @@
                     case "u_PointScale":
                         var scale = this.height * 0.5; // three.js do this
                         uniform.setValue(scale);
-                        break;
-                    case "bindMatrix":
-                        uniform.setValue(object.skeleton.bindMatrix.elements);
-                        break;
-                    case "bindMatrixInverse":
-                        uniform.setValue(object.skeleton.bindMatrixInverse.elements);
                         break;
                     default:
                         // upload custom uniforms

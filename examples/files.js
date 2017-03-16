@@ -54,6 +54,7 @@ var files = {
 		"particle_particle"
 	],
 	"animation": [
-		"animation_skinned_mesh"
+		"animation_skinned_mesh",
+		"animation_snake"
 	]
 };

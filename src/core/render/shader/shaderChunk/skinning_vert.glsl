@@ -5,14 +5,13 @@
     mat4 boneMatZ = getBoneMatrix( skinIndex.z );
     mat4 boneMatW = getBoneMatrix( skinIndex.w );
 
-    vec4 skinVertex = bindMatrix * vec4(transformed, 1.0);
+    vec4 skinVertex = vec4(transformed, 1.0);
 
     vec4 skinned = vec4( 0.0 );
 	skinned += boneMatX * skinVertex * skinWeight.x;
 	skinned += boneMatY * skinVertex * skinWeight.y;
 	skinned += boneMatZ * skinVertex * skinWeight.z;
 	skinned += boneMatW * skinVertex * skinWeight.w;
-	skinned  = bindMatrixInverse * skinned;
 
     // override
     transformed = vec3(skinned.xyz / skinned.w);
@@ -23,7 +22,6 @@
         skinMatrix += skinWeight.y * boneMatY;
         skinMatrix += skinWeight.z * boneMatZ;
         skinMatrix += skinWeight.w * boneMatW;
-        skinMatrix  = bindMatrixInverse * skinMatrix * bindMatrix;
 
         // override
         objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;
