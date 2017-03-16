@@ -47,7 +47,10 @@
 
 			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 
-			var numBones = 30;
+			var maxBones = Math.floor(renderer.capabilities.maxVertexUniformVectors / 16);
+			console.log("current cpu support maxBones:" + maxBones);
+
+			var numBones = Math.min(maxBones, 20);
 			var distance = 50;
 			var halfDistance = distance / 2;
 			var boneLength = distance / numBones;

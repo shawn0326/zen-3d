@@ -282,6 +282,15 @@
             pointLightNum = lightsNum[2],
             spotLightNum = lightsNum[3];
 
+        // bones support check
+        var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+
+        var maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+        if(maxBones * 16 > maxVertexUniformVectors) {
+            console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+            maxBones = Math.floor(maxVertexUniformVectors / 16);
+        }
+
         var precision = render.capabilities.maxPrecision;
 
         var props = {
@@ -301,7 +310,7 @@
             fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
             sizeAttenuation: material.sizeAttenuation,
             useSkinning: object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton,
-            bonesNum: object.skeleton ? object.skeleton.bones.length : 0
+            bonesNum: maxBones
         };
 
         var code = generateProgramCode(props);
@@ -328,6 +337,13 @@
         var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
         // TODO maxBones adjust uniform size
         var maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+
+        var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+
+        if(maxBones * 16 > maxVertexUniformVectors) {
+            console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+            maxBones = Math.floor(maxVertexUniformVectors / 16);
+        }
 
         var code = "depth_" + maxBones.toString();
 
