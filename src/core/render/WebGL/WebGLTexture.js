@@ -111,16 +111,30 @@
                 pixelFormat = texture.pixelFormat,
                 pixelType = texture.pixelType;
 
-            if (mipmaps.length > 0 && isPowerOfTwoImage) {
+            if(texture.isDataTexture) {
+                if (mipmaps.length > 0 && isPowerOfTwoImage) {
 
-                for (var i = 0, il = mipmaps.length; i < il; i++) {
-                    mipmap = mipmaps[i];
-                    gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, pixelFormat, pixelType, mipmap);
+                    for (var i = 0, il = mipmaps.length; i < il; i++) {
+                        mipmap = mipmaps[i];
+                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, mipmap.width, mipmap.height, texture.border, pixelFormat, pixelType, mipmap.data);
+                    }
+
+                    texture.generateMipmaps = false;
+                } else {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
                 }
-
-                texture.generateMipmaps = false;
             } else {
-                gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, pixelFormat, pixelType, image);
+                if (mipmaps.length > 0 && isPowerOfTwoImage) {
+
+                    for (var i = 0, il = mipmaps.length; i < il; i++) {
+                        mipmap = mipmaps[i];
+                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, pixelFormat, pixelType, mipmap);
+                    }
+
+                    texture.generateMipmaps = false;
+                } else {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, pixelFormat, pixelType, image);
+                }
             }
 
             if (texture.generateMipmaps && isPowerOfTwoImage) {

@@ -165,7 +165,8 @@
                 props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 
                 props.useSkinning ? '#define USE_SKINNING' : '',
-                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : ''
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
+                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
             ].join("\n");
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
@@ -199,7 +200,8 @@
                 props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 
                 props.useSkinning ? '#define USE_SKINNING' : '',
-                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : ''
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
+                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
             ].join("\n");
             fshader_define = [
                 (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -283,12 +285,19 @@
             spotLightNum = lightsNum[3];
 
         // bones support check
+        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
         var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+        var maxBones = 0;
 
-        var maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-        if(maxBones * 16 > maxVertexUniformVectors) {
-            console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-            maxBones = Math.floor(maxVertexUniformVectors / 16);
+        if(useVertexTexture) {
+            maxBones = 1024;
+        } else {
+            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+            if(maxBones * 16 > maxVertexUniformVectors) {
+                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+                maxBones = Math.floor(maxVertexUniformVectors / 16);
+            }
         }
 
         var precision = render.capabilities.maxPrecision;
@@ -309,8 +318,9 @@
             fog: !!fog,
             fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
             sizeAttenuation: material.sizeAttenuation,
-            useSkinning: object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton,
-            bonesNum: maxBones
+            useSkinning: useSkinning,
+            bonesNum: maxBones,
+            useVertexTexture: useVertexTexture
         };
 
         var code = generateProgramCode(props);
@@ -335,14 +345,18 @@
         var map = programMap;
 
         var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-        // TODO maxBones adjust uniform size
-        var maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-
         var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+        var maxBones = 0;
 
-        if(maxBones * 16 > maxVertexUniformVectors) {
-            console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-            maxBones = Math.floor(maxVertexUniformVectors / 16);
+        if(useVertexTexture) {
+            maxBones = 1024;
+        } else {
+            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+            if(maxBones * 16 > maxVertexUniformVectors) {
+                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+                maxBones = Math.floor(maxVertexUniformVectors / 16);
+            }
         }
 
         var code = "depth_" + maxBones.toString();
@@ -358,6 +372,7 @@
 
                 useSkinning ? '#define USE_SKINNING' : '',
                 (maxBones > 0) ? ('#define MAX_BONES ' + maxBones) : '',
+                useVertexTexture ? '#define BONE_TEXTURE' : '',
 
                 parseIncludes(zen3d.ShaderLib.depth_vert)
             ].join("\n");

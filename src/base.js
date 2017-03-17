@@ -84,21 +84,6 @@
     zen3d.isWeb = isWeb();
 
     /**
-     * webgl get extension
-     */
-    var getExtension = function(gl, name) {
-        var vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
-        var ext = null;
-        for (var i in vendorPrefixes) {
-            ext = gl.getExtension(vendorPrefixes[i] + name);
-            if (ext) { break; }
-        }
-        return ext;
-    }
-
-    zen3d.getExtension = getExtension;
-
-    /**
      * create checker board pixels
      */
     var createCheckerBoardPixels = function(width, height, blockSize) {
@@ -149,6 +134,19 @@
 	}
 
     zen3d.nearestPowerOfTwo = nearestPowerOfTwo;
+
+    var nextPowerOfTwo = function ( value ) {
+		value --;
+		value |= value >> 1;
+		value |= value >> 2;
+		value |= value >> 4;
+		value |= value >> 8;
+		value |= value >> 16;
+		value ++;
+
+		return value;
+	}
+    zen3d.nextPowerOfTwo = nextPowerOfTwo;
 
     /**
      * require image

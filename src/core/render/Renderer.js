@@ -51,11 +51,6 @@
         // object cache
         this.cache = new zen3d.RenderCache();
 
-        // use dfdx and dfdy must enable OES_standard_derivatives
-        var ext = zen3d.getExtension(gl, "OES_standard_derivatives");
-        // GL_OES_standard_derivatives
-        var ext = zen3d.getExtension(gl, "GL_OES_standard_derivatives");
-
         this._usedTextureUnits = 0;
 
         this._currentRenderTarget = null;
@@ -209,9 +204,39 @@
 
                     // boneMatrices
                     if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
-                        // TODO a cache for uniform location
-                        var location = gl.getUniformLocation(program.id, "boneMatrices");
-                        gl.uniformMatrix4fv(location, false, object.skeleton.boneMatrices);
+                        var skeleton = object.skeleton;
+
+                        if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
+                            if(skeleton.boneTexture === undefined) {
+                                var size = Math.sqrt(skeleton.bones.length * 4);
+                                size = zen3d.nextPowerOfTwo(Math.ceil(size));
+                                size = Math.max(4, size);
+
+                                var boneMatrices = new Float32Array(size * size * 4);
+                                boneMatrices.set(skeleton.boneMatrices);
+
+                                var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
+
+                                skeleton.boneMatrices = boneMatrices;
+                                skeleton.boneTexture = boneTexture;
+                                skeleton.boneTextureSize = size;
+                            }
+
+                            var slot = this.allocTexUnit();
+                            this.texture.setTexture2D(skeleton.boneTexture, slot);
+
+                            if(uniforms["boneTexture"]) {
+                                uniforms["boneTexture"].setValue(slot);
+                            }
+
+                            if(uniforms["boneTextureSize"]) {
+                                uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
+                            }
+                        } else {
+                            // TODO a cache for uniform location
+                            var location = gl.getUniformLocation(program.id, "boneMatrices");
+                            gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
+                        }
                     }
 
                     this.state.setBlend(BLEND_TYPE.NONE);
@@ -386,9 +411,39 @@
 
             // boneMatrices
             if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
-                // TODO a cache for uniform location
-                var location = gl.getUniformLocation(program.id, "boneMatrices");
-                gl.uniformMatrix4fv(location, false, object.skeleton.boneMatrices);
+                var skeleton = object.skeleton;
+
+                if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
+                    if(skeleton.boneTexture === undefined) {
+                        var size = Math.sqrt(skeleton.bones.length * 4);
+                        size = zen3d.nextPowerOfTwo(Math.ceil(size));
+                        size = Math.max(4, size);
+
+                        var boneMatrices = new Float32Array(size * size * 4);
+                        boneMatrices.set(skeleton.boneMatrices);
+
+                        var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
+
+                        skeleton.boneMatrices = boneMatrices;
+                        skeleton.boneTexture = boneTexture;
+                        skeleton.boneTextureSize = size;
+                    }
+
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(skeleton.boneTexture, slot);
+
+                    if(uniforms["boneTexture"]) {
+                        uniforms["boneTexture"].setValue(slot);
+                    }
+
+                    if(uniforms["boneTextureSize"]) {
+                        uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
+                    }
+                } else {
+                    // TODO a cache for uniform location
+                    var location = gl.getUniformLocation(program.id, "boneMatrices");
+                    gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
+                }
             }
 
             /////////////////light

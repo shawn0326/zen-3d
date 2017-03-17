@@ -23,8 +23,10 @@
         // bone matrices data
         this.boneMatrices = new Float32Array(16 * this.bones.length);
 
-        // TODO use vertex texture to update boneMatrices
+        // use vertex texture to update boneMatrices
         // by that way, we can use more bones on phone
+        this.boneTexture = undefined;
+        this.boneTextureSize = 0;
     }
 
     zen3d.inherit(Skeleton, zen3d.Object3D);
@@ -40,6 +42,10 @@
             offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
             offsetMatrix.toArray(this.boneMatrices, i * 16);
         }
+
+        if (this.boneTexture !== undefined) {
+			this.boneTexture.version++;
+		}
     }
 
     zen3d.Skeleton = Skeleton;

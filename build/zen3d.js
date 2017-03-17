@@ -84,21 +84,6 @@
     zen3d.isWeb = isWeb();
 
     /**
-     * webgl get extension
-     */
-    var getExtension = function(gl, name) {
-        var vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
-        var ext = null;
-        for (var i in vendorPrefixes) {
-            ext = gl.getExtension(vendorPrefixes[i] + name);
-            if (ext) { break; }
-        }
-        return ext;
-    }
-
-    zen3d.getExtension = getExtension;
-
-    /**
      * create checker board pixels
      */
     var createCheckerBoardPixels = function(width, height, blockSize) {
@@ -149,6 +134,19 @@
 	}
 
     zen3d.nearestPowerOfTwo = nearestPowerOfTwo;
+
+    var nextPowerOfTwo = function ( value ) {
+		value --;
+		value |= value >> 1;
+		value |= value >> 2;
+		value |= value >> 4;
+		value |= value >> 8;
+		value |= value >> 16;
+		value ++;
+
+		return value;
+	}
+    zen3d.nextPowerOfTwo = nextPowerOfTwo;
 
     /**
      * require image
@@ -329,7 +327,8 @@
         UNSIGNED_BYTE: 0x1401,
         UNSIGNED_SHORT_4_4_4_4:	0x8033,
         UNSIGNED_SHORT_5_5_5_1: 0x8034,
-        UNSIGNED_SHORT_5_6_5: 0x8363
+        UNSIGNED_SHORT_5_6_5: 0x8363,
+        FLOAT: 0x1406
     }
 
     zen3d.WEBGL_PIXEL_TYPE = WEBGL_PIXEL_TYPE;
@@ -3066,6 +3065,18 @@
         return 'lowp';
     }
 
+    /**
+     * webgl get extension
+     */
+    var getExtension = function(gl, name) {
+        var vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
+        var ext = null;
+        for (var i in vendorPrefixes) {
+            ext = gl.getExtension(vendorPrefixes[i] + name);
+            if (ext) { break; }
+        }
+        return ext;
+    }
 
     var WebGLCapabilities = function(gl) {
         this.precision = "highp";
@@ -3074,10 +3085,19 @@
 
         this.maxTextures = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
 
+        this.maxVertexTextures = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+
         this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
         this.maxCubemapSize = gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE);
 
         this.maxVertexUniformVectors = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
+
+        this.floatTextures = !!getExtension(gl, 'OES_texture_float');
+
+        // use dfdx and dfdy must enable OES_standard_derivatives
+        var ext = getExtension(gl, "OES_standard_derivatives");
+        // GL_OES_standard_derivatives
+        var ext = getExtension(gl, "GL_OES_standard_derivatives");
     }
 
     zen3d.WebGLCapabilities = WebGLCapabilities;
@@ -3440,16 +3460,30 @@
                 pixelFormat = texture.pixelFormat,
                 pixelType = texture.pixelType;
 
-            if (mipmaps.length > 0 && isPowerOfTwoImage) {
+            if(texture.isDataTexture) {
+                if (mipmaps.length > 0 && isPowerOfTwoImage) {
 
-                for (var i = 0, il = mipmaps.length; i < il; i++) {
-                    mipmap = mipmaps[i];
-                    gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, pixelFormat, pixelType, mipmap);
+                    for (var i = 0, il = mipmaps.length; i < il; i++) {
+                        mipmap = mipmaps[i];
+                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, mipmap.width, mipmap.height, texture.border, pixelFormat, pixelType, mipmap.data);
+                    }
+
+                    texture.generateMipmaps = false;
+                } else {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
                 }
-
-                texture.generateMipmaps = false;
             } else {
-                gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, pixelFormat, pixelType, image);
+                if (mipmaps.length > 0 && isPowerOfTwoImage) {
+
+                    for (var i = 0, il = mipmaps.length; i < il; i++) {
+                        mipmap = mipmaps[i];
+                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, pixelFormat, pixelType, mipmap);
+                    }
+
+                    texture.generateMipmaps = false;
+                } else {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, pixelFormat, pixelType, image);
+                }
             }
 
             if (texture.generateMipmaps && isPowerOfTwoImage) {
@@ -4138,7 +4172,7 @@ shadowMap_frag: "#ifdef USE_SHADOW\n    outColor *= getShadowMask();\n#endif",
 shadowMap_pars_frag: "#ifdef USE_SHADOW\n    #include <packing>\n    #ifdef USE_DIRECT_LIGHT\n        uniform sampler2D directionalShadowMap[ USE_DIRECT_LIGHT ];\n        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];\n    #endif\n    #ifdef USE_POINT_LIGHT\n        uniform samplerCube pointShadowMap[ USE_POINT_LIGHT ];\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];\n        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];\n    #endif\n    float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n    }\n    float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );\n    }\n    float getShadow( sampler2D shadowMap, vec4 shadowCoord ) {\n        shadowCoord.xyz /= shadowCoord.w;\n        shadowCoord.z += 0.0003;\n        bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\n        bool inFrustum = all( inFrustumVec );\n        bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );\n        bool frustumTest = all( frustumTestVec );\n        if ( frustumTest ) {\n            return texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );\n        }\n        return 1.0;\n    }\n    float getPointShadow( samplerCube shadowMap, vec3 V ) {\n        return textureCubeCompare( shadowMap, normalize(V), length(V) / 1000.);\n    }\n    float getShadowMask() {\n        float shadow = 1.0;\n        #ifdef USE_DIRECT_LIGHT\n            for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {\n                shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;\n            }\n        #endif\n        #ifdef USE_POINT_LIGHT\n            for ( int i = 0; i < USE_POINT_LIGHT; i ++ ) {\n                vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;\n                shadow *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV ) : 1.0;\n            }\n        #endif\n        #ifdef USE_SPOT_LIGHT\n            for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {\n                shadow *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;\n            }\n        #endif\n        return shadow;\n    }\n#endif",
 shadowMap_pars_vert: "#ifdef USE_SHADOW\n    #ifdef USE_DIRECT_LIGHT\n        uniform mat4 directionalShadowMatrix[ USE_DIRECT_LIGHT ];\n        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];\n    #endif\n    #ifdef USE_POINT_LIGHT\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        uniform mat4 spotShadowMatrix[ USE_SPOT_LIGHT ];\n        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];\n    #endif\n#endif",
 shadowMap_vert: "#ifdef USE_SHADOW\n    vec4 worldPosition = u_Model * vec4(transformed, 1.0);\n    #ifdef USE_DIRECT_LIGHT\n        for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {\n            vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;\n        }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {\n            vSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * worldPosition;\n        }\n    #endif\n#endif",
-skinning_pars_vert: "#ifdef USE_SKINNING\n    attribute vec4 skinIndex;\n\tattribute vec4 skinWeight;\n    \n    uniform mat4 boneMatrices[MAX_BONES];\n    mat4 getBoneMatrix(const in float i) {\n\t\tmat4 bone = boneMatrices[int(i)];\n\t\treturn bone;\n\t}\n#endif",
+skinning_pars_vert: "#ifdef USE_SKINNING\n    attribute vec4 skinIndex;\n\tattribute vec4 skinWeight;\n    #ifdef BONE_TEXTURE\n        uniform sampler2D boneTexture;\n        uniform int boneTextureSize;\n        mat4 getBoneMatrix( const in float i ) {\n            float j = i * 4.0;\n            float x = mod( j, float( boneTextureSize ) );\n            float y = floor( j / float( boneTextureSize ) );\n            float dx = 1.0 / float( boneTextureSize );\n            float dy = 1.0 / float( boneTextureSize );\n            y = dy * ( y + 0.5 );\n            vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );\n            vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );\n            vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );\n            vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );\n            mat4 bone = mat4( v1, v2, v3, v4 );\n            return bone;\n        }\n    #else\n        uniform mat4 boneMatrices[MAX_BONES];\n        mat4 getBoneMatrix(const in float i) {\n            mat4 bone = boneMatrices[int(i)];\n            return bone;\n        }\n    #endif\n#endif",
 skinning_vert: "#ifdef USE_SKINNING\n    mat4 boneMatX = getBoneMatrix( skinIndex.x );\n    mat4 boneMatY = getBoneMatrix( skinIndex.y );\n    mat4 boneMatZ = getBoneMatrix( skinIndex.z );\n    mat4 boneMatW = getBoneMatrix( skinIndex.w );\n    vec4 skinVertex = vec4(transformed, 1.0);\n    vec4 skinned = vec4( 0.0 );\n\tskinned += boneMatX * skinVertex * skinWeight.x;\n\tskinned += boneMatY * skinVertex * skinWeight.y;\n\tskinned += boneMatZ * skinVertex * skinWeight.z;\n\tskinned += boneMatW * skinVertex * skinWeight.w;\n    transformed = vec3(skinned.xyz / skinned.w);\n    #if defined(USE_NORMAL) || defined(USE_ENV_MAP)\n        mat4 skinMatrix = mat4( 0.0 );\n        skinMatrix += skinWeight.x * boneMatX;\n        skinMatrix += skinWeight.y * boneMatY;\n        skinMatrix += skinWeight.z * boneMatZ;\n        skinMatrix += skinWeight.w * boneMatW;\n        objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;\n    #endif\n#endif",
 spotlight_pars_frag: "struct SpotLight\n{\n    vec3 position;\n    vec4 color;\n    float intensity;\n    float distance;\n    float decay;\n    float coneCos;\n    float penumbraCos;\n    vec3 direction;\n    int shadow;\n};\nuniform SpotLight u_Spot[USE_SPOT_LIGHT];",
 tbn: "mat3 tbn(vec3 N, vec3 p, vec2 uv) {\n    vec3 dp1 = dFdx(p.xyz);\n    vec3 dp2 = dFdy(p.xyz);\n    vec2 duv1 = dFdx(uv.st);\n    vec2 duv2 = dFdy(uv.st);\n    vec3 dp2perp = cross(dp2, N);\n    vec3 dp1perp = cross(N, dp1);\n    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;\n    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;\n    float invmax = 1.0 / sqrt(max(dot(T,T), dot(B,B)));\n    return mat3(T * invmax, B * invmax, N);\n}",
@@ -4341,7 +4375,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 
                 props.useSkinning ? '#define USE_SKINNING' : '',
-                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : ''
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
+                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
             ].join("\n");
             fshader_define = [
                 props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
@@ -4375,7 +4410,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 
                 props.useSkinning ? '#define USE_SKINNING' : '',
-                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : ''
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
+                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
             ].join("\n");
             fshader_define = [
                 (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -4459,12 +4495,19 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             spotLightNum = lightsNum[3];
 
         // bones support check
+        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
         var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+        var maxBones = 0;
 
-        var maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-        if(maxBones * 16 > maxVertexUniformVectors) {
-            console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-            maxBones = Math.floor(maxVertexUniformVectors / 16);
+        if(useVertexTexture) {
+            maxBones = 1024;
+        } else {
+            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+            if(maxBones * 16 > maxVertexUniformVectors) {
+                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+                maxBones = Math.floor(maxVertexUniformVectors / 16);
+            }
         }
 
         var precision = render.capabilities.maxPrecision;
@@ -4485,8 +4528,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             fog: !!fog,
             fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
             sizeAttenuation: material.sizeAttenuation,
-            useSkinning: object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton,
-            bonesNum: maxBones
+            useSkinning: useSkinning,
+            bonesNum: maxBones,
+            useVertexTexture: useVertexTexture
         };
 
         var code = generateProgramCode(props);
@@ -4511,14 +4555,18 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var map = programMap;
 
         var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-        // TODO maxBones adjust uniform size
-        var maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-
         var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+        var maxBones = 0;
 
-        if(maxBones * 16 > maxVertexUniformVectors) {
-            console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-            maxBones = Math.floor(maxVertexUniformVectors / 16);
+        if(useVertexTexture) {
+            maxBones = 1024;
+        } else {
+            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+            if(maxBones * 16 > maxVertexUniformVectors) {
+                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+                maxBones = Math.floor(maxVertexUniformVectors / 16);
+            }
         }
 
         var code = "depth_" + maxBones.toString();
@@ -4534,6 +4582,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 useSkinning ? '#define USE_SKINNING' : '',
                 (maxBones > 0) ? ('#define MAX_BONES ' + maxBones) : '',
+                useVertexTexture ? '#define BONE_TEXTURE' : '',
 
                 parseIncludes(zen3d.ShaderLib.depth_vert)
             ].join("\n");
@@ -4746,11 +4795,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // object cache
         this.cache = new zen3d.RenderCache();
 
-        // use dfdx and dfdy must enable OES_standard_derivatives
-        var ext = zen3d.getExtension(gl, "OES_standard_derivatives");
-        // GL_OES_standard_derivatives
-        var ext = zen3d.getExtension(gl, "GL_OES_standard_derivatives");
-
         this._usedTextureUnits = 0;
 
         this._currentRenderTarget = null;
@@ -4904,9 +4948,39 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                     // boneMatrices
                     if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
-                        // TODO a cache for uniform location
-                        var location = gl.getUniformLocation(program.id, "boneMatrices");
-                        gl.uniformMatrix4fv(location, false, object.skeleton.boneMatrices);
+                        var skeleton = object.skeleton;
+
+                        if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
+                            if(skeleton.boneTexture === undefined) {
+                                var size = Math.sqrt(skeleton.bones.length * 4);
+                                size = zen3d.nextPowerOfTwo(Math.ceil(size));
+                                size = Math.max(4, size);
+
+                                var boneMatrices = new Float32Array(size * size * 4);
+                                boneMatrices.set(skeleton.boneMatrices);
+
+                                var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
+
+                                skeleton.boneMatrices = boneMatrices;
+                                skeleton.boneTexture = boneTexture;
+                                skeleton.boneTextureSize = size;
+                            }
+
+                            var slot = this.allocTexUnit();
+                            this.texture.setTexture2D(skeleton.boneTexture, slot);
+
+                            if(uniforms["boneTexture"]) {
+                                uniforms["boneTexture"].setValue(slot);
+                            }
+
+                            if(uniforms["boneTextureSize"]) {
+                                uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
+                            }
+                        } else {
+                            // TODO a cache for uniform location
+                            var location = gl.getUniformLocation(program.id, "boneMatrices");
+                            gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
+                        }
                     }
 
                     this.state.setBlend(BLEND_TYPE.NONE);
@@ -5081,9 +5155,39 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             // boneMatrices
             if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
-                // TODO a cache for uniform location
-                var location = gl.getUniformLocation(program.id, "boneMatrices");
-                gl.uniformMatrix4fv(location, false, object.skeleton.boneMatrices);
+                var skeleton = object.skeleton;
+
+                if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
+                    if(skeleton.boneTexture === undefined) {
+                        var size = Math.sqrt(skeleton.bones.length * 4);
+                        size = zen3d.nextPowerOfTwo(Math.ceil(size));
+                        size = Math.max(4, size);
+
+                        var boneMatrices = new Float32Array(size * size * 4);
+                        boneMatrices.set(skeleton.boneMatrices);
+
+                        var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
+
+                        skeleton.boneMatrices = boneMatrices;
+                        skeleton.boneTexture = boneTexture;
+                        skeleton.boneTextureSize = size;
+                    }
+
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(skeleton.boneTexture, slot);
+
+                    if(uniforms["boneTexture"]) {
+                        uniforms["boneTexture"].setValue(slot);
+                    }
+
+                    if(uniforms["boneTextureSize"]) {
+                        uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
+                    }
+                } else {
+                    // TODO a cache for uniform location
+                    var location = gl.getUniformLocation(program.id, "boneMatrices");
+                    gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
+                }
             }
 
             /////////////////light
@@ -6539,6 +6643,27 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.TextureCube = TextureCube;
 })();
 (function() {
+    var TextureData = function(data, width, height) {
+        TextureData.superClass.constructor.call(this);
+
+        this.image = {data: data, width: width, height: height};
+
+        // default pixel type set to float
+        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+
+        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+
+        this.generateMipmaps = false;
+    }
+
+    zen3d.inherit(TextureData, zen3d.Texture2D);
+
+    TextureData.prototype.isDataTexture = true;
+
+    zen3d.TextureData = TextureData;
+})();
+(function() {
     /**
      * base material class
      * @class
@@ -7794,6 +7919,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // bone matrices data
         this.boneMatrices = new Float32Array(16 * this.bones.length);
+
+        // use vertex texture to update boneMatrices
+        // by that way, we can use more bones on phone
+        this.boneTexture = undefined;
+        this.boneTextureSize = 0;
     }
 
     zen3d.inherit(Skeleton, zen3d.Object3D);
@@ -7809,6 +7939,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
             offsetMatrix.toArray(this.boneMatrices, i * 16);
         }
+
+        if (this.boneTexture !== undefined) {
+			this.boneTexture.version++;
+		}
     }
 
     zen3d.Skeleton = Skeleton;

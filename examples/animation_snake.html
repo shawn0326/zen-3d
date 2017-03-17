@@ -47,15 +47,12 @@
 
 			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 
-			var maxBones = Math.floor(renderer.capabilities.maxVertexUniformVectors / 16);
-			console.log("current cpu support maxBones:" + maxBones);
-
-			var numBones = Math.min(maxBones, 20);
+			var numBones = 30;
 			var distance = 50;
 			var halfDistance = distance / 2;
 			var boneLength = distance / numBones;
 			var bones = [];
-			for(var i = 0; i < numBones; i++) {
+			for(var i = 0; i <= numBones; i++) {
 				var bone = new zen3d.Bone();
 				bone.position.y = (i === 0) ? -halfDistance : boneLength;
 				bone.offsetMatrix.set(
@@ -75,7 +72,7 @@
 			var skeleton = new zen3d.Skeleton(bones);
 			skeleton.add(bones[0]);
 
-	        var cylinder_geometry = new zen3d.CylinderGeometry(1, 1, distance, 10, numBones);
+	        var cylinder_geometry = new zen3d.CylinderGeometry(2, 2, distance, 10, numBones);
 
 			// insert skinIndex & skinWeight
 			var verticesArray = cylinder_geometry.verticesArray;
@@ -111,6 +108,7 @@
 	        var cylinder = new zen3d.SkinnedMesh(cylinder_geometry, phong);
 			cylinder.skeleton = skeleton;
 			cylinder.euler.z = Math.PI / 2;
+			cylinder.position.x = -25;
 			scene.add(cylinder);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
@@ -141,7 +139,7 @@
 	        scene.add(lightBall);
 
 	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 50, 80);
+	        camera.position.set(0, 40, 80);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
@@ -174,9 +172,9 @@
 				}
 
 				// rotate camera
-				// camera.position.x = 80 * Math.sin(count / 1000 * .5);
-				// camera.position.z = 80 * Math.cos(count / 1000 * .5);
-				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.position.x = 80 * Math.sin(count / 1000 * .5);
+				camera.position.z = 80 * Math.cos(count / 1000 * .5);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 	            renderer.render(scene, camera);
 	        }
