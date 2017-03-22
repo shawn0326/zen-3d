@@ -1297,6 +1297,83 @@
         this._w = ( w !== undefined ) ? w : 1;
     }
 
+    /*
+     * Linearly interpolates between two quaternions.
+     */
+    Quaternion.prototype.lerpQuaternions = function(q1, q2, ratio) {
+        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
+        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
+        var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
+
+        // shortest direction
+        if (dot < 0) {
+            dot = -dot;
+            w2 = -w2;
+            x2 = -x2;
+            y2 = -y2;
+            z2 = -z2;
+        }
+
+        this._w = w1 + ratio * (w2 - w1);
+        this._x = x1 + ratio * (x2 - x1);
+        this._y = y1 + ratio * (y2 - y1);
+        this._z = z1 + ratio * (z2 - z1);
+        var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
+        this._w *= len;
+        this._x *= len;
+        this._y *= len;
+        this._z *= len;
+
+        this.onChangeCallback();
+
+        return this;
+    }
+
+    /*
+     * Spherically interpolates between two quaternions
+     * providing an interpolation between rotations with constant angle change rate.
+     */
+    Quaternion.prototype.slerpQuaternions = function(q1, q2, ratio) {
+        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
+        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
+        var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
+
+        // shortest direction
+        if (dot < 0) {
+            dot = -dot;
+            w2 = -w2;
+            x2 = -x2;
+            y2 = -y2;
+            z2 = -z2;
+        }
+
+        if (dot < 0.95) {
+            var angle = Math.acos(dot);
+            var s = 1 / Math.sin(angle);
+            var s1 = Math.sin(angle * (1 - ratio)) * s;
+            var s2 = Math.sin(angle * ratio) * s;
+            this._w = w1 * s1 + w2 * s2;
+            this._x = x1 * s1 + x2 * s2;
+            this._y = y1 * s1 + y2 * s2;
+            this._z = z1 * s1 + z2 * s2;
+        } else {
+            // nearly identical angle, interpolate linearly
+            this._w = w1 + ratio * (w2 - w1);
+            this._x = x1 + ratio * (x2 - x1);
+            this._y = y1 + ratio * (y2 - y1);
+            this._z = z1 + ratio * (z2 - z1);
+            var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
+            this._w *= len;
+            this._x *= len;
+            this._y *= len;
+            this._z *= len;
+        }
+
+        this.onChangeCallback();
+
+        return this;
+    }
+
     Object.defineProperties(Quaternion.prototype, {
         x: {
             get: function() {
@@ -1563,6 +1640,10 @@
         this.y = y || 0;
     }
 
+    Vector2.prototype.lerpVectors = function(v1, v2, ratio) {
+        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+    }
+
     /**
      * set values of this vector
      **/
@@ -1641,6 +1722,16 @@
     }
 
     /**
+     * subVectors
+     */
+    Vector2.prototype.subVectors = function(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+
+        return this;
+    }
+
+    /**
      * multiplyScalar
      */
     Vector2.prototype.multiplyScalar = function(scalar) {
@@ -1704,6 +1795,10 @@
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
+    }
+
+    Vector3.prototype.lerpVectors = function(v1, v2, ratio) {
+        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
     }
 
     /**
@@ -2041,6 +2136,10 @@
         this.w = ( w !== undefined ) ? w : 1;
     }
 
+    Vector4.prototype.lerpVectors = function(v1, v2, ratio) {
+        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+    }
+
     /**
      * set values of this vector
      **/
@@ -2074,6 +2173,39 @@
     Vector4.prototype.equals = function(v) {
 		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
 	}
+
+    Vector4.prototype.add = function(v) {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+        this.w += v.w;
+
+        return this;
+    }
+
+    /**
+     * multiplyScalar
+     */
+    Vector4.prototype.multiplyScalar = function(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+        this.w *= scalar;
+
+        return this;
+    }
+
+    /**
+     * subVectors
+     */
+    Vector4.prototype.subVectors = function(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        this.z = a.z - b.z;
+        this.w = a.w - b.w;
+
+        return this;
+    }
 
     /**
      * copy
@@ -2430,6 +2562,16 @@
         }
 
         return this.setRGB(r, g, b);
+    }
+
+    Color3.prototype.lerpColors = function(c1, c2, ratio) {
+        this.r = ratio * (c2.r - c1.r) + c1.r;
+        this.g = ratio * (c2.g - c1.g) + c1.g;
+        this.b = ratio * (c2.b - c1.b) + c1.b;
+
+        this.r = this.r;
+        this.g = this.g;
+        this.b = this.b;
     }
 
     /**
@@ -7946,6 +8088,251 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.Skeleton = Skeleton;
+})();
+(function() {
+    var KeyframeData = function() {
+        this._keys = [];
+        this._values = [];
+    }
+
+    KeyframeData.prototype.addFrame = function(key, value) {
+        this._keys.push(key);
+        this._values.push(value);
+    }
+
+    KeyframeData.prototype.removeFrame = function(key) {
+        var index = this.keys.indexOf(key);
+        if (index > -1) {
+            this._keys.splice(index, 1);
+            this._values.splice(index, 1);
+        }
+    }
+
+    KeyframeData.prototype.clearFrame = function() {
+        this._keys.length = 0;
+        this._values.length = 0;
+    }
+
+    KeyframeData.prototype.sortFrame = function() {
+        // TODO
+    }
+
+    // return a frame range between two key frames
+    // return type: {key1: 0, value1: 0, key2: 0, value2: 0}
+    KeyframeData.prototype.getRange = function(t, result) {
+        var lastIndex = this._getLastKeyIndex(t);
+
+        var key1 = this._keys[lastIndex];
+        var key2 = this._keys[lastIndex + 1];
+        var value1 = this._values[lastIndex];
+        var value2 = this._values[lastIndex + 1];
+
+        result = result || {key1: 0, value1: 0, key2: 0, value2: 0};
+
+        result.key1 = key1;
+        result.key2 = key2;
+        result.value1 = value1;
+        result.value2 = value2;
+
+        return result;
+    }
+
+    KeyframeData.prototype._getLastKeyIndex = function(t) {
+        var lastKeyIndex = 0;
+        var i, l = this._keys.length;
+        for(i = 0; i < l; i++) {
+            if(t >= this._keys[i]) {
+                lastKeyIndex = i;
+            }
+        }
+        return lastKeyIndex;
+    }
+
+    zen3d.KeyframeData = KeyframeData;
+})();
+(function() {
+
+    var range = {key1: 0, value1: 0, key2: 0, value2: 0};
+
+    /*
+     * KeyframeTrack
+     * used for number property track
+     */
+    var KeyframeTrack = function(target, propertyPath) {
+
+        this.target = undefined;
+        this.path = undefined;
+
+        this.bind(target, propertyPath);
+
+        this.data = new zen3d.KeyframeData();
+
+        this._frame = 0;
+
+        this.interpolant = true;
+    }
+
+    KeyframeTrack.prototype.bind = function(target, propertyPath) {
+        propertyPath = propertyPath.split(".");
+
+        if (propertyPath.length > 1) {
+            var property = target[propertyPath[0]];
+
+
+            for (var index = 1; index < propertyPath.length - 1; index++) {
+                property = property[propertyPath[index]];
+            }
+
+            this.path = propertyPath[propertyPath.length - 1];
+            this.target = property;
+        } else {
+            this.path = propertyPath[0];
+            this.target = target;
+        }
+    }
+
+    Object.defineProperties(KeyframeTrack.prototype, {
+        frame: {
+            get: function() {
+                return this._frame;
+            },
+            set: function(t) {
+                // TODO should not out of range
+                this._frame = t;
+                this._updateValue(t);
+            }
+        }
+    });
+
+    KeyframeTrack.prototype._updateValue = function(t) {
+        this.data.getRange(t, range);
+
+        var key1 = range.key1;
+        var key2 = range.key2;
+        var value1 = range.value1;
+        var value2 = range.value2;
+
+        if(this.interpolant) {
+            if(value1 !== undefined && value2 !== undefined) {
+                var ratio = (t - key1) / (key2 - key1);
+                this.target[this.path] = (value2 - value1) * ratio + value1;
+            } else {
+                this.target[this.path] = value1;
+            }
+        } else {
+            this.target[this.path] = value1;
+        }
+    }
+
+    zen3d.KeyframeTrack = KeyframeTrack;
+})();
+(function() {
+
+    var range = {key1: 0, value1: 0, key2: 0, value2: 0};
+
+    /**
+     * QuaternionKeyframeTrack
+     * used for vector property track
+     */
+    var QuaternionKeyframeTrack = function(target, propertyPath) {
+        QuaternionKeyframeTrack.superClass.constructor.call(this, target, propertyPath);
+    }
+
+    zen3d.inherit(QuaternionKeyframeTrack, zen3d.KeyframeTrack);
+
+    QuaternionKeyframeTrack.prototype._updateValue = function(t) {
+        this.data.getRange(t, range);
+
+        var key1 = range.key1;
+        var key2 = range.key2;
+        var value1 = range.value1;
+        var value2 = range.value2;
+
+        if(this.interpolant) {
+            if(value1 !== undefined && value2 !== undefined) {
+                var ratio = (t - key1) / (key2 - key1);
+                this.target[this.path].slerpQuaternions(value1, value2, ratio);
+            } else {
+                this.target[this.path].copy(value1);
+            }
+        } else {
+            this.target[this.path].copy(value1);
+        }
+    }
+
+    zen3d.QuaternionKeyframeTrack = QuaternionKeyframeTrack;
+})();
+(function() {
+
+    var range = {key1: 0, value1: 0, key2: 0, value2: 0};
+    
+    /**
+     * VectorKeyframeTrack
+     * used for vector property track
+     */
+    var VectorKeyframeTrack = function(target, propertyPath) {
+        VectorKeyframeTrack.superClass.constructor.call(this, target, propertyPath);
+    }
+
+    zen3d.inherit(VectorKeyframeTrack, zen3d.KeyframeTrack);
+
+    VectorKeyframeTrack.prototype._updateValue = function(t) {
+        this.data.getRange(t, range);
+
+        var key1 = range.key1;
+        var key2 = range.key2;
+        var value1 = range.value1;
+        var value2 = range.value2;
+
+        if(this.interpolant) {
+            if(value1 !== undefined && value2 !== undefined) {
+                var ratio = (t - key1) / (key2 - key1);
+                this.target[this.path].lerpVectors(value1, value2, ratio);
+            } else {
+                this.target[this.path].copy(value1);
+            }
+        } else {
+            this.target[this.path].copy(value1);
+        }
+    }
+
+    zen3d.VectorKeyframeTrack = VectorKeyframeTrack;
+})();
+(function() {
+
+    var range = {key1: 0, value1: 0, key2: 0, value2: 0};
+
+    /**
+     * ColorKeyframeTrack
+     * used for color property track
+     */
+    var ColorKeyframeTrack = function(target, propertyPath) {
+        ColorKeyframeTrack.superClass.constructor.call(this, target, propertyPath);
+    }
+
+    zen3d.inherit(ColorKeyframeTrack, zen3d.KeyframeTrack);
+
+    ColorKeyframeTrack.prototype._updateValue = function(t) {
+        this.data.getRange(t, range);
+
+        var key1 = range.key1;
+        var key2 = range.key2;
+        var value1 = range.value1;
+        var value2 = range.value2;
+
+        if(this.interpolant) {
+            if(value1 !== undefined && value2 !== undefined) {
+                var ratio = (t - key1) / (key2 - key1);
+                this.target[this.path].lerpColors(value1, value2, ratio);
+            } else {
+                this.target[this.path].copy(value1);
+            }
+        } else {
+            this.target[this.path].copy(value1);
+        }
+    }
+
+    zen3d.ColorKeyframeTrack = ColorKeyframeTrack;
 })();
 (function() {
     /**

@@ -9,6 +9,10 @@
         this.z = z || 0;
     }
 
+    Vector3.prototype.lerpVectors = function(v1, v2, ratio) {
+        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+    }
+
     /**
      * set values of this vector
      **/

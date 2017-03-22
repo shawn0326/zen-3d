@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - keyframe track</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - keyframe track
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+
+	        var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
+	        var phong = new zen3d.PhongMaterial();
+	        phong.color.setHex(0xffffff);
+			phong.map = texture;
+			// phong.transparent = true;
+	        var cube = new zen3d.Mesh(cube_geometry, phong);
+			cube.frustumTest = false;
+			scene.add(cube);
+
+			var tracks = [];
+
+			var track = new zen3d.VectorKeyframeTrack(cube, "position");
+			track.data.addFrame(0, new zen3d.Vector3(20, 0, 20));
+			track.data.addFrame(1, new zen3d.Vector3(20, 0, -20));
+			track.data.addFrame(2, new zen3d.Vector3(-20, 0, -20));
+			track.data.addFrame(3, new zen3d.Vector3(-20, 0, 20));
+			track.data.addFrame(4, new zen3d.Vector3(20, 0, 20));
+			track.frame = 0;
+			tracks.push(track);
+
+			var track2 = new zen3d.VectorKeyframeTrack(cube, "scale");
+			track2.data.addFrame(0, new zen3d.Vector3(0.8, 0.8, 0.8));
+			track2.data.addFrame(1, new zen3d.Vector3(1.5, 0.8, 0.8));
+			track2.data.addFrame(2, new zen3d.Vector3(1.5, 1.5, 0.8));
+			track2.data.addFrame(3, new zen3d.Vector3(1.5, 0.8, 0.8));
+			track2.data.addFrame(4, new zen3d.Vector3(0.8, 0.8, 0.8));
+			track2.frame = 0;
+			tracks.push(track2);
+
+			var track3 = new zen3d.QuaternionKeyframeTrack(cube, "quaternion");
+			track3.data.addFrame(0, new zen3d.Quaternion(1, 0, 0, 1));
+			track3.data.addFrame(1, new zen3d.Quaternion(0, 1, 0, 1));
+			track3.data.addFrame(2, new zen3d.Quaternion(0, 0, 1, 1));
+			track3.data.addFrame(3, new zen3d.Quaternion(0, 1, 0, 1));
+			track3.data.addFrame(4, new zen3d.Quaternion(1, 0, 0, 1));
+			track3.frame = 0;
+			tracks.push(track3);
+
+			var track4 = new zen3d.ColorKeyframeTrack(cube, "material.color");
+			track4.data.addFrame(0, new zen3d.Color3(1, 1, 0));
+			track4.data.addFrame(1, new zen3d.Color3(1, 0, 0));
+			track4.data.addFrame(2, new zen3d.Color3(0, 1, 0));
+			track4.data.addFrame(3, new zen3d.Color3(0, 0, 1));
+			track4.data.addFrame(4, new zen3d.Color3(1, 1, 0));
+			track4.frame = 0;
+			tracks.push(track4);
+
+	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.color.setHex(0xffffff);
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        plane.position.y = -10;
+	        scene.add(plane);
+
+	        var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xffffff);
+	        ambientLight.intensity = 0.5;
+	        scene.add(ambientLight);
+
+	        var directionalLight = new zen3d.DirectionalLight();
+	        directionalLight.intensity = 0.5;
+	        directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+	        directionalLight.color.setHex(0xffffff);
+	        directionalLight.position.set(-40, 40, 0);
+	        scene.add(directionalLight);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.color.setHex(0xffffff);
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(-40, 40, 0);
+	        scene.add(lightBall);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 80, 130);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// update track frame
+				for(var i = 0; i < tracks.length; i++) {
+					var track = tracks[i];
+					track.frame += 0.02;
+					if(track.frame > 4) {
+						track.frame = 0;
+					}
+				}
+
+				// rotate camera
+				// camera.position.x = 80 * Math.sin(count / 1000 * .5);
+				// camera.position.z = 80 * Math.cos(count / 1000 * .5);
+				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

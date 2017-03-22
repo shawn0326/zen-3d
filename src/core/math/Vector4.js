@@ -10,6 +10,10 @@
         this.w = ( w !== undefined ) ? w : 1;
     }
 
+    Vector4.prototype.lerpVectors = function(v1, v2, ratio) {
+        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+    }
+
     /**
      * set values of this vector
      **/
@@ -43,6 +47,39 @@
     Vector4.prototype.equals = function(v) {
 		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
 	}
+
+    Vector4.prototype.add = function(v) {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+        this.w += v.w;
+
+        return this;
+    }
+
+    /**
+     * multiplyScalar
+     */
+    Vector4.prototype.multiplyScalar = function(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+        this.w *= scalar;
+
+        return this;
+    }
+
+    /**
+     * subVectors
+     */
+    Vector4.prototype.subVectors = function(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        this.z = a.z - b.z;
+        this.w = a.w - b.w;
+
+        return this;
+    }
 
     /**
      * copy

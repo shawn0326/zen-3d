@@ -11,6 +11,16 @@
         return this.setRGB(r, g, b);
     }
 
+    Color3.prototype.lerpColors = function(c1, c2, ratio) {
+        this.r = ratio * (c2.r - c1.r) + c1.r;
+        this.g = ratio * (c2.g - c1.g) + c1.g;
+        this.b = ratio * (c2.b - c1.b) + c1.b;
+
+        this.r = this.r;
+        this.g = this.g;
+        this.b = this.b;
+    }
+
     /**
      * copy
      */

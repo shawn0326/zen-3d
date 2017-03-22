@@ -10,6 +10,83 @@
         this._w = ( w !== undefined ) ? w : 1;
     }
 
+    /*
+     * Linearly interpolates between two quaternions.
+     */
+    Quaternion.prototype.lerpQuaternions = function(q1, q2, ratio) {
+        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
+        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
+        var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
+
+        // shortest direction
+        if (dot < 0) {
+            dot = -dot;
+            w2 = -w2;
+            x2 = -x2;
+            y2 = -y2;
+            z2 = -z2;
+        }
+
+        this._w = w1 + ratio * (w2 - w1);
+        this._x = x1 + ratio * (x2 - x1);
+        this._y = y1 + ratio * (y2 - y1);
+        this._z = z1 + ratio * (z2 - z1);
+        var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
+        this._w *= len;
+        this._x *= len;
+        this._y *= len;
+        this._z *= len;
+
+        this.onChangeCallback();
+
+        return this;
+    }
+
+    /*
+     * Spherically interpolates between two quaternions
+     * providing an interpolation between rotations with constant angle change rate.
+     */
+    Quaternion.prototype.slerpQuaternions = function(q1, q2, ratio) {
+        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
+        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
+        var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
+
+        // shortest direction
+        if (dot < 0) {
+            dot = -dot;
+            w2 = -w2;
+            x2 = -x2;
+            y2 = -y2;
+            z2 = -z2;
+        }
+
+        if (dot < 0.95) {
+            var angle = Math.acos(dot);
+            var s = 1 / Math.sin(angle);
+            var s1 = Math.sin(angle * (1 - ratio)) * s;
+            var s2 = Math.sin(angle * ratio) * s;
+            this._w = w1 * s1 + w2 * s2;
+            this._x = x1 * s1 + x2 * s2;
+            this._y = y1 * s1 + y2 * s2;
+            this._z = z1 * s1 + z2 * s2;
+        } else {
+            // nearly identical angle, interpolate linearly
+            this._w = w1 + ratio * (w2 - w1);
+            this._x = x1 + ratio * (x2 - x1);
+            this._y = y1 + ratio * (y2 - y1);
+            this._z = z1 + ratio * (z2 - z1);
+            var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
+            this._w *= len;
+            this._x *= len;
+            this._y *= len;
+            this._z *= len;
+        }
+
+        this.onChangeCallback();
+
+        return this;
+    }
+
     Object.defineProperties(Quaternion.prototype, {
         x: {
             get: function() {

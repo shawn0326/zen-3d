@@ -8,6 +8,10 @@
         this.y = y || 0;
     }
 
+    Vector2.prototype.lerpVectors = function(v1, v2, ratio) {
+        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+    }
+
     /**
      * set values of this vector
      **/
@@ -81,6 +85,16 @@
     Vector2.prototype.addVectors = function(a, b) {
         this.x = a.x + b.x;
         this.y = a.y + b.y;
+
+        return this;
+    }
+
+    /**
+     * subVectors
+     */
+    Vector2.prototype.subVectors = function(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
 
         return this;
     }

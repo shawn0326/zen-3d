@@ -114,8 +114,16 @@ var filesSrc = [
 
     "core/objects/particle/ParticleContainer.js",
 
+    // armature
     "core/animation/armature/Bone.js",
     "core/animation/armature/Skeleton.js",
+
+    // keyframe
+    "core/animation/keyframe/KeyframeData.js",
+    "core/animation/keyframe/KeyframeTrack.js",
+    "core/animation/keyframe/QuaternionKeyframeTrack.js",
+    "core/animation/keyframe/VectorKeyframeTrack.js",
+    "core/animation/keyframe/ColorKeyframeTrack.js",
 
     //loader
     "core/loader/AssimpJsonLoader.js",
