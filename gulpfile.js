@@ -124,6 +124,8 @@ var filesSrc = [
     "core/animation/keyframe/QuaternionKeyframeTrack.js",
     "core/animation/keyframe/VectorKeyframeTrack.js",
     "core/animation/keyframe/ColorKeyframeTrack.js",
+    "core/animation/keyframe/KeyframeClip.js",
+    "core/animation/keyframe/KeyframeAnimation.js",
 
     //loader
     "core/loader/AssimpJsonLoader.js",

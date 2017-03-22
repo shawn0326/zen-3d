@@ -8335,6 +8335,101 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.ColorKeyframeTrack = ColorKeyframeTrack;
 })();
 (function() {
+    var KeyframeClip = function(name) {
+        this.name = name || "";
+
+        this.tracks = [];
+
+        this.loop = true;
+
+        this.startFrame = 0;
+
+        this.endFrame = 0;
+
+        this.frame = 0;
+    }
+
+    KeyframeClip.prototype.update = function(t) {
+        this.frame += t;
+
+        if(this.frame > this.endFrame) {
+            if(this.loop) {
+                this.frame = this.startFrame;
+            } else {
+                this.frame = this.endFrame;
+            }
+        }
+
+        this.setFrame(this.frame);
+    }
+
+    KeyframeClip.prototype.setFrame = function(frame) {
+        for(var i = 0, l = this.tracks.length; i < l; i++) {
+            this.tracks[i].frame = frame;
+        }
+
+        this.frame = frame;
+    }
+
+    zen3d.KeyframeClip = KeyframeClip;
+})();
+(function() {
+    var KeyframeAnimation = function() {
+        this._clips = {};
+
+        this._currentClipName = "";
+    }
+
+    Object.defineProperties(KeyframeAnimation.prototype, {
+        currentClipName: {
+            get: function() {
+                return this._currentClipName;
+            }
+        },
+        currentClip: {
+            get: function() {
+                return this._clips[this._currentClipName];
+            }
+        }
+    });
+
+    KeyframeAnimation.prototype.add = function(clip) {
+        this._clips[clip.name] = clip;
+    }
+
+    KeyframeAnimation.prototype.remove = function(clip) {
+        delete this._clips[clip.name];
+    }
+
+    KeyframeAnimation.prototype.update = function(t) {
+        var currentClip = this._clips[this._currentClipName];
+        if(currentClip) {
+            currentClip.update(t);
+        }
+    }
+
+    KeyframeAnimation.prototype.active = function(name) {
+        var clip = this._clips[name];
+        if(clip) {
+            this._currentClipName = name;
+            clip.setFrame(clip.startFrame);
+        } else {
+            console.warn("KeyframeAnimation: try to active a undefind clip!");
+        }
+    }
+
+    // return all clip names of this animation
+    KeyframeAnimation.prototype.getAllClipNames = function() {
+        var array = [];
+        for(var key in this._clips) {
+            array.push(key);
+        }
+        return array;
+    }
+
+    zen3d.KeyframeAnimation = KeyframeAnimation;
+})();
+(function() {
     /**
      * AssimpJsonLoader
      * @class
