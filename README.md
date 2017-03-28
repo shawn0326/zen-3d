@@ -1,6 +1,7 @@
 zen-3d
 ================================================
-Current Version: NULL
+
+[![License][license-badge]][license-badge-url]
 
 ![image](./examples/resources/screen_shot2.png)
 
@@ -55,3 +56,6 @@ About Me
 * Blog: [Half Lab](http://www.halflab.me)
 * Email: shawn0326@163.com
 * Weibo: [@谢帅shawn](http://weibo.com/shawn0326)
+
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat
+[license-badge-url]: ./LICENSE

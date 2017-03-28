@@ -1,6 +1,24 @@
 {
     "name": "zen-3d",
     "version": "0.0.0",
+    "description": "JavaScript 3D library",
+    "main": "build/zen3d.js",
+    "directories": {
+        "doc": "docs",
+        "example": "examples",
+        "test": "test"
+    },
+    "keywords": [
+        "zen3d",
+        "zen-3d",
+        "3d",
+        "webgl"
+    ],
+    "author": "shawn0326",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/shawn0326/zen-3d/issues"
+    },
     "dependencies": {},
     "repository": {},
     "devDependencies": {
