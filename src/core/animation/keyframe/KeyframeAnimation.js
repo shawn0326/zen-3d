@@ -37,7 +37,7 @@
         var clip = this._clips[name];
         if(clip) {
             this._currentClipName = name;
-            clip.setFrame(clip.startFrame);
+            clip.setFrame(clip.startFrame);// restore
         } else {
             console.warn("KeyframeAnimation: try to active a undefind clip!");
         }

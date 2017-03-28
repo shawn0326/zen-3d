@@ -56,6 +56,7 @@ var files = {
 	"animation": [
 		"animation_skinned_mesh",
 		"animation_snake",
-		"animation_keyframe_animation"
+		"animation_keyframe_animation",
+		"animation_monster",
 	]
 };
