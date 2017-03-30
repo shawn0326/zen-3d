@@ -864,6 +864,17 @@
         return this;
     }
 
+    Matrix4.prototype.makeTranslation = function(x, y, z) {
+        this.set(
+            1, 0, 0, x,
+            0, 1, 0, y,
+            0, 0, 1, z,
+            0, 0, 0, 1
+        );
+
+        return this;
+    }
+
     /**
      * multiply matrix
      **/
@@ -2027,6 +2038,14 @@
         return this;
     }
 
+    Vector3.prototype.addScalar = function(s) {
+        this.x += s;
+        this.y += s;
+        this.z += s;
+
+        return this;
+    }
+
     Vector3.prototype.add = function(v) {
         this.x += v.x;
         this.y += v.y;
@@ -2113,6 +2132,10 @@
         this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
 
         return this;
+    }
+
+    Vector3.prototype.equals = function(v) {
+        return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
     }
 
     /**
@@ -2276,6 +2299,13 @@
         return this;
     }
 
+    Box3.prototype.expandByScalar = function(scalar) {
+        this.min.addScalar(-scalar);
+        this.max.addScalar(scalar);
+
+        return this;
+    }
+
     Box3.prototype.setFromArray = function(array, gap) {
         var minX = +Infinity;
         var minY = +Infinity;
@@ -2312,6 +2342,10 @@
     Box3.prototype.isEmpty = function() {
         // this is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
         return (this.max.x < this.min.x) || (this.max.y < this.min.y) || (this.max.z < this.min.z);
+    }
+
+    Box3.prototype.equals = function(box) {
+        return box.min.equals(this.min) && box.max.equals(this.max);
     }
 
     Box3.prototype.getCenter = function(optionalTarget) {
@@ -2366,6 +2400,13 @@
         this.radius = (radius !== undefined) ? radius : 0;
     }
 
+    Sphere.prototype.set = function(center, radius) {
+        this.center.copy(center);
+        this.radius = radius;
+
+        return this;
+    }
+
     Sphere.prototype.setFromArray = function() {
         var box = new zen3d.Box3();
         var point = new zen3d.Vector3();
@@ -2400,6 +2441,19 @@
         this.radius = this.radius * matrix.getMaxScaleOnAxis();
 
         return this;
+    }
+
+    Sphere.prototype.getBoundingBox = function(optionalTarget) {
+        var box = optionalTarget || new zen3d.Box3();
+
+        box.set(this.center, this.center);
+        box.expandByScalar(this.radius);
+
+        return box;
+    }
+
+    Sphere.prototype.clone = function() {
+        return new Sphere().copy(this);
     }
 
     Sphere.prototype.copy = function(sphere) {

@@ -239,6 +239,14 @@
         return this;
     }
 
+    Vector3.prototype.addScalar = function(s) {
+        this.x += s;
+        this.y += s;
+        this.z += s;
+
+        return this;
+    }
+
     Vector3.prototype.add = function(v) {
         this.x += v.x;
         this.y += v.y;
@@ -325,6 +333,10 @@
         this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
 
         return this;
+    }
+
+    Vector3.prototype.equals = function(v) {
+        return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
     }
 
     /**

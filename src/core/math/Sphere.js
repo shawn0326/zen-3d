@@ -4,6 +4,13 @@
         this.radius = (radius !== undefined) ? radius : 0;
     }
 
+    Sphere.prototype.set = function(center, radius) {
+        this.center.copy(center);
+        this.radius = radius;
+
+        return this;
+    }
+
     Sphere.prototype.setFromArray = function() {
         var box = new zen3d.Box3();
         var point = new zen3d.Vector3();
@@ -38,6 +45,19 @@
         this.radius = this.radius * matrix.getMaxScaleOnAxis();
 
         return this;
+    }
+
+    Sphere.prototype.getBoundingBox = function(optionalTarget) {
+        var box = optionalTarget || new zen3d.Box3();
+
+        box.set(this.center, this.center);
+        box.expandByScalar(this.radius);
+
+        return box;
+    }
+
+    Sphere.prototype.clone = function() {
+        return new Sphere().copy(this);
     }
 
     Sphere.prototype.copy = function(sphere) {

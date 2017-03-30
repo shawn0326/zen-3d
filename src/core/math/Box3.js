@@ -33,6 +33,13 @@
         return this;
     }
 
+    Box3.prototype.expandByScalar = function(scalar) {
+        this.min.addScalar(-scalar);
+        this.max.addScalar(scalar);
+
+        return this;
+    }
+
     Box3.prototype.setFromArray = function(array, gap) {
         var minX = +Infinity;
         var minY = +Infinity;
@@ -69,6 +76,10 @@
     Box3.prototype.isEmpty = function() {
         // this is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
         return (this.max.x < this.min.x) || (this.max.y < this.min.y) || (this.max.z < this.min.z);
+    }
+
+    Box3.prototype.equals = function(box) {
+        return box.min.equals(this.min) && box.max.equals(this.max);
     }
 
     Box3.prototype.getCenter = function(optionalTarget) {

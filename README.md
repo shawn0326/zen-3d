@@ -6,8 +6,6 @@ zen-3d
 [![Issues][issues-badge]][issues-badge-url]
 ![Dev Dependencies][devDependencies-badge]
 
-![image](./examples/resources/screen_shot2.png)
-
 ### JavaScript 3D library ###
 
 The aim of the project is to create an easy to use, lightweight, 3D/2D library. The library only provides WebGL renderers.
@@ -15,28 +13,32 @@ The aim of the project is to create an easy to use, lightweight, 3D/2D library. 
 [Examples](https://shawn0326.github.io/zen-3d/examples/) &mdash;
 [RoadMap](https://trello.com/b/7Ie3DDBP) &mdash;
 [Documentation](https://shawn0326.github.io/zen-3d/docs/) &mdash;
-[Tests](https://shawn0326.github.io/zen-3d/test/)
+[Tests](https://shawn0326.github.io/zen-3d/tests/)
+
+[![image](./examples/resources/screenshot/screenshot1.png)](https://shawn0326.github.io/zen-3d/examples/#material_cubetexture_realtimeenvmap)
+[![image](./examples/resources/screenshot/screenshot2.png)](https://shawn0326.github.io/zen-3d/examples/#material_cubetexture_envmap)
+[![image](./examples/resources/screenshot/screenshot3.png)](https://shawn0326.github.io/zen-3d/examples/#canvas2d_canvas2d)
+[![image](./examples/resources/screenshot/screenshot4.png)](https://shawn0326.github.io/zen-3d/examples/#webvr_car)
+<br />
+[![image](./examples/resources/screenshot/screenshot5.png)](https://shawn0326.github.io/zen-3d/examples/#animation_monster)
+[![image](./examples/resources/screenshot/screenshot6.png)](https://shawn0326.github.io/zen-3d/examples/#sprite_sprites)
+[![image](./examples/resources/screenshot/screenshot7.png)](https://shawn0326.github.io/zen-3d/examples/#material_shadermaterial)
+[![image](./examples/resources/screenshot/screenshot8.png)](https://shawn0326.github.io/zen-3d/examples/#particle_particle)
 
 ### Build ###
 
 zen3d is built by [gulp](http://gulpjs.com/).
 first run:
 
-````
-npm install
-````
+    npm install
 
 and then, run:
 
-````
-gulp build
-````
+    gulp build
 
 or:
 
-````
-gulp watch
-````
+    gulp watch
 
 build path is `./build`.
 
@@ -50,8 +52,8 @@ you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
 
 zen-3d use JSON([assimp2json](https://github.com/acgessler/assimp2json)) as default supported format of model.
 
-About Me
---
+### About Me ###
+
 * Blog: [Half Lab](http://www.halflab.me)
 * Email: shawn0326@163.com
 * Weibo: [@谢帅shawn](http://weibo.com/shawn0326)

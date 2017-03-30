@@ -64,6 +64,17 @@
         return this;
     }
 
+    Matrix4.prototype.makeTranslation = function(x, y, z) {
+        this.set(
+            1, 0, 0, x,
+            0, 1, 0, y,
+            0, 0, 1, z,
+            0, 0, 0, 1
+        );
+
+        return this;
+    }
+
     /**
      * multiply matrix
      **/
