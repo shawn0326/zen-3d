@@ -246,9 +246,17 @@
             if (prop.key === '$tex.file') {
                 // prop.semantic gives the type of the texture
                 // 1: diffuse
-                // 2: specular mao
+                // 2: specular map
+                // 3: ambient map
+                // 4: emissive map
                 // 5: height map (bumps)
                 // 6: normal map
+                // 7: shininess(glow) map
+                // 8: opacity map
+                // 9: displacement map
+                // 10: light map
+                // 11: reflection map
+                // 12: unknown map
                 if (prop.semantic == 1) {
                     var material_url = this.texturePath + prop.value;
                     material_url = material_url.replace(/.\\/g, '');

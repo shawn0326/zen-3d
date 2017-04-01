@@ -11,6 +11,7 @@ var files = {
 	"material": [
 		"material_materials",
 		"material_texture_normalmap",
+		"material_texture_emissivemap",
 		"material_texture_mipmap",
 		"material_cubetexture_skybox",
 		"material_cubetexture_envmap",

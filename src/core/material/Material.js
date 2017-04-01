@@ -27,6 +27,11 @@
         this.envMap = null;
         this.envMapIntensity = 1;
 
+        // emissive
+        this.emissive = new zen3d.Color3(0x000000);
+        this.emissiveMap = null;
+        this.emissiveIntensity = 1;
+
         //blending
         this.blending = zen3d.BLEND_TYPE.NORMAL;
 

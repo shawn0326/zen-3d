@@ -366,6 +366,16 @@
                         var color = material.specularColor;
                         uniform.setValue(color.r, color.g, color.b, 1);
                         break;
+                    case "emissive":
+                        var color = material.emissive;
+                        var intensity = material.emissiveIntensity;
+                        uniform.setValue(color.r * intensity, color.g * intensity, color.b * intensity);
+                        break;
+                    case "emissiveMap":
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(material.emissiveMap, slot);
+                        uniform.setValue(slot);
+                        break;
                     case "u_CameraPosition":
                         helpVector3.setFromMatrixPosition(camera.worldMatrix);
                         uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);

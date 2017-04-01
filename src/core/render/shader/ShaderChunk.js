@@ -11,6 +11,8 @@ common_vert: "attribute vec3 a_Position;\nattribute vec3 a_Normal;\n#include <tr
 diffuseMap_frag: "#ifdef USE_DIFFUSE_MAP\n    outColor *= texture2D(texture, v_Uv);\n#endif",
 diffuseMap_pars_frag: "#ifdef USE_DIFFUSE_MAP\n    uniform sampler2D texture;\n#endif",
 directlight_pars_frag: "struct DirectLight\n{\n    vec3 direction;\n    vec4 color;\n    float intensity;\n    int shadow;\n};\nuniform DirectLight u_Directional[USE_DIRECT_LIGHT];",
+emissiveMap_frag: "#ifdef USE_EMISSIVEMAP\n\tvec4 emissiveColor = texture2D(emissiveMap, v_Uv);\n\ttotalEmissiveRadiance *= emissiveColor.rgb;\n#endif",
+emissiveMap_pars_frag: "#ifdef USE_EMISSIVEMAP\n\tuniform sampler2D emissiveMap;\n#endif",
 end_frag: "gl_FragColor = outColor;",
 envMap_frag: "#ifdef USE_ENV_MAP\n    vec4 envColor = textureCube(envMap, v_EnvPos);\n    outColor += envColor * u_EnvMap_Intensity;\n#endif",
 envMap_pars_frag: "#ifdef USE_ENV_MAP\n    varying vec3 v_EnvPos;\n    uniform samplerCube envMap;\n    uniform float u_EnvMap_Intensity;\n#endif",
