@@ -47,7 +47,7 @@
 			var couch_texture = zen3d.Texture2D.fromSrc("resources/normal/couch.jpg");
 			var couch_norm_texture = zen3d.Texture2D.fromSrc("resources/normal/counch_norm.jpg");
 			var couch_material = new zen3d.PhongMaterial();
-			couch_material.map = couch_texture;
+			couch_material.diffuseMap = couch_texture;
 			couch_material.normalMap = couch_norm_texture;
 			var couch_geom = new zen3d.PlaneGeometry(100, 100);
 			var couch = new zen3d.Mesh(couch_geom, couch_material);
@@ -63,7 +63,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.color.setHex(0xffffff);
+	        basic.diffuse.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(0, 5, 0);
 	        scene.add(lightBall);

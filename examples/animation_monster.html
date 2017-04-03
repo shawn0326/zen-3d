@@ -65,7 +65,7 @@
 
 			var plane_geometry = new zen3d.PlaneGeometry(1000, 1000);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.color.setHex(0x555555);
+	        lambert.diffuse.setHex(0x555555);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 			plane.receiveShadow = true;
 			plane.position.y = -2;

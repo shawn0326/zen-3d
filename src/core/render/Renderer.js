@@ -328,7 +328,7 @@
                         break;
 
                     case "u_Color":
-                        var color = material.color;
+                        var color = material.diffuse;
                         uniform.setValue(color.r, color.g, color.b);
                         break;
                     case "u_Opacity":
@@ -337,7 +337,7 @@
 
                     case "texture":
                         var slot = this.allocTexUnit();
-                        this.texture.setTexture2D(material.map, slot);
+                        this.texture.setTexture2D(material.diffuseMap, slot);
                         uniform.setValue(slot);
                         break;
                     case "normalMap":
@@ -360,10 +360,10 @@
                         uniform.setValue(material.envMapIntensity);
                         break;
                     case "u_Specular":
-                        uniform.setValue(material.specular);
+                        uniform.setValue(material.shininess);
                         break;
                     case "u_SpecularColor":
-                        var color = material.specularColor;
+                        var color = material.specular;
                         uniform.setValue(color.r, color.g, color.b, 1);
                         break;
                     case "emissive":
@@ -705,10 +705,10 @@
 
             uniforms.fogType.setValue(fogType);
 
-            if (material.map !== null) {
+            if (material.diffuseMap !== null) {
                 // TODO offset
-                // uniforms.uvOffset.setValue(uniforms.uvOffset, material.map.offset.x, material.map.offset.y);
-                // uniforms.uvScale.setValue(uniforms.uvScale, material.map.repeat.x, material.map.repeat.y);
+                // uniforms.uvOffset.setValue(uniforms.uvOffset, material.diffuseMap.offset.x, material.diffuseMap.offset.y);
+                // uniforms.uvScale.setValue(uniforms.uvScale, material.diffuseMap.repeat.x, material.diffuseMap.repeat.y);
                 uniforms.uvOffset.setValue(0, 0);
                 uniforms.uvScale.setValue(1, 1);
             } else {
@@ -717,7 +717,7 @@
             }
 
             uniforms.opacity.setValue(material.opacity);
-            uniforms.color.setValue(material.color.r, material.color.g, material.color.b);
+            uniforms.color.setValue(material.diffuse.r, material.diffuse.g, material.diffuse.b);
 
             uniforms.rotation.setValue(material.rotation);
             uniforms.scale.setValue(scale[0], scale[1]);
@@ -746,7 +746,7 @@
             );
 
             var slot = this.allocTexUnit();
-            this.texture.setTexture2D(material.map, slot);
+            this.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);

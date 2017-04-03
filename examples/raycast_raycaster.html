@@ -51,7 +51,7 @@
 
 			for(var i = 0; i < 30; i++) {
 		        var phong = new zen3d.PhongMaterial();
-		        phong.color.setHex(0xffffff);
+		        phong.diffuse.setHex(0xffffff);
 		        var sphere = new zen3d.Mesh(cube_geometry, phong);
 				sphere.position.x = Math.random() * 200 - 100;
 				sphere.position.y = Math.random() * 200 - 100;
@@ -90,14 +90,14 @@
 
 				for(var i = 0, l = group.children.length; i < l; i++) {
 					var child = group.children[i];
-					child.material.color.setHex(0xffffff);
+					child.material.diffuse.setHex(0xffffff);
 				}
 
 				var array = raycaster.intersectObject(scene, true);
 				for(var i = 0, l = array.length; i < l; i++) {
 					var object = array[i].object;
 					if(i === 0){
-						object.material.color.setHex(0xff0000);
+						object.material.diffuse.setHex(0xff0000);
 					}
 
 				}

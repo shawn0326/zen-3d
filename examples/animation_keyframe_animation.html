@@ -49,8 +49,8 @@
 
 	        var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
 	        var phong = new zen3d.PhongMaterial();
-	        phong.color.setHex(0xffffff);
-			phong.map = texture;
+	        phong.diffuse.setHex(0xffffff);
+			phong.diffuseMap = texture;
 			// phong.transparent = true;
 	        var cube = new zen3d.Mesh(cube_geometry, phong);
 			cube.frustumTest = false;
@@ -87,7 +87,7 @@
 			track3.data.addFrame(4, new zen3d.Quaternion(1, 0, 0, 1));
 			clip2.tracks.push(track3);
 
-			var track4 = new zen3d.ColorKeyframeTrack(cube, "material.color");
+			var track4 = new zen3d.ColorKeyframeTrack(cube, "material.diffuse");
 			track4.data.addFrame(0, new zen3d.Color3(1, 1, 1));
 			track4.data.addFrame(1, new zen3d.Color3(1, 0, 0));
 			track4.data.addFrame(2, new zen3d.Color3(0, 1, 0));
@@ -105,7 +105,7 @@
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.color.setHex(0xffffff);
+	        lambert.diffuse.setHex(0xffffff);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 	        scene.add(plane);
@@ -124,7 +124,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.color.setHex(0xffffff);
+	        basic.diffuse.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(-40, 40, 0);
 	        scene.add(lightBall);

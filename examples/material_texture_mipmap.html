@@ -55,7 +55,7 @@
 
 			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
 			var phong = new zen3d.PhongMaterial();
-			phong.map = texture;
+			phong.diffuseMap = texture;
 			var cube = new zen3d.Mesh(cube_geometry, phong);
 			scene.add(cube);
 
@@ -73,7 +73,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.color.setHex(0xffffff);
+	        basic.diffuse.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(-40, 40, 0);
 	        scene.add(lightBall);

@@ -8,22 +8,20 @@
         // material type
         this.type = "";
 
-        // material color
-        this.color = new zen3d.Color3(0xffffff);
-
-        // material map
-        this.map = null;
-
         this.opacity = 1;
 
         this.transparent = false;
 
         this.premultipliedAlpha = false;
 
-        // normal map
+        // diffuse
+        this.diffuse = new zen3d.Color3(0xffffff);
+        this.diffuseMap = null;
+
+        // normal
         this.normalMap = null;
 
-        // env map
+        // env
         this.envMap = null;
         this.envMapIntensity = 1;
 

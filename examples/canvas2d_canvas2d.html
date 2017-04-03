@@ -48,7 +48,7 @@
 
 			var sphere_geometry = new zen3d.SphereGeometry(6, 20, 20);
 	        var phong = new zen3d.PhongMaterial();
-	        phong.color.setHex(0xffffff);
+	        phong.diffuse.setHex(0xffffff);
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			sphere.position.z = -30;
 			scene.add(sphere);
@@ -88,7 +88,7 @@
 			scene.add(canvas2d);
 
 	        var phong = new zen3d.PhongMaterial();
-	        phong.color.setHex(0xffffff);
+	        phong.diffuse.setHex(0xffffff);
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			sphere.position.z = 30;
 			scene.add(sphere);
@@ -107,7 +107,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.color.setHex(0xffffff);
+	        basic.diffuse.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(-40, 40, 0);
 	        scene.add(lightBall);

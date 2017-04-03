@@ -4713,11 +4713,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         var props = {
             precision: precision,
-            useDiffuseMap: !!material.map,
+            useDiffuseMap: !!material.diffuseMap,
             useNormalMap: !!material.normalMap,
             useEnvMap: !!material.envMap,
             useEmissiveMap: !!material.emissiveMap,
-            useDiffuseColor: !material.map,
+            useDiffuseColor: !material.diffuseMap,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,
             pointLightNum: pointLightNum,
@@ -5272,7 +5272,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         break;
 
                     case "u_Color":
-                        var color = material.color;
+                        var color = material.diffuse;
                         uniform.setValue(color.r, color.g, color.b);
                         break;
                     case "u_Opacity":
@@ -5281,7 +5281,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                     case "texture":
                         var slot = this.allocTexUnit();
-                        this.texture.setTexture2D(material.map, slot);
+                        this.texture.setTexture2D(material.diffuseMap, slot);
                         uniform.setValue(slot);
                         break;
                     case "normalMap":
@@ -5304,10 +5304,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         uniform.setValue(material.envMapIntensity);
                         break;
                     case "u_Specular":
-                        uniform.setValue(material.specular);
+                        uniform.setValue(material.shininess);
                         break;
                     case "u_SpecularColor":
-                        var color = material.specularColor;
+                        var color = material.specular;
                         uniform.setValue(color.r, color.g, color.b, 1);
                         break;
                     case "emissive":
@@ -5649,10 +5649,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             uniforms.fogType.setValue(fogType);
 
-            if (material.map !== null) {
+            if (material.diffuseMap !== null) {
                 // TODO offset
-                // uniforms.uvOffset.setValue(uniforms.uvOffset, material.map.offset.x, material.map.offset.y);
-                // uniforms.uvScale.setValue(uniforms.uvScale, material.map.repeat.x, material.map.repeat.y);
+                // uniforms.uvOffset.setValue(uniforms.uvOffset, material.diffuseMap.offset.x, material.diffuseMap.offset.y);
+                // uniforms.uvScale.setValue(uniforms.uvScale, material.diffuseMap.repeat.x, material.diffuseMap.repeat.y);
                 uniforms.uvOffset.setValue(0, 0);
                 uniforms.uvScale.setValue(1, 1);
             } else {
@@ -5661,7 +5661,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             }
 
             uniforms.opacity.setValue(material.opacity);
-            uniforms.color.setValue(material.color.r, material.color.g, material.color.b);
+            uniforms.color.setValue(material.diffuse.r, material.diffuse.g, material.diffuse.b);
 
             uniforms.rotation.setValue(material.rotation);
             uniforms.scale.setValue(scale[0], scale[1]);
@@ -5690,7 +5690,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             );
 
             var slot = this.allocTexUnit();
-            this.texture.setTexture2D(material.map, slot);
+            this.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
@@ -6883,22 +6883,20 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // material type
         this.type = "";
 
-        // material color
-        this.color = new zen3d.Color3(0xffffff);
-
-        // material map
-        this.map = null;
-
         this.opacity = 1;
 
         this.transparent = false;
 
         this.premultipliedAlpha = false;
 
-        // normal map
+        // diffuse
+        this.diffuse = new zen3d.Color3(0xffffff);
+        this.diffuseMap = null;
+
+        // normal
         this.normalMap = null;
 
-        // env map
+        // env
         this.envMap = null;
         this.envMapIntensity = 1;
 
@@ -6963,9 +6961,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.type = zen3d.MATERIAL_TYPE.PHONG;
 
-        this.specular = 30;
+        this.shininess = 30;
 
-        this.specularColor = new zen3d.Color3(0xffffff);
+        this.specular = new zen3d.Color3(0xffffff);
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);
@@ -8739,7 +8737,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     AssimpJsonLoader.prototype.parseMaterial = function(json) {
         var material = new zen3d.PhongMaterial();
 
-        var map = null;
+        var diffuseMap = null;
         var normalMap = null;
 
         var prop = json.properties;
@@ -8764,10 +8762,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 if (prop.semantic == 1) {
                     var material_url = this.texturePath + prop.value;
                     material_url = material_url.replace(/.\\/g, '');
-                    map = new zen3d.Texture2D.fromSrc(material_url);
+                    diffuseMap = new zen3d.Texture2D.fromSrc(material_url);
                     // TODO: read texture settings from assimp.
                     // Wrapping is the default, though.
-                    map.wrapS = map.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+                    diffuseMap.wrapS = diffuseMap.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
                 } else if (prop.semantic == 2) {
 
                 } else if (prop.semantic == 5) {
@@ -8778,16 +8776,21 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     normalMap = new zen3d.Texture2D.fromSrc(material_url);
                     // TODO: read texture settings from assimp.
                     // Wrapping is the default, though.
-                    map.wrapS = map.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+                    normalMap.wrapS = normalMap.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
                 }
             } else if (prop.key === '?mat.name') {
 
+            } else if(prop.key === '$clr.ambient') {
+
             } else if (prop.key === '$clr.diffuse') {
-
+                var value = prop.value;
+                material.diffuse.setRGB(value[0], value[1], value[2]);
             } else if (prop.key === '$clr.specular') {
-
+                var value = prop.value;
+                material.specular.setRGB(value[0], value[1], value[2]);
             } else if (prop.key === '$clr.emissive') {
-
+                var value = prop.value;
+                material.emissive.setRGB(value[0], value[1], value[2]);
             } else if (prop.key === '$mat.opacity') {
                 material.transparent = prop.value < 1;
                 material.opacity = prop.value;
@@ -8797,11 +8800,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 }
             } else if (prop.key === '$mat.shininess') {
-                material.specular = prop.value;
+                material.shininess = prop.value;
             }
         }
 
-        material.map = map;
+        material.diffuseMap = diffuseMap;
         material.normalMap = normalMap;
 
         return material;

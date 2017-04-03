@@ -48,7 +48,7 @@
 			var emissive_texture = zen3d.Texture2D.fromSrc("resources/emissive_light.jpg");
 
 			var material = new zen3d.PhongMaterial();
-			material.map = diffuse_texture;
+			material.diffuseMap = diffuse_texture;
 			material.emissive.setHex(0xffffff);
 			material.emissiveMap = emissive_texture;
 			var geom = new zen3d.SphereGeometry(10, 10, 10);
@@ -57,7 +57,7 @@
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.color.setHex(0xffffff);
+	        lambert.diffuse.setHex(0xffffff);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 	        scene.add(plane);
@@ -70,7 +70,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.color.setHex(0xffffff);
+	        basic.diffuse.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(-40, 40, 0);
 	        scene.add(lightBall);

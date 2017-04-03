@@ -305,11 +305,11 @@
 
         var props = {
             precision: precision,
-            useDiffuseMap: !!material.map,
+            useDiffuseMap: !!material.diffuseMap,
             useNormalMap: !!material.normalMap,
             useEnvMap: !!material.envMap,
             useEmissiveMap: !!material.emissiveMap,
-            useDiffuseColor: !material.map,
+            useDiffuseColor: !material.diffuseMap,
             ambientLightNum: ambientLightNum,
             directLightNum: directLightNum,
             pointLightNum: pointLightNum,

@@ -45,12 +45,12 @@
 
 			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			var phong = new zen3d.PhongMaterial();
-	        phong.color.setHex(0xffffff);
-			phong.map = texture;
+	        phong.diffuse.setHex(0xffffff);
+			phong.diffuseMap = texture;
 
 			var phong2 = new zen3d.PhongMaterial();
-	        phong2.color.setHex(0xffffff);
-			phong2.map = texture;
+	        phong2.diffuse.setHex(0xffffff);
+			phong2.diffuseMap = texture;
 			phong2.side = zen3d.DRAW_SIDE.DOUBLE;
 
 	        var sphere_geometry = new zen3d.SphereGeometry(7, 20, 20);
@@ -87,7 +87,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.color.setHex(0xffffff);
+	        basic.diffuse.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(-40, 40, 0);
 	        scene.add(lightBall);

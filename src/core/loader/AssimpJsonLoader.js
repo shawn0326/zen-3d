@@ -235,7 +235,7 @@
     AssimpJsonLoader.prototype.parseMaterial = function(json) {
         var material = new zen3d.PhongMaterial();
 
-        var map = null;
+        var diffuseMap = null;
         var normalMap = null;
 
         var prop = json.properties;
@@ -260,10 +260,10 @@
                 if (prop.semantic == 1) {
                     var material_url = this.texturePath + prop.value;
                     material_url = material_url.replace(/.\\/g, '');
-                    map = new zen3d.Texture2D.fromSrc(material_url);
+                    diffuseMap = new zen3d.Texture2D.fromSrc(material_url);
                     // TODO: read texture settings from assimp.
                     // Wrapping is the default, though.
-                    map.wrapS = map.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+                    diffuseMap.wrapS = diffuseMap.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
                 } else if (prop.semantic == 2) {
 
                 } else if (prop.semantic == 5) {
@@ -274,16 +274,21 @@
                     normalMap = new zen3d.Texture2D.fromSrc(material_url);
                     // TODO: read texture settings from assimp.
                     // Wrapping is the default, though.
-                    map.wrapS = map.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+                    normalMap.wrapS = normalMap.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
                 }
             } else if (prop.key === '?mat.name') {
 
+            } else if(prop.key === '$clr.ambient') {
+
             } else if (prop.key === '$clr.diffuse') {
-
+                var value = prop.value;
+                material.diffuse.setRGB(value[0], value[1], value[2]);
             } else if (prop.key === '$clr.specular') {
-
+                var value = prop.value;
+                material.specular.setRGB(value[0], value[1], value[2]);
             } else if (prop.key === '$clr.emissive') {
-
+                var value = prop.value;
+                material.emissive.setRGB(value[0], value[1], value[2]);
             } else if (prop.key === '$mat.opacity') {
                 material.transparent = prop.value < 1;
                 material.opacity = prop.value;
@@ -293,11 +298,11 @@
 
                 }
             } else if (prop.key === '$mat.shininess') {
-                material.specular = prop.value;
+                material.shininess = prop.value;
             }
         }
 
-        material.map = map;
+        material.diffuseMap = diffuseMap;
         material.normalMap = normalMap;
 
         return material;

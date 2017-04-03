@@ -60,7 +60,7 @@
 
 			var sphere_geometry = new zen3d.SphereGeometry(20, 20, 20);
 			var phong = new zen3d.PhongMaterial();
-			phong.color.setHex(0xffffff);
+			phong.diffuse.setHex(0xffffff);
 			phong.envMap = cube_texture;
 			var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);

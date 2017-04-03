@@ -47,13 +47,13 @@
 			var ball_geometry = new zen3d.SphereGeometry(4, 20, 20);
 
 			var ball1_material = new zen3d.BasicMaterial();
-			ball1_material.color.setHex(0xff0000);
+			ball1_material.diffuse.setHex(0xff0000);
 			var ball1 = new zen3d.Mesh(ball_geometry, ball1_material);
 			ball1.position.set(20, 0, 0);
 			scene.add(ball1);
 
 			var ball2_material = new zen3d.BasicMaterial();
-			ball2_material.color.setHex(0x0000ff);
+			ball2_material.diffuse.setHex(0x0000ff);
 			var ball2 = new zen3d.Mesh(ball_geometry, ball2_material);
 			ball2.position.set(0, 0, 15);
 			scene.add(ball2);
@@ -62,8 +62,8 @@
 			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			var plane_geometry = new zen3d.PlaneGeometry(80, 80);
 			var plane_material = new zen3d.BasicMaterial();
-			plane_material.color.setHex(0xffffff);
-			plane_material.map = texture;
+			plane_material.diffuse.setHex(0xffffff);
+			plane_material.diffuseMap = texture;
 			var plane = new zen3d.Mesh(plane_geometry, plane_material);
 			plane.position.set(0, -20, 0);
 			scene.add(plane);
@@ -75,10 +75,10 @@
 
 			var sphere_geometry = new zen3d.SphereGeometry(10, 30, 30);
 			var phong = new zen3d.PhongMaterial();
-			phong.color.setHex(0xffffff);
+			phong.diffuse.setHex(0xffffff);
 			phong.envMap = renderTexture;
 			phong.envMapIntensity = .8;
-			phong.specular = 40;
+			phong.shininess = 40;
 			var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 
@@ -97,7 +97,7 @@
 
 			var lightball_geometry = new zen3d.SphereGeometry(2, 20, 20);
 			var lightball_material = new zen3d.BasicMaterial();
-			lightball_material.color.setHex(0xffffff);
+			lightball_material.diffuse.setHex(0xffffff);
 			var lightball = new zen3d.Mesh(lightball_geometry, lightball_material);
 			lightball.position.set(-20, 20, 0);
 			scene.add(lightball);

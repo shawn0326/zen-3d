@@ -55,8 +55,8 @@
 			var sprites = [];
 			for(var i = 0; i < 300; i++) {
 				var sprite = new zen3d.Sprite();
-				sprite.material.map = texs[Math.round(Math.random() * 4)];
-				sprite.material.color.setHSL(Math.random(), Math.random(), Math.random());
+				sprite.material.diffuseMap = texs[Math.round(Math.random() * 4)];
+				sprite.material.diffuse.setHSL(Math.random(), Math.random(), Math.random());
 				sprite.material.transparent = true;
 				sprite.material.blending = zen3d.BLEND_TYPE.ADD;
 				sprite.material.fog = true;
@@ -72,7 +72,7 @@
 
 			var sphere_geometry = new zen3d.SphereGeometry(0.5, 8, 4);
 	        var basic = new zen3d.BasicMaterial();
-	        basic.color.setHex(0xffcccc);
+	        basic.diffuse.setHex(0xffcccc);
 	        var sphere = new zen3d.Mesh(sphere_geometry, basic);
 			scene.add(sphere);
 
@@ -103,7 +103,7 @@
 					// var h = Math.cos(key) * 0.5 + 0.5;
 					// var s = Math.sin(key) * 0.5 + 0.5;
 					// var l = Math.cos(key) * 0.5 + 0.5;
-					// sprites[i].material.color.setHSL(h, s, l);
+					// sprites[i].material.diffuse.setHSL(h, s, l);
 				}
 
 	            renderer.render(scene, camera);
