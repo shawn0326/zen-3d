@@ -345,6 +345,14 @@
                         this.texture.setTexture2D(material.normalMap, slot);
                         uniform.setValue(slot);
                         break;
+                    case "bumpMap":
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(material.bumpMap, slot);
+                        uniform.setValue(slot);
+                        break;
+                    case "bumpScale":
+                        uniform.setValue(material.bumpScale);
+                        break;
                     case "envMap":
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.envMap, slot);

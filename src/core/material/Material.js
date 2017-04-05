@@ -21,6 +21,10 @@
         // normal
         this.normalMap = null;
 
+        // bump
+        this.bumpMap = null;
+	    this.bumpScale = 1;
+
         // env
         this.envMap = null;
         this.envMapIntensity = 1;

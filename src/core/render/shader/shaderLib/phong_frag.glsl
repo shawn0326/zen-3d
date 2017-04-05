@@ -9,6 +9,7 @@ uniform vec3 emissive;
 #include <uv_pars_frag>
 #include <diffuseMap_pars_frag>
 #include <normalMap_pars_frag>
+#include <bumpMap_pars_frag>
 #include <light_pars_frag>
 #include <normal_pars_frag>
 #include <viewModelPos_pars_frag>
