@@ -374,6 +374,11 @@
                         var color = material.specular;
                         uniform.setValue(color.r, color.g, color.b, 1);
                         break;
+                    case "specularMap":
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(material.specularMap, slot);
+                        uniform.setValue(slot);
+                        break;
                     case "emissive":
                         var color = material.emissive;
                         var intensity = material.emissiveIntensity;

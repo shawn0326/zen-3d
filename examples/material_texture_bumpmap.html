@@ -54,7 +54,6 @@
 			loader.load(leePerrySmith, function(object) {
 				for(var i = 0; i < object.children.length; i++) {
 					var child = object.children[i].children[0];
-					child.material.type = zen3d.MATERIAL_TYPE.LAMBERT;
 
 					child.material.diffuseMap = diffuseTexture;
 
@@ -63,7 +62,9 @@
 					child.material.bumpMap = bumpTexture;
 					child.material.bumpScale = -0.01;
 
-					// TODO specular map
+					child.material.specularMap = specularTexture;
+					child.material.specular.setHex(0x444444);
+					child.material.shininess = 30;
 				}
 				scene.add(object);
 			});
@@ -100,7 +101,7 @@
 
 				// rotate camera
 				camera.position.x = .4 * Math.sin(count / 1000 * .5);
-				camera.position.z = .4 * Math.cos(count / 1000 * .5);
+				// camera.position.z = .4 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 	            renderer.render(scene, camera);

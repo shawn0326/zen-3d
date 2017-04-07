@@ -3,6 +3,7 @@
 // if no light> this will not active
 uniform float u_Specular;
 uniform vec4 u_SpecularColor;
+#include <specularMap_pars_frag>
 
 uniform vec3 emissive;
 
@@ -24,6 +25,7 @@ void main() {
     #include <begin_frag>
     #include <diffuseMap_frag>
     #include <normal_frag>
+    #include <specularMap_frag>
     #include <light_frag>
     #include <envMap_frag>
     #include <shadowMap_frag>

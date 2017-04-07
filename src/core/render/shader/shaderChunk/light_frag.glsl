@@ -24,7 +24,7 @@
 
         #ifdef USE_PHONG
         // RE_Phong(u_SpecularColor, light, N, L, V, 4., reflectLight);
-        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, reflectLight);
+        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
         #endif
     }
     #endif
@@ -40,7 +40,7 @@
 
         #ifdef USE_PHONG
         // RE_Phong(u_SpecularColor, light, N, L, V, u_Specular, reflectLight);
-        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, reflectLight);
+        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
         #endif
     }
     #endif
@@ -62,7 +62,7 @@
 
             #ifdef USE_PHONG
             // RE_Phong(u_SpecularColor, light, N, L, V, u_Specular, reflectLight);
-            RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, reflectLight);
+            RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
             #endif
 
         }
