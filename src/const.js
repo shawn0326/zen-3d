@@ -90,6 +90,16 @@
     zen3d.DRAW_SIDE = DRAW_SIDE;
 
     /**
+     * SHADING_TYPE
+     */
+    var SHADING_TYPE = {
+        SMOOTH_SHADING: "smooth_shading",
+        FLAT_SHADING: "flat_shading"
+    }
+
+    zen3d.SHADING_TYPE = SHADING_TYPE;
+
+    /**
      * WEBGL_TEXTURE_TYPE
      */
     var WEBGL_TEXTURE_TYPE = {

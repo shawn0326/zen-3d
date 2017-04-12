@@ -297,6 +297,16 @@
     zen3d.DRAW_SIDE = DRAW_SIDE;
 
     /**
+     * SHADING_TYPE
+     */
+    var SHADING_TYPE = {
+        SMOOTH_SHADING: "smooth_shading",
+        FLAT_SHADING: "flat_shading"
+    }
+
+    zen3d.SHADING_TYPE = SHADING_TYPE;
+
+    /**
      * WEBGL_TEXTURE_TYPE
      */
     var WEBGL_TEXTURE_TYPE = {
@@ -4359,7 +4369,7 @@ inverse: "mat4 inverse(mat4 m) {\n    float\n    a00 = m[0][0], a01 = m[0][1], a
 light_frag: "#ifdef USE_LIGHT\n    vec4 light;\n    vec3 L;\n    vec4 reflectLight = vec4(0., 0., 0., 0.);\n    vec4 diffuseColor = outColor.xyzw;\n    #ifdef USE_AMBIENT_LIGHT\n    for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {\n        reflectLight += diffuseColor * u_Ambient[i].color * u_Ambient[i].intensity;\n    }\n    #endif\n    #if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) )\n        vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);\n    #endif\n    #ifdef USE_DIRECT_LIGHT\n    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {\n        L = -u_Directional[i].direction;\n        light = u_Directional[i].color * u_Directional[i].intensity;\n        L = normalize(L);\n        RE_Lambert(diffuseColor, light, N, L, reflectLight);\n        #ifdef USE_PHONG\n        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);\n        #endif\n    }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    for(int i = 0; i < USE_POINT_LIGHT; i++) {\n        L = u_Point[i].position - v_ViewModelPos;\n        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);\n        light = u_Point[i].color * u_Point[i].intensity * dist;\n        L = normalize(L);\n        RE_Lambert(diffuseColor, light, N, L, reflectLight);\n        #ifdef USE_PHONG\n        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);\n        #endif\n    }\n    #endif\n    #ifdef USE_SPOT_LIGHT\n    for(int i = 0; i < USE_SPOT_LIGHT; i++) {\n        L = u_Spot[i].position - v_ViewModelPos;\n        float lightDistance = length(L);\n        L = normalize(L);\n        float angleCos = dot( L, -normalize(u_Spot[i].direction) );\n        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {\n            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );\n            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);\n            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;\n            RE_Lambert(diffuseColor, light, N, L, reflectLight);\n            #ifdef USE_PHONG\n            RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);\n            #endif\n        }\n    }\n    #endif\n    outColor = reflectLight.xyzw;\n#endif",
 light_pars_frag: "#ifdef USE_AMBIENT_LIGHT\n    #include <ambientlight_pars_frag>\n#endif\n#ifdef USE_DIRECT_LIGHT\n    #include <directlight_pars_frag>\n#endif\n#ifdef USE_POINT_LIGHT\n    #include <pointlight_pars_frag>\n#endif\n#ifdef USE_SPOT_LIGHT\n    #include <spotlight_pars_frag>\n#endif",
 normalMap_pars_frag: "#include <tbn>\n#include <tsn>\nuniform sampler2D normalMap;",
-normal_frag: "#ifdef USE_NORMAL\n    vec3 N = normalize(v_Normal);\n    #ifdef USE_NORMAL_MAP\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\n        mat3 tspace = tsn(N, -v_ViewModelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\n    #elif defined(USE_BUMPMAP)\n        N = perturbNormalArb(-v_ViewModelPos, N, dHdxy_fwd(v_Uv));\n    #endif\n#endif",
+normal_frag: "#ifdef USE_NORMAL\n    #ifdef FLAT_SHADED\n    \tvec3 fdx = vec3( dFdx( v_ViewModelPos.x ), dFdx( v_ViewModelPos.y ), dFdx( v_ViewModelPos.z ) );\n    \tvec3 fdy = vec3( dFdy( v_ViewModelPos.x ), dFdy( v_ViewModelPos.y ), dFdy( v_ViewModelPos.z ) );\n    \tvec3 N = normalize( cross( fdx, fdy ) );\n    #else\n        vec3 N = normalize(v_Normal);\n    #endif\n    #ifdef USE_NORMAL_MAP\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\n        mat3 tspace = tsn(N, -v_ViewModelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\n    #elif defined(USE_BUMPMAP)\n        N = perturbNormalArb(-v_ViewModelPos, N, dHdxy_fwd(v_Uv));\n    #endif\n#endif",
 normal_pars_frag: "#ifdef USE_NORMAL\n    varying vec3 v_Normal;\n#endif",
 normal_pars_vert: "#ifdef USE_NORMAL\n    varying vec3 v_Normal;\n#endif",
 normal_vert: "#ifdef USE_NORMAL\n    v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(objectNormal, 1.0)).xyz;\n#endif",
@@ -4382,9 +4392,9 @@ tsn: "mat3 tsn(vec3 N, vec3 V, vec2 uv) {\n    vec3 q0 = dFdx( V.xyz );\n    vec
 uv_pars_frag: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP)\n    varying vec2 v_Uv;\n#endif",
 uv_pars_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP)\n    attribute vec2 a_Uv;\n    varying vec2 v_Uv;\n#endif",
 uv_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP)\n    v_Uv = a_Uv;\n#endif",
-viewModelPos_pars_frag: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )\n    varying vec3 v_ViewModelPos;\n#endif",
-viewModelPos_pars_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )\n    varying vec3 v_ViewModelPos;\n#endif",
-viewModelPos_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )\n    v_ViewModelPos = (u_View * u_Model * vec4(transformed, 1.0)).xyz;\n#endif",
+viewModelPos_pars_frag: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )\n    varying vec3 v_ViewModelPos;\n#endif",
+viewModelPos_pars_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )\n    varying vec3 v_ViewModelPos;\n#endif",
+viewModelPos_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || ( defined(USE_PHONG) && defined(USE_DIRECT_LIGHT) )\n    v_ViewModelPos = (u_View * u_Model * vec4(transformed, 1.0)).xyz;\n#endif",
 }
 })();
 (function(){
@@ -4633,6 +4643,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : '',
+                props.flatShading ? '#define FLAT_SHADED' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -4732,6 +4743,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             pointLightNum: pointLightNum,
             spotLightNum: spotLightNum,
             materialType: material.type,
+            flatShading: material.shading === zen3d.SHADING_TYPE.FLAT_SHADING,
             useShadow: object.receiveShadow,
             premultipliedAlpha: material.premultipliedAlpha,
             fog: !!fog,
@@ -6940,6 +6952,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // draw side
         this.side = zen3d.DRAW_SIDE.FRONT;
+
+        // shading type: SMOOTH_SHADING, FLAT_SHADING
+        this.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
     }
 
     zen3d.Material = Material;

@@ -43,6 +43,9 @@
 
         // draw side
         this.side = zen3d.DRAW_SIDE.FRONT;
+
+        // shading type: SMOOTH_SHADING, FLAT_SHADING
+        this.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
     }
 
     zen3d.Material = Material;

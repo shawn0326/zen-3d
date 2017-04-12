@@ -18,7 +18,8 @@ var files = {
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",
 		"material_transparent",
-		"material_shadermaterial"
+		"material_shadermaterial",
+		"material_flatshading"
 	],
 	"camera": [
 		"camera_cameras",

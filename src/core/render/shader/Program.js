@@ -222,6 +222,7 @@
                 props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : '',
+                props.flatShading ? '#define FLAT_SHADED' : '',
 
                 props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
                 props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
@@ -321,6 +322,7 @@
             pointLightNum: pointLightNum,
             spotLightNum: spotLightNum,
             materialType: material.type,
+            flatShading: material.shading === zen3d.SHADING_TYPE.FLAT_SHADING,
             useShadow: object.receiveShadow,
             premultipliedAlpha: material.premultipliedAlpha,
             fog: !!fog,
