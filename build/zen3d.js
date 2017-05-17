@@ -217,6 +217,9 @@
         SCENE: "scene",
         GROUP: "group",
         POINT: "point",
+        LINE: "line",
+        LINE_LOOP: "line_loop",
+        LINE_SEGMENTS: "line_segments",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
         PARTICLE: "particle"
@@ -245,6 +248,8 @@
         PHONG: "phong",
         CUBE: "cube",
         POINT: "point",
+        LINE_BASIC: "linebasic",
+        LINE_DASHED: "linedashed",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
         SHADER: "shader"
@@ -3285,6 +3290,8 @@
     }
 
     var WebGLCapabilities = function(gl) {
+        this.version = parseFloat( /^WebGL\ ([0-9])/.exec( gl.getParameter( gl.VERSION ) )[ 1 ] );
+
         this.precision = "highp";
 
         this.maxPrecision = getMaxPrecision(gl, this.precision);
@@ -3354,6 +3361,8 @@
         this.currentFlipSided = false;
 
         this.currentDepthMask = true;
+
+        this.currentLineWidth = null;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -3523,6 +3532,15 @@
         if(flag !== this.currentDepthMask) {
             this.gl.depthMask(flag);
             this.currentDepthMask = flag;
+        }
+    }
+
+    WebGLState.prototype.setLineWidth = function(width) {
+        if(width !== this.currentLineWidth) {
+            if(this.capabilities.version >= 1.0) {
+                this.gl.lineWidth(width);
+            }
+            this.currentLineWidth = width;
         }
     }
 
@@ -4409,6 +4427,8 @@ depth_frag: "#include <common_frag>\nuniform vec3 lightPos;\nvarying vec3 v_Mode
 depth_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
 lambert_frag: "#include <common_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 lambert_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
+linedashed_frag: "#include <common_frag>\n#include <fog_pars_frag>\nuniform float dashSize;\nuniform float totalSize;\nvarying float vLineDistance;\nvoid main() {\n    if ( mod( vLineDistance, totalSize ) > dashSize ) {\n\t\tdiscard;\n\t}\n    #include <begin_frag>\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
+linedashed_vert: "#include <common_vert>\nuniform float scale;\nattribute float lineDistance;\nvarying float vLineDistance;\nvoid main() {\n    vLineDistance = scale * lineDistance;\n    vec3 transformed = vec3(a_Position);\n    #include <pvm_vert>\n}",
 particle_frag: "float scaleLinear(float value, vec2 valueDomain) {\n    return (value - valueDomain.x) / (valueDomain.y - valueDomain.x);\n}\nfloat scaleLinear(float value, vec2 valueDomain, vec2 valueRange) {\n    return mix(valueRange.x, valueRange.y, scaleLinear(value, valueDomain));\n}\nvarying vec4 vColor;\nvarying float lifeLeft;\nuniform sampler2D tSprite;\nvoid main() {\n    float alpha = 0.;\n    if( lifeLeft > .995 ) {\n        alpha = scaleLinear( lifeLeft, vec2(1., .995), vec2(0., 1.));\n    } else {\n        alpha = lifeLeft * .75;\n    }\n    vec4 tex = texture2D( tSprite, gl_PointCoord );\n    gl_FragColor = vec4( vColor.rgb * tex.a, alpha * tex.a );\n}",
 particle_vert: "const vec4 bitSh = vec4(256. * 256. * 256., 256. * 256., 256., 1.);\nconst vec4 bitMsk = vec4(0.,vec3(1./256.0));\nconst vec4 bitShifts = vec4(1.) / bitSh;\n#define FLOAT_MAX\t1.70141184e38\n#define FLOAT_MIN\t1.17549435e-38\nlowp vec4 encode_float(highp float v) {\n    highp float av = abs(v);\n    if(av < FLOAT_MIN) {\n        return vec4(0.0, 0.0, 0.0, 0.0);\n    } else if(v > FLOAT_MAX) {\n        return vec4(127.0, 128.0, 0.0, 0.0) / 255.0;\n    } else if(v < -FLOAT_MAX) {\n        return vec4(255.0, 128.0, 0.0, 0.0) / 255.0;\n    }\n    highp vec4 c = vec4(0,0,0,0);\n    highp float e = floor(log2(av));\n    highp float m = av * pow(2.0, -e) - 1.0;\n    c[1] = floor(128.0 * m);\n    m -= c[1] / 128.0;\n    c[2] = floor(32768.0 * m);\n    m -= c[2] / 32768.0;\n    c[3] = floor(8388608.0 * m);\n    highp float ebias = e + 127.0;\n    c[0] = floor(ebias / 2.0);\n    ebias -= c[0] * 2.0;\n    c[1] += floor(ebias) * 128.0;\n    c[0] += 128.0 * step(0.0, -v);\n    return c / 255.0;\n}\nvec4 pack(const in float depth)\n{\n    const vec4 bit_shift = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0);\n    const vec4 bit_mask\t= vec4(0.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);\n    vec4 res = mod(depth*bit_shift*vec4(255), vec4(256))/vec4(255);\n    res -= res.xxyz * bit_mask;\n    return res;\n}\nfloat unpack(const in vec4 rgba_depth)\n{\n    const vec4 bit_shift = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);\n    float depth = dot(rgba_depth, bit_shift);\n    return depth;\n}\nuniform float uTime;\nuniform float uScale;\nuniform sampler2D tNoise;\nuniform mat4 u_Projection;\nuniform mat4 u_View;\nuniform mat4 u_Model;\nattribute vec4 particlePositionsStartTime;\nattribute vec4 particleVelColSizeLife;\nvarying vec4 vColor;\nvarying float lifeLeft;\nvoid main() {\n    vColor = encode_float( particleVelColSizeLife.y );\n    vec4 velTurb = encode_float( particleVelColSizeLife.x );\n    vec3 velocity = vec3( velTurb.xyz );\n    float turbulence = velTurb.w;\n    vec3 newPosition;\n    float timeElapsed = uTime - particlePositionsStartTime.a;\n    lifeLeft = 1. - (timeElapsed / particleVelColSizeLife.w);\n    gl_PointSize = ( uScale * particleVelColSizeLife.z ) * lifeLeft;\n    velocity.x = ( velocity.x - .5 ) * 3.;\n    velocity.y = ( velocity.y - .5 ) * 3.;\n    velocity.z = ( velocity.z - .5 ) * 3.;\n    newPosition = particlePositionsStartTime.xyz + ( velocity * 10. ) * ( uTime - particlePositionsStartTime.a );\n    vec3 noise = texture2D( tNoise, vec2( newPosition.x * .015 + (uTime * .05), newPosition.y * .02 + (uTime * .015) )).rgb;\n    vec3 noiseVel = ( noise.rgb - .5 ) * 30.;\n    newPosition = mix(newPosition, newPosition + vec3(noiseVel * ( turbulence * 5. ) ), (timeElapsed / particleVelColSizeLife.a) );\n    if( velocity.y > 0. && velocity.y < .05 ) {\n        lifeLeft = 0.;\n    }\n    if( velocity.x < -1.45 ) {\n        lifeLeft = 0.;\n    }\n    if( timeElapsed > 0. ) {\n        gl_Position = u_Projection * u_View * u_Model * vec4( newPosition, 1.0 );\n    } else {\n        gl_Position = u_Projection * u_View * u_Model * vec4( particlePositionsStartTime.xyz, 1.0 );\n        lifeLeft = 0.;\n        gl_PointSize = 0.;\n    }\n}",
 phong_frag: "#include <common_frag>\nuniform float u_Specular;\nuniform vec4 u_SpecularColor;\n#include <specularMap_pars_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <RE_Phong>\n#include <RE_BlinnPhong>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <specularMap_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
@@ -4571,6 +4591,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
         var cube = props.materialType == MATERIAL_TYPE.CUBE;
+        var dashed = props.materialType == MATERIAL_TYPE.LINE_DASHED;
 
         var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || zen3d.ShaderLib.basic_vert;
         var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || zen3d.ShaderLib.basic_frag;
@@ -4596,12 +4617,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
-        } else if (cube) {
+        } else if (cube || dashed) {
             vshader_define = [
                 ""
             ].join("\n");
             fshader_define = [
-                ""
+                props.fog ? '#define USE_FOG' : '',
+                props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
         } else {
             vshader_define = [
@@ -5378,6 +5400,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         var scale = this.height * 0.5; // three.js do this
                         uniform.setValue(scale);
                         break;
+                    case "dashSize":
+                        uniform.setValue(material.dashSize);
+                        break;
+                    case "totalSize":
+                        uniform.setValue(material.dashSize + material.gapSize);
+                        break;
+                    case "scale":
+                        uniform.setValue(material.scale);
+                        break;
                     default:
                         // upload custom uniforms
                         if(material.uniforms && material.uniforms[key]) {
@@ -5592,6 +5623,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+            } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
+                this.state.setLineWidth(material.lineWidth);
+                gl.drawArrays(gl.LINE_STRIP, 0, geometry.getVerticesCount());
+            } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
+                this.state.setLineWidth(material.lineWidth);
+                gl.drawArrays(gl.LINE_LOOP, 0, geometry.getVerticesCount());
+            } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
+                this.state.setLineWidth(material.lineWidth);
+                gl.drawArrays(gl.LINES, 0, geometry.getVerticesCount());
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
@@ -5933,6 +5973,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // cache all type of objects
         switch (object.type) {
             case OBJECT_TYPE.POINT:
+            case OBJECT_TYPE.LINE:
+            case OBJECT_TYPE.LINE_LOOP:
+            case OBJECT_TYPE.LINE_SEGMENTS:
             case OBJECT_TYPE.CANVAS2D:
             case OBJECT_TYPE.MESH:
             case OBJECT_TYPE.SKINNED_MESH:
@@ -7053,6 +7096,46 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
 (function() {
     /**
+     * LineBasicMaterial
+     * @class
+     */
+    var LineBasicMaterial = function() {
+        LineBasicMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.LINE_BASIC;
+
+        this.lineWidth = 1;
+    }
+
+    zen3d.inherit(LineBasicMaterial, zen3d.Material);
+
+    zen3d.LineBasicMaterial = LineBasicMaterial;
+})();
+
+(function() {
+    /**
+     * LineDashedMaterial
+     * @class
+     */
+    var LineDashedMaterial = function() {
+        LineDashedMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.LINE_DASHED;
+
+        this.lineWidth = 1;
+
+        this.scale = 1;
+        this.dashSize = 3;
+        this.gapSize = 1;
+    }
+
+    zen3d.inherit(LineDashedMaterial, zen3d.Material);
+
+    zen3d.LineDashedMaterial = LineDashedMaterial;
+})();
+
+(function() {
+    /**
      * SpriteMaterial
      * @class
      */
@@ -7944,6 +8027,64 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.Points = Points;
 })();
 
+(function() {
+    /**
+     * Line
+     * @class
+     */
+    var Line = function(geometry, material) {
+        Line.superClass.constructor.call(this);
+
+        this.geometry = geometry;
+
+        this.material = material;
+
+        this.type = zen3d.OBJECT_TYPE.LINE;
+    }
+
+    zen3d.inherit(Line, zen3d.Object3D);
+
+    /**
+     * raycast
+     */
+    Line.prototype.raycast = function() {
+        // TODO
+    }
+
+    zen3d.Line = Line;
+})();
+
+(function() {
+    /**
+     * LineLoop
+     * @class
+     */
+    var LineLoop = function(geometry, material) {
+        LineLoop.superClass.constructor.call(this, geometry, material);
+
+        this.type = zen3d.OBJECT_TYPE.LINE_LOOP;
+    }
+
+    zen3d.inherit(LineLoop, zen3d.Line);
+
+    zen3d.LineLoop = LineLoop;
+})();
+
+(function() {
+    /**
+     * LineSegments
+     * @class
+     */
+    var LineSegments = function(geometry, material) {
+        LineSegments.superClass.constructor.call(this, geometry, material);
+
+        this.type = zen3d.OBJECT_TYPE.LINE_SEGMENTS;
+    }
+
+    zen3d.inherit(LineSegments, zen3d.Line);
+
+    zen3d.LineSegments = LineSegments;
+})();
 (function() {
 
     // all sprites used one shared geometry

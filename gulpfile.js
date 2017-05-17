@@ -80,6 +80,8 @@ var filesSrc = [
     "core/material/PhongMaterial.js",
     "core/material/CubeMaterial.js",
     "core/material/PointsMaterial.js",
+    "core/material/LineBasicMaterial.js",
+    "core/material/LineDashedMaterial.js",
     "core/material/SpriteMaterial.js",
     "core/material/ShaderMaterial.js",
 
@@ -110,6 +112,9 @@ var filesSrc = [
     "core/objects/Mesh.js",
     "core/objects/SkinnedMesh.js",
     "core/objects/Points.js",
+    "core/objects/Line.js",
+    "core/objects/LineLoop.js",
+    "core/objects/LineSegments.js",
     "core/objects/Sprite.js",
 
     "core/objects/particle/ParticleContainer.js",

@@ -10,6 +10,9 @@
         SCENE: "scene",
         GROUP: "group",
         POINT: "point",
+        LINE: "line",
+        LINE_LOOP: "line_loop",
+        LINE_SEGMENTS: "line_segments",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
         PARTICLE: "particle"
@@ -38,6 +41,8 @@
         PHONG: "phong",
         CUBE: "cube",
         POINT: "point",
+        LINE_BASIC: "linebasic",
+        LINE_DASHED: "linedashed",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
         SHADER: "shader"

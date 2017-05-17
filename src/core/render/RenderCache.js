@@ -54,6 +54,9 @@
         // cache all type of objects
         switch (object.type) {
             case OBJECT_TYPE.POINT:
+            case OBJECT_TYPE.LINE:
+            case OBJECT_TYPE.LINE_LOOP:
+            case OBJECT_TYPE.LINE_SEGMENTS:
             case OBJECT_TYPE.CANVAS2D:
             case OBJECT_TYPE.MESH:
             case OBJECT_TYPE.SKINNED_MESH:

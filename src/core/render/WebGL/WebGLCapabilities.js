@@ -36,6 +36,8 @@
     }
 
     var WebGLCapabilities = function(gl) {
+        this.version = parseFloat( /^WebGL\ ([0-9])/.exec( gl.getParameter( gl.VERSION ) )[ 1 ] );
+
         this.precision = "highp";
 
         this.maxPrecision = getMaxPrecision(gl, this.precision);

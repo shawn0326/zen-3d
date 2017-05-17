@@ -44,6 +44,8 @@
         this.currentFlipSided = false;
 
         this.currentDepthMask = true;
+
+        this.currentLineWidth = null;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -213,6 +215,15 @@
         if(flag !== this.currentDepthMask) {
             this.gl.depthMask(flag);
             this.currentDepthMask = flag;
+        }
+    }
+
+    WebGLState.prototype.setLineWidth = function(width) {
+        if(width !== this.currentLineWidth) {
+            if(this.capabilities.version >= 1.0) {
+                this.gl.lineWidth(width);
+            }
+            this.currentLineWidth = width;
         }
     }
 

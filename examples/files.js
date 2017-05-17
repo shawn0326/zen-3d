@@ -38,6 +38,9 @@ var files = {
 	"points": [
 		"points_sprites"
 	],
+	"lines": [
+		"lines_lines"
+	],
 	"canvas2d": [
 		"canvas2d_canvas2d"
 	],

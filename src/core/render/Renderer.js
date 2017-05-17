@@ -413,6 +413,15 @@
                         var scale = this.height * 0.5; // three.js do this
                         uniform.setValue(scale);
                         break;
+                    case "dashSize":
+                        uniform.setValue(material.dashSize);
+                        break;
+                    case "totalSize":
+                        uniform.setValue(material.dashSize + material.gapSize);
+                        break;
+                    case "scale":
+                        uniform.setValue(material.scale);
+                        break;
                     default:
                         // upload custom uniforms
                         if(material.uniforms && material.uniforms[key]) {
@@ -627,6 +636,15 @@
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+            } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
+                this.state.setLineWidth(material.lineWidth);
+                gl.drawArrays(gl.LINE_STRIP, 0, geometry.getVerticesCount());
+            } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
+                this.state.setLineWidth(material.lineWidth);
+                gl.drawArrays(gl.LINE_LOOP, 0, geometry.getVerticesCount());
+            } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
+                this.state.setLineWidth(material.lineWidth);
+                gl.drawArrays(gl.LINES, 0, geometry.getVerticesCount());
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {

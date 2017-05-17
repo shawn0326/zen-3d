@@ -150,6 +150,7 @@
 
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
         var cube = props.materialType == MATERIAL_TYPE.CUBE;
+        var dashed = props.materialType == MATERIAL_TYPE.LINE_DASHED;
 
         var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || zen3d.ShaderLib.basic_vert;
         var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || zen3d.ShaderLib.basic_frag;
@@ -175,12 +176,13 @@
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
-        } else if (cube) {
+        } else if (cube || dashed) {
             vshader_define = [
                 ""
             ].join("\n");
             fshader_define = [
-                ""
+                props.fog ? '#define USE_FOG' : '',
+                props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
         } else {
             vshader_define = [
