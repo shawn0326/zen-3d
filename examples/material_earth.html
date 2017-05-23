@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - earth</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - earth
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+	        var sphere_geometry1 = new zen3d.SphereGeometry(5, 40, 40);
+			var sphere_geometry2 = new zen3d.SphereGeometry(5.1, 40, 40);
+			var sphere_geometry3 = new zen3d.SphereGeometry(5.2, 40, 40);
+
+			var texture1 = zen3d.Texture2D.fromSrc("resources/earth4.jpg");
+			var texture2 = zen3d.Texture2D.fromSrc("resources/earth_bump.jpg");
+			var texture3 = zen3d.Texture2D.fromSrc("resources/earth_spec.jpg");
+			var texture4 = zen3d.Texture2D.fromSrc("resources/earth_cloud.png");
+
+			var phong1 = new zen3d.PhongMaterial();
+	        phong1.diffuse.setHex(0xffffff);
+			phong1.diffuseMap = texture1;
+			phong1.bumpMap = texture2;
+			phong1.bumpScale = -0.5;
+			phong1.specularMap = texture3;
+			phong1.specular.setHex(0x909090);
+			phong1.shininess = 5;
+			// phong1.premultipliedAlpha = true;
+
+			var phong2 = new zen3d.LambertMaterial();
+	        phong2.diffuse.setHex(0xffffff);
+			phong2.diffuseMap = texture4;
+			phong2.transparent = true;
+			phong2.opacity = 1;
+			phong2.blending = zen3d.BLEND_TYPE.ADD;
+			phong2.premultipliedAlpha = true;
+
+	        var sphere1 = new zen3d.Mesh(sphere_geometry1, phong1);
+			scene.add(sphere1);
+
+	        var sphere2 = new zen3d.Mesh(sphere_geometry2, phong2);
+			scene.add(sphere2);
+
+	        var sphere3 = new zen3d.Mesh(sphere_geometry3, phong2);
+			scene.add(sphere3);
+
+	        var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0x393939);
+	        ambientLight.intensity = 0.5;
+	        scene.add(ambientLight);
+
+			var spotLight = new zen3d.SpotLight();
+			spotLight.color.setHex(0xffffff);
+		    // let spotLight = new THREE.SpotLight(0xcccccc);
+		    spotLight.intensity = 1.2;
+		    spotLight.position.x = -6;
+		    spotLight.position.y = 6;
+		    spotLight.position.z = 55;
+			spotLight.euler.set(Math.PI - 0.05, 0, 0.4);
+		    // spotLight.position.x = 0;
+		    // spotLight.position.y = 0;
+		    // spotLight.position.z = 50;
+		    spotLight.angle = 0.2;
+		    spotLight.penumbra = 0.4;
+		    spotLight.distance = 124;
+		    spotLight.decay = 1;
+			scene.add(spotLight);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 0, 100);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 1000);
+	        scene.add(camera);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// rotate camera
+				// camera.position.x = 60 * Math.sin(count / 1000 * .5);
+				// camera.position.z = 60 * Math.cos(count / 1000 * .5);
+				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				sphere1.euler.set(0, count / 1000 * .15, 0);
+				sphere2.euler.set(0, count / 1000 * .12, 0);
+				sphere3.euler.set(0, count / 1000 * .08, Math.PI);
+
+				if(camera.position.z > 22) {
+					camera.position.z -= 2;
+				}
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
