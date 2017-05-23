@@ -10,6 +10,39 @@
         this._w = ( w !== undefined ) ? w : 1;
     }
 
+    /**
+     * normalize
+     **/
+    Quaternion.prototype.normalize = function(thickness) {
+        var l = this.length();
+
+		if ( l === 0 ) {
+
+			this._x = 0;
+			this._y = 0;
+			this._z = 0;
+			this._w = 1;
+
+		} else {
+
+			l = 1 / l;
+
+			this._x = this._x * l;
+			this._y = this._y * l;
+			this._z = this._z * l;
+			this._w = this._w * l;
+
+		}
+
+		this.onChangeCallback();
+
+		return this;
+    }
+
+    Quaternion.prototype.length = function () {
+		return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
+	}
+
     /*
      * Linearly interpolates between two quaternions.
      */
@@ -274,6 +307,54 @@
 		return this;
 
 	}
+
+    Quaternion.prototype.setFromUnitVectors = function () {
+
+		// http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+
+		// assumes direction vectors vFrom and vTo are normalized
+
+		var v1 = new zen3d.Vector3();
+		var r;
+
+		var EPS = 0.000001;
+
+		return function setFromUnitVectors( vFrom, vTo ) {
+
+			if ( v1 === undefined ) v1 = new zen3d.Vector3();
+
+			r = vFrom.dot( vTo ) + 1;
+
+			if ( r < EPS ) {
+
+				r = 0;
+
+				if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+
+					v1.set( - vFrom.y, vFrom.x, 0 );
+
+				} else {
+
+					v1.set( 0, - vFrom.z, vFrom.y );
+
+				}
+
+			} else {
+
+				v1.crossVectors( vFrom, vTo );
+
+			}
+
+			this._x = v1.x;
+			this._y = v1.y;
+			this._z = v1.z;
+			this._w = r;
+
+			return this.normalize();
+
+		};
+
+	}();
 
     /**
      * quaternion to matrix

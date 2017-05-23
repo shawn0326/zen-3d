@@ -88,10 +88,10 @@
 			spotLight.color.setHex(0xffffff);
 		    // let spotLight = new THREE.SpotLight(0xcccccc);
 		    spotLight.intensity = 1.2;
-		    spotLight.position.x = -6;
-		    spotLight.position.y = 6;
-		    spotLight.position.z = 55;
-			spotLight.euler.set(Math.PI - 0.05, 0, 0.4);
+		    spotLight.position.x = -22;
+		    spotLight.position.y = 22;
+		    spotLight.position.z = 42;
+			// spotLight.euler.set(Math.PI - 0.05, 0, 0.4);
 		    // spotLight.position.x = 0;
 		    // spotLight.position.y = 0;
 		    // spotLight.position.z = 50;
@@ -100,6 +100,13 @@
 		    spotLight.distance = 124;
 		    spotLight.decay = 1;
 			scene.add(spotLight);
+
+			// look at
+			var target = new zen3d.Vector3(0, 0, 0);
+			var posToTarget = new zen3d.Vector3();
+			posToTarget.subVectors(target, spotLight.position).normalize();
+			var originVec = new zen3d.Vector3(0, 0, 1);
+			spotLight.quaternion.setFromUnitVectors(originVec, posToTarget);
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 0, 100);
