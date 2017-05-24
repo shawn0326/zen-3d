@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - postprocessing gray</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - postprocessing gray
+    </div>
+
+	<script id="vertexShader" type="x-shader/x-vertex">
+		#define USE_DIFFUSE_MAP
+		#include <common_vert>
+		#include <uv_pars_vert>
+		#include <envMap_pars_vert>
+		#include <skinning_pars_vert>
+		void main() {
+			#include <begin_vert>
+			#include <skinning_vert>
+			#include <pvm_vert>
+			#include <uv_vert>
+			#include <envMap_vert>
+		}
+	</script>
+
+	<script id="fragmentShader" type="x-shader/x-fragment">
+		#define USE_DIFFUSE_MAP
+		#include <common_frag>
+		#include <uv_pars_frag>
+		#include <diffuseMap_pars_frag>
+		#include <envMap_pars_frag>
+		#include <fog_pars_frag>
+		void main() {
+			#include <begin_frag>
+			#include <diffuseMap_frag>
+			#include <envMap_frag>
+			#include <end_frag>
+			#include <premultipliedAlpha_frag>
+			#include <fog_frag>
+			float average = (gl_FragColor.r + gl_FragColor.g + gl_FragColor.b) / 3.0;
+			gl_FragColor = vec4(average, average, average, gl_FragColor.a);
+		}
+	</script>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
+			var interior = "resources/models/assimp/interior/interior.assimp.json";
+
+			var loader1 = new zen3d.AssimpJsonLoader();
+			loader1.load(jeep, function(object) {
+				object.scale.set(0.4, 0.4, 0.4);
+				scene.add(object);
+			});
+
+			var loader2 = new zen3d.AssimpJsonLoader();
+			loader2.load(interior, function(object) {
+				scene.add(object);
+			});
+
+			var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xffffff);
+	        ambientLight.intensity = 0.5;
+	        scene.add(ambientLight);
+
+	        var spotLight = new zen3d.SpotLight();
+	        spotLight.intensity = 0.5;
+	        spotLight.euler.set(Math.PI / 2, 0, 0);
+	        spotLight.color.setHex(0xffffff);
+			spotLight.angle = Math.PI / 3;
+			spotLight.penumbra = 0.3;
+	        spotLight.position.set(0, 10, 0);
+	        scene.add(spotLight);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 4, 10);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+			// post processing
+
+			var vertexShader = document.getElementById('vertexShader').textContent;
+			var fragmentShader = document.getElementById('fragmentShader').textContent;
+			var shaderMaterial = new zen3d.ShaderMaterial(vertexShader, fragmentShader);
+
+			var scene2 = new zen3d.Scene();
+
+			var camera2 = new zen3d.Camera();
+			camera2.position.set(0, 1, 0);
+	        camera2.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
+	        camera2.setOrtho(-1, 1, -1, 1, 0.1, 2);
+			scene2.add(camera2);
+
+			var renderTarget = new zen3d.RenderTarget2D(width, height);
+			renderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			renderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+			var plane_geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
+			var plane_material = new zen3d.BasicMaterial();
+			shaderMaterial.diffuseMap = renderTarget.texture;
+			var plane_mesh = new zen3d.Mesh(plane_geometry, shaderMaterial);
+			scene2.add(plane_mesh);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 10 * Math.sin(count / 1000 * .5);
+				camera.position.z = 10 * Math.cos(count / 1000 * .5);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+	            renderer.render(scene, camera, renderTarget);
+
+				renderer.render(scene2, camera2);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.resize(width, height);
+
+				renderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

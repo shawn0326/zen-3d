@@ -65,5 +65,8 @@ var files = {
 		"animation_snake",
 		"animation_keyframe_animation",
 		"animation_monster",
+	],
+	"postprocessing": [
+		"postprocessing_gray"
 	]
 };
