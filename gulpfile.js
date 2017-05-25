@@ -165,6 +165,12 @@ var inspectorSrc = [
     "src/extension/inspector/Inspector.js"
 ];
 
+var postprocessingSrc = [
+    // postprocessing
+    "src/extension/postprocessing/EffectComposer.js",
+    "src/extension/postprocessing/Pass.js"
+];
+
 gulp.task('default', ["shader", 'build'], function() {
     // do nothing
 });
@@ -213,4 +219,12 @@ gulp.task("extension", function() {
     .pipe(uglify())
     .pipe(gulp.dest('build'))
     .pipe(notify({ message: 'extension inspector build success' }));
+
+    gulp.src(postprocessingSrc)
+    .pipe(concat(outputName + '.postprocessing.js'))
+    .pipe(gulp.dest('build'))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(uglify())
+    .pipe(gulp.dest('build'))
+    .pipe(notify({ message: 'extension postprocessing build success' }));
 });

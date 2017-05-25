@@ -67,6 +67,6 @@ var files = {
 		"animation_monster",
 	],
 	"postprocessing": [
-		"postprocessing_gray"
+		"postprocessing_film"
 	]
 };

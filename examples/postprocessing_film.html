@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - postprocessing gray</title>
+	<title>zen3d - postprocessing film</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -21,11 +21,12 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="../build/zen3d.postprocessing.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - postprocessing gray
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - postprocessing film
     </div>
 
 	<script id="vertexShader" type="x-shader/x-vertex">
@@ -60,6 +61,109 @@
 			float average = (gl_FragColor.r + gl_FragColor.g + gl_FragColor.b) / 3.0;
 			gl_FragColor = vec4(average, average, average, gl_FragColor.a);
 		}
+	</script>
+
+	<script>
+		var FilmShader = {
+
+			uniforms: {
+
+				"time":       0.0,
+				"nIntensity": 0.8,
+				"sIntensity": 0.3,
+				"sCount":     4096,
+				"grayscale":  0
+
+			},
+
+			vertexShader: [
+
+				// "varying vec2 v_Uv;",
+				//
+				// "void main() {",
+				//
+				// 	"v_Uv = uv;",
+				// 	"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+				//
+				// "}"
+				"#define USE_DIFFUSE_MAP",
+				"#include <common_vert>",
+				"#include <uv_pars_vert>",
+				"#include <envMap_pars_vert>",
+				"#include <skinning_pars_vert>",
+				"void main() {",
+					"#include <begin_vert>",
+					"#include <skinning_vert>",
+					"#include <pvm_vert>",
+					"#include <uv_vert>",
+					"#include <envMap_vert>",
+				"}"
+
+			].join( "\n" ),
+
+			fragmentShader: [
+
+				"#define PI 3.14159265359",
+
+				// "#include <common>",
+				"highp float rand( const in vec2 uv ) {",
+					"const highp float a = 12.9898, b = 78.233, c = 43758.5453;",
+					"highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );",
+					"return fract(sin(sn) * c);",
+				"}",
+
+				// control parameter
+				"uniform float time;",
+
+				"uniform bool grayscale;",
+
+				// noise effect intensity value (0 = no effect, 1 = full effect)
+				"uniform float nIntensity;",
+
+				// scanlines effect intensity value (0 = no effect, 1 = full effect)
+				"uniform float sIntensity;",
+
+				// scanlines effect count value (0 = no effect, 4096 = full effect)
+				"uniform float sCount;",
+
+				"uniform sampler2D texture;",
+
+				"varying vec2 v_Uv;",
+
+				"void main() {",
+
+					// sample the source
+					"vec4 cTextureScreen = texture2D( texture, v_Uv );",
+
+					// make some noise
+					"float dx = rand( v_Uv + time );",
+
+					// add noise
+					"vec3 cResult = cTextureScreen.rgb + cTextureScreen.rgb * clamp( 0.1 + dx, 0.0, 1.0 );",
+
+					// get us a sine and cosine
+					"vec2 sc = vec2( sin( v_Uv.y * sCount ), cos( v_Uv.y * sCount ) );",
+
+					// add scanlines
+					"cResult += cTextureScreen.rgb * vec3( sc.x, sc.y, sc.x ) * sIntensity;",
+
+					// interpolate between source and result by intensity
+					"cResult = cTextureScreen.rgb + clamp( nIntensity, 0.0,1.0 ) * ( cResult - cTextureScreen.rgb );",
+
+					// convert to grayscale if desired
+					"if( grayscale ) {",
+
+						"cResult = vec3( cResult.r * 0.3 + cResult.g * 0.59 + cResult.b * 0.11 );",
+
+					"}",
+
+					"gl_FragColor =  vec4( cResult, cTextureScreen.a );",
+
+				"}"
+
+			].join( "\n" )
+
+		};
 	</script>
 
 	<script>
@@ -112,41 +216,29 @@
 	        scene.add(camera);
 
 			// post processing
-
 			var vertexShader = document.getElementById('vertexShader').textContent;
 			var fragmentShader = document.getElementById('fragmentShader').textContent;
-			var shaderMaterial = new zen3d.ShaderMaterial(vertexShader, fragmentShader);
-
-			var scene2 = new zen3d.Scene();
-
-			var camera2 = new zen3d.Camera();
-			camera2.position.set(0, 1, 0);
-	        camera2.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
-	        camera2.setOrtho(-1, 1, -1, 1, 0.1, 2);
-			scene2.add(camera2);
-
-			var renderTarget = new zen3d.RenderTarget2D(width, height);
-			renderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			renderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
-			var plane_geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
-			var plane_material = new zen3d.BasicMaterial();
-			shaderMaterial.diffuseMap = renderTarget.texture;
-			var plane_mesh = new zen3d.Mesh(plane_geometry, shaderMaterial);
-			scene2.add(plane_mesh);
+			var pass = new zen3d.Pass(vertexShader, fragmentShader);
+			var pass2 = new zen3d.Pass(FilmShader.vertexShader, FilmShader.fragmentShader, FilmShader.uniforms);
+			var composer = new zen3d.EffectComposer(renderer);
+			// composer.addPass(pass);
+			composer.addPass(pass2);
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
+
+				pass2.shader.uniforms.time += 30 / 1000 * 0.5;
+				if(pass2.shader.uniforms.time > 1) {
+					pass2.shader.uniforms.time = 0;
+				}
 
 				// rotate camera
 				camera.position.x = 10 * Math.sin(count / 1000 * .5);
 				camera.position.z = 10 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-	            renderer.render(scene, camera, renderTarget);
-
-				renderer.render(scene2, camera2);
+				composer.render(scene, camera);
 	        }
 
 	        loop(0);
@@ -159,7 +251,7 @@
 
 				renderer.resize(width, height);
 
-				renderTarget.resize(width, height);
+				composer.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();
