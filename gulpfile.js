@@ -84,6 +84,8 @@ var filesSrc = [
     "core/material/LineDashedMaterial.js",
     "core/material/SpriteMaterial.js",
     "core/material/ShaderMaterial.js",
+    "core/material/DepthMaterial.js",
+    "core/material/ParticleMaterial.js",
 
     // objects
     "core/objects/Object3D.js",

@@ -45,7 +45,9 @@
         LINE_DASHED: "linedashed",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
-        SHADER: "shader"
+        SHADER: "shader",
+        DEPTH: "depth",
+        PARTICLE: "particle"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;

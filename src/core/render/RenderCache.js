@@ -134,6 +134,7 @@
                 array.push({
                     object: object,
                     geometry: object.geometry,
+                    material: object.material,
                     z: helpVector3.z
                 });
                 break;

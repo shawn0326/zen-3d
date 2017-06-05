@@ -146,14 +146,19 @@
     /**
      * create program
      */
-    function createProgram(gl, props) {
+    function createProgram(gl, props, vertexCode, fragmentCode) {
 
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
         var cube = props.materialType == MATERIAL_TYPE.CUBE;
         var dashed = props.materialType == MATERIAL_TYPE.LINE_DASHED;
+        var canvas2d = props.materialType == MATERIAL_TYPE.CANVAS2D;
+        var sprite = props.materialType == MATERIAL_TYPE.SPRITE;
+        var particle = props.materialType == MATERIAL_TYPE.PARTICLE;
+        var depth = props.materialType == MATERIAL_TYPE.DEPTH;
+        var custom = props.materialType == MATERIAL_TYPE.SHADER;
 
-        var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || zen3d.ShaderLib.basic_vert;
-        var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || zen3d.ShaderLib.basic_frag;
+        var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || props.vertexShader || zen3d.ShaderLib.basic_vert;
+        var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || props.fragmentShader || zen3d.ShaderLib.basic_frag;
 
         vertex = parseIncludes(vertex);
         fragment = parseIncludes(fragment);
@@ -176,7 +181,7 @@
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
-        } else if (cube || dashed) {
+        } else if (cube || dashed || canvas2d || sprite || particle || custom) {
             vshader_define = [
                 ""
             ].join("\n");
@@ -184,6 +189,16 @@
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
+        } else if(depth) {
+            vshader_define = [
+                props.useSkinning ? '#define USE_SKINNING' : '',
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
+                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
+            ].join("\n");
+            fshader_define = [
+                ""
+            ].join("\n");
+            console.log(fshader_define)
         } else {
             vshader_define = [
                 (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -277,63 +292,72 @@
     /**
      * get a suitable program by object & lights & fog
      */
-    var getProgram = function(gl, render, object, lightsNum, fog) {
+    var getProgram = function(gl, render, material, object, lightsNum, fog) {
+        var material = material || object.material;
 
-        var material = object.material;
+        var props = {}; // cache this props?
+        props.precision = render.capabilities.maxPrecision;
+        props.materialType = material.type;
 
-        if (material.type === MATERIAL_TYPE.CANVAS2D) {
-            return getCanvas2DProgram(gl, render);
-        } else if(material.type === MATERIAL_TYPE.SHADER) {
-            return getCustomProgram(gl, render, object);
+        switch (material.type) {
+            case MATERIAL_TYPE.BASIC:
+            case MATERIAL_TYPE.LAMBERT:
+            case MATERIAL_TYPE.PHONG:
+            case MATERIAL_TYPE.CUBE:
+            case MATERIAL_TYPE.POINT:
+            case MATERIAL_TYPE.LINE_BASIC:
+            case MATERIAL_TYPE.LINE_DASHED:
+                var ambientLightNum = lightsNum[0],
+                    directLightNum = lightsNum[1],
+                    pointLightNum = lightsNum[2],
+                    spotLightNum = lightsNum[3];
+
+                props.useDiffuseMap = !!material.diffuseMap;
+                props.useNormalMap = !!material.normalMap;
+                props.useBumpMap = !!material.bumpMap;
+                props.useSpecularMap = !!material.specularMap;
+                props.useEnvMap = !!material.envMap;
+                props.useEmissiveMap = !!material.emissiveMap;
+                props.useDiffuseColor = !material.diffuseMap;
+                props.ambientLightNum = ambientLightNum;
+                props.directLightNum = directLightNum;
+                props.pointLightNum = pointLightNum;
+                props.spotLightNum = spotLightNum;
+                props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
+                props.useShadow = object.receiveShadow;
+                props.premultipliedAlpha = material.premultipliedAlpha;
+                props.fog = !!fog;
+                props.fogExp2 = !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2);
+                props.sizeAttenuation = material.sizeAttenuation;
+            case MATERIAL_TYPE.DEPTH:
+                var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
+                var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+                var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+                var maxBones = 0;
+
+                if(useVertexTexture) {
+                    maxBones = 1024;
+                } else {
+                    maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+                    if(maxBones * 16 > maxVertexUniformVectors) {
+                        console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+                        maxBones = Math.floor(maxVertexUniformVectors / 16);
+                    }
+                }
+
+                props.useSkinning = useSkinning;
+                props.bonesNum = maxBones;
+                props.useVertexTexture = useVertexTexture;
+                break;
+            case MATERIAL_TYPE.SHADER:
+                props.vertexShader = material.vertexShader;
+                props.fragmentShader = material.fragmentShader;
+            case MATERIAL_TYPE.CANVAS2D:
+            case MATERIAL_TYPE.PARTICLE:
+            case MATERIAL_TYPE.SPRITE:
+            default:
+                break;
         }
-
-        var ambientLightNum = lightsNum[0],
-            directLightNum = lightsNum[1],
-            pointLightNum = lightsNum[2],
-            spotLightNum = lightsNum[3];
-
-        // bones support check
-        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-        var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
-        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
-        var maxBones = 0;
-
-        if(useVertexTexture) {
-            maxBones = 1024;
-        } else {
-            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-            if(maxBones * 16 > maxVertexUniformVectors) {
-                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-                maxBones = Math.floor(maxVertexUniformVectors / 16);
-            }
-        }
-
-        var precision = render.capabilities.maxPrecision;
-
-        var props = {
-            precision: precision,
-            useDiffuseMap: !!material.diffuseMap,
-            useNormalMap: !!material.normalMap,
-            useBumpMap: !!material.bumpMap,
-            useSpecularMap: !!material.specularMap,
-            useEnvMap: !!material.envMap,
-            useEmissiveMap: !!material.emissiveMap,
-            useDiffuseColor: !material.diffuseMap,
-            ambientLightNum: ambientLightNum,
-            directLightNum: directLightNum,
-            pointLightNum: pointLightNum,
-            spotLightNum: spotLightNum,
-            materialType: material.type,
-            flatShading: material.shading === zen3d.SHADING_TYPE.FLAT_SHADING,
-            useShadow: object.receiveShadow,
-            premultipliedAlpha: material.premultipliedAlpha,
-            fog: !!fog,
-            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
-            sizeAttenuation: material.sizeAttenuation,
-            useSkinning: useSkinning,
-            bonesNum: maxBones,
-            useVertexTexture: useVertexTexture
-        };
 
         var code = generateProgramCode(props);
         var map = programMap;
@@ -343,196 +367,7 @@
             program = map[code];
         } else {
             program = createProgram(gl, props);
-            map[code] = program;
-        }
 
-        return program;
-    }
-
-    /**
-     * get depth program, used to render depth map
-     */
-    var getDepthProgram = function(gl, render, object) {
-        var program;
-        var map = programMap;
-
-        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-        var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
-        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
-        var maxBones = 0;
-
-        if(useVertexTexture) {
-            maxBones = 1024;
-        } else {
-            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-            if(maxBones * 16 > maxVertexUniformVectors) {
-                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-                maxBones = Math.floor(maxVertexUniformVectors / 16);
-            }
-        }
-
-        var code = "depth_" + maxBones.toString();
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-
-                useSkinning ? '#define USE_SKINNING' : '',
-                (maxBones > 0) ? ('#define MAX_BONES ' + maxBones) : '',
-                useVertexTexture ? '#define BONE_TEXTURE' : '',
-
-                parseIncludes(zen3d.ShaderLib.depth_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.depth_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get canvas2d program, used to render canvas 2d
-     */
-    var getCanvas2DProgram = function(gl, render) {
-        var program;
-        var map = programMap;
-        var code = "canvas2d";
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.canvas2d_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.canvas2d_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get sprite program, used to render sprites
-     */
-    var getSpriteProgram = function(gl, render) {
-        var program;
-        var map = programMap;
-        var code = "sprite";
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.sprite_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.sprite_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get particle program, used to render sprites
-     */
-    var getParticleProgram = function(gl, render) {
-        var program;
-        var map = programMap;
-        var code = "particle";
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.particle_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.particle_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get custom program, used to render object with shaderMaterial
-     */
-    var getCustomProgram = function(gl, render, object) {
-        var material = object.material;
-        var vertexShader = material.vertexShader;
-        var fragmentShader = material.fragmentShader;
-
-        var program;
-        var map = programMap;
-        var code = vertexShader + fragmentShader;
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(vertexShader)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(fragmentShader)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
             map[code] = program;
         }
 
@@ -540,7 +375,4 @@
     }
 
     zen3d.getProgram = getProgram;
-    zen3d.getDepthProgram = getDepthProgram;
-    zen3d.getSpriteProgram = getSpriteProgram;
-    zen3d.getParticleProgram = getParticleProgram;
 })();

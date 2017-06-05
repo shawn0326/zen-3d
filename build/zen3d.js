@@ -252,7 +252,9 @@
         LINE_DASHED: "linedashed",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
-        SHADER: "shader"
+        SHADER: "shader",
+        DEPTH: "depth",
+        PARTICLE: "particle"
     };
 
     zen3d.MATERIAL_TYPE = MATERIAL_TYPE;
@@ -3444,6 +3446,8 @@
         this.currentDepthMask = true;
 
         this.currentLineWidth = null;
+
+        this.currentProgram = null;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -3622,6 +3626,13 @@
                 this.gl.lineWidth(width);
             }
             this.currentLineWidth = width;
+        }
+    }
+
+    WebGLState.prototype.setProgram = function(program) {
+        if(this.currentProgram !== program) {
+            this.gl.useProgram(program.id);
+            this.currentProgram = program;
         }
     }
 
@@ -4516,7 +4527,7 @@ phong_frag: "#include <common_frag>\nuniform float u_Specular;\nuniform vec4 u_S
 phong_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
 point_frag: "#include <common_frag>\n#include <diffuseMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #ifdef USE_DIFFUSE_MAP\n        outColor *= texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));\n    #endif\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 point_vert: "#include <common_vert>\nuniform float u_PointSize;\nuniform float u_PointScale;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    vec4 mvPosition = u_View * u_Model * vec4(transformed, 1.0);\n    #ifdef USE_SIZEATTENUATION\n        gl_PointSize = u_PointSize * ( u_PointScale / - mvPosition.z );\n    #else\n        gl_PointSize = u_PointSize;\n    #endif\n}",
-sprite_frag: "uniform vec3 color;\nuniform sampler2D map;\nuniform float opacity;\nuniform int fogType;\nuniform vec3 fogColor;\nuniform float fogDensity;\nuniform float fogNear;\nuniform float fogFar;\nuniform float alphaTest;\nvarying vec2 vUV;\nvoid main() {\n    vec4 texture = texture2D( map, vUV );\n    if ( texture.a < alphaTest ) discard;\n    gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );\n    if ( fogType > 0 ) {\n        float depth = gl_FragCoord.z / gl_FragCoord.w;\n        float fogFactor = 0.0;\n        if ( fogType == 1 ) {\n            fogFactor = smoothstep( fogNear, fogFar, depth );\n        } else {\n            const float LOG2 = 1.442695;\n            fogFactor = exp2( - fogDensity * fogDensity * depth * depth * LOG2 );\n            fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );\n        }\n        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\n    }\n}",
+sprite_frag: "uniform vec3 color;\nuniform sampler2D map;\nuniform float opacity;\nuniform int fogType;\nuniform vec3 fogColor;\nuniform float fogDensity;\nuniform float fogNear;\nuniform float fogFar;\nuniform float alphaTest;\nvarying vec2 vUV;\nvoid main() {\n    vec4 texture = texture2D( map, vUV );\n    if ( texture.a < alphaTest ) discard;\n    gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );\n    if ( fogType > 0 ) {\n        float depth = gl_FragCoord.z / gl_FragCoord.w;\n        float fogFactor = 0.0;\n        if ( fogType == 1 ) {\n            fogFactor = smoothstep( fogNear, fogFar, depth );\n        } else {\n            \n            fogFactor = exp2( - fogDensity * fogDensity * depth * depth * LOG2 );\n            fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );\n        }\n        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\n    }\n}",
 sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 projectionMatrix;\nuniform float rotation;\nuniform vec2 scale;\nuniform vec2 uvOffset;\nuniform vec2 uvScale;\nattribute vec2 position;\nattribute vec2 uv;\nvarying vec2 vUV;\nvoid main() {\n    vUV = uvOffset + uv * uvScale;\n    vec2 alignedPosition = position * scale;\n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    vec4 finalPosition;\n    finalPosition = viewMatrix * modelMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );\n    finalPosition.xy += rotatedPosition;\n    finalPosition = projectionMatrix * finalPosition;\n    gl_Position = finalPosition;\n}",
 }
 })();
@@ -4668,14 +4679,19 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     /**
      * create program
      */
-    function createProgram(gl, props) {
+    function createProgram(gl, props, vertexCode, fragmentCode) {
 
         var basic = props.materialType == MATERIAL_TYPE.BASIC;
         var cube = props.materialType == MATERIAL_TYPE.CUBE;
         var dashed = props.materialType == MATERIAL_TYPE.LINE_DASHED;
+        var canvas2d = props.materialType == MATERIAL_TYPE.CANVAS2D;
+        var sprite = props.materialType == MATERIAL_TYPE.SPRITE;
+        var particle = props.materialType == MATERIAL_TYPE.PARTICLE;
+        var depth = props.materialType == MATERIAL_TYPE.DEPTH;
+        var custom = props.materialType == MATERIAL_TYPE.SHADER;
 
-        var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || zen3d.ShaderLib.basic_vert;
-        var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || zen3d.ShaderLib.basic_frag;
+        var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || props.vertexShader || zen3d.ShaderLib.basic_vert;
+        var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || props.fragmentShader || zen3d.ShaderLib.basic_frag;
 
         vertex = parseIncludes(vertex);
         fragment = parseIncludes(fragment);
@@ -4698,7 +4714,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
-        } else if (cube || dashed) {
+        } else if (cube || dashed || canvas2d || sprite || particle || custom) {
             vshader_define = [
                 ""
             ].join("\n");
@@ -4706,6 +4722,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.fog ? '#define USE_FOG' : '',
                 props.fogExp2 ? '#define USE_EXP2_FOG' : ''
             ].join("\n");
+        } else if(depth) {
+            vshader_define = [
+                props.useSkinning ? '#define USE_SKINNING' : '',
+                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
+                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
+            ].join("\n");
+            fshader_define = [
+                ""
+            ].join("\n");
+            console.log(fshader_define)
         } else {
             vshader_define = [
                 (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
@@ -4799,63 +4825,72 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     /**
      * get a suitable program by object & lights & fog
      */
-    var getProgram = function(gl, render, object, lightsNum, fog) {
+    var getProgram = function(gl, render, material, object, lightsNum, fog) {
+        var material = material || object.material;
 
-        var material = object.material;
+        var props = {}; // cache this props?
+        props.precision = render.capabilities.maxPrecision;
+        props.materialType = material.type;
 
-        if (material.type === MATERIAL_TYPE.CANVAS2D) {
-            return getCanvas2DProgram(gl, render);
-        } else if(material.type === MATERIAL_TYPE.SHADER) {
-            return getCustomProgram(gl, render, object);
+        switch (material.type) {
+            case MATERIAL_TYPE.BASIC:
+            case MATERIAL_TYPE.LAMBERT:
+            case MATERIAL_TYPE.PHONG:
+            case MATERIAL_TYPE.CUBE:
+            case MATERIAL_TYPE.POINT:
+            case MATERIAL_TYPE.LINE_BASIC:
+            case MATERIAL_TYPE.LINE_DASHED:
+                var ambientLightNum = lightsNum[0],
+                    directLightNum = lightsNum[1],
+                    pointLightNum = lightsNum[2],
+                    spotLightNum = lightsNum[3];
+
+                props.useDiffuseMap = !!material.diffuseMap;
+                props.useNormalMap = !!material.normalMap;
+                props.useBumpMap = !!material.bumpMap;
+                props.useSpecularMap = !!material.specularMap;
+                props.useEnvMap = !!material.envMap;
+                props.useEmissiveMap = !!material.emissiveMap;
+                props.useDiffuseColor = !material.diffuseMap;
+                props.ambientLightNum = ambientLightNum;
+                props.directLightNum = directLightNum;
+                props.pointLightNum = pointLightNum;
+                props.spotLightNum = spotLightNum;
+                props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
+                props.useShadow = object.receiveShadow;
+                props.premultipliedAlpha = material.premultipliedAlpha;
+                props.fog = !!fog;
+                props.fogExp2 = !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2);
+                props.sizeAttenuation = material.sizeAttenuation;
+            case MATERIAL_TYPE.DEPTH:
+                var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
+                var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
+                var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+                var maxBones = 0;
+
+                if(useVertexTexture) {
+                    maxBones = 1024;
+                } else {
+                    maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+                    if(maxBones * 16 > maxVertexUniformVectors) {
+                        console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+                        maxBones = Math.floor(maxVertexUniformVectors / 16);
+                    }
+                }
+
+                props.useSkinning = useSkinning;
+                props.bonesNum = maxBones;
+                props.useVertexTexture = useVertexTexture;
+                break;
+            case MATERIAL_TYPE.SHADER:
+                props.vertexShader = material.vertexShader;
+                props.fragmentShader = material.fragmentShader;
+            case MATERIAL_TYPE.CANVAS2D:
+            case MATERIAL_TYPE.PARTICLE:
+            case MATERIAL_TYPE.SPRITE:
+            default:
+                break;
         }
-
-        var ambientLightNum = lightsNum[0],
-            directLightNum = lightsNum[1],
-            pointLightNum = lightsNum[2],
-            spotLightNum = lightsNum[3];
-
-        // bones support check
-        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-        var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
-        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
-        var maxBones = 0;
-
-        if(useVertexTexture) {
-            maxBones = 1024;
-        } else {
-            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-            if(maxBones * 16 > maxVertexUniformVectors) {
-                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-                maxBones = Math.floor(maxVertexUniformVectors / 16);
-            }
-        }
-
-        var precision = render.capabilities.maxPrecision;
-
-        var props = {
-            precision: precision,
-            useDiffuseMap: !!material.diffuseMap,
-            useNormalMap: !!material.normalMap,
-            useBumpMap: !!material.bumpMap,
-            useSpecularMap: !!material.specularMap,
-            useEnvMap: !!material.envMap,
-            useEmissiveMap: !!material.emissiveMap,
-            useDiffuseColor: !material.diffuseMap,
-            ambientLightNum: ambientLightNum,
-            directLightNum: directLightNum,
-            pointLightNum: pointLightNum,
-            spotLightNum: spotLightNum,
-            materialType: material.type,
-            flatShading: material.shading === zen3d.SHADING_TYPE.FLAT_SHADING,
-            useShadow: object.receiveShadow,
-            premultipliedAlpha: material.premultipliedAlpha,
-            fog: !!fog,
-            fogExp2: !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2),
-            sizeAttenuation: material.sizeAttenuation,
-            useSkinning: useSkinning,
-            bonesNum: maxBones,
-            useVertexTexture: useVertexTexture
-        };
 
         var code = generateProgramCode(props);
         var map = programMap;
@@ -4865,196 +4900,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             program = map[code];
         } else {
             program = createProgram(gl, props);
-            map[code] = program;
-        }
 
-        return program;
-    }
-
-    /**
-     * get depth program, used to render depth map
-     */
-    var getDepthProgram = function(gl, render, object) {
-        var program;
-        var map = programMap;
-
-        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-        var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
-        var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
-        var maxBones = 0;
-
-        if(useVertexTexture) {
-            maxBones = 1024;
-        } else {
-            maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-            if(maxBones * 16 > maxVertexUniformVectors) {
-                console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
-                maxBones = Math.floor(maxVertexUniformVectors / 16);
-            }
-        }
-
-        var code = "depth_" + maxBones.toString();
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-
-                useSkinning ? '#define USE_SKINNING' : '',
-                (maxBones > 0) ? ('#define MAX_BONES ' + maxBones) : '',
-                useVertexTexture ? '#define BONE_TEXTURE' : '',
-
-                parseIncludes(zen3d.ShaderLib.depth_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.depth_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get canvas2d program, used to render canvas 2d
-     */
-    var getCanvas2DProgram = function(gl, render) {
-        var program;
-        var map = programMap;
-        var code = "canvas2d";
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.canvas2d_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.canvas2d_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get sprite program, used to render sprites
-     */
-    var getSpriteProgram = function(gl, render) {
-        var program;
-        var map = programMap;
-        var code = "sprite";
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.sprite_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.sprite_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get particle program, used to render sprites
-     */
-    var getParticleProgram = function(gl, render) {
-        var program;
-        var map = programMap;
-        var code = "particle";
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.particle_vert)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(zen3d.ShaderLib.particle_frag)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
-            map[code] = program;
-        }
-
-        return program;
-    }
-
-    /**
-     * get custom program, used to render object with shaderMaterial
-     */
-    var getCustomProgram = function(gl, render, object) {
-        var material = object.material;
-        var vertexShader = material.vertexShader;
-        var fragmentShader = material.fragmentShader;
-
-        var program;
-        var map = programMap;
-        var code = vertexShader + fragmentShader;
-
-        var precision = render.capabilities.maxPrecision;
-
-        if (map[code]) {
-            program = map[code];
-        } else {
-            var vshader = [
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(vertexShader)
-            ].join("\n");
-
-            var fshader = [
-                '#extension GL_OES_standard_derivatives : enable',
-                'precision ' + precision + ' float;',
-                'precision ' + precision + ' int;',
-                parseIncludes(fragmentShader)
-            ].join("\n");
-
-            program = new Program(gl, vshader, fshader);
             map[code] = program;
         }
 
@@ -5062,9 +4908,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.getProgram = getProgram;
-    zen3d.getDepthProgram = getDepthProgram;
-    zen3d.getSpriteProgram = getSpriteProgram;
-    zen3d.getParticleProgram = getParticleProgram;
 })();
 (function() {
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
@@ -5115,6 +4958,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
         this.performance = new zen3d.Performance();
+
+        this.depthMaterial = new zen3d.DepthMaterial();
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -5204,6 +5049,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      */
     Renderer.prototype.renderShadow = function() {
         var gl = this.gl;
+        var state = this.state;
 
         var lights = this.cache.shadowLights;
         for (var i = 0; i < lights.length; i++) {
@@ -5227,7 +5073,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 this.setRenderTarget(shadowTarget);
 
-                this.state.clearColor(1, 1, 1, 1);
+                state.clearColor(1, 1, 1, 1);
                 this.clear(true, true);
 
                 if (renderList.length == 0) {
@@ -5236,11 +5082,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 for (var n = 0, l = renderList.length; n < l; n++) {
                     var object = renderList[n];
-                    var material = object.material;
+                    var material = this.depthMaterial;
                     var geometry = object.geometry;
 
-                    var program = zen3d.getDepthProgram(gl, this, object);
-                    gl.useProgram(program.id);
+                    var program = zen3d.getProgram(gl, this, material, object);
+                    state.setProgram(program);
 
                     this.geometry.setGeometry(geometry);
                     this.setupVertexAttributes(program, geometry);
@@ -5307,13 +5153,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         }
                     }
 
-                    this.state.setBlend(BLEND_TYPE.NONE);
-                    this.state.disable(gl.DEPTH_TEST);
+                    state.setBlend(BLEND_TYPE.NONE);
+                    state.disable(gl.DEPTH_TEST);
                     // set draw side
-                    this.state.setCullFace(
+                    material = object.material;
+                    state.setCullFace(
                         (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
                     );
-                    this.state.setFlipSided(
+                    state.setFlipSided(
                         material.side === DRAW_SIDE.BACK
                     );
 
@@ -5335,6 +5182,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
+        var state = this.state;
 
         var ambientLights = this.cache.ambientLights;
         var directLights = this.cache.directLights;
@@ -5353,13 +5201,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            var program = zen3d.getProgram(gl, this, object, [
+            var program = zen3d.getProgram(gl, this, object.material, object, [
                 ambientLightsNum,
                 directLightsNum,
                 pointLightsNum,
                 spotLightsNum
             ], fog);
-            gl.useProgram(program.id);
+            state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
             this.setupVertexAttributes(program, geometry);
@@ -5680,24 +5528,24 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             // set blend
             if (material.transparent) {
-                this.state.setBlend(material.blending, material.premultipliedAlpha);
+                state.setBlend(material.blending, material.premultipliedAlpha);
             } else {
-                this.state.setBlend(BLEND_TYPE.NONE);
+                state.setBlend(BLEND_TYPE.NONE);
             }
 
             // set depth test
             if (material.depthTest) {
-                this.state.enable(gl.DEPTH_TEST);
-                this.state.depthMask(material.depthWrite);
+                state.enable(gl.DEPTH_TEST);
+                state.depthMask(material.depthWrite);
             } else {
-                this.state.disable(gl.DEPTH_TEST);
+                state.disable(gl.DEPTH_TEST);
             }
 
             // set draw side
-            this.state.setCullFace(
+            state.setCullFace(
                 (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
             );
-            this.state.setFlipSided(
+            state.setFlipSided(
                 material.side === DRAW_SIDE.BACK
             );
 
@@ -5705,13 +5553,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
             } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
-                this.state.setLineWidth(material.lineWidth);
+                state.setLineWidth(material.lineWidth);
                 gl.drawArrays(gl.LINE_STRIP, 0, geometry.getVerticesCount());
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
-                this.state.setLineWidth(material.lineWidth);
+                state.setLineWidth(material.lineWidth);
                 gl.drawArrays(gl.LINE_LOOP, 0, geometry.getVerticesCount());
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
-                this.state.setLineWidth(material.lineWidth);
+                state.setLineWidth(material.lineWidth);
                 gl.drawArrays(gl.LINES, 0, geometry.getVerticesCount());
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
@@ -5747,10 +5595,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
+        var state = this.state;
         var geometry = zen3d.Sprite.geometry;
+        var material = sprites[0].material;
 
-        var program = zen3d.getSpriteProgram(gl, this);
-        gl.useProgram(program.id);
+        var program = zen3d.getProgram(gl, this, material);
+        state.setProgram(program);
 
         // bind a shared geometry
         this.geometry.setGeometry(geometry);
@@ -5823,24 +5673,24 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             // set blend
             if (material.transparent) {
-                this.state.setBlend(material.blending, material.premultipliedAlpha);
+                state.setBlend(material.blending, material.premultipliedAlpha);
             } else {
-                this.state.setBlend(BLEND_TYPE.NONE);
+                state.setBlend(BLEND_TYPE.NONE);
             }
 
             // set depth test
             if (material.depthTest) {
-                this.state.enable(gl.DEPTH_TEST);
-                this.state.depthMask(material.depthWrite);
+                state.enable(gl.DEPTH_TEST);
+                state.depthMask(material.depthWrite);
             } else {
-                this.state.disable(gl.DEPTH_TEST);
+                state.disable(gl.DEPTH_TEST);
             }
 
             // set draw side
-            this.state.setCullFace(
+            state.setCullFace(
                 (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
             );
-            this.state.setFlipSided(
+            state.setFlipSided(
                 material.side === DRAW_SIDE.BACK
             );
 
@@ -5863,13 +5713,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         var camera = this.cache.camera;
         var gl = this.gl;
+        var state = this.state;
 
         for (var i = 0, l = particles.length; i < l; i++) {
             var particle = particles[i].object;
             var geometry = particles[i].geometry;
+            var material = particles[i].material;
 
-            var program = zen3d.getParticleProgram(gl, this);
-            gl.useProgram(program.id);
+            var program = zen3d.getProgram(gl, this, material);
+            state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
             this.setupVertexAttributes(program, geometry);
@@ -5890,11 +5742,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             this.texture.setTexture2D(particle.particleSpriteTex, slot);
             uniforms.tSprite.setValue(slot);
 
-            this.state.setBlend(BLEND_TYPE.ADD);
-            this.state.enable(gl.DEPTH_TEST);
-            this.state.depthMask(false);
-            this.state.setCullFace(CULL_FACE_TYPE.BACK);
-            this.state.setFlipSided(false);
+            state.setBlend(BLEND_TYPE.ADD);
+            state.enable(gl.DEPTH_TEST);
+            state.depthMask(false);
+            state.setCullFace(CULL_FACE_TYPE.BACK);
+            state.setFlipSided(false);
 
             gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
 
@@ -6134,6 +5986,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 array.push({
                     object: object,
                     geometry: object.geometry,
+                    material: object.material,
                     z: helpVector3.z
                 });
                 break;
@@ -7260,6 +7113,36 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
 (function() {
     /**
+     * DepthMaterial
+     * @class
+     */
+    var DepthMaterial = function() {
+        DepthMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.DEPTH;
+    }
+
+    zen3d.inherit(DepthMaterial, zen3d.Material);
+
+    zen3d.DepthMaterial = DepthMaterial;
+})();
+(function() {
+    /**
+     * ParticleMaterial
+     * @class
+     */
+    var ParticleMaterial = function() {
+        ParticleMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.PARTICLE;
+    }
+
+    zen3d.inherit(ParticleMaterial, zen3d.Material);
+
+    zen3d.ParticleMaterial = ParticleMaterial;
+})();
+(function() {
+    /**
      * Object3D
      * @class
      */
@@ -8254,6 +8137,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.time = 0;
 
         this.type = zen3d.OBJECT_TYPE.PARTICLE;
+
+		this.material = new zen3d.ParticleMaterial();
     }
 
     zen3d.inherit(ParticleContainer, zen3d.Object3D);

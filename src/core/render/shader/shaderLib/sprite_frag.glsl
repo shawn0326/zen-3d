@@ -29,8 +29,7 @@ void main() {
             fogFactor = smoothstep( fogNear, fogFar, depth );
 
         } else {
-
-            const float LOG2 = 1.442695;
+            
             fogFactor = exp2( - fogDensity * fogDensity * depth * depth * LOG2 );
             fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );
 

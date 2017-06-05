@@ -48,6 +48,8 @@
 
         this.performance = new zen3d.Performance();
 
+        this.depthMaterial = new zen3d.DepthMaterial();
+
         // object cache
         this.cache = new zen3d.RenderCache();
 
@@ -136,6 +138,7 @@
      */
     Renderer.prototype.renderShadow = function() {
         var gl = this.gl;
+        var state = this.state;
 
         var lights = this.cache.shadowLights;
         for (var i = 0; i < lights.length; i++) {
@@ -159,7 +162,7 @@
 
                 this.setRenderTarget(shadowTarget);
 
-                this.state.clearColor(1, 1, 1, 1);
+                state.clearColor(1, 1, 1, 1);
                 this.clear(true, true);
 
                 if (renderList.length == 0) {
@@ -168,11 +171,11 @@
 
                 for (var n = 0, l = renderList.length; n < l; n++) {
                     var object = renderList[n];
-                    var material = object.material;
+                    var material = this.depthMaterial;
                     var geometry = object.geometry;
 
-                    var program = zen3d.getDepthProgram(gl, this, object);
-                    gl.useProgram(program.id);
+                    var program = zen3d.getProgram(gl, this, material, object);
+                    state.setProgram(program);
 
                     this.geometry.setGeometry(geometry);
                     this.setupVertexAttributes(program, geometry);
@@ -239,13 +242,14 @@
                         }
                     }
 
-                    this.state.setBlend(BLEND_TYPE.NONE);
-                    this.state.disable(gl.DEPTH_TEST);
+                    state.setBlend(BLEND_TYPE.NONE);
+                    state.disable(gl.DEPTH_TEST);
                     // set draw side
-                    this.state.setCullFace(
+                    material = object.material;
+                    state.setCullFace(
                         (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
                     );
-                    this.state.setFlipSided(
+                    state.setFlipSided(
                         material.side === DRAW_SIDE.BACK
                     );
 
@@ -267,6 +271,7 @@
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
+        var state = this.state;
 
         var ambientLights = this.cache.ambientLights;
         var directLights = this.cache.directLights;
@@ -285,13 +290,13 @@
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            var program = zen3d.getProgram(gl, this, object, [
+            var program = zen3d.getProgram(gl, this, object.material, object, [
                 ambientLightsNum,
                 directLightsNum,
                 pointLightsNum,
                 spotLightsNum
             ], fog);
-            gl.useProgram(program.id);
+            state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
             this.setupVertexAttributes(program, geometry);
@@ -612,24 +617,24 @@
 
             // set blend
             if (material.transparent) {
-                this.state.setBlend(material.blending, material.premultipliedAlpha);
+                state.setBlend(material.blending, material.premultipliedAlpha);
             } else {
-                this.state.setBlend(BLEND_TYPE.NONE);
+                state.setBlend(BLEND_TYPE.NONE);
             }
 
             // set depth test
             if (material.depthTest) {
-                this.state.enable(gl.DEPTH_TEST);
-                this.state.depthMask(material.depthWrite);
+                state.enable(gl.DEPTH_TEST);
+                state.depthMask(material.depthWrite);
             } else {
-                this.state.disable(gl.DEPTH_TEST);
+                state.disable(gl.DEPTH_TEST);
             }
 
             // set draw side
-            this.state.setCullFace(
+            state.setCullFace(
                 (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
             );
-            this.state.setFlipSided(
+            state.setFlipSided(
                 material.side === DRAW_SIDE.BACK
             );
 
@@ -637,13 +642,13 @@
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
                 gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
             } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
-                this.state.setLineWidth(material.lineWidth);
+                state.setLineWidth(material.lineWidth);
                 gl.drawArrays(gl.LINE_STRIP, 0, geometry.getVerticesCount());
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
-                this.state.setLineWidth(material.lineWidth);
+                state.setLineWidth(material.lineWidth);
                 gl.drawArrays(gl.LINE_LOOP, 0, geometry.getVerticesCount());
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
-                this.state.setLineWidth(material.lineWidth);
+                state.setLineWidth(material.lineWidth);
                 gl.drawArrays(gl.LINES, 0, geometry.getVerticesCount());
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
@@ -679,10 +684,12 @@
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
+        var state = this.state;
         var geometry = zen3d.Sprite.geometry;
+        var material = sprites[0].material;
 
-        var program = zen3d.getSpriteProgram(gl, this);
-        gl.useProgram(program.id);
+        var program = zen3d.getProgram(gl, this, material);
+        state.setProgram(program);
 
         // bind a shared geometry
         this.geometry.setGeometry(geometry);
@@ -755,24 +762,24 @@
 
             // set blend
             if (material.transparent) {
-                this.state.setBlend(material.blending, material.premultipliedAlpha);
+                state.setBlend(material.blending, material.premultipliedAlpha);
             } else {
-                this.state.setBlend(BLEND_TYPE.NONE);
+                state.setBlend(BLEND_TYPE.NONE);
             }
 
             // set depth test
             if (material.depthTest) {
-                this.state.enable(gl.DEPTH_TEST);
-                this.state.depthMask(material.depthWrite);
+                state.enable(gl.DEPTH_TEST);
+                state.depthMask(material.depthWrite);
             } else {
-                this.state.disable(gl.DEPTH_TEST);
+                state.disable(gl.DEPTH_TEST);
             }
 
             // set draw side
-            this.state.setCullFace(
+            state.setCullFace(
                 (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
             );
-            this.state.setFlipSided(
+            state.setFlipSided(
                 material.side === DRAW_SIDE.BACK
             );
 
@@ -795,13 +802,15 @@
 
         var camera = this.cache.camera;
         var gl = this.gl;
+        var state = this.state;
 
         for (var i = 0, l = particles.length; i < l; i++) {
             var particle = particles[i].object;
             var geometry = particles[i].geometry;
+            var material = particles[i].material;
 
-            var program = zen3d.getParticleProgram(gl, this);
-            gl.useProgram(program.id);
+            var program = zen3d.getProgram(gl, this, material);
+            state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
             this.setupVertexAttributes(program, geometry);
@@ -822,11 +831,11 @@
             this.texture.setTexture2D(particle.particleSpriteTex, slot);
             uniforms.tSprite.setValue(slot);
 
-            this.state.setBlend(BLEND_TYPE.ADD);
-            this.state.enable(gl.DEPTH_TEST);
-            this.state.depthMask(false);
-            this.state.setCullFace(CULL_FACE_TYPE.BACK);
-            this.state.setFlipSided(false);
+            state.setBlend(BLEND_TYPE.ADD);
+            state.enable(gl.DEPTH_TEST);
+            state.depthMask(false);
+            state.setCullFace(CULL_FACE_TYPE.BACK);
+            state.setFlipSided(false);
 
             gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
 

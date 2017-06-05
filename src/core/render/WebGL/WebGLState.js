@@ -46,6 +46,8 @@
         this.currentDepthMask = true;
 
         this.currentLineWidth = null;
+
+        this.currentProgram = null;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -224,6 +226,13 @@
                 this.gl.lineWidth(width);
             }
             this.currentLineWidth = width;
+        }
+    }
+
+    WebGLState.prototype.setProgram = function(program) {
+        if(this.currentProgram !== program) {
+            this.gl.useProgram(program.id);
+            this.currentProgram = program;
         }
     }
 

@@ -48,6 +48,8 @@
         this.time = 0;
 
         this.type = zen3d.OBJECT_TYPE.PARTICLE;
+
+		this.material = new zen3d.ParticleMaterial();
     }
 
     zen3d.inherit(ParticleContainer, zen3d.Object3D);
