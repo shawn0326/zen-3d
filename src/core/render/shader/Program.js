@@ -147,109 +147,88 @@
      * create program
      */
     function createProgram(gl, props, vertexCode, fragmentCode) {
-
-        var basic = props.materialType == MATERIAL_TYPE.BASIC;
-        var cube = props.materialType == MATERIAL_TYPE.CUBE;
-        var dashed = props.materialType == MATERIAL_TYPE.LINE_DASHED;
-        var canvas2d = props.materialType == MATERIAL_TYPE.CANVAS2D;
-        var sprite = props.materialType == MATERIAL_TYPE.SPRITE;
-        var particle = props.materialType == MATERIAL_TYPE.PARTICLE;
-        var depth = props.materialType == MATERIAL_TYPE.DEPTH;
-        var custom = props.materialType == MATERIAL_TYPE.SHADER;
-
+        // vertexCode & fragmentCode
         var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || props.vertexShader || zen3d.ShaderLib.basic_vert;
         var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || props.fragmentShader || zen3d.ShaderLib.basic_frag;
-
         vertex = parseIncludes(vertex);
         fragment = parseIncludes(fragment);
 
-        var vshader_define, fshader_define;
-        if (basic) {
-            vshader_define = [
-                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : '',
-                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
+        // create defines
+        var vshader_define = [
+            ''
+        ],
+        fshader_define = [
+            '#define LOG2 1.442695',
+            '#define saturate(a) clamp( a, 0.0, 1.0 )',
+            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )'
+        ];
+        switch (props.materialType) {
+            case MATERIAL_TYPE.CUBE:
+            case MATERIAL_TYPE.CANVAS2D:
+            case MATERIAL_TYPE.SPRITE:
+            case MATERIAL_TYPE.PARTICLE:
+            case MATERIAL_TYPE.SHADER:
+                break;
+            case MATERIAL_TYPE.LAMBERT:
+            case MATERIAL_TYPE.PHONG:
+            case MATERIAL_TYPE.POINT:
+                vshader_define.push((props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '');
+                vshader_define.push((props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '');
+                vshader_define.push((props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '');
+                vshader_define.push((props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '');
+                vshader_define.push((props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '');
+                vshader_define.push((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '');
+                vshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '');
+                vshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '');
+                vshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '');
 
-                props.useSkinning ? '#define USE_SKINNING' : '',
-                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
-                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
-            ].join("\n");
-            fshader_define = [
-                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : '',
-                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
-                props.fog ? '#define USE_FOG' : '',
-                props.fogExp2 ? '#define USE_EXP2_FOG' : ''
-            ].join("\n");
-        } else if (cube || dashed || canvas2d || sprite || particle || custom) {
-            vshader_define = [
-                ""
-            ].join("\n");
-            fshader_define = [
-                props.fog ? '#define USE_FOG' : '',
-                props.fogExp2 ? '#define USE_EXP2_FOG' : ''
-            ].join("\n");
-        } else if(depth) {
-            vshader_define = [
-                props.useSkinning ? '#define USE_SKINNING' : '',
-                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
-                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
-            ].join("\n");
-            fshader_define = [
-                ""
-            ].join("\n");
-            console.log(fshader_define)
-        } else {
-            vshader_define = [
-                (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-                (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
-                (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-                (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
-                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : '',
-                props.useShadow ? '#define USE_SHADOW' : '',
+                vshader_define.push(props.useShadow ? '#define USE_SHADOW' : '');
 
-                props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
-                props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
+                vshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
+                vshader_define.push(props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '');
 
-                props.useSkinning ? '#define USE_SKINNING' : '',
-                (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
-                props.useVertexTexture ? '#define BONE_TEXTURE' : ''
-            ].join("\n");
-            fshader_define = [
-                (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-                (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
-                (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
-                (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-                (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-                ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
-                props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
-                props.useEnvMap ? '#define USE_ENV_MAP' : '',
-                props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
-                props.useShadow ? '#define USE_SHADOW' : '',
-                props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
-                props.fog ? '#define USE_FOG' : '',
-                props.fogExp2 ? '#define USE_EXP2_FOG' : '',
-                props.flatShading ? '#define FLAT_SHADED' : '',
+                fshader_define.push((props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '');
+                fshader_define.push((props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '');
+                fshader_define.push((props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '');
+                fshader_define.push((props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '');
+                fshader_define.push((props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '');
+                fshader_define.push((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '');
+                fshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '');
+                fshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '');
+                fshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '');
 
-                props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-                props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : ''
-            ].join("\n");
+                fshader_define.push(props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '');
+                fshader_define.push(props.useShadow ? '#define USE_SHADOW' : '');
+                fshader_define.push(props.flatShading ? '#define FLAT_SHADED' : '');
+
+                fshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
+                fshader_define.push(props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '');
+            case MATERIAL_TYPE.BASIC:
+            case MATERIAL_TYPE.LINE_BASIC:
+                vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
+                vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
+
+                vshader_define.push(props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '');
+
+                fshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
+                fshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
+                fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
+            case MATERIAL_TYPE.DEPTH:
+                vshader_define.push(props.useSkinning ? '#define USE_SKINNING' : '');
+                vshader_define.push((props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '');
+                vshader_define.push(props.useVertexTexture ? '#define BONE_TEXTURE' : '');
+            case MATERIAL_TYPE.LINE_DASHED:
+                fshader_define.push(props.fog ? '#define USE_FOG' : '');
+                fshader_define.push(props.fogExp2 ? '#define USE_EXP2_FOG' : '');
+                break;
+            default:
+                break;
         }
 
         var vshader = [
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
-            vshader_define,
+            vshader_define.join("\n"),
             vertex
         ].join("\n");
 
@@ -257,10 +236,7 @@
             '#extension GL_OES_standard_derivatives : enable',
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
-            fshader_define,
-            '#define LOG2 1.442695',
-            '#define saturate(a) clamp( a, 0.0, 1.0 )',
-            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
+            fshader_define.join("\n"),
             fragment
         ].join("\n");
 
