@@ -89,9 +89,9 @@
 	        earth_mat.diffuse.setHex(0xffffff);
 			earth_mat.diffuseMap = diff_tex;
 			earth_mat.bumpMap = bump_tex;
-			earth_mat.bumpScale = -0.5;
+			earth_mat.bumpScale = -1;
 			earth_mat.specularMap = spec_tex;
-			earth_mat.specular.setHex(0x909090);
+			earth_mat.specular.setHex(0xc9c9c9);
 			earth_mat.shininess = 5;
 			// earth_mat.premultipliedAlpha = true;
 
@@ -112,7 +112,7 @@
 			glow_mat.blending = zen3d.BLEND_TYPE.ADD;
 
 			var glow = new zen3d.Mesh(glow_geo, glow_mat);
-			glow.scale.set(1.7, 1.7, 1.7);
+			glow.scale.set(1.8, 1.8, 1.8);
 			scene.add(glow);
 
 	        var earth = new zen3d.Mesh(earth_geo, earth_mat);
@@ -148,7 +148,7 @@
 			spotLight.quaternion.setFromUnitVectors(originVec, posToTarget);
 
 	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 0, 25);
+	        camera.position.set(0, 0, 20);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 1000);
 	        scene.add(camera);
@@ -161,9 +161,9 @@
 				// camera.position.x = 60 * Math.sin(count / 1000 * .5);
 				// camera.position.z = 60 * Math.cos(count / 1000 * .5);
 				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-				earth.euler.set(0, count / 1000 * .15, 0);
-				cloud1.euler.set(0, count / 1000 * .12, 0);
-				cloud2.euler.set(0, count / 1000 * .08, Math.PI);
+				earth.euler.set(0, count / 1000 * .10, 0);
+				cloud1.euler.set(0, count / 1000 * .13, 0);
+				cloud2.euler.set(0, count / 1000 * .15, Math.PI);
 
 	            renderer.render(scene, camera);
 	        }
