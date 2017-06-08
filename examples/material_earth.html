@@ -63,12 +63,17 @@
 	<script>
 
 		(function() {
+			var useDevicePixelRatio = true;
+			var devicePixelRatio = window.devicePixelRatio;
+
 			var width = window.innerWidth || 2;
 	        var height = window.innerHeight || 2;
 
 	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
+	        canvas.width = useDevicePixelRatio ? width * devicePixelRatio : width;
+	        canvas.height = useDevicePixelRatio ? height * devicePixelRatio : height;
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
@@ -89,7 +94,7 @@
 	        earth_mat.diffuse.setHex(0xffffff);
 			earth_mat.diffuseMap = diff_tex;
 			earth_mat.bumpMap = bump_tex;
-			earth_mat.bumpScale = -1;
+			earth_mat.bumpScale = -0.8;
 			earth_mat.specularMap = spec_tex;
 			earth_mat.specular.setHex(0xc9c9c9);
 			earth_mat.shininess = 5;
@@ -162,8 +167,8 @@
 				// camera.position.z = 60 * Math.cos(count / 1000 * .5);
 				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 				earth.euler.set(0, count / 1000 * .10, 0);
-				cloud1.euler.set(0, count / 1000 * .13, 0);
-				cloud2.euler.set(0, count / 1000 * .15, Math.PI);
+				cloud1.euler.set(0, count / 1000 * .14, 0);
+				cloud2.euler.set(0, count / 1000 * .18, Math.PI);
 
 	            renderer.render(scene, camera);
 	        }
@@ -176,7 +181,9 @@
 
 				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-				renderer.resize(width, height);
+				renderer.resize(useDevicePixelRatio ? width * devicePixelRatio : width, useDevicePixelRatio ? height * devicePixelRatio : height);
+				canvas.style.width = width + "px";
+				canvas.style.height = height + "px";
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();
