@@ -5053,7 +5053,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 this.clear(true, true);
 
                 if (renderList.length == 0) {
-                    return;
+                    continue;
                 }
 
                 for (var n = 0, l = renderList.length; n < l; n++) {

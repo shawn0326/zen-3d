@@ -166,7 +166,7 @@
                 this.clear(true, true);
 
                 if (renderList.length == 0) {
-                    return;
+                    continue;
                 }
 
                 for (var n = 0, l = renderList.length; n < l; n++) {
