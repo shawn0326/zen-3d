@@ -52,6 +52,7 @@
 	        var scene = new zen3d.Scene();
 
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			texture.anisotropy = renderer.capabilities.maxAnisotropy;
 
 			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
 			var phong = new zen3d.PhongMaterial();

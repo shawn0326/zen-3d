@@ -30,13 +30,15 @@
         var ext = null;
         for (var i in vendorPrefixes) {
             ext = gl.getExtension(vendorPrefixes[i] + name);
-            if (ext) { break; }
+            if (ext) {
+                break;
+            }
         }
         return ext;
     }
 
     var WebGLCapabilities = function(gl) {
-        this.version = parseFloat( /^WebGL\ ([0-9])/.exec( gl.getParameter( gl.VERSION ) )[ 1 ] );
+        this.version = parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]);
 
         this.precision = "highp";
 
@@ -52,6 +54,10 @@
         this.maxVertexUniformVectors = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
 
         this.floatTextures = !!getExtension(gl, 'OES_texture_float');
+
+        this.anisotropyExt = getExtension(gl, 'EXT_texture_filter_anisotropic');
+
+        this.maxAnisotropy = (this.anisotropyExt !== null) ? gl.getParameter(this.anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
 
         // use dfdx and dfdy must enable OES_standard_derivatives
         var ext = getExtension(gl, "OES_standard_derivatives");

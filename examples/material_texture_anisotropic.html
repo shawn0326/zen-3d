@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - anisotropic</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - anisotropic
+        <br/>
+        touch screen to toggle anisotropy
+		<br/>
+		<span id="anisotropyValue"></span>
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			texture.wrapT = texture.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+			texture.anisotropy = renderer.capabilities.maxAnisotropy;
+
+			var texture2 = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			texture2.wrapT = texture2.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+
+	        var plane_geometry = new zen3d.PlaneGeometry(1000, 1000);
+			for(var i = 0; i < 4; i++) {
+				plane_geometry.verticesArray[13 + i * 17] *= 20;
+				plane_geometry.verticesArray[14 + i * 17] *= 20;
+			}
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.diffuse.setHex(0xffffff);
+			lambert.diffuseMap = texture2;
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        plane.position.y = -10;
+	        scene.add(plane);
+
+	        var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xffffff);
+	        ambientLight.intensity = 1;
+	        scene.add(ambientLight);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 25, 100);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+			// input
+
+			var msg = document.getElementById("anisotropyValue");
+
+			msg.innerText = "anisotropy filter: disable";
+
+			function toggleAnisotropy(addVer) {
+				if(lambert.diffuseMap == texture) {
+					lambert.diffuseMap = texture2;
+					msg.innerText = "anisotropy filter: disable";
+				} else {
+					lambert.diffuseMap = texture;
+					msg.innerText = "anisotropy filter: x" + renderer.capabilities.maxAnisotropy;
+				}
+			}
+
+			document.addEventListener("mouseup", toggleAnisotropy);
+			document.addEventListener("touchend", toggleAnisotropy);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 100 * Math.sin(count / 1000 * .2);
+				camera.position.z = 100 * Math.cos(count / 1000 * .2);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

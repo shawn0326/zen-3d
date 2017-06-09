@@ -22,6 +22,8 @@
         this.wrapS = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
         this.wrapT = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
+        this.anisotropy = 1;
+
         this.generateMipmaps = true;
 
         this.version = 0;

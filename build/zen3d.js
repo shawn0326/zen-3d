@@ -3367,13 +3367,15 @@
         var ext = null;
         for (var i in vendorPrefixes) {
             ext = gl.getExtension(vendorPrefixes[i] + name);
-            if (ext) { break; }
+            if (ext) {
+                break;
+            }
         }
         return ext;
     }
 
     var WebGLCapabilities = function(gl) {
-        this.version = parseFloat( /^WebGL\ ([0-9])/.exec( gl.getParameter( gl.VERSION ) )[ 1 ] );
+        this.version = parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]);
 
         this.precision = "highp";
 
@@ -3389,6 +3391,10 @@
         this.maxVertexUniformVectors = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
 
         this.floatTextures = !!getExtension(gl, 'OES_texture_float');
+
+        this.anisotropyExt = getExtension(gl, 'EXT_texture_filter_anisotropic');
+
+        this.maxAnisotropy = (this.anisotropyExt !== null) ? gl.getParameter(this.anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
 
         // use dfdx and dfdy must enable OES_standard_derivatives
         var ext = getExtension(gl, "OES_standard_derivatives");
@@ -3890,7 +3896,12 @@
                 console.warn('Texture is not power of two. Texture.minFilter and Texture.magFilter should be set to zen3d.TEXTURE_FILTER.NEAREST or zen3d.TEXTURE_FILTER.LINEAR.', texture);
             }
         }
-        // TODO EXT_texture_filter_anisotropic
+
+        // EXT_texture_filter_anisotropic
+        var extension = this.capabilities.anisotropyExt;
+        if(extension && texture.anisotropy > 1) {
+            gl.texParameterf( textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(texture.anisotropy, this.capabilities.maxAnisotropy));
+        }
     }
 
     WebGLTexture.prototype.setRenderTarget2D = function(renderTarget) {
@@ -6721,6 +6732,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.wrapS = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
         this.wrapT = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+
+        this.anisotropy = 1;
 
         this.generateMipmaps = true;
 

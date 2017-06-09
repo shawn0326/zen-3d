@@ -225,7 +225,12 @@
                 console.warn('Texture is not power of two. Texture.minFilter and Texture.magFilter should be set to zen3d.TEXTURE_FILTER.NEAREST or zen3d.TEXTURE_FILTER.LINEAR.', texture);
             }
         }
-        // TODO EXT_texture_filter_anisotropic
+
+        // EXT_texture_filter_anisotropic
+        var extension = this.capabilities.anisotropyExt;
+        if(extension && texture.anisotropy > 1) {
+            gl.texParameterf( textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(texture.anisotropy, this.capabilities.maxAnisotropy));
+        }
     }
 
     WebGLTexture.prototype.setRenderTarget2D = function(renderTarget) {

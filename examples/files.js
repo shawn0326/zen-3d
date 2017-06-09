@@ -14,6 +14,7 @@ var files = {
 		"material_texture_emissivemap",
 		"material_texture_bumpmap",
 		"material_texture_mipmap",
+		"material_texture_anisotropic",
 		"material_cubetexture_skybox",
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",

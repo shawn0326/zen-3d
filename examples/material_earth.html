@@ -86,6 +86,7 @@
 			var glow_geo = new zen3d.SphereGeometry(5, 40, 40);
 
 			var diff_tex = zen3d.Texture2D.fromSrc("resources/earth4.jpg");
+			// diff_tex.anisotropy = renderer.capabilities.maxAnisotropy;
 			var bump_tex = zen3d.Texture2D.fromSrc("resources/earth_bump.jpg");
 			var spec_tex = zen3d.Texture2D.fromSrc("resources/earth_spec.jpg");
 			var cloud_tex = zen3d.Texture2D.fromSrc("resources/earth_cloud.png");
