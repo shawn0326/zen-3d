@@ -46,6 +46,10 @@
 
         // shading type: SMOOTH_SHADING, FLAT_SHADING
         this.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+
+        // use light
+        // if use light, renderer will try to upload light uniforms
+        this.acceptLight = false;
     }
 
     zen3d.Material = Material;

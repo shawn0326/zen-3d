@@ -7,6 +7,10 @@
         DepthMaterial.superClass.constructor.call(this);
 
         this.type = zen3d.MATERIAL_TYPE.DEPTH;
+
+        this.blending = zen3d.BLEND_TYPE.NONE;
+
+        this.depthTest = false;
     }
 
     zen3d.inherit(DepthMaterial, zen3d.Material);

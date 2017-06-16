@@ -5140,16 +5140,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         }
                     }
 
-                    state.setBlend(BLEND_TYPE.NONE);
-                    state.disable(gl.DEPTH_TEST);
-                    // set draw side
-                    material = object.material;
-                    state.setCullFace(
-                        (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
-                    );
-                    state.setFlipSided(
-                        material.side === DRAW_SIDE.BACK
-                    );
+                    // copy draw side
+                    material.side = object.material.side;
+
+                    this.setStates(material);
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
@@ -5382,8 +5376,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             }
 
             /////////////////light
-            // only lambert & phong material support light
-            if (material.type === MATERIAL_TYPE.LAMBERT || material.type === MATERIAL_TYPE.PHONG) {
+            if (material.acceptLight) {
                 for (var k = 0; k < ambientLightsNum; k++) {
                     var light = ambientLights[k];
 
@@ -5513,28 +5506,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             }
             ///////
 
-            // set blend
-            if (material.transparent) {
-                state.setBlend(material.blending, material.premultipliedAlpha);
-            } else {
-                state.setBlend(BLEND_TYPE.NONE);
-            }
-
-            // set depth test
-            if (material.depthTest) {
-                state.enable(gl.DEPTH_TEST);
-                state.depthMask(material.depthWrite);
-            } else {
-                state.disable(gl.DEPTH_TEST);
-            }
-
-            // set draw side
-            state.setCullFace(
-                (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
-            );
-            state.setFlipSided(
-                material.side === DRAW_SIDE.BACK
-            );
+            this.setStates(material);
 
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
@@ -5658,28 +5630,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             uniforms.rotation.setValue(material.rotation);
             uniforms.scale.setValue(scale[0], scale[1]);
 
-            // set blend
-            if (material.transparent) {
-                state.setBlend(material.blending, material.premultipliedAlpha);
-            } else {
-                state.setBlend(BLEND_TYPE.NONE);
-            }
-
-            // set depth test
-            if (material.depthTest) {
-                state.enable(gl.DEPTH_TEST);
-                state.depthMask(material.depthWrite);
-            } else {
-                state.disable(gl.DEPTH_TEST);
-            }
-
-            // set draw side
-            state.setCullFace(
-                (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
-            );
-            state.setFlipSided(
-                material.side === DRAW_SIDE.BACK
-            );
+            this.setStates(material);
 
             var slot = this.allocTexUnit();
             this.texture.setTexture2D(material.diffuseMap, slot);
@@ -5729,16 +5680,43 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             this.texture.setTexture2D(particle.particleSpriteTex, slot);
             uniforms.tSprite.setValue(slot);
 
-            state.setBlend(BLEND_TYPE.ADD);
-            state.enable(gl.DEPTH_TEST);
-            state.depthMask(false);
-            state.setCullFace(CULL_FACE_TYPE.BACK);
-            state.setFlipSided(false);
+            this.setStates(material);
 
             gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
 
             this._usedTextureUnits = 0;
         }
+    }
+
+    /**
+     * set states
+     */
+    Renderer.prototype.setStates = function(material) {
+        var gl = this.gl;
+        var state = this.state;
+
+        // set blend
+        if (material.transparent) {
+            state.setBlend(material.blending, material.premultipliedAlpha);
+        } else {
+            state.setBlend(BLEND_TYPE.NONE);
+        }
+
+        // set depth test
+        if (material.depthTest) {
+            state.enable(gl.DEPTH_TEST);
+            state.depthMask(material.depthWrite);
+        } else {
+            state.disable(gl.DEPTH_TEST);
+        }
+
+        // set draw side
+        state.setCullFace(
+            (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
+        );
+        state.setFlipSided(
+            material.side === DRAW_SIDE.BACK
+        );
     }
 
     /**
@@ -6921,6 +6899,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // shading type: SMOOTH_SHADING, FLAT_SHADING
         this.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+
+        // use light
+        // if use light, renderer will try to upload light uniforms
+        this.acceptLight = false;
     }
 
     zen3d.Material = Material;
@@ -6951,6 +6933,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         LambertMaterial.superClass.constructor.call(this);
 
         this.type = zen3d.MATERIAL_TYPE.LAMBERT;
+
+        this.acceptLight = true;
     }
 
     zen3d.inherit(LambertMaterial, zen3d.Material);
@@ -6972,6 +6956,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.shininess = 30;
         this.specular = new zen3d.Color3(0xffffff);
         this.specularMap = null;
+
+        this.acceptLight = true;
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);
@@ -7109,6 +7095,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         DepthMaterial.superClass.constructor.call(this);
 
         this.type = zen3d.MATERIAL_TYPE.DEPTH;
+
+        this.blending = zen3d.BLEND_TYPE.NONE;
+
+        this.depthTest = false;
     }
 
     zen3d.inherit(DepthMaterial, zen3d.Material);
@@ -7124,6 +7114,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         ParticleMaterial.superClass.constructor.call(this);
 
         this.type = zen3d.MATERIAL_TYPE.PARTICLE;
+
+        this.transparent = true;
+
+        this.blending = zen3d.BLEND_TYPE.ADD;
+
+        this.depthTest = true;
+        this.depthWrite = false;
     }
 
     zen3d.inherit(ParticleMaterial, zen3d.Material);

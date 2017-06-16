@@ -12,6 +12,8 @@
         this.shininess = 30;
         this.specular = new zen3d.Color3(0xffffff);
         this.specularMap = null;
+
+        this.acceptLight = true;
     }
 
     zen3d.inherit(PhongMaterial, zen3d.Material);
