@@ -148,61 +148,6 @@
 	}
     zen3d.nextPowerOfTwo = nextPowerOfTwo;
 
-    /**
-     * require image
-     */
-    var requireImage = function(url, sucCallback, errCallback) {
-        var image = new Image();
-
-        image.onload = function() {
-            sucCallback(image);
-        }
-        // TODO errCallback
-
-        image.src = url;
-    }
-
-    zen3d.requireImage = requireImage;
-
-    /**
-     * require http
-     *
-     * param :
-     * {
-     *   method: "GET"|"POST",
-     *   data: {},
-     *   parse: true|false
-     * }
-     *
-     */
-    var requireHttp = function(url, sucCallback, errCallback, param) {
-        var request = new XMLHttpRequest();
-
-        request.onreadystatechange = function(event) {
-
-            if(event.target.readyState == 4) {
-                var data = event.target.response;
-
-                if(param && param.parse) {
-                    data = JSON.parse(data);
-                }
-                // TODO errCallback
-                sucCallback(data);
-            }
-
-        };
-
-        if(param && param.method === "POST") {
-            request.open("POST", url, true);
-            request.send(param.data);
-        } else {
-            request.open("GET", url, true);
-            request.send();
-        }
-    }
-
-    zen3d.requireHttp = requireHttp;
-
 })(window);
 
 (function() {
@@ -6759,7 +6704,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
 		var isJPEG = src.search( /\.(jpg|jpeg)$/ ) > 0 || src.search( /^data\:image\/jpeg/ ) === 0;
 
-        zen3d.requireImage(src, function(image) {
+        var loader = new zen3d.ImageLoader();
+        loader.load(src, function(image) {
             texture.pixelFormat = isJPEG ? zen3d.WEBGL_PIXEL_FORMAT.RGB : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
             texture.image = image;
             texture.version++;
@@ -6816,7 +6762,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 loaded();
                 return;
             }
-            zen3d.requireImage(srcArray[count], next);
+            var loader = new zen3d.ImageLoader();
+            loader.load(srcArray[count], next);
         }
         next();
 
@@ -8650,17 +8597,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.texturePath = "./";
     }
 
-    AssimpJsonLoader.prototype.load = function(url, onLoad) {
+    AssimpJsonLoader.prototype.load = function(url, onLoad, onProgress, onError) {
         this.texturePath = this.extractUrlBase(url);
 
-        zen3d.requireHttp(url, function(json) {
+        var loader = new zen3d.FileLoader();
+        loader.setResponseType("json").load(url, function(json) {
             var result = this.parse(json);
             onLoad(result.object, result.animation);
-        }.bind(this), function() {
-            console.log("load assimp2json error!");
-        }, {
-            parse: true
-        });
+        }.bind(this), onProgress, onError);
     }
 
     AssimpJsonLoader.prototype.parseNodeTree = function(node) {
@@ -9146,6 +9090,192 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.AssimpJsonLoader = AssimpJsonLoader;
+})();
+(function() {
+    /**
+     * FileLoader
+     * @class
+     * Loader for file
+     */
+    var FileLoader = function() {
+        this.path = undefined;
+        this.responseType = undefined;
+        this.withCredentials = undefined;
+        this.mimeType = undefined;
+        this.requestHeader = undefined;
+    }
+
+    FileLoader.prototype.load = function(url, onLoad, onProgress, onError) {
+        if (url === undefined) url = '';
+        if (this.path != undefined) url = this.path + url;
+
+        // Check for data: URI
+        var dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
+        var dataUriRegexResult = url.match(dataUriRegex);
+
+        if (dataUriRegexResult) { // Safari can not handle Data URIs through XMLHttpRequest so process manually
+            var mimeType = dataUriRegexResult[1];
+            var isBase64 = !!dataUriRegexResult[2];
+            var data = dataUriRegexResult[3];
+            data = window.decodeURIComponent(data);
+            if (isBase64) data = window.atob(data); // decode base64
+            try {
+                var response;
+                var responseType = (this.responseType || '').toLowerCase();
+                switch (responseType) {
+                    case 'arraybuffer':
+                    case 'blob':
+                        response = new ArrayBuffer(data.length);
+                        var view = new Uint8Array(response);
+                        for (var i = 0; i < data.length; i++) {
+                            view[i] = data.charCodeAt(i);
+                        }
+                        if (responseType === 'blob') {
+                            response = new Blob([response], {
+                                type: mimeType
+                            });
+                        }
+                        break;
+                    case 'document':
+                        var parser = new DOMParser();
+                        response = parser.parseFromString(data, mimeType);
+                        break;
+                    case 'json':
+                        response = JSON.parse(data);
+                        break;
+                    default: // 'text' or other
+                        response = data;
+                        break;
+                }
+
+                // Wait for next browser tick
+                window.setTimeout(function() {
+                    if (onLoad) onLoad(response);
+                }, 0);
+            } catch (error) {
+                // Wait for next browser tick
+                window.setTimeout(function() {
+                    onError && onError(error);
+                }, 0);
+            }
+        } else {
+            var request = new XMLHttpRequest();
+            request.open('GET', url, true);
+
+            request.addEventListener('load', function(event) {
+                var response = event.target.response;
+                if (this.status === 200) {
+                    if (onLoad) onLoad(response);
+                } else if (this.status === 0) {
+                    // Some browsers return HTTP Status 0 when using non-http protocol
+                    // e.g. 'file://' or 'data://'. Handle as success.
+                    console.warn('THREE.FileLoader: HTTP Status 0 received.');
+                    if (onLoad) onLoad(response);
+                } else {
+                    if (onError) onError(event);
+                }
+            }, false);
+
+            if (onProgress !== undefined) {
+                request.addEventListener('progress', function(event) {
+                    onProgress(event);
+                }, false);
+            }
+
+            if (onError !== undefined) {
+                request.addEventListener('error', function(event) {
+                    onError(event);
+                }, false);
+            }
+
+            if (this.responseType !== undefined) request.responseType = this.responseType;
+            if (this.withCredentials !== undefined) request.withCredentials = this.withCredentials;
+            if (request.overrideMimeType) request.overrideMimeType(this.mimeType !== undefined ? this.mimeType : 'text/plain');
+            for (var header in this.requestHeader) {
+                request.setRequestHeader(header, this.requestHeader[header]);
+            }
+
+            request.send(null);
+        }
+    }
+
+    FileLoader.prototype.setPath = function(value) {
+        this.path = value;
+        return this;
+    }
+
+    FileLoader.prototype.setResponseType = function(value) {
+        this.responseType = value;
+        return this;
+    }
+
+    // Access-Control-Allow-Credentials: true
+    FileLoader.prototype.setWithCredentials = function(value) {
+        this.withCredentials = value;
+        return this;
+    }
+
+    FileLoader.prototype.setMimeType = function(value) {
+        this.mimeType = value;
+        return this;
+    }
+
+    FileLoader.prototype.setRequestHeader = function(value) {
+        this.requestHeader = value;
+        return this;
+    }
+
+    zen3d.FileLoader = FileLoader;
+})();
+(function() {
+    /**
+     * ImageLoader
+     * @class
+     * Loader for image
+     */
+    var ImageLoader = function() {
+        this.crossOrigin = undefined;
+        this.path = undefined;
+    }
+
+    ImageLoader.prototype.load = function(url, onLoad, onProgress, onError) {
+        if (url === undefined) url = '';
+        if (this.path !== undefined) url = this.path + url;
+
+        var image = document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
+
+        image.addEventListener('load', function() {
+            if (onLoad) onLoad(this);
+        }, false);
+
+        // image.addEventListener('progress', function(event) {
+        //     if (onProgress) onProgress(event);
+        // }, false);
+
+        image.addEventListener('error', function(event) {
+            if (onError) onError(event);
+        }, false);
+
+        if (url.substr(0, 5) !== 'data:') {
+            if (this.crossOrigin !== undefined) image.crossOrigin = this.crossOrigin;
+        }
+
+        image.src = url;
+
+        return image;
+    }
+
+    ImageLoader.prototype.setCrossOrigin = function(value) {
+        this.crossOrigin = value;
+        return this;
+    }
+
+    ImageLoader.prototype.setPath = function(value) {
+        this.path = value;
+        return this;
+    }
+
+    zen3d.ImageLoader = ImageLoader;
 })();
 (function() {
     var Performance = function() {

@@ -44,7 +44,8 @@
                 loaded();
                 return;
             }
-            zen3d.requireImage(srcArray[count], next);
+            var loader = new zen3d.ImageLoader();
+            loader.load(srcArray[count], next);
         }
         next();
 

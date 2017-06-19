@@ -13,17 +13,14 @@
         this.texturePath = "./";
     }
 
-    AssimpJsonLoader.prototype.load = function(url, onLoad) {
+    AssimpJsonLoader.prototype.load = function(url, onLoad, onProgress, onError) {
         this.texturePath = this.extractUrlBase(url);
 
-        zen3d.requireHttp(url, function(json) {
+        var loader = new zen3d.FileLoader();
+        loader.setResponseType("json").load(url, function(json) {
             var result = this.parse(json);
             onLoad(result.object, result.animation);
-        }.bind(this), function() {
-            console.log("load assimp2json error!");
-        }, {
-            parse: true
-        });
+        }.bind(this), onProgress, onError);
     }
 
     AssimpJsonLoader.prototype.parseNodeTree = function(node) {

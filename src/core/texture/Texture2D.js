@@ -29,7 +29,8 @@
         // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
 		var isJPEG = src.search( /\.(jpg|jpeg)$/ ) > 0 || src.search( /^data\:image\/jpeg/ ) === 0;
 
-        zen3d.requireImage(src, function(image) {
+        var loader = new zen3d.ImageLoader();
+        loader.load(src, function(image) {
             texture.pixelFormat = isJPEG ? zen3d.WEBGL_PIXEL_FORMAT.RGB : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
             texture.image = image;
             texture.version++;
