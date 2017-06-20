@@ -16,6 +16,7 @@ var files = {
 		"material_texture_mipmap",
 		"material_texture_anisotropic",
 		"material_cubetexture_skybox",
+		"material_cubetexture_skybox_tga",
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",
 		"material_transparent",

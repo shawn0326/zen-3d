@@ -34,6 +34,8 @@
         // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
 		var isJPEG = src.search( /\.(jpg|jpeg)$/ ) > 0 || src.search( /^data\:image\/jpeg/ ) === 0;
 
+        var isTGA = src.search( /\.(tga)$/ ) > 0 || src.search( /^data\:image\/tga/ ) === 0;
+
         var count = 0;
         function next(image) {
             if(image) {
@@ -44,7 +46,7 @@
                 loaded();
                 return;
             }
-            var loader = new zen3d.ImageLoader();
+            var loader = isTGA ? new zen3d.TGALoader() : new zen3d.ImageLoader();
             loader.load(srcArray[count], next);
         }
         next();

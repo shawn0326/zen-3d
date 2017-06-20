@@ -138,6 +138,7 @@ var filesSrc = [
     "core/loader/AssimpJsonLoader.js",
     "core/loader/FileLoader.js",
     "core/loader/ImageLoader.js",
+    "core/loader/TGALoader.js",
 
     //performance
     "core/Performance.js",

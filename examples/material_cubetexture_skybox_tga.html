@@ -46,12 +46,12 @@
 			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
 			var sky_material = new zen3d.CubeMaterial();
 			var cube_texture = zen3d.TextureCube.fromSrc([
-			    "resources/skybox/right.jpg",
-			    "resources/skybox/left.jpg",
-			    "resources/skybox/up.jpg",
-			    "resources/skybox/down.jpg",
-			    "resources/skybox/back.jpg",
-			    "resources/skybox/front.jpg"
+			    "resources/mp_cloud9/cloud9_rt.tga",
+			    "resources/mp_cloud9/cloud9_lf.tga",
+				"resources/mp_cloud9/cloud9_up.tga",
+				"resources/mp_cloud9/cloud9_dn.tga",
+			    "resources/mp_cloud9/cloud9_bk.tga",
+			    "resources/mp_cloud9/cloud9_ft.tga"
 			]);
 			sky_material.cubeMap = cube_texture;
 			var sky_box = new zen3d.Mesh(sky_geom, sky_material);
