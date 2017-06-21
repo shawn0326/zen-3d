@@ -27,6 +27,7 @@
         "gulp-concat": "",
         "gulp-rename": "",
         "gulp-notify": "",
-        "gulp-watch": ""
+        "gulp-watch": "",
+        "gulp-qunit": ""
     }
 }

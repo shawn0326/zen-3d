@@ -5,6 +5,7 @@ var rename = require('gulp-rename');
 var notify = require('gulp-notify');
 var watch = require('gulp-watch');
 var shaderCompile = require("./tools/shaderCompiler.js");
+var qunit = require("gulp-qunit");
 // var jsdoc = require('gulp-jsdoc');
 
 // base dir of src
@@ -232,4 +233,9 @@ gulp.task("extension", function() {
     .pipe(uglify())
     .pipe(gulp.dest('build'))
     .pipe(notify({ message: 'extension postprocessing build success' }));
+});
+
+gulp.task('test', function() {
+    return gulp.src('./tests/index.html')
+        .pipe(qunit());
 });
