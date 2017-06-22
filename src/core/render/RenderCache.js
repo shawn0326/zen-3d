@@ -20,12 +20,24 @@
         this.particles = new Array();
 
         // lights
-        this.ambientLights = new Array();
-        this.directLights = new Array();
-        this.pointLights = new Array();
-        this.spotLights = new Array();
-
-        this.shadowLights = new Array();
+        this.lights = {
+            ambients: [],
+            directs: [],
+            points: [],
+            spots: [],
+            shadows: [],
+            ambientsNum: 0,
+            directsNum: 0,
+            pointsNum: 0,
+            spotsNum: 0,
+            shadowsNum: 0,
+            totalNum: 0
+        }
+        // this.ambientLights = new Array();
+        // this.directLights = new Array();
+        // this.pointLights = new Array();
+        // this.spotLights = new Array();
+        // this.shadowLights = new Array();
 
         // camera
         this.camera = null;
@@ -139,20 +151,27 @@
                 });
                 break;
             case OBJECT_TYPE.LIGHT:
+                var lights = this.lights;
                 if (object.lightType == LIGHT_TYPE.AMBIENT) {
-                    this.ambientLights.push(object);
+                    lights.ambients.push(object);
+                    lights.ambientsNum++;
                 } else if (object.lightType == LIGHT_TYPE.DIRECT) {
-                    this.directLights.push(object);
+                    lights.directs.push(object);
+                    lights.directsNum++;
                 } else if (object.lightType == LIGHT_TYPE.POINT) {
-                    this.pointLights.push(object);
+                    lights.points.push(object);
+                    lights.pointsNum++;
                 } else if (object.lightType == LIGHT_TYPE.SPOT) {
-                    this.spotLights.push(object);
+                    lights.spots.push(object);
+                    lights.spotsNum++;
                 }
 
                 if (object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
-                    this.shadowLights.push(object);
+                    lights.shadows.push(object);
+                    lights.shadowsNum++;
                 }
 
+                lights.totalNum++;
                 break;
             case OBJECT_TYPE.CAMERA:
                 // do nothing
@@ -227,12 +246,18 @@
 
         this.particles.length = 0;
 
-        this.ambientLights.length = 0;
-        this.directLights.length = 0;
-        this.pointLights.length = 0;
-        this.spotLights.length = 0;
-
-        this.shadowLights.length = 0;
+        var lights = this.lights;
+        lights.ambients.length = 0;
+        lights.directs.length = 0;
+        lights.points.length = 0;
+        lights.spots.length = 0;
+        lights.shadows.length = 0;
+        lights.ambientsNum = 0;
+        lights.directsNum = 0;
+        lights.pointsNum = 0;
+        lights.spotsNum = 0;
+        lights.shadowsNum = 0;
+        lights.totalNum = 0;
     }
 
     zen3d.RenderCache = RenderCache;

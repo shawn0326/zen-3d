@@ -4757,7 +4757,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     /**
      * get a suitable program by object & lights & fog
      */
-    var getProgram = function(gl, render, material, object, lightsNum, fog) {
+    var getProgram = function(gl, render, material, object, lights, fog) {
         var material = material || object.material;
 
         var props = {}; // cache this props?
@@ -4772,11 +4772,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             case MATERIAL_TYPE.POINT:
             case MATERIAL_TYPE.LINE_BASIC:
             case MATERIAL_TYPE.LINE_DASHED:
-                var ambientLightNum = lightsNum[0],
-                    directLightNum = lightsNum[1],
-                    pointLightNum = lightsNum[2],
-                    spotLightNum = lightsNum[3];
-
                 props.useDiffuseMap = !!material.diffuseMap;
                 props.useNormalMap = !!material.normalMap;
                 props.useBumpMap = !!material.bumpMap;
@@ -4784,10 +4779,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.useEnvMap = !!material.envMap;
                 props.useEmissiveMap = !!material.emissiveMap;
                 props.useDiffuseColor = !material.diffuseMap;
-                props.ambientLightNum = ambientLightNum;
-                props.directLightNum = directLightNum;
-                props.pointLightNum = pointLightNum;
-                props.spotLightNum = spotLightNum;
+                props.ambientLightNum = lights.ambientsNum;
+                props.directLightNum = lights.directsNum;
+                props.pointLightNum = lights.pointsNum;
+                props.spotLightNum = lights.spotsNum;
                 props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
                 props.useShadow = object.receiveShadow;
                 props.premultipliedAlpha = material.premultipliedAlpha;
@@ -4983,7 +4978,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var gl = this.gl;
         var state = this.state;
 
-        var lights = this.cache.shadowLights;
+        var lights = this.cache.lights.shadows;
         for (var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
@@ -5110,15 +5105,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var gl = this.gl;
         var state = this.state;
 
-        var ambientLights = this.cache.ambientLights;
-        var directLights = this.cache.directLights;
-        var pointLights = this.cache.pointLights;
-        var spotLights = this.cache.spotLights;
-        var ambientLightsNum = ambientLights.length;
-        var directLightsNum = directLights.length;
-        var pointLightsNum = pointLights.length;
-        var spotLightsNum = spotLights.length;
-        var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum + spotLightsNum;
+        var lights = this.cache.lights;
 
         for (var i = 0, l = renderList.length; i < l; i++) {
 
@@ -5127,12 +5114,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            var program = zen3d.getProgram(gl, this, object.material, object, [
-                ambientLightsNum,
-                directLightsNum,
-                pointLightsNum,
-                spotLightsNum
-            ], fog);
+            var program = zen3d.getProgram(gl, this, object.material, object, lights, fog);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -5322,8 +5304,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             /////////////////light
             if (material.acceptLight) {
-                for (var k = 0; k < ambientLightsNum; k++) {
-                    var light = ambientLights[k];
+                for (var k = 0; k < lights.ambientsNum; k++) {
+                    var light = lights.ambients[k];
 
                     var intensity = light.intensity;
                     var color = light.color;
@@ -5335,8 +5317,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 }
 
 
-                for (var k = 0; k < directLightsNum; k++) {
-                    var light = directLights[k];
+                for (var k = 0; k < lights.directsNum; k++) {
+                    var light = lights.directs[k];
 
                     var intensity = light.intensity;
                     light.getWorldDirection(helpVector3);
@@ -5366,8 +5348,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 }
 
-                for (var k = 0; k < pointLightsNum; k++) {
-                    var light = pointLights[k];
+                for (var k = 0; k < lights.pointsNum; k++) {
+                    var light = lights.points[k];
 
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
 
@@ -5399,8 +5381,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
                 }
 
-                for (var k = 0; k < spotLightsNum; k++) {
-                    var light = spotLights[k];
+                for (var k = 0; k < lights.spotsNum; k++) {
+                    var light = lights.spots[k];
 
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
 
@@ -5782,12 +5764,24 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.particles = new Array();
 
         // lights
-        this.ambientLights = new Array();
-        this.directLights = new Array();
-        this.pointLights = new Array();
-        this.spotLights = new Array();
-
-        this.shadowLights = new Array();
+        this.lights = {
+            ambients: [],
+            directs: [],
+            points: [],
+            spots: [],
+            shadows: [],
+            ambientsNum: 0,
+            directsNum: 0,
+            pointsNum: 0,
+            spotsNum: 0,
+            shadowsNum: 0,
+            totalNum: 0
+        }
+        // this.ambientLights = new Array();
+        // this.directLights = new Array();
+        // this.pointLights = new Array();
+        // this.spotLights = new Array();
+        // this.shadowLights = new Array();
 
         // camera
         this.camera = null;
@@ -5901,20 +5895,27 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 });
                 break;
             case OBJECT_TYPE.LIGHT:
+                var lights = this.lights;
                 if (object.lightType == LIGHT_TYPE.AMBIENT) {
-                    this.ambientLights.push(object);
+                    lights.ambients.push(object);
+                    lights.ambientsNum++;
                 } else if (object.lightType == LIGHT_TYPE.DIRECT) {
-                    this.directLights.push(object);
+                    lights.directs.push(object);
+                    lights.directsNum++;
                 } else if (object.lightType == LIGHT_TYPE.POINT) {
-                    this.pointLights.push(object);
+                    lights.points.push(object);
+                    lights.pointsNum++;
                 } else if (object.lightType == LIGHT_TYPE.SPOT) {
-                    this.spotLights.push(object);
+                    lights.spots.push(object);
+                    lights.spotsNum++;
                 }
 
                 if (object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
-                    this.shadowLights.push(object);
+                    lights.shadows.push(object);
+                    lights.shadowsNum++;
                 }
 
+                lights.totalNum++;
                 break;
             case OBJECT_TYPE.CAMERA:
                 // do nothing
@@ -5989,12 +5990,18 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.particles.length = 0;
 
-        this.ambientLights.length = 0;
-        this.directLights.length = 0;
-        this.pointLights.length = 0;
-        this.spotLights.length = 0;
-
-        this.shadowLights.length = 0;
+        var lights = this.lights;
+        lights.ambients.length = 0;
+        lights.directs.length = 0;
+        lights.points.length = 0;
+        lights.spots.length = 0;
+        lights.shadows.length = 0;
+        lights.ambientsNum = 0;
+        lights.directsNum = 0;
+        lights.pointsNum = 0;
+        lights.spotsNum = 0;
+        lights.shadowsNum = 0;
+        lights.totalNum = 0;
     }
 
     zen3d.RenderCache = RenderCache;

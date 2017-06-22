@@ -140,7 +140,7 @@
         var gl = this.gl;
         var state = this.state;
 
-        var lights = this.cache.shadowLights;
+        var lights = this.cache.lights.shadows;
         for (var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
@@ -267,15 +267,7 @@
         var gl = this.gl;
         var state = this.state;
 
-        var ambientLights = this.cache.ambientLights;
-        var directLights = this.cache.directLights;
-        var pointLights = this.cache.pointLights;
-        var spotLights = this.cache.spotLights;
-        var ambientLightsNum = ambientLights.length;
-        var directLightsNum = directLights.length;
-        var pointLightsNum = pointLights.length;
-        var spotLightsNum = spotLights.length;
-        var lightsNum = ambientLightsNum + directLightsNum + pointLightsNum + spotLightsNum;
+        var lights = this.cache.lights;
 
         for (var i = 0, l = renderList.length; i < l; i++) {
 
@@ -284,12 +276,7 @@
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            var program = zen3d.getProgram(gl, this, object.material, object, [
-                ambientLightsNum,
-                directLightsNum,
-                pointLightsNum,
-                spotLightsNum
-            ], fog);
+            var program = zen3d.getProgram(gl, this, object.material, object, lights, fog);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -479,8 +466,8 @@
 
             /////////////////light
             if (material.acceptLight) {
-                for (var k = 0; k < ambientLightsNum; k++) {
-                    var light = ambientLights[k];
+                for (var k = 0; k < lights.ambientsNum; k++) {
+                    var light = lights.ambients[k];
 
                     var intensity = light.intensity;
                     var color = light.color;
@@ -492,8 +479,8 @@
                 }
 
 
-                for (var k = 0; k < directLightsNum; k++) {
-                    var light = directLights[k];
+                for (var k = 0; k < lights.directsNum; k++) {
+                    var light = lights.directs[k];
 
                     var intensity = light.intensity;
                     light.getWorldDirection(helpVector3);
@@ -523,8 +510,8 @@
 
                 }
 
-                for (var k = 0; k < pointLightsNum; k++) {
-                    var light = pointLights[k];
+                for (var k = 0; k < lights.pointsNum; k++) {
+                    var light = lights.points[k];
 
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
 
@@ -556,8 +543,8 @@
                     }
                 }
 
-                for (var k = 0; k < spotLightsNum; k++) {
-                    var light = spotLights[k];
+                for (var k = 0; k < lights.spotsNum; k++) {
+                    var light = lights.spots[k];
 
                     helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
 

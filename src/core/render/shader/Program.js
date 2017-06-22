@@ -268,7 +268,7 @@
     /**
      * get a suitable program by object & lights & fog
      */
-    var getProgram = function(gl, render, material, object, lightsNum, fog) {
+    var getProgram = function(gl, render, material, object, lights, fog) {
         var material = material || object.material;
 
         var props = {}; // cache this props?
@@ -283,11 +283,6 @@
             case MATERIAL_TYPE.POINT:
             case MATERIAL_TYPE.LINE_BASIC:
             case MATERIAL_TYPE.LINE_DASHED:
-                var ambientLightNum = lightsNum[0],
-                    directLightNum = lightsNum[1],
-                    pointLightNum = lightsNum[2],
-                    spotLightNum = lightsNum[3];
-
                 props.useDiffuseMap = !!material.diffuseMap;
                 props.useNormalMap = !!material.normalMap;
                 props.useBumpMap = !!material.bumpMap;
@@ -295,10 +290,10 @@
                 props.useEnvMap = !!material.envMap;
                 props.useEmissiveMap = !!material.emissiveMap;
                 props.useDiffuseColor = !material.diffuseMap;
-                props.ambientLightNum = ambientLightNum;
-                props.directLightNum = directLightNum;
-                props.pointLightNum = pointLightNum;
-                props.spotLightNum = spotLightNum;
+                props.ambientLightNum = lights.ambientsNum;
+                props.directLightNum = lights.directsNum;
+                props.pointLightNum = lights.pointsNum;
+                props.spotLightNum = lights.spotsNum;
                 props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
                 props.useShadow = object.receiveShadow;
                 props.premultipliedAlpha = material.premultipliedAlpha;
