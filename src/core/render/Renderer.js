@@ -206,40 +206,8 @@
                     }
 
                     // boneMatrices
-                    if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
-                        var skeleton = object.skeleton;
-
-                        if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
-                            if(skeleton.boneTexture === undefined) {
-                                var size = Math.sqrt(skeleton.bones.length * 4);
-                                size = zen3d.nextPowerOfTwo(Math.ceil(size));
-                                size = Math.max(4, size);
-
-                                var boneMatrices = new Float32Array(size * size * 4);
-                                boneMatrices.set(skeleton.boneMatrices);
-
-                                var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
-
-                                skeleton.boneMatrices = boneMatrices;
-                                skeleton.boneTexture = boneTexture;
-                                skeleton.boneTextureSize = size;
-                            }
-
-                            var slot = this.allocTexUnit();
-                            this.texture.setTexture2D(skeleton.boneTexture, slot);
-
-                            if(uniforms["boneTexture"]) {
-                                uniforms["boneTexture"].setValue(slot);
-                            }
-
-                            if(uniforms["boneTextureSize"]) {
-                                uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
-                            }
-                        } else {
-                            // TODO a cache for uniform location
-                            var location = gl.getUniformLocation(program.id, "boneMatrices");
-                            gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
-                        }
+                    if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH) {
+                        this.uploadSkeleton(uniforms, object, program.id);
                     }
 
                     // copy draw side
@@ -428,172 +396,13 @@
             }
 
             // boneMatrices
-            if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton && object.skeleton.bones.length > 0) {
-                var skeleton = object.skeleton;
-
-                if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
-                    if(skeleton.boneTexture === undefined) {
-                        var size = Math.sqrt(skeleton.bones.length * 4);
-                        size = zen3d.nextPowerOfTwo(Math.ceil(size));
-                        size = Math.max(4, size);
-
-                        var boneMatrices = new Float32Array(size * size * 4);
-                        boneMatrices.set(skeleton.boneMatrices);
-
-                        var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
-
-                        skeleton.boneMatrices = boneMatrices;
-                        skeleton.boneTexture = boneTexture;
-                        skeleton.boneTextureSize = size;
-                    }
-
-                    var slot = this.allocTexUnit();
-                    this.texture.setTexture2D(skeleton.boneTexture, slot);
-
-                    if(uniforms["boneTexture"]) {
-                        uniforms["boneTexture"].setValue(slot);
-                    }
-
-                    if(uniforms["boneTextureSize"]) {
-                        uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
-                    }
-                } else {
-                    // TODO a cache for uniform location
-                    var location = gl.getUniformLocation(program.id, "boneMatrices");
-                    gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
-                }
+            if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH) {
+                this.uploadSkeleton(uniforms, object, program.id);
             }
 
-            /////////////////light
             if (material.acceptLight) {
-                for (var k = 0; k < lights.ambientsNum; k++) {
-                    var light = lights.ambients[k];
-
-                    var intensity = light.intensity;
-                    var color = light.color;
-
-                    var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"];
-                    var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"];
-                    u_Ambient_intensity.setValue(intensity);
-                    u_Ambient_color.setValue(color.r, color.g, color.b, 1);
-                }
-
-
-                for (var k = 0; k < lights.directsNum; k++) {
-                    var light = lights.directs[k];
-
-                    var intensity = light.intensity;
-                    light.getWorldDirection(helpVector3);
-                    helpVector3.transformDirection(camera.viewMatrix);
-                    var color = light.color;
-
-                    var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"];
-                    var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"];
-                    var u_Directional_color = uniforms["u_Directional[" + k + "].color"];
-                    u_Directional_direction.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
-                    u_Directional_intensity.setValue(intensity);
-                    u_Directional_color.setValue(color.r, color.g, color.b, 1);
-
-                    // shadow
-                    var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"];
-                    u_Directional_shadow.setValue(light.castShadow ? 1 : 0);
-
-                    if (light.castShadow && object.receiveShadow) {
-                        var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"];
-                        directionalShadowMatrix.setValue(light.shadow.matrix.elements);
-
-                        var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"];
-                        var slot = this.allocTexUnit();
-                        this.texture.setTexture2D(light.shadow.map, slot);
-                        directionalShadowMap.setValue(slot);
-                    }
-
-                }
-
-                for (var k = 0; k < lights.pointsNum; k++) {
-                    var light = lights.points[k];
-
-                    helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
-
-                    var intensity = light.intensity;
-                    var color = light.color;
-                    var distance = light.distance;
-                    var decay = light.decay;
-
-                    var u_Point_position = uniforms["u_Point[" + k + "].position"];
-                    u_Point_position.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
-                    var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"];
-                    u_Point_intensity.setValue(intensity);
-                    var u_Point_color = uniforms["u_Point[" + k + "].color"];
-                    u_Point_color.setValue(color.r, color.g, color.b, 1);
-                    var u_Point_distance = uniforms["u_Point[" + k + "].distance"];
-                    u_Point_distance.setValue(distance);
-                    var u_Point_decay = uniforms["u_Point[" + k + "].decay"];
-                    u_Point_decay.setValue(decay);
-
-                    // shadow
-                    var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"];
-                    u_Point_shadow.setValue(light.castShadow ? 1 : 0);
-
-                    if (light.castShadow && object.receiveShadow) {
-                        var pointShadowMap = uniforms["pointShadowMap[" + k + "]"];
-                        var slot = this.allocTexUnit();
-                        this.texture.setTextureCube(light.shadow.map, slot);
-                        pointShadowMap.setValue(slot);
-                    }
-                }
-
-                for (var k = 0; k < lights.spotsNum; k++) {
-                    var light = lights.spots[k];
-
-                    helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
-
-                    var u_Spot_position = uniforms["u_Spot[" + k + "].position"];
-                    u_Spot_position.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
-
-                    var intensity = light.intensity;
-                    var color = light.color;
-                    var distance = light.distance;
-                    var decay = light.decay;
-
-                    light.getWorldDirection(helpVector3);
-                    helpVector3.transformDirection(camera.viewMatrix);
-
-                    var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"];
-                    u_Spot_direction.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
-
-                    var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"];
-                    u_Spot_intensity.setValue(intensity);
-                    var u_Spot_color = uniforms["u_Spot[" + k + "].color"];
-                    u_Spot_color.setValue(color.r, color.g, color.b, 1);
-                    var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"];
-                    u_Spot_distance.setValue(distance);
-                    var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"];
-                    u_Spot_decay.setValue(decay);
-
-                    var coneCos = Math.cos(light.angle);
-                    var penumbraCos = Math.cos(light.angle * (1 - light.penumbra));
-                    var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"];
-                    u_Spot_coneCos.setValue(coneCos);
-                    var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"];
-                    u_Spot_penumbraCos.setValue(penumbraCos);
-
-                    // shadow
-                    var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"];
-                    u_Spot_shadow.setValue(light.castShadow ? 1 : 0);
-
-                    if (light.castShadow && object.receiveShadow) {
-                        var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"];
-                        spotShadowMatrix.setValue(light.shadow.matrix.elements);
-
-                        var spotShadowMap = uniforms["spotShadowMap[" + k + "]"];
-                        var slot = this.allocTexUnit();
-                        this.texture.setTexture2D(light.shadow.map, slot);
-                        spotShadowMap.setValue(slot);
-                    }
-                }
+                this.uploadLights(uniforms, lights, object.receiveShadow, camera);
             }
-            ///////
 
             this.setStates(material);
 
@@ -774,6 +583,180 @@
             gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
 
             this._usedTextureUnits = 0;
+        }
+    }
+
+    /**
+     * upload skeleton uniforms
+     */
+    Renderer.prototype.uploadSkeleton = function(uniforms, object, programId) {
+        if(object.skeleton && object.skeleton.bones.length > 0) {
+            var skeleton = object.skeleton;
+            var gl = this.gl;
+
+            if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
+                if(skeleton.boneTexture === undefined) {
+                    var size = Math.sqrt(skeleton.bones.length * 4);
+                    size = zen3d.nextPowerOfTwo(Math.ceil(size));
+                    size = Math.max(4, size);
+
+                    var boneMatrices = new Float32Array(size * size * 4);
+                    boneMatrices.set(skeleton.boneMatrices);
+
+                    var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
+
+                    skeleton.boneMatrices = boneMatrices;
+                    skeleton.boneTexture = boneTexture;
+                    skeleton.boneTextureSize = size;
+                }
+
+                var slot = this.allocTexUnit();
+                this.texture.setTexture2D(skeleton.boneTexture, slot);
+
+                if(uniforms["boneTexture"]) {
+                    uniforms["boneTexture"].setValue(slot);
+                }
+
+                if(uniforms["boneTextureSize"]) {
+                    uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
+                }
+            } else {
+                // TODO a cache for uniform location
+                var location = gl.getUniformLocation(programId, "boneMatrices");
+                gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
+            }
+        }
+    }
+
+    /**
+     * upload lights uniforms
+     */
+    Renderer.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera) {
+        for (var k = 0; k < lights.ambientsNum; k++) {
+            var light = lights.ambients[k];
+
+            var intensity = light.intensity;
+            var color = light.color;
+
+            var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"];
+            var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"];
+            u_Ambient_intensity.setValue(intensity);
+            u_Ambient_color.setValue(color.r, color.g, color.b, 1);
+        }
+
+
+        for (var k = 0; k < lights.directsNum; k++) {
+            var light = lights.directs[k];
+
+            var intensity = light.intensity;
+            light.getWorldDirection(helpVector3);
+            helpVector3.transformDirection(camera.viewMatrix);
+            var color = light.color;
+
+            var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"];
+            var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"];
+            var u_Directional_color = uniforms["u_Directional[" + k + "].color"];
+            u_Directional_direction.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+            u_Directional_intensity.setValue(intensity);
+            u_Directional_color.setValue(color.r, color.g, color.b, 1);
+
+            // shadow
+            var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"];
+            u_Directional_shadow.setValue(light.castShadow ? 1 : 0);
+
+            if (light.castShadow && receiveShadow) {
+                var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"];
+                directionalShadowMatrix.setValue(light.shadow.matrix.elements);
+
+                var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"];
+                var slot = this.allocTexUnit();
+                this.texture.setTexture2D(light.shadow.map, slot);
+                directionalShadowMap.setValue(slot);
+            }
+
+        }
+
+        for (var k = 0; k < lights.pointsNum; k++) {
+            var light = lights.points[k];
+
+            helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
+
+            var intensity = light.intensity;
+            var color = light.color;
+            var distance = light.distance;
+            var decay = light.decay;
+
+            var u_Point_position = uniforms["u_Point[" + k + "].position"];
+            u_Point_position.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+            var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"];
+            u_Point_intensity.setValue(intensity);
+            var u_Point_color = uniforms["u_Point[" + k + "].color"];
+            u_Point_color.setValue(color.r, color.g, color.b, 1);
+            var u_Point_distance = uniforms["u_Point[" + k + "].distance"];
+            u_Point_distance.setValue(distance);
+            var u_Point_decay = uniforms["u_Point[" + k + "].decay"];
+            u_Point_decay.setValue(decay);
+
+            // shadow
+            var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"];
+            u_Point_shadow.setValue(light.castShadow ? 1 : 0);
+
+            if (light.castShadow && receiveShadow) {
+                var pointShadowMap = uniforms["pointShadowMap[" + k + "]"];
+                var slot = this.allocTexUnit();
+                this.texture.setTextureCube(light.shadow.map, slot);
+                pointShadowMap.setValue(slot);
+            }
+        }
+
+        for (var k = 0; k < lights.spotsNum; k++) {
+            var light = lights.spots[k];
+
+            helpVector3.setFromMatrixPosition(light.worldMatrix).applyMatrix4(camera.viewMatrix);
+
+            var u_Spot_position = uniforms["u_Spot[" + k + "].position"];
+            u_Spot_position.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+
+            var intensity = light.intensity;
+            var color = light.color;
+            var distance = light.distance;
+            var decay = light.decay;
+
+            light.getWorldDirection(helpVector3);
+            helpVector3.transformDirection(camera.viewMatrix);
+
+            var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"];
+            u_Spot_direction.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+
+            var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"];
+            u_Spot_intensity.setValue(intensity);
+            var u_Spot_color = uniforms["u_Spot[" + k + "].color"];
+            u_Spot_color.setValue(color.r, color.g, color.b, 1);
+            var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"];
+            u_Spot_distance.setValue(distance);
+            var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"];
+            u_Spot_decay.setValue(decay);
+
+            var coneCos = Math.cos(light.angle);
+            var penumbraCos = Math.cos(light.angle * (1 - light.penumbra));
+            var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"];
+            u_Spot_coneCos.setValue(coneCos);
+            var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"];
+            u_Spot_penumbraCos.setValue(penumbraCos);
+
+            // shadow
+            var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"];
+            u_Spot_shadow.setValue(light.castShadow ? 1 : 0);
+
+            if (light.castShadow && receiveShadow) {
+                var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"];
+                spotShadowMatrix.setValue(light.shadow.matrix.elements);
+
+                var spotShadowMap = uniforms["spotShadowMap[" + k + "]"];
+                var slot = this.allocTexUnit();
+                this.texture.setTexture2D(light.shadow.map, slot);
+                spotShadowMap.setValue(slot);
+            }
         }
     }
 
