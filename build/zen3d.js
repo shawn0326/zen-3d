@@ -5239,7 +5239,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             }
 
             if (material.acceptLight) {
-                this.uploadLights(uniforms, lights, object.receiveShadow, camera);
+                this.uploadLights(uniforms, lights, object.receiveShadow, camera, program.id);
             }
 
             this.setStates(material);
@@ -5466,10 +5466,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     }
 
+    var directShadowMaps = [];
+    var pointShadowMaps = [];
+    var spotShadowMaps = [];
+
     /**
      * upload lights uniforms
+     * TODO a better function for array & struct uniforms upload
      */
-    Renderer.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera) {
+    Renderer.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
+        var gl = this.gl;
+
         for (var k = 0; k < lights.ambientsNum; k++) {
             var light = lights.ambients[k];
 
@@ -5481,7 +5488,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             u_Ambient_intensity.setValue(intensity);
             u_Ambient_color.setValue(color.r, color.g, color.b, 1);
         }
-
 
         for (var k = 0; k < lights.directsNum; k++) {
             var light = lights.directs[k];
@@ -5506,12 +5512,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"];
                 directionalShadowMatrix.setValue(light.shadow.matrix.elements);
 
-                var directionalShadowMap = uniforms["directionalShadowMap[" + k + "]"];
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(light.shadow.map, slot);
-                directionalShadowMap.setValue(slot);
+                directShadowMaps.push(slot);
             }
+        }
+        // active uniform can only get 0 if this is a sampler array uniform
+        if(directShadowMaps.length > 0) {
+            var directionalShadowMap = uniforms["directionalShadowMap[0]"];
+            gl.uniform1iv(directionalShadowMap.location, directShadowMaps);
 
+            directShadowMaps.length = 0;
         }
 
         for (var k = 0; k < lights.pointsNum; k++) {
@@ -5540,11 +5551,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             u_Point_shadow.setValue(light.castShadow ? 1 : 0);
 
             if (light.castShadow && receiveShadow) {
-                var pointShadowMap = uniforms["pointShadowMap[" + k + "]"];
                 var slot = this.allocTexUnit();
                 this.texture.setTextureCube(light.shadow.map, slot);
-                pointShadowMap.setValue(slot);
+                pointShadowMaps.push(slot);
             }
+        }
+        // active uniform can only get 0 if this is a sampler array uniform
+        if(pointShadowMaps.length > 0) {
+            var pointShadowMap = uniforms["pointShadowMap[0]"];
+            gl.uniform1iv(pointShadowMap.location, pointShadowMaps);
+
+            pointShadowMaps.length = 0;
         }
 
         for (var k = 0; k < lights.spotsNum; k++) {
@@ -5590,11 +5607,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"];
                 spotShadowMatrix.setValue(light.shadow.matrix.elements);
 
-                var spotShadowMap = uniforms["spotShadowMap[" + k + "]"];
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(light.shadow.map, slot);
-                spotShadowMap.setValue(slot);
+                spotShadowMaps.push(slot);
             }
+        }
+        // active uniform can only get 0 if this is a sampler array uniform
+        if(spotShadowMaps.length > 0) {
+            var spotShadowMap = uniforms["spotShadowMap[0]"];
+            gl.uniform1iv(spotShadowMap.location, spotShadowMaps);
+
+            spotShadowMaps.length = 0;
         }
     }
 

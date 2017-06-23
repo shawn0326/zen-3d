@@ -2,7 +2,8 @@ var files = {
 	"light": [
 		"light_directlight",
 		"light_pointlight",
-		"light_spotlight"
+		"light_spotlight",
+		"light_shadow"
 	],
 	"geometry": [
 		"geometry_geometries",
