@@ -1,3 +1,3 @@
 #ifdef USE_SHADOW
-    outColor *= getShadowMask();
+    // outColor *= getShadowMask();
 #endif

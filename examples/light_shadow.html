@@ -58,7 +58,7 @@
 
 	        var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.color.setHex(0xffffff);
-	        ambientLight.intensity = 0.2;
+	        ambientLight.intensity = 0.1;
 	        scene.add(ambientLight);
 
 			var pointLight = new zen3d.PointLight();
@@ -70,7 +70,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
+	        basic.diffuse.setHex(0xff0000);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(-20, 20, 0);
 	        scene.add(lightBall);
@@ -84,7 +84,7 @@
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
+	        basic.diffuse.setHex(0x00ff00);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        lightBall.position.set(20, 20, 0);
 	        scene.add(lightBall);

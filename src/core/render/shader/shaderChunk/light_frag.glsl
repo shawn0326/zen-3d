@@ -2,11 +2,12 @@
     vec4 light;
     vec3 L;
     vec4 reflectLight = vec4(0., 0., 0., 0.);
+    vec4 totalReflect = vec4(0., 0., 0., 0.);
     vec4 diffuseColor = outColor.xyzw;
 
     #ifdef USE_AMBIENT_LIGHT
     for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {
-        reflectLight += diffuseColor * u_Ambient[i].color * u_Ambient[i].intensity;
+        totalReflect += diffuseColor * u_Ambient[i].color * u_Ambient[i].intensity;
     }
     #endif
 
@@ -26,6 +27,13 @@
         // RE_Phong(u_SpecularColor, light, N, L, V, 4., reflectLight);
         RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
         #endif
+
+        #ifdef USE_SHADOW
+            reflectLight *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;
+        #endif
+
+        totalReflect += reflectLight;
+        reflectLight = vec4(0., 0., 0., 0.);
     }
     #endif
 
@@ -42,6 +50,14 @@
         // RE_Phong(u_SpecularColor, light, N, L, V, u_Specular, reflectLight);
         RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
         #endif
+
+        #ifdef USE_SHADOW
+            vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;
+            reflectLight *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV ) : 1.0;
+        #endif
+
+        totalReflect += reflectLight;
+        reflectLight = vec4(0., 0., 0., 0.);
     }
     #endif
 
@@ -65,10 +81,16 @@
             RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
             #endif
 
+            #ifdef USE_SHADOW
+                reflectLight *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;
+            #endif
+
+            totalReflect += reflectLight;
+            reflectLight = vec4(0., 0., 0., 0.);
         }
 
     }
     #endif
 
-    outColor = reflectLight.xyzw;
+    outColor = totalReflect.xyzw;
 #endif
