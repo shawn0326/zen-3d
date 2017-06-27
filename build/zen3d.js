@@ -7444,14 +7444,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.matrix = new zen3d.Matrix4();
 
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
+        var mapSize = new zen3d.Vector2(512, 512);
+
+        this.renderTarget = new zen3d.RenderTarget2D(mapSize.x, mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 
         this.map = map;
+        this.mapSize = mapSize;
 
         // the cast shadow window size
         this.windowSize = 500;
@@ -7467,6 +7469,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     DirectionalLightShadow.prototype.update = function(light) {
         this._updateCamera(light);
         this._updateMatrix();
+
+        // TODO check size change, remove this from loop
+        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+            this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
+        }
     }
 
     /**
@@ -7522,14 +7529,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.matrix = new zen3d.Matrix4();
 
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
+        var mapSize = new zen3d.Vector2(512, 512);
+
+        this.renderTarget = new zen3d.RenderTarget2D(mapSize.x, mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 
         this.map = map;
+        this.mapSize = mapSize;
 
         this._lookTarget = new zen3d.Vector3();
 
@@ -7542,6 +7551,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     SpotLightShadow.prototype.update = function(light) {
         this._updateCamera(light);
         this._updateMatrix();
+
+        // TODO check size change, remove this from loop
+        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+            this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
+        }
     }
 
     /**
@@ -7597,14 +7611,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.matrix = new zen3d.Matrix4();
 
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
+        var mapSize = new zen3d.Vector2(512, 512);
+
+        this.renderTarget = new zen3d.RenderTargetCube(mapSize.x, mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 
         this.map = map;
+        this.mapSize = mapSize;
 
         this._targets = [
             new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
@@ -7625,6 +7641,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     PointLightShadow.prototype.update = function(light, face) {
         this._updateCamera(light, face);
         this._updateMatrix();
+
+        // TODO check size change, remove this from loop
+        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+            this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
+        }
     }
 
     /**

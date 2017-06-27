@@ -8,14 +8,16 @@
 
         this.matrix = new zen3d.Matrix4();
 
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
+        var mapSize = new zen3d.Vector2(512, 512);
+
+        this.renderTarget = new zen3d.RenderTargetCube(mapSize.x, mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 
         this.map = map;
+        this.mapSize = mapSize;
 
         this._targets = [
             new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
@@ -36,6 +38,11 @@
     PointLightShadow.prototype.update = function(light, face) {
         this._updateCamera(light, face);
         this._updateMatrix();
+
+        // TODO check size change, remove this from loop
+        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+            this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
+        }
     }
 
     /**

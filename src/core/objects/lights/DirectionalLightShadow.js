@@ -8,14 +8,16 @@
 
         this.matrix = new zen3d.Matrix4();
 
-        // size force to 1024x1024
-        this.renderTarget = new zen3d.RenderTarget2D(1024, 1024);
+        var mapSize = new zen3d.Vector2(512, 512);
+
+        this.renderTarget = new zen3d.RenderTarget2D(mapSize.x, mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 
         this.map = map;
+        this.mapSize = mapSize;
 
         // the cast shadow window size
         this.windowSize = 500;
@@ -31,6 +33,11 @@
     DirectionalLightShadow.prototype.update = function(light) {
         this._updateCamera(light);
         this._updateMatrix();
+
+        // TODO check size change, remove this from loop
+        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+            this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
+        }
     }
 
     /**
