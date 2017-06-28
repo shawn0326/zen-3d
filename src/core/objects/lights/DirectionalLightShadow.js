@@ -19,6 +19,9 @@
         this.map = map;
         this.mapSize = mapSize;
 
+        this.bias = 0.0003;
+	    this.radius = 2;
+
         // the cast shadow window size
         this.windowSize = 500;
 

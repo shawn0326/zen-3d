@@ -19,6 +19,9 @@
         this.map = map;
         this.mapSize = mapSize;
 
+        this.bias = 0.0003;
+	    this.radius = 2;
+
         this._targets = [
             new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
             new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1), new zen3d.Vector3(0, 0, -1)

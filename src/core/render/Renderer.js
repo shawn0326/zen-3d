@@ -26,6 +26,8 @@
 
         this.autoClear = true;
 
+        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
+
         // init webgl
         var properties = new zen3d.WebGLProperties();
         this.properties = properties;
@@ -669,6 +671,12 @@
             // shadow
             var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"];
             u_Directional_shadow.setValue(light.castShadow ? 1 : 0);
+            var u_Directional_shadowBias = uniforms["u_Directional[" + k + "].shadowBias"];
+            u_Directional_shadowBias.setValue(light.shadow.bias);
+            var u_Directional_shadowRadius = uniforms["u_Directional[" + k + "].shadowRadius"];
+            u_Directional_shadowRadius.setValue(light.shadow.radius);
+            var u_Directional_shadowMapSize = uniforms["u_Directional[" + k + "].shadowMapSize"];
+            u_Directional_shadowMapSize.setValue(light.shadow.mapSize.x, light.shadow.mapSize.y);
 
             if (light.castShadow && receiveShadow) {
                 var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"];
@@ -711,6 +719,12 @@
             // shadow
             var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"];
             u_Point_shadow.setValue(light.castShadow ? 1 : 0);
+            var u_Point_shadowBias = uniforms["u_Point[" + k + "].shadowBias"];
+            u_Point_shadowBias.setValue(light.shadow.bias);
+            var u_Point_shadowRadius = uniforms["u_Point[" + k + "].shadowRadius"];
+            u_Point_shadowRadius.setValue(light.shadow.radius);
+            var u_Point_shadowMapSize = uniforms["u_Point[" + k + "].shadowMapSize"];
+            u_Point_shadowMapSize.setValue(light.shadow.mapSize.x, light.shadow.mapSize.y);
 
             if (light.castShadow && receiveShadow) {
                 var slot = this.allocTexUnit();
@@ -764,6 +778,12 @@
             // shadow
             var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"];
             u_Spot_shadow.setValue(light.castShadow ? 1 : 0);
+            var u_Spot_shadowBias = uniforms["u_Spot[" + k + "].shadowBias"];
+            u_Spot_shadowBias.setValue(light.shadow.bias);
+            var u_Spot_shadowRadius = uniforms["u_Spot[" + k + "].shadowRadius"];
+            u_Spot_shadowRadius.setValue(light.shadow.radius);
+            var u_Spot_shadowMapSize = uniforms["u_Spot[" + k + "].shadowMapSize"];
+            u_Spot_shadowMapSize.setValue(light.shadow.mapSize.x, light.shadow.mapSize.y);
 
             if (light.castShadow && receiveShadow) {
                 var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"];

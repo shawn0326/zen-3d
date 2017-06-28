@@ -10,5 +10,8 @@ struct SpotLight
     vec3 direction;
 
     int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
 };
 uniform SpotLight u_Spot[USE_SPOT_LIGHT];

@@ -199,6 +199,7 @@
 
                 fshader_define.push(props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '');
                 fshader_define.push(props.useShadow ? '#define USE_SHADOW' : '');
+                fshader_define.push(props.usePCFSoftShadow ? '#define USE_PCF_SOFT_SHADOW' : '');
                 fshader_define.push(props.flatShading ? '#define FLAT_SHADED' : '');
 
                 fshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
@@ -296,6 +297,7 @@
                 props.spotLightNum = lights.spotsNum;
                 props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
                 props.useShadow = object.receiveShadow;
+                props.usePCFSoftShadow = render.shadowType === zen3d.SHADOW_TYPE.PCF_SOFT;
                 props.premultipliedAlpha = material.premultipliedAlpha;
                 props.fog = !!fog;
                 props.fogExp2 = !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2);

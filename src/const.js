@@ -216,4 +216,11 @@
     }
 
     zen3d.WEBGL_BUFFER_USAGE = WEBGL_BUFFER_USAGE;
+
+    var SHADOW_TYPE = {
+        HARD: "hard",
+        PCF_SOFT: "pcf_soft"
+    }
+
+    zen3d.SHADOW_TYPE =SHADOW_TYPE;
 })();

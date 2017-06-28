@@ -34,52 +34,89 @@
 
     }
 
-    float getShadow( sampler2D shadowMap, vec4 shadowCoord ) {
+    float getShadow( sampler2D shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
         shadowCoord.xyz /= shadowCoord.w;
-        shadowCoord.z += 0.0003; // shadow bias
+
+        float depth = shadowCoord.z + shadowBias;
 
         bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );
         bool inFrustum = all( inFrustumVec );
 
-        bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );
+        bvec2 frustumTestVec = bvec2( inFrustum, depth <= 1.0 );
 
         bool frustumTest = all( frustumTestVec );
 
         if ( frustumTest ) {
-            return texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );
+            #ifdef USE_PCF_SOFT_SHADOW
+                // TODO x, y not equal
+                float texelSize = shadowRadius / shadowMapSize.x;
+
+                vec2 poissonDisk[4];
+                poissonDisk[0] = vec2(-0.94201624, -0.39906216);
+                poissonDisk[1] = vec2(0.94558609, -0.76890725);
+                poissonDisk[2] = vec2(-0.094184101, -0.92938870);
+                poissonDisk[3] = vec2(0.34495938, 0.29387760);
+
+                return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, depth ) * 0.25 +
+                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, depth ) * 0.25 +
+                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, depth ) * 0.25 +
+                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, depth ) * 0.25;
+            #else
+                return texture2DCompare( shadowMap, shadowCoord.xy, depth );
+            #endif
         }
 
         return 1.0;
 
     }
 
-    float getPointShadow( samplerCube shadowMap, vec3 V ) {
-        return textureCubeCompare( shadowMap, normalize(V), length(V) / 1000.);
+    float getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
+
+        float depth = (length(V) + shadowBias) / 1000.;// TODO point shadow bias not work ?
+
+        #ifdef USE_PCF_SOFT_SHADOW
+            // TODO x, y equal force
+            float texelSize = shadowRadius / shadowMapSize.x;
+
+            vec3 poissonDisk[4];
+    		poissonDisk[0] = vec3(-1.0, 1.0, -1.0);
+    		poissonDisk[1] = vec3(1.0, -1.0, -1.0);
+    		poissonDisk[2] = vec3(-1.0, -1.0, -1.0);
+    		poissonDisk[3] = vec3(1.0, -1.0, 1.0);
+
+            return textureCubeCompare( shadowMap, normalize(V) + poissonDisk[0] * texelSize, depth ) * 0.25 +
+                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[1] * texelSize, depth ) * 0.25 +
+                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[2] * texelSize, depth ) * 0.25 +
+                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[3] * texelSize, depth ) * 0.25;
+        #else
+            return textureCubeCompare( shadowMap, normalize(V), depth);
+        #endif
     }
 
-    float getShadowMask() {
-        float shadow = 1.0;
-
-        #ifdef USE_DIRECT_LIGHT
-            for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {
-                shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;
-            }
-        #endif
-
-        #ifdef USE_POINT_LIGHT
-            for ( int i = 0; i < USE_POINT_LIGHT; i ++ ) {
-                vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;
-                shadow *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV ) : 1.0;
-            }
-        #endif
-
-        #ifdef USE_SPOT_LIGHT
-            for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {
-                shadow *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;
-            }
-        #endif
-
-        return shadow;
-    }
+    // TODO delete?
+    // float getShadowMask() {
+    //     float shadow = 1.0;
+    //
+    //     #ifdef USE_DIRECT_LIGHT
+    //         for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {
+    //             shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;
+    //         }
+    //     #endif
+    //
+    //     #ifdef USE_POINT_LIGHT
+    //         for ( int i = 0; i < USE_POINT_LIGHT; i ++ ) {
+    //             vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;
+    //             shadow *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV ) : 1.0;
+    //         }
+    //     #endif
+    //
+    //     #ifdef USE_SPOT_LIGHT
+    //         for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {
+    //             shadow *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;
+    //         }
+    //     #endif
+    //
+    //     return shadow;
+    // }
 
 #endif

@@ -7,5 +7,8 @@ struct PointLight
     float decay;
 
     int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
 };
 uniform PointLight u_Point[USE_POINT_LIGHT];
