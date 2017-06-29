@@ -43,11 +43,22 @@
 
 	        var scene = new zen3d.Scene();
 
-	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere);
+			var monkey = "resources/models/assimp/monkey/monkey.json";
+
+			var loader = new zen3d.AssimpJsonLoader();
+			loader.load(monkey, function(object) {
+				var monkey = object.getObjectByName("Suzanne").children[0];
+				monkey.castShadow = true;
+				object.scale.set(10, 10, 10);
+				object.position.y = 2;
+				scene.add(object);
+			});
+
+	        // var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
+	        // var phong = new zen3d.PhongMaterial();
+	        // phong.diffuse.setHex(0xffffff);
+	        // var sphere = new zen3d.Mesh(sphere_geometry, phong);
+			// scene.add(sphere);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
@@ -59,49 +70,49 @@
 	        var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.color.setHex(0xffffff);
 	        ambientLight.intensity = 0.1;
-	        scene.add(ambientLight);
+	        // scene.add(ambientLight);
 
 			var pointLight = new zen3d.PointLight();
-	        pointLight.intensity = 0.8;
-	        pointLight.color.setHex(0xff0000);
+	        pointLight.intensity = 1;
+	        pointLight.color.setHex(0x00ff00);
 			pointLight.distance = 80;
-	        pointLight.position.set(-20, 20, 0);
+	        pointLight.position.set(20, 10, -20);
 	        scene.add(pointLight);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xff0000);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-20, 20, 0);
-	        scene.add(lightBall);
-
-			var pointLight2 = new zen3d.PointLight();
-	        pointLight2.intensity = 0.8;
-	        pointLight2.color.setHex(0x00ff00);
-			pointLight2.distance = 80;
-	        pointLight2.position.set(20, 20, 0);
-	        scene.add(pointLight2);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
 			var basic = new zen3d.BasicMaterial();
 	        basic.diffuse.setHex(0x00ff00);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(20, 20, 0);
+	        lightBall.position.set(20, 10, -20);
+	        scene.add(lightBall);
+
+			var pointLight2 = new zen3d.PointLight();
+	        pointLight2.intensity = 1;
+	        pointLight2.color.setHex(0xff0000);
+			pointLight2.distance = 80;
+	        pointLight2.position.set(20, 10, 20);
+	        scene.add(pointLight2);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.diffuse.setHex(0xff0000);
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(20, 10, 20);
 	        scene.add(lightBall);
 
 			var directionalLight = new zen3d.DirectionalLight();
-	        directionalLight.intensity = 0.3;
+	        directionalLight.intensity = 0.5;
 	        directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        directionalLight.color.setHex(0x0000ff);
-	        directionalLight.position.set(-40, 40, 0);
+	        directionalLight.color.setHex(0xffffff);
+	        directionalLight.position.set(-30, 10, 0);
 			directionalLight.shadow.windowSize = 100;
 	        scene.add(directionalLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0x0000ff);
+	        basic.diffuse.setHex(0xffffff);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
+	        lightBall.position.set(-30, 10, 0);
 	        scene.add(lightBall);
 
 	        var camera = new zen3d.Camera();
@@ -110,22 +121,69 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			sphere.castShadow = true;
+			// add a hover controller
+			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
+			controller.distance = 120;
+			controller.panAngle = 25;
+			controller.tiltAngle = 25;
+			var pressed = false;
+			var touchX = 0;
+			var touchY = 0;
+			function touchScale(e) {
+			    e.preventDefault();
+			    controller.distance += e.deltaY;
+			}
+			function touchDown(e) {
+			    e.preventDefault();
+			    pressed = true;
+			    touchX = e.pageX;
+			    touchY = e.pageY;
+			}
+			function touchMove(e) {
+			    e.preventDefault();
+			    if(pressed) {
+			        var moveX = e.pageX - touchX;
+			        var moveY = e.pageY - touchY;
+
+			        touchX = e.pageX;
+			        touchY = e.pageY;
+
+			        controller.panAngle -= moveX;
+			        controller.tiltAngle += moveY;
+			    }
+			}
+			function touchRelease(e) {
+			    e.preventDefault();
+			    pressed = false;
+			}
+			canvas.addEventListener("mousewheel", touchScale);
+			canvas.addEventListener("mousedown", touchDown);
+			canvas.addEventListener("mouseup", touchRelease);
+			canvas.addEventListener("mousemove", touchMove);
+			canvas.addEventListener("touchstart", touchDown);
+			canvas.addEventListener("touchend", touchRelease);
+			canvas.addEventListener("touchmove", touchMove);
+
+			// sphere.castShadow = true;
 			plane.receiveShadow = true;
 			pointLight.castShadow = true;
 			pointLight2.castShadow = true;
 			directionalLight.castShadow = true;
+			directionalLight.shadow.mapSize.set(1024, 1024);
+			directionalLight.shadow.radius = 3;
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
 				// rotate camera
-				camera.position.x = 100 * Math.sin(count / 1000 * .5);
-				camera.position.z = 100 * Math.cos(count / 1000 * .5);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				// camera.position.x = 100 * Math.sin(count / 1000 * .5);
+				// camera.position.z = 100 * Math.cos(count / 1000 * .5);
+				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 	            renderer.render(scene, camera);
+
+				controller.update();
 	        }
 
 	        loop(0);
