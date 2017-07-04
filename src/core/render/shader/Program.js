@@ -1,31 +1,6 @@
 (function() {
 
-    // TODO this could move to a new class named WebGLProgram
-    // like other WebGL object, program can managed by WebGLProperties
-
     var programMap = {};
-
-    /**
-     * get max precision
-     * @param gl
-     * @param precision {string} the expect precision, can be: "highp"|"mediump"|"lowp"
-     */
-    function getMaxPrecision(gl, precision) {
-        if (precision === 'highp') {
-            if (gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT).precision > 0 &&
-                gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT).precision > 0) {
-                return 'highp';
-            }
-            precision = 'mediump';
-        }
-        if (precision === 'mediump') {
-            if (gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT).precision > 0 &&
-                gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT).precision > 0) {
-                return 'mediump';
-            }
-        }
-        return 'lowp';
-    }
 
     /**
      * generate program code
