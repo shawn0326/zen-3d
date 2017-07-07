@@ -59,6 +59,8 @@
                 vshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
                 vshader_define.push(props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '');
 
+                vshader_define.push(props.flipSided ? '#define FLIP_SIDED' : '');
+
                 fshader_define.push((props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '');
                 fshader_define.push((props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '');
                 fshader_define.push((props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '');
@@ -76,6 +78,8 @@
 
                 fshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
                 fshader_define.push(props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '');
+
+                fshader_define.push(props.doubleSided ? '#define DOUBLE_SIDED' : '');
             case MATERIAL_TYPE.BASIC:
             case MATERIAL_TYPE.LINE_BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
@@ -174,6 +178,8 @@
                 props.fog = !!fog;
                 props.fogExp2 = !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2);
                 props.sizeAttenuation = material.sizeAttenuation;
+                props.doubleSided = material.side === zen3d.DRAW_SIDE.DOUBLE;
+                props.flipSided = material.side === zen3d.DRAW_SIDE.BACK;
             case MATERIAL_TYPE.DEPTH:
                 var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
                 var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
