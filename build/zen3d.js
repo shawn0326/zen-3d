@@ -7803,7 +7803,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var quaternion = new zen3d.Quaternion();
         var scale = new zen3d.Vector3();
 
-        return function getWorldQuaternion(optionalTarget) {
+        return function getWorldDirection(optionalTarget) {
 
             var result = optionalTarget || new zen3d.Vector3();
 

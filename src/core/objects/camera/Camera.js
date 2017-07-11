@@ -76,7 +76,7 @@
         var quaternion = new zen3d.Quaternion();
         var scale = new zen3d.Vector3();
 
-        return function getWorldQuaternion(optionalTarget) {
+        return function getWorldDirection(optionalTarget) {
 
             var result = optionalTarget || new zen3d.Vector3();
 
