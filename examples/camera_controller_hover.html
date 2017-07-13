@@ -30,6 +30,10 @@
 		use mouse or touch to rotate camera.
 		<br/>
 		mousewheel or two finger to move camera far/near
+		<br/>
+		press 'z' to disable specular fresnel
+		<br/>
+		press 'x' to enable specular fresnel
     </div>
 
 	<script>
@@ -67,7 +71,6 @@
 	        scene.add(ambientLight);
 
 	        var directLight = new zen3d.DirectionalLight();
-	        directLight.intensity = 0.8;
 	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
 	        directLight.color.setHex(0xffffff);
 	        directLight.position.set(-40, 40, 0);
@@ -147,6 +150,16 @@
 				renderer.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
+
+			document.onkeydown = function(e) {
+				if(e.keyCode == 90) { // 'z'
+					phong.specularFresnel = false;
+					console.log("specularFresnel: false");
+				} else if(e.keyCode == 88) { // 'x'
+					phong.specularFresnel = true;
+					console.log("specularFresnel: true");
+				}
+	        }
 		})();
 	</script>
 </body>

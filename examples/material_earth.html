@@ -98,7 +98,7 @@
 			earth_mat.bumpScale = -0.8;
 			earth_mat.specularMap = spec_tex;
 			earth_mat.specular.setHex(0xc9c9c9);
-			earth_mat.shininess = 5;
+			earth_mat.shininess = 8;
 			// earth_mat.premultipliedAlpha = true;
 
 			var cloud_mat = new zen3d.LambertMaterial();
@@ -132,18 +132,19 @@
 
 	        var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.color.setHex(0x393939);
-	        ambientLight.intensity = 0.5;
+	        ambientLight.intensity = 0.4;
 	        scene.add(ambientLight);
 
 			var spotLight = new zen3d.SpotLight();
 			spotLight.color.setHex(0xffffff);
 		    spotLight.intensity = 1.2;
 		    spotLight.position.x = -22;
-		    spotLight.position.y = 22;
+		    spotLight.position.y = 20;
 		    spotLight.position.z = 42;
 		    spotLight.angle = 0.2;
+			spotLight.intensity = 2;
 		    spotLight.penumbra = 0.4;
-		    spotLight.distance = 124;
+		    spotLight.distance = 200;
 		    spotLight.decay = 1;
 			scene.add(spotLight);
 			// spotLight look at pos 0,0,0

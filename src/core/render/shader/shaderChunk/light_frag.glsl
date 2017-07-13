@@ -21,11 +21,14 @@
         light = u_Directional[i].color * u_Directional[i].intensity;
         L = normalize(L);
 
-        RE_Lambert(diffuseColor, light, N, L, reflectLight);
+        float dotNL = saturate( dot(N, L) );
+        vec4 irradiance = light * dotNL;
+
+        reflectLight += irradiance * RE_Lambert(diffuseColor);
 
         #ifdef USE_PHONG
-        // RE_Phong(u_SpecularColor, light, N, L, V, 4., reflectLight);
-        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
+            // reflectLight += RE_Phong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
+            reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
         #endif
 
         #ifdef USE_SHADOW
@@ -44,11 +47,14 @@
         light = u_Point[i].color * u_Point[i].intensity * dist;
         L = normalize(L);
 
-        RE_Lambert(diffuseColor, light, N, L, reflectLight);
+        float dotNL = saturate( dot(N, L) );
+        vec4 irradiance = light * dotNL;
+
+        reflectLight += irradiance * RE_Lambert(diffuseColor);
 
         #ifdef USE_PHONG
-        // RE_Phong(u_SpecularColor, light, N, L, V, u_Specular, reflectLight);
-        RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
+            // reflectLight += RE_Phong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
+            reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
         #endif
 
         #ifdef USE_SHADOW
@@ -74,11 +80,14 @@
             float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);
             light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;
 
-            RE_Lambert(diffuseColor, light, N, L, reflectLight);
+            float dotNL = saturate( dot(N, L) );
+            vec4 irradiance = light * dotNL;
+
+            reflectLight += irradiance * RE_Lambert(diffuseColor);
 
             #ifdef USE_PHONG
-            // RE_Phong(u_SpecularColor, light, N, L, V, u_Specular, reflectLight);
-            RE_BlinnPhong(u_SpecularColor, light, N, normalize(L), V, u_Specular, specularStrength, reflectLight);
+                // reflectLight += RE_Phong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
+                reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
             #endif
 
             #ifdef USE_SHADOW

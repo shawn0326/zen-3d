@@ -1,4 +1,14 @@
-void RE_BlinnPhong(vec4 k, vec4 light, vec3 N, vec3 L, vec3 V, float n_s, float specularStrength, inout vec4 reflectLight) {
+vec4 RE_BlinnPhong(vec4 specularColor, vec3 N, vec3 L, vec3 V, float shininess) {
     vec3 H = normalize(L + V);
-    reflectLight += k * light * pow(max(dot(N, H), 0.), n_s) * specularStrength;
+
+    float dotNH = saturate(dot(N, H));
+
+    #ifdef USE_SPECULAR_FRESNEL
+        float dotLH = saturate(dot(L, H));
+        // * RECIPROCAL_PI: referenced by http://www.joshbarczak.com/blog/?p=272
+        // TODO ( shininess * 0.5 + 1.0 ) * 0.25, three.js do this, but why ???
+        return pow(dotNH, shininess) * RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * 0.25 * F_Schlick(specularColor, dotLH);
+    #else
+        return pow(dotNH, shininess) * RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * 0.25 * specularColor;
+    #endif
 }

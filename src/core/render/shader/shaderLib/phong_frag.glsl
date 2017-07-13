@@ -15,6 +15,7 @@ uniform vec3 emissive;
 #include <normal_pars_frag>
 #include <viewModelPos_pars_frag>
 #include <RE_Lambert>
+#include <F_Schlick>
 #include <RE_Phong>
 #include <RE_BlinnPhong>
 #include <envMap_pars_frag>

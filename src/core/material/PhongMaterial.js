@@ -10,8 +10,10 @@
 
         // specular
         this.shininess = 30;
-        this.specular = new zen3d.Color3(0xffffff);
+        this.specular = new zen3d.Color3(0x666666);
         this.specularMap = null;
+
+        this.specularFresnel = true;
 
         this.acceptLight = true;
     }

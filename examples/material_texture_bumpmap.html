@@ -71,7 +71,7 @@
 
 			var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.color.setHex(0xffffff);
-	        ambientLight.intensity = 1;
+	        ambientLight.intensity = 0.7;
 	        scene.add(ambientLight);
 
 			// var directLight = new zen3d.DirectionalLight();
@@ -87,6 +87,8 @@
 			spotLight.angle = Math.PI / 3;
 			spotLight.penumbra = 0.3;
 	        spotLight.position.set(0, 3, 3);
+			spotLight.distance = 200;
+			spotLight.intensity = 1.5;
 	        scene.add(spotLight);
 
 	        var camera = new zen3d.Camera();
