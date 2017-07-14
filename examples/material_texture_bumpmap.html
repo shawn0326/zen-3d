@@ -63,15 +63,14 @@
 					child.material.bumpScale = -0.01;
 
 					child.material.specularMap = specularTexture;
-					child.material.specular.setHex(0x444444);
-					child.material.shininess = 30;
+					child.material.specular.setHex(0x161616);
 				}
 				scene.add(object);
 			});
 
 			var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.color.setHex(0xffffff);
-	        ambientLight.intensity = 0.7;
+	        ambientLight.intensity = 0.4;
 	        scene.add(ambientLight);
 
 			// var directLight = new zen3d.DirectionalLight();
@@ -88,7 +87,7 @@
 			spotLight.penumbra = 0.3;
 	        spotLight.position.set(0, 3, 3);
 			spotLight.distance = 200;
-			spotLight.intensity = 1.5;
+			spotLight.intensity = 3;
 	        scene.add(spotLight);
 
 	        var camera = new zen3d.Camera();
