@@ -641,16 +641,19 @@
     Renderer.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
         var gl = this.gl;
 
+        var r = 0, g = 0, b = 0;
         for (var k = 0; k < lights.ambientsNum; k++) {
             var light = lights.ambients[k];
 
             var intensity = light.intensity;
             var color = light.color;
 
-            var u_Ambient_intensity = uniforms["u_Ambient[" + k + "].intensity"];
-            var u_Ambient_color = uniforms["u_Ambient[" + k + "].color"];
-            u_Ambient_intensity.setValue(intensity);
-            u_Ambient_color.setValue(color.r, color.g, color.b, 1);
+            r += color.r * intensity;
+            g += color.g * intensity;
+            b += color.b * intensity;
+        }
+        if(lights.ambientsNum > 0) {
+            uniforms.u_AmbientLightColor.setValue(r, g, b, 1);
         }
 
         for (var k = 0; k < lights.directsNum; k++) {

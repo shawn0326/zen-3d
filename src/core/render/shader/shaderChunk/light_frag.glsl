@@ -6,9 +6,7 @@
     vec4 diffuseColor = outColor.xyzw;
 
     #ifdef USE_AMBIENT_LIGHT
-    for(int i = 0; i < USE_AMBIENT_LIGHT; i++) {
-        totalReflect += diffuseColor * u_Ambient[i].color * u_Ambient[i].intensity;
-    }
+        totalReflect += RECIPROCAL_PI * diffuseColor * u_AmbientLightColor;
     #endif
 
     #if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) )
