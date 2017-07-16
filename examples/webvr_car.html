@@ -44,6 +44,8 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.RendererVR(canvas);
+			renderer.gammaInput = true;
+			renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
@@ -62,8 +64,8 @@
 			});
 
 			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xffffff);
-			ambientLight.intensity = 1.4;
+	        ambientLight.color.setHex(0x4c4c4c);
+			ambientLight.intensity = 1;
 	        scene.add(ambientLight);
 
 	        var spotLight = new zen3d.SpotLight();

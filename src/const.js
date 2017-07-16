@@ -222,5 +222,17 @@
         PCF_SOFT: "pcf_soft"
     }
 
-    zen3d.SHADOW_TYPE =SHADOW_TYPE;
+    zen3d.SHADOW_TYPE = SHADOW_TYPE;
+
+    var TEXEL_ENCODING_TYPE = {
+        LINEAR: "linear",
+        SRGB: "sRGB",
+        RGBE: "RGBE",
+        RGBM7: "RGBM7",
+        RGBM16: "RGBM16",
+        RGBD: "RGBD",
+        GAMMA: "Gamma"
+    }
+
+    zen3d.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
 })();

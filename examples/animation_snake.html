@@ -42,6 +42,8 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
+			renderer.gammaInput = true;
+			renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
@@ -120,7 +122,7 @@
 	        scene.add(plane);
 
 	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xffffff);
+	        ambientLight.color.setHex(0x9c9c9c);
 	        scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight();

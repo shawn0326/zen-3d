@@ -8,6 +8,7 @@ void main() {
     #include <diffuseMap_frag>
     #include <envMap_frag>
     #include <end_frag>
+    #include <encodings_frag>
     #include <premultipliedAlpha_frag>
     #include <fog_frag>
 }

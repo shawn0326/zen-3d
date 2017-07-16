@@ -374,7 +374,19 @@
         PCF_SOFT: "pcf_soft"
     }
 
-    zen3d.SHADOW_TYPE =SHADOW_TYPE;
+    zen3d.SHADOW_TYPE = SHADOW_TYPE;
+
+    var TEXEL_ENCODING_TYPE = {
+        LINEAR: "linear",
+        SRGB: "sRGB",
+        RGBE: "RGBE",
+        RGBM7: "RGBM7",
+        RGBM16: "RGBM16",
+        RGBD: "RGBD",
+        GAMMA: "Gamma"
+    }
+
+    zen3d.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
 })();
 
 (function() {
@@ -4536,26 +4548,28 @@ F_Schlick: "#ifdef USE_SPECULAR_FRESNEL\n\tvec4 F_Schlick( const in vec4 specula
 RE_BlinnPhong: "vec4 RE_BlinnPhong(vec4 specularColor, vec3 N, vec3 L, vec3 V, float shininess) {\n    vec3 H = normalize(L + V);\n    float dotNH = saturate(dot(N, H));\n    #ifdef USE_SPECULAR_FRESNEL\n        float dotLH = saturate(dot(L, H));\n        return pow(dotNH, shininess) * RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * 0.25 * F_Schlick(specularColor, dotLH);\n    #else\n        return pow(dotNH, shininess) * RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * 0.25 * specularColor;\n    #endif\n}",
 RE_Lambert: "vec4 RE_Lambert(vec4 diffuseColor) {\n    return RECIPROCAL_PI * diffuseColor;\n}",
 RE_Phong: "vec4 RE_Phong(vec4 specularColor, vec3 N, vec3 L, vec3 V, float shininess) {\n    vec3 R = max(dot(2.0 * N, L), 0.) * N - L;\n    float dotVR = saturate(dot(V, R));\n    #ifdef USE_SPECULAR_FRESNEL\n        vec3 H = normalize(L + V);\n        float dotLH = saturate(dot(L, H));\n        return pow(dotVR, shininess) * RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * 0.25 * F_Schlick(specularColor, dotLH);\n    #else\n        return pow(dotVR, shininess) * RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * 0.25 * specularColor;\n    #endif\n}",
-ambientlight_pars_frag: "\nuniform vec4 u_AmbientLightColor;",
+ambientlight_pars_frag: "uniform vec4 u_AmbientLightColor;",
 begin_frag: "vec4 outColor = vec4(u_Color, u_Opacity);",
 begin_vert: "vec3 transformed = vec3(a_Position);\n#if defined(USE_NORMAL) || defined(USE_ENV_MAP)\n    vec3 objectNormal = vec3(a_Normal);\n#endif",
 bumpMap_pars_frag: "#ifdef USE_BUMPMAP\n\tuniform sampler2D bumpMap;\n\tuniform float bumpScale;\n\tvec2 dHdxy_fwd(vec2 uv) {\n\t\tvec2 dSTdx = dFdx( uv );\n\t\tvec2 dSTdy = dFdy( uv );\n\t\tfloat Hll = bumpScale * texture2D( bumpMap, uv ).x;\n\t\tfloat dBx = bumpScale * texture2D( bumpMap, uv + dSTdx ).x - Hll;\n\t\tfloat dBy = bumpScale * texture2D( bumpMap, uv + dSTdy ).x - Hll;\n\t\treturn vec2( dBx, dBy );\n\t}\n\tvec3 perturbNormalArb( vec3 surf_pos, vec3 surf_norm, vec2 dHdxy) {\n\t\tvec3 vSigmaX = dFdx( surf_pos );\n\t\tvec3 vSigmaY = dFdy( surf_pos );\n\t\tvec3 vN = surf_norm;\n\t\tvec3 R1 = cross( vSigmaY, vN );\n\t\tvec3 R2 = cross( vN, vSigmaX );\n\t\tfloat fDet = dot( vSigmaX, R1 );\n\t\tvec3 vGrad = sign( fDet ) * ( dHdxy.x * R1 + dHdxy.y * R2 );\n\t\treturn normalize( abs( fDet ) * surf_norm - vGrad );\n\t}\n#endif\n",
 common_frag: "uniform mat4 u_View;\nuniform float u_Opacity;\nuniform vec3 u_Color;\nuniform vec3 u_CameraPosition;",
 common_vert: "attribute vec3 a_Position;\nattribute vec3 a_Normal;\n#include <transpose>\n#include <inverse>\nuniform mat4 u_Projection;\nuniform mat4 u_View;\nuniform mat4 u_Model;\nuniform vec3 u_CameraPosition;",
-diffuseMap_frag: "#ifdef USE_DIFFUSE_MAP\n    outColor *= texture2D(texture, v_Uv);\n#endif",
+diffuseMap_frag: "#ifdef USE_DIFFUSE_MAP\n    vec4 texelColor = texture2D( texture, v_Uv );\n    texelColor = mapTexelToLinear( texelColor );\n    outColor *= texelColor;\n#endif",
 diffuseMap_pars_frag: "#ifdef USE_DIFFUSE_MAP\n    uniform sampler2D texture;\n#endif",
 directlight_pars_frag: "struct DirectLight\n{\n    vec3 direction;\n    vec4 color;\n    float intensity;\n    int shadow;\n    float shadowBias;\n    float shadowRadius;\n    vec2 shadowMapSize;\n};\nuniform DirectLight u_Directional[USE_DIRECT_LIGHT];",
-emissiveMap_frag: "#ifdef USE_EMISSIVEMAP\n\tvec4 emissiveColor = texture2D(emissiveMap, v_Uv);\n\ttotalEmissiveRadiance *= emissiveColor.rgb;\n#endif",
+emissiveMap_frag: "#ifdef USE_EMISSIVEMAP\n\tvec4 emissiveColor = texture2D(emissiveMap, v_Uv);\n\temissiveColor.rgb = emissiveMapTexelToLinear( emissiveColor ).rgb;\n\ttotalEmissiveRadiance *= emissiveColor.rgb;\n#endif",
 emissiveMap_pars_frag: "#ifdef USE_EMISSIVEMAP\n\tuniform sampler2D emissiveMap;\n#endif",
+encodings_frag: "gl_FragColor = linearToOutputTexel( gl_FragColor );",
+encodings_pars_frag: "\nvec4 LinearToLinear( in vec4 value ) {\n\treturn value;\n}\nvec4 GammaToLinear( in vec4 value, in float gammaFactor ) {\n\treturn vec4( pow( value.xyz, vec3( gammaFactor ) ), value.w );\n}\nvec4 LinearToGamma( in vec4 value, in float gammaFactor ) {\n\treturn vec4( pow( value.xyz, vec3( 1.0 / gammaFactor ) ), value.w );\n}\nvec4 sRGBToLinear( in vec4 value ) {\n\treturn vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.w );\n}\nvec4 LinearTosRGB( in vec4 value ) {\n\treturn vec4( mix( pow( value.rgb, vec3( 0.41666 ) ) * 1.055 - vec3( 0.055 ), value.rgb * 12.92, vec3( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.w );\n}\nvec4 RGBEToLinear( in vec4 value ) {\n\treturn vec4( value.rgb * exp2( value.a * 255.0 - 128.0 ), 1.0 );\n}\nvec4 LinearToRGBE( in vec4 value ) {\n\tfloat maxComponent = max( max( value.r, value.g ), value.b );\n\tfloat fExp = clamp( ceil( log2( maxComponent ) ), -128.0, 127.0 );\n\treturn vec4( value.rgb / exp2( fExp ), ( fExp + 128.0 ) / 255.0 );\n}\nvec4 RGBMToLinear( in vec4 value, in float maxRange ) {\n\treturn vec4( value.xyz * value.w * maxRange, 1.0 );\n}\nvec4 LinearToRGBM( in vec4 value, in float maxRange ) {\n\tfloat maxRGB = max( value.x, max( value.g, value.b ) );\n\tfloat M      = clamp( maxRGB / maxRange, 0.0, 1.0 );\n\tM            = ceil( M * 255.0 ) / 255.0;\n\treturn vec4( value.rgb / ( M * maxRange ), M );\n}\nvec4 RGBDToLinear( in vec4 value, in float maxRange ) {\n\treturn vec4( value.rgb * ( ( maxRange / 255.0 ) / value.a ), 1.0 );\n}\nvec4 LinearToRGBD( in vec4 value, in float maxRange ) {\n\tfloat maxRGB = max( value.x, max( value.g, value.b ) );\n\tfloat D      = max( maxRange / maxRGB, 1.0 );\n\tD            = min( floor( D ) / 255.0, 1.0 );\n\treturn vec4( value.rgb * ( D * ( 255.0 / maxRange ) ), D );\n}\nconst mat3 cLogLuvM = mat3( 0.2209, 0.3390, 0.4184, 0.1138, 0.6780, 0.7319, 0.0102, 0.1130, 0.2969 );\nvec4 LinearToLogLuv( in vec4 value )  {\n\tvec3 Xp_Y_XYZp = value.rgb * cLogLuvM;\n\tXp_Y_XYZp = max(Xp_Y_XYZp, vec3(1e-6, 1e-6, 1e-6));\n\tvec4 vResult;\n\tvResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;\n\tfloat Le = 2.0 * log2(Xp_Y_XYZp.y) + 127.0;\n\tvResult.w = fract(Le);\n\tvResult.z = (Le - (floor(vResult.w*255.0))/255.0)/255.0;\n\treturn vResult;\n}\nconst mat3 cLogLuvInverseM = mat3( 6.0014, -2.7008, -1.7996, -1.3320, 3.1029, -5.7721, 0.3008, -1.0882, 5.6268 );\nvec4 LogLuvToLinear( in vec4 value ) {\n\tfloat Le = value.z * 255.0 + value.w;\n\tvec3 Xp_Y_XYZp;\n\tXp_Y_XYZp.y = exp2((Le - 127.0) / 2.0);\n\tXp_Y_XYZp.z = Xp_Y_XYZp.y / value.y;\n\tXp_Y_XYZp.x = value.x * Xp_Y_XYZp.z;\n\tvec3 vRGB = Xp_Y_XYZp.rgb * cLogLuvInverseM;\n\treturn vec4( max(vRGB, 0.0), 1.0 );\n}\n",
 end_frag: "gl_FragColor = outColor;",
-envMap_frag: "#ifdef USE_ENV_MAP\n    vec4 envColor = textureCube(envMap, v_EnvPos);\n    outColor += envColor * u_EnvMap_Intensity;\n#endif",
+envMap_frag: "#ifdef USE_ENV_MAP\n    vec4 envColor = textureCube(envMap, v_EnvPos);\n    envColor = envMapTexelToLinear( envColor );\n    outColor += envColor * u_EnvMap_Intensity;\n#endif",
 envMap_pars_frag: "#ifdef USE_ENV_MAP\n    varying vec3 v_EnvPos;\n    uniform samplerCube envMap;\n    uniform float u_EnvMap_Intensity;\n#endif",
 envMap_pars_vert: "#ifdef USE_ENV_MAP\n    varying vec3 v_EnvPos;\n#endif",
 envMap_vert: "#ifdef USE_ENV_MAP\n    v_EnvPos = reflect(normalize((u_Model * vec4(transformed, 1.0)).xyz - u_CameraPosition), (transpose(inverse(u_Model)) * vec4(objectNormal, 1.0)).xyz);\n#endif",
 fog_frag: "#ifdef USE_FOG\n    float depth = gl_FragCoord.z / gl_FragCoord.w;\n    #ifdef USE_EXP2_FOG\n        float fogFactor = whiteCompliment( exp2( - u_FogDensity * u_FogDensity * depth * depth * LOG2 ) );\n    #else\n        float fogFactor = smoothstep( u_FogNear, u_FogFar, depth );\n    #endif\n    gl_FragColor.rgb = mix( gl_FragColor.rgb, u_FogColor, fogFactor );\n#endif",
 fog_pars_frag: "#ifdef USE_FOG\n    uniform vec3 u_FogColor;\n    #ifdef USE_EXP2_FOG\n        uniform float u_FogDensity;\n    #else\n        uniform float u_FogNear;\n        uniform float u_FogFar;\n    #endif\n#endif",
 inverse: "mat4 inverse(mat4 m) {\n    float\n    a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3],\n    a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3],\n    a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3],\n    a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3],\n    b00 = a00 * a11 - a01 * a10,\n    b01 = a00 * a12 - a02 * a10,\n    b02 = a00 * a13 - a03 * a10,\n    b03 = a01 * a12 - a02 * a11,\n    b04 = a01 * a13 - a03 * a11,\n    b05 = a02 * a13 - a03 * a12,\n    b06 = a20 * a31 - a21 * a30,\n    b07 = a20 * a32 - a22 * a30,\n    b08 = a20 * a33 - a23 * a30,\n    b09 = a21 * a32 - a22 * a31,\n    b10 = a21 * a33 - a23 * a31,\n    b11 = a22 * a33 - a23 * a32,\n    det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n    return mat4(\n        a11 * b11 - a12 * b10 + a13 * b09,\n        a02 * b10 - a01 * b11 - a03 * b09,\n        a31 * b05 - a32 * b04 + a33 * b03,\n        a22 * b04 - a21 * b05 - a23 * b03,\n        a12 * b08 - a10 * b11 - a13 * b07,\n        a00 * b11 - a02 * b08 + a03 * b07,\n        a32 * b02 - a30 * b05 - a33 * b01,\n        a20 * b05 - a22 * b02 + a23 * b01,\n        a10 * b10 - a11 * b08 + a13 * b06,\n        a01 * b08 - a00 * b10 - a03 * b06,\n        a30 * b04 - a31 * b02 + a33 * b00,\n        a21 * b02 - a20 * b04 - a23 * b00,\n        a11 * b07 - a10 * b09 - a12 * b06,\n        a00 * b09 - a01 * b07 + a02 * b06,\n        a31 * b01 - a30 * b03 - a32 * b00,\n        a20 * b03 - a21 * b01 + a22 * b00) / det;\n}",
-light_frag: "#ifdef USE_LIGHT\n    vec4 light;\n    vec3 L;\n    vec4 reflectLight = vec4(0., 0., 0., 0.);\n    vec4 totalReflect = vec4(0., 0., 0., 0.);\n    vec4 diffuseColor = outColor.xyzw;\n    #ifdef USE_AMBIENT_LIGHT\n    totalReflect += RECIPROCAL_PI * diffuseColor * u_AmbientLightColor;\n    #endif\n    #if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) )\n        vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);\n    #endif\n    #ifdef USE_DIRECT_LIGHT\n    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {\n        L = -u_Directional[i].direction;\n        light = u_Directional[i].color * u_Directional[i].intensity;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        reflectLight += irradiance * RE_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;\n        #endif\n        #ifdef USE_SHADOW\n            reflectLight *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;\n        #endif\n        totalReflect += reflectLight;\n        reflectLight = vec4(0., 0., 0., 0.);\n    }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    for(int i = 0; i < USE_POINT_LIGHT; i++) {\n        L = u_Point[i].position - v_ViewModelPos;\n        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);\n        light = u_Point[i].color * u_Point[i].intensity * dist;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        reflectLight += irradiance * RE_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;\n        #endif\n        #ifdef USE_SHADOW\n            vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;\n            reflectLight *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize ) : 1.0;\n        #endif\n        totalReflect += reflectLight;\n        reflectLight = vec4(0., 0., 0., 0.);\n    }\n    #endif\n    #ifdef USE_SPOT_LIGHT\n    for(int i = 0; i < USE_SPOT_LIGHT; i++) {\n        L = u_Spot[i].position - v_ViewModelPos;\n        float lightDistance = length(L);\n        L = normalize(L);\n        float angleCos = dot( L, -normalize(u_Spot[i].direction) );\n        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {\n            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );\n            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);\n            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;\n            float dotNL = saturate( dot(N, L) );\n            vec4 irradiance = light * dotNL;\n            reflectLight += irradiance * RE_Lambert(diffuseColor);\n            #ifdef USE_PHONG\n                reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;\n            #endif\n            #ifdef USE_SHADOW\n                reflectLight *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;\n            #endif\n            totalReflect += reflectLight;\n            reflectLight = vec4(0., 0., 0., 0.);\n        }\n    }\n    #endif\n    outColor = totalReflect.xyzw;\n#endif",
+light_frag: "#ifdef USE_LIGHT\n    vec4 light;\n    vec3 L;\n    vec4 reflectLight = vec4(0., 0., 0., 0.);\n    vec4 totalReflect = vec4(0., 0., 0., 0.);\n    vec4 diffuseColor = outColor.xyzw;\n    #ifdef USE_AMBIENT_LIGHT\n        totalReflect += RECIPROCAL_PI * diffuseColor * u_AmbientLightColor;\n    #endif\n    #if defined(USE_PHONG) && ( defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) )\n        vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);\n    #endif\n    #ifdef USE_DIRECT_LIGHT\n    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {\n        L = -u_Directional[i].direction;\n        light = u_Directional[i].color * u_Directional[i].intensity;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        reflectLight += irradiance * RE_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;\n        #endif\n        #ifdef USE_SHADOW\n            reflectLight *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;\n        #endif\n        totalReflect += reflectLight;\n        reflectLight = vec4(0., 0., 0., 0.);\n    }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    for(int i = 0; i < USE_POINT_LIGHT; i++) {\n        L = u_Point[i].position - v_ViewModelPos;\n        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);\n        light = u_Point[i].color * u_Point[i].intensity * dist;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        reflectLight += irradiance * RE_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;\n        #endif\n        #ifdef USE_SHADOW\n            vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;\n            reflectLight *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize ) : 1.0;\n        #endif\n        totalReflect += reflectLight;\n        reflectLight = vec4(0., 0., 0., 0.);\n    }\n    #endif\n    #ifdef USE_SPOT_LIGHT\n    for(int i = 0; i < USE_SPOT_LIGHT; i++) {\n        L = u_Spot[i].position - v_ViewModelPos;\n        float lightDistance = length(L);\n        L = normalize(L);\n        float angleCos = dot( L, -normalize(u_Spot[i].direction) );\n        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {\n            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );\n            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);\n            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;\n            float dotNL = saturate( dot(N, L) );\n            vec4 irradiance = light * dotNL;\n            reflectLight += irradiance * RE_Lambert(diffuseColor);\n            #ifdef USE_PHONG\n                reflectLight += irradiance * RE_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;\n            #endif\n            #ifdef USE_SHADOW\n                reflectLight *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;\n            #endif\n            totalReflect += reflectLight;\n            reflectLight = vec4(0., 0., 0., 0.);\n        }\n    }\n    #endif\n    outColor = totalReflect.xyzw;\n#endif",
 light_pars_frag: "#ifdef USE_AMBIENT_LIGHT\n    #include <ambientlight_pars_frag>\n#endif\n#ifdef USE_DIRECT_LIGHT\n    #include <directlight_pars_frag>\n#endif\n#ifdef USE_POINT_LIGHT\n    #include <pointlight_pars_frag>\n#endif\n#ifdef USE_SPOT_LIGHT\n    #include <spotlight_pars_frag>\n#endif",
 normalMap_pars_frag: "#include <tbn>\n#include <tsn>\nuniform sampler2D normalMap;",
 normal_frag: "#ifdef USE_NORMAL\n    #ifdef DOUBLE_SIDED\n    \tfloat flipNormal = ( float( gl_FrontFacing ) * 2.0 - 1.0 );\n    #else\n    \tfloat flipNormal = 1.0;\n    #endif\n    #ifdef FLAT_SHADED\n    \tvec3 fdx = vec3( dFdx( v_ViewModelPos.x ), dFdx( v_ViewModelPos.y ), dFdx( v_ViewModelPos.z ) );\n    \tvec3 fdy = vec3( dFdy( v_ViewModelPos.x ), dFdy( v_ViewModelPos.y ), dFdy( v_ViewModelPos.z ) );\n    \tvec3 N = normalize( cross( fdx, fdy ) );\n    #else\n        vec3 N = normalize(v_Normal) * flipNormal;\n    #endif\n    #ifdef USE_NORMAL_MAP\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\n        mat3 tspace = tsn(N, -v_ViewModelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\n    #elif defined(USE_BUMPMAP)\n        N = perturbNormalArb(-v_ViewModelPos, N, dHdxy_fwd(v_Uv));\n    #endif\n#endif",
@@ -4588,7 +4602,7 @@ viewModelPos_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || d
 })();
 (function(){
 zen3d.ShaderLib = {
-basic_frag: "#include <common_frag>\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <envMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <envMap_frag>\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
+basic_frag: "#include <common_frag>\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <envMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <envMap_frag>\n    #include <end_frag>\n    #include <encodings_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 basic_vert: "#include <common_vert>\n#include <uv_pars_vert>\n#include <envMap_pars_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    #include <uv_vert>\n    #include <envMap_vert>\n}",
 canvas2d_frag: "#include <common_frag>\nvarying vec2 v_Uv;\nuniform sampler2D spriteTexture;\nvoid main() {\n    #include <begin_frag>\n    outColor *= texture2D(spriteTexture, v_Uv);\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n}",
 canvas2d_vert: "#include <common_vert>\nattribute vec2 a_Uv;\nvarying vec2 v_Uv;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    v_Uv = a_Uv;\n}",
@@ -4596,15 +4610,15 @@ cube_frag: "#include <common_frag>\nuniform samplerCube cubeMap;\nvarying vec3 v
 cube_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
 depth_frag: "#include <common_frag>\nuniform vec3 lightPos;\nvarying vec3 v_ModelPos;\n#include <packing>\nvoid main() {\n    gl_FragColor = packDepthToRGBA(length(v_ModelPos - lightPos) / 1000.);\n}",
 depth_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
-lambert_frag: "#include <common_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
+lambert_frag: "#include <common_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <encodings_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 lambert_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
 linedashed_frag: "#include <common_frag>\n#include <fog_pars_frag>\nuniform float dashSize;\nuniform float totalSize;\nvarying float vLineDistance;\nvoid main() {\n    if ( mod( vLineDistance, totalSize ) > dashSize ) {\n\t\tdiscard;\n\t}\n    #include <begin_frag>\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 linedashed_vert: "#include <common_vert>\nuniform float scale;\nattribute float lineDistance;\nvarying float vLineDistance;\nvoid main() {\n    vLineDistance = scale * lineDistance;\n    vec3 transformed = vec3(a_Position);\n    #include <pvm_vert>\n}",
 particle_frag: "float scaleLinear(float value, vec2 valueDomain) {\n    return (value - valueDomain.x) / (valueDomain.y - valueDomain.x);\n}\nfloat scaleLinear(float value, vec2 valueDomain, vec2 valueRange) {\n    return mix(valueRange.x, valueRange.y, scaleLinear(value, valueDomain));\n}\nvarying vec4 vColor;\nvarying float lifeLeft;\nuniform sampler2D tSprite;\nvoid main() {\n    float alpha = 0.;\n    if( lifeLeft > .995 ) {\n        alpha = scaleLinear( lifeLeft, vec2(1., .995), vec2(0., 1.));\n    } else {\n        alpha = lifeLeft * .75;\n    }\n    vec4 tex = texture2D( tSprite, gl_PointCoord );\n    gl_FragColor = vec4( vColor.rgb * tex.a, alpha * tex.a );\n}",
 particle_vert: "const vec4 bitSh = vec4(256. * 256. * 256., 256. * 256., 256., 1.);\nconst vec4 bitMsk = vec4(0.,vec3(1./256.0));\nconst vec4 bitShifts = vec4(1.) / bitSh;\n#define FLOAT_MAX\t1.70141184e38\n#define FLOAT_MIN\t1.17549435e-38\nlowp vec4 encode_float(highp float v) {\n    highp float av = abs(v);\n    if(av < FLOAT_MIN) {\n        return vec4(0.0, 0.0, 0.0, 0.0);\n    } else if(v > FLOAT_MAX) {\n        return vec4(127.0, 128.0, 0.0, 0.0) / 255.0;\n    } else if(v < -FLOAT_MAX) {\n        return vec4(255.0, 128.0, 0.0, 0.0) / 255.0;\n    }\n    highp vec4 c = vec4(0,0,0,0);\n    highp float e = floor(log2(av));\n    highp float m = av * pow(2.0, -e) - 1.0;\n    c[1] = floor(128.0 * m);\n    m -= c[1] / 128.0;\n    c[2] = floor(32768.0 * m);\n    m -= c[2] / 32768.0;\n    c[3] = floor(8388608.0 * m);\n    highp float ebias = e + 127.0;\n    c[0] = floor(ebias / 2.0);\n    ebias -= c[0] * 2.0;\n    c[1] += floor(ebias) * 128.0;\n    c[0] += 128.0 * step(0.0, -v);\n    return c / 255.0;\n}\nvec4 pack(const in float depth)\n{\n    const vec4 bit_shift = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0);\n    const vec4 bit_mask\t= vec4(0.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);\n    vec4 res = mod(depth*bit_shift*vec4(255), vec4(256))/vec4(255);\n    res -= res.xxyz * bit_mask;\n    return res;\n}\nfloat unpack(const in vec4 rgba_depth)\n{\n    const vec4 bit_shift = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);\n    float depth = dot(rgba_depth, bit_shift);\n    return depth;\n}\nuniform float uTime;\nuniform float uScale;\nuniform sampler2D tNoise;\nuniform mat4 u_Projection;\nuniform mat4 u_View;\nuniform mat4 u_Model;\nattribute vec4 particlePositionsStartTime;\nattribute vec4 particleVelColSizeLife;\nvarying vec4 vColor;\nvarying float lifeLeft;\nvoid main() {\n    vColor = encode_float( particleVelColSizeLife.y );\n    vec4 velTurb = encode_float( particleVelColSizeLife.x );\n    vec3 velocity = vec3( velTurb.xyz );\n    float turbulence = velTurb.w;\n    vec3 newPosition;\n    float timeElapsed = uTime - particlePositionsStartTime.a;\n    lifeLeft = 1. - (timeElapsed / particleVelColSizeLife.w);\n    gl_PointSize = ( uScale * particleVelColSizeLife.z ) * lifeLeft;\n    velocity.x = ( velocity.x - .5 ) * 3.;\n    velocity.y = ( velocity.y - .5 ) * 3.;\n    velocity.z = ( velocity.z - .5 ) * 3.;\n    newPosition = particlePositionsStartTime.xyz + ( velocity * 10. ) * ( uTime - particlePositionsStartTime.a );\n    vec3 noise = texture2D( tNoise, vec2( newPosition.x * .015 + (uTime * .05), newPosition.y * .02 + (uTime * .015) )).rgb;\n    vec3 noiseVel = ( noise.rgb - .5 ) * 30.;\n    newPosition = mix(newPosition, newPosition + vec3(noiseVel * ( turbulence * 5. ) ), (timeElapsed / particleVelColSizeLife.a) );\n    if( velocity.y > 0. && velocity.y < .05 ) {\n        lifeLeft = 0.;\n    }\n    if( velocity.x < -1.45 ) {\n        lifeLeft = 0.;\n    }\n    if( timeElapsed > 0. ) {\n        gl_Position = u_Projection * u_View * u_Model * vec4( newPosition, 1.0 );\n    } else {\n        gl_Position = u_Projection * u_View * u_Model * vec4( particlePositionsStartTime.xyz, 1.0 );\n        lifeLeft = 0.;\n        gl_PointSize = 0.;\n    }\n}",
-phong_frag: "#include <common_frag>\nuniform float u_Specular;\nuniform vec4 u_SpecularColor;\n#include <specularMap_pars_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <F_Schlick>\n#include <RE_Phong>\n#include <RE_BlinnPhong>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <specularMap_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
+phong_frag: "#include <common_frag>\nuniform float u_Specular;\nuniform vec4 u_SpecularColor;\n#include <specularMap_pars_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <RE_Lambert>\n#include <F_Schlick>\n#include <RE_Phong>\n#include <RE_BlinnPhong>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <specularMap_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <encodings_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 phong_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
-point_frag: "#include <common_frag>\n#include <diffuseMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #ifdef USE_DIFFUSE_MAP\n        outColor *= texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));\n    #endif\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
+point_frag: "#include <common_frag>\n#include <diffuseMap_pars_frag>\n#include <fog_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #ifdef USE_DIFFUSE_MAP\n        outColor *= texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));\n    #endif\n    #include <end_frag>\n    #include <encodings_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 point_vert: "#include <common_vert>\nuniform float u_PointSize;\nuniform float u_PointScale;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    vec4 mvPosition = u_View * u_Model * vec4(transformed, 1.0);\n    #ifdef USE_SIZEATTENUATION\n        gl_PointSize = u_PointSize * ( u_PointScale / - mvPosition.z );\n    #else\n        gl_PointSize = u_PointSize;\n    #endif\n}",
 sprite_frag: "uniform vec3 color;\nuniform sampler2D map;\nuniform float opacity;\nuniform int fogType;\nuniform vec3 fogColor;\nuniform float fogDensity;\nuniform float fogNear;\nuniform float fogFar;\nuniform float alphaTest;\nvarying vec2 vUV;\nvoid main() {\n    vec4 texture = texture2D( map, vUV );\n    if ( texture.a < alphaTest ) discard;\n    gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );\n    if ( fogType > 0 ) {\n        float depth = gl_FragCoord.z / gl_FragCoord.w;\n        float fogFactor = 0.0;\n        if ( fogType == 1 ) {\n            fogFactor = smoothstep( fogNear, fogFar, depth );\n        } else {\n            \n            fogFactor = exp2( - fogDensity * fogDensity * depth * depth * LOG2 );\n            fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );\n        }\n        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\n    }\n}",
 sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 projectionMatrix;\nuniform float rotation;\nuniform vec2 scale;\nuniform vec2 uvOffset;\nuniform vec2 uvScale;\nattribute vec2 position;\nattribute vec2 uv;\nvarying vec2 vUV;\nvoid main() {\n    vUV = uvOffset + uv * uvScale;\n    vec2 alignedPosition = position * scale;\n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    vec4 finalPosition;\n    finalPosition = viewMatrix * modelMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );\n    finalPosition.xy += rotatedPosition;\n    finalPosition = projectionMatrix * finalPosition;\n    gl_Position = finalPosition;\n}",
@@ -4626,6 +4640,71 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var TEXEL_ENCODING_TYPE = zen3d.TEXEL_ENCODING_TYPE;
+
+    function getTextureEncodingFromMap( map, gammaOverrideLinear ) {
+
+		var encoding;
+
+		if ( ! map ) {
+
+			encoding = TEXEL_ENCODING_TYPE.LINEAR;
+
+		} else if ( map.encoding ) {
+
+			encoding = map.encoding;
+
+		}
+
+		// add backwards compatibility for Renderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
+		if ( encoding === TEXEL_ENCODING_TYPE.LINEAR && gammaOverrideLinear ) {
+
+			encoding = TEXEL_ENCODING_TYPE.GAMMA;
+
+		}
+
+		return encoding;
+
+	}
+
+    function getEncodingComponents( encoding ) {
+
+    	switch ( encoding ) {
+
+    		case TEXEL_ENCODING_TYPE.LINEAR:
+    			return [ 'Linear','( value )' ];
+    		case TEXEL_ENCODING_TYPE.SRGB:
+    			return [ 'sRGB','( value )' ];
+    		case TEXEL_ENCODING_TYPE.RGBE:
+    			return [ 'RGBE','( value )' ];
+    		case TEXEL_ENCODING_TYPE.RGBM7:
+    			return [ 'RGBM','( value, 7.0 )' ];
+    		case TEXEL_ENCODING_TYPE.RGBM16:
+    			return [ 'RGBM','( value, 16.0 )' ];
+    		case TEXEL_ENCODING_TYPE.RGBD:
+    			return [ 'RGBD','( value, 256.0 )' ];
+    		case TEXEL_ENCODING_TYPE.GAMMA:
+    			return [ 'Gamma','( value, float( GAMMA_FACTOR ) )' ];
+    		default:
+    		      console.error( 'unsupported encoding: ' + encoding );
+
+    	}
+
+    }
+
+    function getTexelDecodingFunction( functionName, encoding ) {
+
+    	var components = getEncodingComponents( encoding );
+    	return "vec4 " + functionName + "( vec4 value ) { return " + components[ 0 ] + "ToLinear" + components[ 1 ] + "; }";
+
+    }
+
+    function getTexelEncodingFunction( functionName, encoding ) {
+
+    	var components = getEncodingComponents( encoding );
+    	return "vec4 " + functionName + "( vec4 value ) { return LinearTo" + components[ 0 ] + components[ 1 ] + "; }";
+
+    }
 
     /**
      * create program
@@ -4696,6 +4775,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 fshader_define.push(props.useSpecularFresnel ? '#define USE_SPECULAR_FRESNEL' : '');
             case MATERIAL_TYPE.BASIC:
+                fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
+                fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
+
+                fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding));
+                fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
             case MATERIAL_TYPE.LINE_BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
@@ -4767,12 +4853,19 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         props.precision = render.capabilities.maxPrecision;
         props.materialType = material.type;
 
+        var currentRenderTarget = render.getCurrentRenderTarget();
+
         switch (material.type) {
             case MATERIAL_TYPE.BASIC:
             case MATERIAL_TYPE.LAMBERT:
             case MATERIAL_TYPE.PHONG:
-            case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.POINT:
+                props.gammaFactor = render.gammaFactor;
+                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget ? currentRenderTarget.texture : null, render.gammaOutput);
+                props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
+                props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
+                props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
+            case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_BASIC:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;
@@ -4872,6 +4965,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.autoClear = true;
 
         this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
+
+        this.gammaFactor = 2.0;
+    	this.gammaInput = false;
+    	this.gammaOutput = false;
 
         // init webgl
         var properties = new zen3d.WebGLProperties();
@@ -5727,6 +5824,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         this.state.viewport(0, 0, target.width, target.height);
+    }
+
+    Renderer.prototype.getCurrentRenderTarget = function() {
+        return this._currentRenderTarget;
     }
 
     /**
@@ -6705,6 +6806,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.anisotropy = 1;
 
         this.generateMipmaps = true;
+
+        this.encoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
 
         this.version = 0;
     }

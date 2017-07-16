@@ -26,6 +26,8 @@
 
         this.generateMipmaps = true;
 
+        this.encoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
+
         this.version = 0;
     }
 

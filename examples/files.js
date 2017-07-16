@@ -30,7 +30,8 @@ var files = {
 		"camera_controller_hover"
 	],
 	"scene": [
-		"scene_fog"
+		"scene_fog",
+		"scene_gamma_correction"
 	],
 	"math": [
 		"math_frustumtest",

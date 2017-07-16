@@ -27,6 +27,7 @@ void main() {
     outColor += vec4(totalEmissiveRadiance.rgb, 0.0);
 
     #include <end_frag>
+    #include <encodings_frag>
     #include <premultipliedAlpha_frag>
     #include <fog_frag>
 }

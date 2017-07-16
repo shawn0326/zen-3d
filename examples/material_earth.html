@@ -77,6 +77,9 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
+			renderer.gammaInput = true;
+			renderer.gammaOutput = true;
+			renderer.gammaFactor = 1.7;
 
 	        var scene = new zen3d.Scene();
 

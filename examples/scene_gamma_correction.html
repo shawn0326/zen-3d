@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - mipmap</title>
+	<title>zen3d - gamma correction</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -25,15 +25,9 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - mipmap
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gamma correction
 		<br/>
-		press 'z' to close mipmaps and use LINEAR min filter
-		<br/>
-		press 'x' to close mipmaps and use NEAREST min filter
-		<br/>
-		press 'c' to open mipmaps and use LINEAR_MIPMAP_LINEAR min filter
-		<br/>
-		press 'v' to open mipmaps and use NEAREST_MIPMAP_NEAREST min filter
+		touch screen to enable/disable gamma correction
     </div>
 
 	<script>
@@ -48,74 +42,73 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.gammaInput = true;
-			renderer.gammaOutput = true;
+			renderer.gammaFactor = 1.5;
 
 	        var scene = new zen3d.Scene();
 
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
-			texture.anisotropy = renderer.capabilities.maxAnisotropy;
 
-			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
+			var cube_geometry = new zen3d.CubeGeometry(16, 16, 16);
 			var phong = new zen3d.PhongMaterial();
 			phong.diffuseMap = texture;
 			var cube = new zen3d.Mesh(cube_geometry, phong);
+			cube.castShadow = true;
 			scene.add(cube);
 
-	        var ambientLight = new zen3d.AmbientLight();
+	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.diffuse.setHex(0xffffff);
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        plane.position.y = -8;
+	        scene.add(plane);
+
+			var ambientLight = new zen3d.AmbientLight();
 	        ambientLight.color.setHex(0x3c3c3c);
 	        scene.add(ambientLight);
 
-	        var directLight = new zen3d.DirectionalLight();
-	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        directLight.color.setHex(0xffffff);
-	        directLight.position.set(-40, 40, 0);
-			directLight.intensity = 1.5;
-	        scene.add(directLight);
+			var pointLight = new zen3d.PointLight();
+	        pointLight.color.setHex(0x00ff00);
+			pointLight.distance = 100;
+	        pointLight.position.set(20, 10, -20);
+	        scene.add(pointLight);
 
-			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
+			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
 			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
+	        basic.diffuse.setHex(0x00ff00);
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
+	        lightBall.position.set(20, 10, -20);
 	        scene.add(lightBall);
 
 	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 10, 30);
+	        camera.position.set(0, 80, 100);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
+			plane.receiveShadow = true;
+			pointLight.castShadow = true;
+
 			// input
+			function toggleGammaCorrection() {
+				renderer.gammaInput = !renderer.gammaInput;
+				renderer.gammaOutput = !renderer.gammaOutput;
+			}
 
-			document.onkeydown = function(e) {
-				if(e.keyCode == 90) { // 'z'
-					texture.generateMipMaps = false;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-				} else if(e.keyCode == 88) { // 'x'
-					texture.generateMipMaps = false;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-				} else if(e.keyCode == 67) { // 'c'
-					texture.generateMipMaps = true;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
-				} else if(e.keyCode == 86) { // 'v'
-					texture.generateMipMaps = true;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST_MIPMAP_NEAREST;
-				}
-
-				texture.version++;
-	        }
+			document.addEventListener("mouseup", toggleGammaCorrection);
+			document.addEventListener("touchend", toggleGammaCorrection);
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
 				// rotate camera
-				camera.position.x = 30 * Math.sin(count / 1000 * .5);
-				camera.position.z = 30 * Math.cos(count / 1000 * .5);
+				camera.position.x = 100 * Math.sin(count / 1000 * .5);
+				camera.position.z = 100 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 	            renderer.render(scene, camera);
+
+				controller.update();
 	        }
 
 	        loop(0);

@@ -14,6 +14,71 @@
     }
 
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var TEXEL_ENCODING_TYPE = zen3d.TEXEL_ENCODING_TYPE;
+
+    function getTextureEncodingFromMap( map, gammaOverrideLinear ) {
+
+		var encoding;
+
+		if ( ! map ) {
+
+			encoding = TEXEL_ENCODING_TYPE.LINEAR;
+
+		} else if ( map.encoding ) {
+
+			encoding = map.encoding;
+
+		}
+
+		// add backwards compatibility for Renderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
+		if ( encoding === TEXEL_ENCODING_TYPE.LINEAR && gammaOverrideLinear ) {
+
+			encoding = TEXEL_ENCODING_TYPE.GAMMA;
+
+		}
+
+		return encoding;
+
+	}
+
+    function getEncodingComponents( encoding ) {
+
+    	switch ( encoding ) {
+
+    		case TEXEL_ENCODING_TYPE.LINEAR:
+    			return [ 'Linear','( value )' ];
+    		case TEXEL_ENCODING_TYPE.SRGB:
+    			return [ 'sRGB','( value )' ];
+    		case TEXEL_ENCODING_TYPE.RGBE:
+    			return [ 'RGBE','( value )' ];
+    		case TEXEL_ENCODING_TYPE.RGBM7:
+    			return [ 'RGBM','( value, 7.0 )' ];
+    		case TEXEL_ENCODING_TYPE.RGBM16:
+    			return [ 'RGBM','( value, 16.0 )' ];
+    		case TEXEL_ENCODING_TYPE.RGBD:
+    			return [ 'RGBD','( value, 256.0 )' ];
+    		case TEXEL_ENCODING_TYPE.GAMMA:
+    			return [ 'Gamma','( value, float( GAMMA_FACTOR ) )' ];
+    		default:
+    		      console.error( 'unsupported encoding: ' + encoding );
+
+    	}
+
+    }
+
+    function getTexelDecodingFunction( functionName, encoding ) {
+
+    	var components = getEncodingComponents( encoding );
+    	return "vec4 " + functionName + "( vec4 value ) { return " + components[ 0 ] + "ToLinear" + components[ 1 ] + "; }";
+
+    }
+
+    function getTexelEncodingFunction( functionName, encoding ) {
+
+    	var components = getEncodingComponents( encoding );
+    	return "vec4 " + functionName + "( vec4 value ) { return LinearTo" + components[ 0 ] + components[ 1 ] + "; }";
+
+    }
 
     /**
      * create program
@@ -84,6 +149,13 @@
 
                 fshader_define.push(props.useSpecularFresnel ? '#define USE_SPECULAR_FRESNEL' : '');
             case MATERIAL_TYPE.BASIC:
+                fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
+                fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
+
+                fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding));
+                fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
             case MATERIAL_TYPE.LINE_BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
@@ -155,12 +227,19 @@
         props.precision = render.capabilities.maxPrecision;
         props.materialType = material.type;
 
+        var currentRenderTarget = render.getCurrentRenderTarget();
+
         switch (material.type) {
             case MATERIAL_TYPE.BASIC:
             case MATERIAL_TYPE.LAMBERT:
             case MATERIAL_TYPE.PHONG:
-            case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.POINT:
+                props.gammaFactor = render.gammaFactor;
+                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget ? currentRenderTarget.texture : null, render.gammaOutput);
+                props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
+                props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
+                props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
+            case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_BASIC:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;

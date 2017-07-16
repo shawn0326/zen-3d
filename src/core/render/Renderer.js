@@ -28,6 +28,10 @@
 
         this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
 
+        this.gammaFactor = 2.0;
+    	this.gammaInput = false;
+    	this.gammaOutput = false;
+
         // init webgl
         var properties = new zen3d.WebGLProperties();
         this.properties = properties;
@@ -882,6 +886,10 @@
         }
 
         this.state.viewport(0, 0, target.width, target.height);
+    }
+
+    Renderer.prototype.getCurrentRenderTarget = function() {
+        return this._currentRenderTarget;
     }
 
     /**
