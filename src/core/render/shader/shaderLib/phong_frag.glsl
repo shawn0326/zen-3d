@@ -14,10 +14,7 @@ uniform vec3 emissive;
 #include <light_pars_frag>
 #include <normal_pars_frag>
 #include <viewModelPos_pars_frag>
-#include <RE_Lambert>
-#include <F_Schlick>
-#include <RE_Phong>
-#include <RE_BlinnPhong>
+#include <bsdfs>
 #include <envMap_pars_frag>
 #include <shadowMap_pars_frag>
 #include <fog_pars_frag>

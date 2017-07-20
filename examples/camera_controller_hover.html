@@ -30,10 +30,6 @@
 		use mouse or touch to rotate camera.
 		<br/>
 		mousewheel or two finger to move camera far/near
-		<br/>
-		press 'z' to disable specular fresnel
-		<br/>
-		press 'x' to enable specular fresnel
     </div>
 
 	<script>
@@ -149,16 +145,6 @@
 				renderer.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
-
-			document.onkeydown = function(e) {
-				if(e.keyCode == 90) { // 'z'
-					phong.specularFresnel = false;
-					console.log("specularFresnel: false");
-				} else if(e.keyCode == 88) { // 'x'
-					phong.specularFresnel = true;
-					console.log("specularFresnel: true");
-				}
-	        }
 		})();
 	</script>
 </body>

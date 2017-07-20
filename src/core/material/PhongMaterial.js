@@ -13,8 +13,6 @@
         this.specular = new zen3d.Color3(0x666666);
         this.specularMap = null;
 
-        this.specularFresnel = true;
-
         this.acceptLight = true;
     }
 

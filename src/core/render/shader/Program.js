@@ -146,8 +146,6 @@
                 fshader_define.push(props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '');
 
                 fshader_define.push(props.doubleSided ? '#define DOUBLE_SIDED' : '');
-
-                fshader_define.push(props.useSpecularFresnel ? '#define USE_SPECULAR_FRESNEL' : '');
             case MATERIAL_TYPE.BASIC:
                 fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
                 fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
@@ -262,7 +260,6 @@
                 props.sizeAttenuation = material.sizeAttenuation;
                 props.doubleSided = material.side === zen3d.DRAW_SIDE.DOUBLE;
                 props.flipSided = material.side === zen3d.DRAW_SIDE.BACK;
-                props.useSpecularFresnel = !!material.specularFresnel;
             case MATERIAL_TYPE.DEPTH:
                 var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
                 var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
