@@ -1,9 +1,11 @@
 #ifdef USE_LIGHT
     vec4 light;
     vec3 L;
-    vec4 reflectLight = vec4(0., 0., 0., 0.);
     vec4 totalReflect = vec4(0., 0., 0., 0.);
     vec4 diffuseColor = outColor.xyzw;
+    #ifdef USE_PHONG
+        vec4 specularColor = u_SpecularColor;
+    #endif
 
     #ifdef USE_AMBIENT_LIGHT
         totalReflect += RECIPROCAL_PI * diffuseColor * u_AmbientLightColor;
@@ -26,14 +28,13 @@
             irradiance *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;
         #endif
 
-        reflectLight += irradiance * BRDF_Diffuse_Lambert(diffuseColor);
+        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
 
         #ifdef USE_PHONG
-            reflectLight += irradiance * BRDF_Specular_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
+            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, u_Specular) * specularStrength;
         #endif
 
         totalReflect += reflectLight;
-        reflectLight = vec4(0., 0., 0., 0.);
     }
     #endif
 
@@ -52,14 +53,13 @@
             irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize ) : 1.0;
         #endif
 
-        reflectLight += irradiance * BRDF_Diffuse_Lambert(diffuseColor);
+        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
 
         #ifdef USE_PHONG
-            reflectLight += irradiance * BRDF_Specular_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
+            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, u_Specular) * specularStrength;
         #endif
 
         totalReflect += reflectLight;
-        reflectLight = vec4(0., 0., 0., 0.);
     }
     #endif
 
@@ -83,18 +83,17 @@
                 irradiance *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;
             #endif
 
-            reflectLight += irradiance * BRDF_Diffuse_Lambert(diffuseColor);
+            vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
 
             #ifdef USE_PHONG
-                reflectLight += irradiance * BRDF_Specular_BlinnPhong(u_SpecularColor, N, L, V, u_Specular) * specularStrength;
+                reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, u_Specular) * specularStrength;
             #endif
 
             totalReflect += reflectLight;
-            reflectLight = vec4(0., 0., 0., 0.);
         }
 
     }
     #endif
 
-    outColor = totalReflect.xyzw;
+    outColor.xyz = totalReflect.xyz;
 #endif
