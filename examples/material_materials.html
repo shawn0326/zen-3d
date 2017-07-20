@@ -45,6 +45,9 @@
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 
+			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			texture.anisotropy = renderer.capabilities.maxAnisotropy;
+
 	        var baisc = new zen3d.BasicMaterial();
 	        baisc.diffuse.setHex(0xffffff);
 	        var sphere1 = new zen3d.Mesh(sphere_geometry, baisc);
@@ -54,14 +57,24 @@
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
 	        var sphere2 = new zen3d.Mesh(sphere_geometry, lambert);
-			sphere2.position.x = 0;
+			sphere2.position.x = -10;
 			scene.add(sphere2);
 
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
+			phong.diffuseMap = texture;
 	        var sphere3 = new zen3d.Mesh(sphere_geometry, phong);
-			sphere3.position.x = 30;
+			sphere3.position.x = 10;
 			scene.add(sphere3);
+
+			var pbr = new zen3d.PBRMaterial();
+	        pbr.diffuse.setHex(0xffffff);
+			pbr.diffuseMap = texture;
+			pbr.metalness = 0.7;
+			pbr.roughness = 0.7;
+	        var sphere4 = new zen3d.Mesh(sphere_geometry, pbr);
+			sphere4.position.x = 30;
+			scene.add(sphere4);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();

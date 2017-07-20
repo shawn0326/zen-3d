@@ -39,6 +39,7 @@
         BASIC: "basic",
         LAMBERT: "lambert",
         PHONG: "phong",
+        PBR: "pbr",
         CUBE: "cube",
         POINT: "point",
         LINE_BASIC: "linebasic",

@@ -95,6 +95,9 @@
             ''
         ],
         fshader_define = [
+            '#define PI 3.14159265359',
+            '#define EPSILON 1e-6',
+            'float pow2( const in float x ) { return x*x; }',
             '#define LOG2 1.442695',
             '#define RECIPROCAL_PI 0.31830988618',
             '#define saturate(a) clamp( a, 0.0, 1.0 )',
@@ -109,6 +112,7 @@
                 break;
             case MATERIAL_TYPE.LAMBERT:
             case MATERIAL_TYPE.PHONG:
+            case MATERIAL_TYPE.PBR:
             case MATERIAL_TYPE.POINT:
                 vshader_define.push((props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '');
                 vshader_define.push((props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '');
@@ -124,6 +128,7 @@
 
                 vshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
                 vshader_define.push(props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '');
+                vshader_define.push(props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '');
 
                 vshader_define.push(props.flipSided ? '#define FLIP_SIDED' : '');
 
@@ -144,6 +149,7 @@
 
                 fshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
                 fshader_define.push(props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '');
+                fshader_define.push(props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '');
 
                 fshader_define.push(props.doubleSided ? '#define DOUBLE_SIDED' : '');
             case MATERIAL_TYPE.BASIC:
@@ -231,6 +237,7 @@
             case MATERIAL_TYPE.BASIC:
             case MATERIAL_TYPE.LAMBERT:
             case MATERIAL_TYPE.PHONG:
+            case MATERIAL_TYPE.PBR:
             case MATERIAL_TYPE.POINT:
                 props.gammaFactor = render.gammaFactor;
                 props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget ? currentRenderTarget.texture : null, render.gammaOutput);

@@ -80,6 +80,7 @@ var filesSrc = [
     "core/material/BasicMaterial.js",
     "core/material/LambertMaterial.js",
     "core/material/PhongMaterial.js",
+    "core/material/PBRMaterial.js",
     "core/material/CubeMaterial.js",
     "core/material/PointsMaterial.js",
     "core/material/LineBasicMaterial.js",
