@@ -24,7 +24,6 @@ void main() {
     #include <normal_frag>
     #include <specularMap_frag>
     #include <light_frag>
-    #include <envMap_frag>
     #include <shadowMap_frag>
 
     vec3 totalEmissiveRadiance = emissive;

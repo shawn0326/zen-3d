@@ -107,6 +107,25 @@ vec4 BRDF_Specular_GGX(vec4 specularColor, vec3 N, vec3 L, vec3 V, float roughne
 
 }
 
+// ref: https://www.unrealengine.com/blog/physically-based-shading-on-mobile - environmentBRDF for GGX on mobile
+vec4 BRDF_Specular_GGX_Environment( const in vec3 N, const in vec3 V, const in vec4 specularColor, const in float roughness ) {
+
+	float dotNV = saturate( dot( N, V ) );
+
+	const vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );
+
+	const vec4 c1 = vec4( 1, 0.0425, 1.04, - 0.04 );
+
+	vec4 r = roughness * c0 + c1;
+
+	float a004 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;
+
+	vec2 AB = vec2( -1.04, 1.04 ) * a004 + r.zw;
+
+	return specularColor * AB.x + AB.y;
+
+}
+
 // source: http://simonstechblog.blogspot.ca/2011/12/microfacet-brdf.html
 float GGXRoughnessToBlinnExponent( const in float ggxRoughness ) {
 	return ( 2.0 / pow2( ggxRoughness + 0.0001 ) - 2.0 );

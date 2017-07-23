@@ -15,6 +15,7 @@
 
     var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
     var TEXEL_ENCODING_TYPE = zen3d.TEXEL_ENCODING_TYPE;
+    var ENVMAP_COMBINE_TYPE = zen3d.ENVMAP_COMBINE_TYPE;
 
     function getTextureEncodingFromMap( map, gammaOverrideLinear ) {
 
@@ -168,6 +169,23 @@
 
                 fshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 fshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
+                if(props.useEnvMap) {
+                    var define = "";
+                    switch (props.envMapCombine) {
+                        case ENVMAP_COMBINE_TYPE.MULTIPLY:
+                            define = "ENVMAP_BLENDING_MULTIPLY";
+                            break;
+                        case ENVMAP_COMBINE_TYPE.MIX:
+                            define = "ENVMAP_BLENDING_MIX";
+                            break;
+                        case ENVMAP_COMBINE_TYPE.ADD:
+                            define = "ENVMAP_BLENDING_ADD";
+                            break;
+                        default:
+
+                    }
+                    fshader_define.push('#define ' + define);
+                }
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
             case MATERIAL_TYPE.DEPTH:
                 vshader_define.push(props.useSkinning ? '#define USE_SKINNING' : '');
@@ -252,6 +270,7 @@
                 props.useBumpMap = !!material.bumpMap;
                 props.useSpecularMap = !!material.specularMap;
                 props.useEnvMap = !!material.envMap;
+                props.envMapCombine = material.envMapCombine;
                 props.useEmissiveMap = !!material.emissiveMap;
                 props.useDiffuseColor = !material.diffuseMap;
                 props.ambientLightNum = lights.ambientsNum;

@@ -28,6 +28,7 @@
         // env
         this.envMap = null;
         this.envMapIntensity = 1;
+        this.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.MULTIPLY;
 
         // emissive
         this.emissive = new zen3d.Color3(0x000000);

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - pbr</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - pbr
+    </div>
+
+	<script>
+
+		(function() {
+			var useDevicePixelRatio = true;
+			var devicePixelRatio = window.devicePixelRatio;
+
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+			var canvas = document.createElement( 'canvas' );
+	        canvas.width = useDevicePixelRatio ? width * devicePixelRatio : width;
+	        canvas.height = useDevicePixelRatio ? height * devicePixelRatio : height;
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+			renderer.gammaInput = true;
+			renderer.gammaOutput = true;
+
+	        var scene = new zen3d.Scene();
+
+			var texture = new zen3d.Texture2D.fromSrc("resources/moon_1024.jpg");
+			texture.anisotropy = renderer.capabilities.maxAnisotropy;
+			texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+			texture = null;
+
+			var cube_texture = zen3d.TextureCube.fromSrc([
+			    "resources/pisa/px.png",
+			    "resources/pisa/nx.png",
+			    "resources/pisa/py.png",
+			    "resources/pisa/ny.png",
+			    "resources/pisa/pz.png",
+			    "resources/pisa/nz.png"
+			]);
+
+			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
+			var sky_material = new zen3d.CubeMaterial();
+			sky_material.cubeMap = cube_texture;
+			var sky_box = new zen3d.Mesh(sky_geom, sky_material);
+			scene.add(sky_box);
+
+			var cubeWidth = 400;
+			var numberOfSphersPerSide = 5;
+			var sphereRadius = ( cubeWidth / numberOfSphersPerSide ) * 0.8 * 0.5;
+			var stepSize = 1.0 / numberOfSphersPerSide;
+
+			var sphere_geometry = new zen3d.SphereGeometry(sphereRadius, 32, 16);
+
+			var index = 0;
+
+			for ( var alpha = 0; alpha <= 1.0; alpha += stepSize ) {
+
+				for ( var beta = 0; beta <= 1.0; beta += stepSize ) {
+
+					for ( var gamma = 0; gamma <= 1.0; gamma += stepSize ) {
+
+						var pbr_mat = new zen3d.PBRMaterial();
+						pbr_mat.diffuseMap = texture;
+						pbr_mat.bumpMap = texture;
+						pbr_mat.bumpScale = 1;
+						pbr_mat.diffuse.setHSL(alpha, 0.5, gamma * 0.5);
+						pbr_mat.metalness = beta;
+						pbr_mat.roughness = 1.0 - alpha;
+						pbr_mat.envMap = index % 2 === 0 ? null : cube_texture;
+						pbr_mat.envMapIntensity = alpha;
+
+						index ++;
+
+						var sphere = new zen3d.Mesh(sphere_geometry, pbr_mat);
+						sphere.position.x = alpha * 400 - 200;
+						sphere.position.y = beta * 400 - 200;
+						sphere.position.z = gamma * 400 - 200;
+						scene.add(sphere);
+
+					}
+
+				}
+
+				index ++;
+
+			}
+
+	        var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0x222222);
+	        scene.add(ambientLight);
+
+	        var directLight = new zen3d.DirectionalLight();
+	        directLight.euler.set(Math.PI / 2, -Math.PI / 4, 0);
+	        directLight.color.setHex(0xffffff);
+	        directLight.position.set(-40, 40, 0);
+	        scene.add(directLight);
+
+			var particleLight = new zen3d.Group();
+			scene.add(particleLight);
+
+			var pointLight = new zen3d.PointLight();
+			pointLight.intensity = 2;
+			pointLight.distance = 800;
+			particleLight.add( pointLight );
+
+			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.diffuse.setHex(0xffffff);
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        particleLight.add(lightBall);
+
+	        var camera = new zen3d.Camera();
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
+	        scene.add(camera);
+
+			// add a hover controller
+			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
+			controller.distance = 1300;
+			controller.panAngle = 40;
+			controller.tiltAngle = 30;
+			// controller
+			var pressed = false;
+			var touchX = 0;
+			var touchY = 0;
+			function touchScale(e) {
+			    e.preventDefault();
+			    controller.distance += e.deltaY;
+			}
+			function touchDown(e) {
+			    e.preventDefault();
+			    pressed = true;
+			    touchX = e.pageX;
+			    touchY = e.pageY;
+			}
+			function touchMove(e) {
+			    e.preventDefault();
+			    if(pressed) {
+			        var moveX = e.pageX - touchX;
+			        var moveY = e.pageY - touchY;
+
+			        touchX = e.pageX;
+			        touchY = e.pageY;
+
+			        controller.panAngle -= moveX;
+			        controller.tiltAngle += moveY;
+			    }
+			}
+			function touchRelease(e) {
+			    e.preventDefault();
+			    pressed = false;
+			}
+			canvas.addEventListener("mousewheel", touchScale);
+			canvas.addEventListener("mousedown", touchDown);
+			canvas.addEventListener("mouseup", touchRelease);
+			canvas.addEventListener("mousemove", touchMove);
+			canvas.addEventListener("touchstart", touchDown);
+			canvas.addEventListener("touchend", touchRelease);
+			canvas.addEventListener("touchmove", touchMove);
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				var timer = Date.now() * 0.00025;
+
+				particleLight.position.x = Math.sin( timer * 7 ) * 300;
+				particleLight.position.y = Math.cos( timer * 5 ) * 400;
+				particleLight.position.z = Math.cos( timer * 3 ) * 300;
+
+				controller.update();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.resize(useDevicePixelRatio ? width * devicePixelRatio : width, useDevicePixelRatio ? height * devicePixelRatio : height);
+				canvas.style.width = width + "px";
+				canvas.style.height = height + "px";
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

@@ -3,8 +3,11 @@
 
     envColor = envMapTexelToLinear( envColor );
 
-    outColor += envColor * u_EnvMap_Intensity;
-    // TODO add? mix? or some other method?
-    // outColor = mix(outColor, envColor, u_EnvMap_Intensity);
-    // outColor = mix(outColor, envColor * outColor, u_EnvMap_Intensity);
+    #ifdef ENVMAP_BLENDING_MULTIPLY
+		outColor = mix(outColor, envColor * outColor, u_EnvMap_Intensity);
+	#elif defined( ENVMAP_BLENDING_MIX )
+		outColor = mix(outColor, envColor, u_EnvMap_Intensity);
+	#elif defined( ENVMAP_BLENDING_ADD )
+		outColor += envColor * u_EnvMap_Intensity;
+	#endif
 #endif

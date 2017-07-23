@@ -236,4 +236,12 @@
     }
 
     zen3d.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
+
+    var ENVMAP_COMBINE_TYPE = {
+        MULTIPLY: "multiply",
+        MIX: "mix",
+        ADD: "add"
+    }
+
+    zen3d.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
 })();
