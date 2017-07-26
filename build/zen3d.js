@@ -5145,11 +5145,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 }
 
                 for (var n = 0, l = renderList.length; n < l; n++) {
-                    var object = renderList[n];
-                    var material = this.depthMaterial;
-                    var geometry = object.geometry;
+                    var renderItem = renderList[n];
+                    var object = renderItem.object;
+                    var material = renderItem.material;
+                    var geometry = renderItem.geometry;
+                    var depthMaterial = this.depthMaterial;
 
-                    var program = zen3d.getProgram(gl, this, material, object);
+                    var program = zen3d.getProgram(gl, this, depthMaterial, object);
                     state.setProgram(program);
 
                     this.geometry.setGeometry(geometry);
@@ -5186,9 +5188,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
 
                     // copy draw side
-                    material.side = object.material.side;
+                    depthMaterial.side = material.side;
 
-                    this.setStates(material);
+                    this.setStates(depthMaterial);
 
                     // draw
                     gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
@@ -5219,7 +5221,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var material = renderItem.material;
             var geometry = renderItem.geometry;
 
-            var program = zen3d.getProgram(gl, this, object.material, object, lights, fog);
+            var program = zen3d.getProgram(gl, this, material, object, lights, fog);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -5473,7 +5475,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         for (var i = 0, l = sprites.length; i < l; i++) {
             var sprite = sprites[i].object;
-            var material = sprite.material;
+            var material = sprites[i].material;
 
             uniforms.alphaTest.setValue(0);
             uniforms.viewMatrix.setValue(camera.viewMatrix.elements);
@@ -6027,7 +6029,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 });
 
                 if (object.castShadow) {
-                    this.shadowObjects.push(object);
+                    this.shadowObjects.push({
+                        object: object,
+                        geometry: object.geometry,
+                        material: object.material,
+                        z: helpVector3.z
+                    });
                 }
 
                 break;

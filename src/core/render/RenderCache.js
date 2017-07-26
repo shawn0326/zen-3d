@@ -106,7 +106,12 @@
                 });
 
                 if (object.castShadow) {
-                    this.shadowObjects.push(object);
+                    this.shadowObjects.push({
+                        object: object,
+                        geometry: object.geometry,
+                        material: object.material,
+                        z: helpVector3.z
+                    });
                 }
 
                 break;
