@@ -79,6 +79,7 @@
 			var phong = new zen3d.PhongMaterial();
 			phong.diffuse.setHex(0xffffff);
 			phong.envMap = renderTexture;
+			phong.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.ADD;
 			phong.envMapIntensity = .8;
 			phong.shininess = 40;
 			var sphere = new zen3d.Mesh(sphere_geometry, phong);

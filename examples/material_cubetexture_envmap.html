@@ -64,6 +64,7 @@
 			var phong = new zen3d.PhongMaterial();
 			phong.diffuse.setHex(0xffffff);
 			phong.envMap = cube_texture;
+			phong.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.ADD;
 			var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 

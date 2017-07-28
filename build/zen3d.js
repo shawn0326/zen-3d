@@ -1048,7 +1048,7 @@
      **/
     Matrix4.prototype.transform = function(pos, scale, rot) {
 
-        var rotMatrix = rot.toMatrix4();
+        var rotMatrix = rot.toMatrix4(zen3d.helpMatrix);
 
         var rele = rotMatrix.elements;
         var ele = this.elements;
