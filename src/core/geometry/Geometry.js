@@ -32,9 +32,23 @@
 
         // if part dirty, update part of buffers
         this.dirtyRange = {enable: false, start: 0, count: 0};
+
+        this.groups = [];
     }
 
     zen3d.inherit(Geometry, zen3d.EventDispatcher);
+
+    Geometry.prototype.addGroup = function(start, count, materialIndex) {
+        this.groups.push({
+			start: start,
+			count: count,
+			materialIndex: materialIndex !== undefined ? materialIndex : 0
+		});
+    }
+
+    Geometry.prototype.clearGroups = function() {
+        this.groups = [];
+    }
 
     Geometry.prototype.computeBoundingBox = function() {
         this.boundingBox.setFromArray(this.verticesArray, this.vertexSize);

@@ -5149,6 +5149,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     var object = renderItem.object;
                     var material = renderItem.material;
                     var geometry = renderItem.geometry;
+                    var group = renderItem.group;
                     var depthMaterial = this.depthMaterial;
 
                     var program = zen3d.getProgram(gl, this, depthMaterial, object);
@@ -5192,8 +5193,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                     this.setStates(depthMaterial);
 
+                    // groups
+                    var drawStart = 0;
+                    var drawCount = geometry.getIndicesCount();
+                    var groupStart = group ? group.start : 0;
+        		    var groupCount = group ? group.count : Infinity;
+                    drawStart = Math.max(drawStart, groupStart);
+                    drawCount = Math.min(drawCount, groupCount);
+
                     // draw
-                    gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
+                    gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
                 }
 
             }
@@ -5220,6 +5229,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var object = renderItem.object;
             var material = renderItem.material;
             var geometry = renderItem.geometry;
+            var group = renderItem.group;
 
             var program = zen3d.getProgram(gl, this, material, object, lights, fog);
             state.setProgram(program);
@@ -5389,18 +5399,26 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             this.setStates(material);
 
+            // groups
+            var drawStart = 0;
+            var drawCount = geometry.getIndicesCount() || geometry.getVerticesCount();
+            var groupStart = group ? group.start : 0;
+		    var groupCount = group ? group.count : Infinity;
+            drawStart = Math.max(drawStart, groupStart);
+            drawCount = Math.min(drawCount, groupCount);
+
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
-                gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.POINTS, drawStart, drawCount);
             } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
                 state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_STRIP, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.LINE_STRIP, drawStart, drawCount);
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
                 state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_LOOP, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.LINE_LOOP, drawStart, drawCount);
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
                 state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINES, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.LINES, drawStart, drawCount);
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
@@ -5415,7 +5433,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     this._usedTextureUnits = 0;
                 }
             } else {
-                gl.drawElements(gl.TRIANGLES, geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
             }
 
             // reset used tex Unit
@@ -6007,34 +6025,71 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
                 }
 
-                var material = object.material;
-
-                var array;
-                if (object.type == OBJECT_TYPE.CANVAS2D) {
-                    array = this.canvas2dObjects;
-                } else if (material.transparent) {
-                    array = this.transparentObjects;
-                } else {
-                    array = this.opaqueObjects;
-                }
-
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                array.push({
-                    object: object,
-                    geometry: object.geometry,
-                    material: object.material,
-                    z: helpVector3.z
-                });
+                var material = object.material;
 
-                if (object.castShadow) {
-                    this.shadowObjects.push({
+                if(Array.isArray(material)){
+                    var groups = object.geometry.groups;
+
+                    for(var i = 0; i < groups.length; i++) {
+                        var group = groups[i];
+                        var groupMaterial = material[group.materialIndex];
+                        if(groupMaterial) {
+                            var array;
+                            if (object.type == OBJECT_TYPE.CANVAS2D) {
+                                array = this.canvas2dObjects;
+                            } else if (groupMaterial.transparent) {
+                                array = this.transparentObjects;
+                            } else {
+                                array = this.opaqueObjects;
+                            }
+
+                            array.push({
+                                object: object,
+                                geometry: object.geometry,
+                                material: groupMaterial,
+                                z: helpVector3.z,
+                                group: group
+                            });
+
+                            if (object.castShadow) {
+                                this.shadowObjects.push({
+                                    object: object,
+                                    geometry: object.geometry,
+                                    material: groupMaterial,
+                                    z: helpVector3.z,
+                                    group: group
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    var array;
+                    if (object.type == OBJECT_TYPE.CANVAS2D) {
+                        array = this.canvas2dObjects;
+                    } else if (material.transparent) {
+                        array = this.transparentObjects;
+                    } else {
+                        array = this.opaqueObjects;
+                    }
+
+                    array.push({
                         object: object,
                         geometry: object.geometry,
                         material: object.material,
                         z: helpVector3.z
                     });
+
+                    if (object.castShadow) {
+                        this.shadowObjects.push({
+                            object: object,
+                            geometry: object.geometry,
+                            material: object.material,
+                            z: helpVector3.z
+                        });
+                    }
                 }
 
                 break;
@@ -6297,9 +6352,23 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // if part dirty, update part of buffers
         this.dirtyRange = {enable: false, start: 0, count: 0};
+
+        this.groups = [];
     }
 
     zen3d.inherit(Geometry, zen3d.EventDispatcher);
+
+    Geometry.prototype.addGroup = function(start, count, materialIndex) {
+        this.groups.push({
+			start: start,
+			count: count,
+			materialIndex: materialIndex !== undefined ? materialIndex : 0
+		});
+    }
+
+    Geometry.prototype.clearGroups = function() {
+        this.groups = [];
+    }
 
     Geometry.prototype.computeBoundingBox = function() {
         this.boundingBox.setFromArray(this.verticesArray, this.vertexSize);

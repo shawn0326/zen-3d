@@ -84,34 +84,71 @@
                     }
                 }
 
-                var material = object.material;
-
-                var array;
-                if (object.type == OBJECT_TYPE.CANVAS2D) {
-                    array = this.canvas2dObjects;
-                } else if (material.transparent) {
-                    array = this.transparentObjects;
-                } else {
-                    array = this.opaqueObjects;
-                }
-
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                array.push({
-                    object: object,
-                    geometry: object.geometry,
-                    material: object.material,
-                    z: helpVector3.z
-                });
+                var material = object.material;
 
-                if (object.castShadow) {
-                    this.shadowObjects.push({
+                if(Array.isArray(material)){
+                    var groups = object.geometry.groups;
+
+                    for(var i = 0; i < groups.length; i++) {
+                        var group = groups[i];
+                        var groupMaterial = material[group.materialIndex];
+                        if(groupMaterial) {
+                            var array;
+                            if (object.type == OBJECT_TYPE.CANVAS2D) {
+                                array = this.canvas2dObjects;
+                            } else if (groupMaterial.transparent) {
+                                array = this.transparentObjects;
+                            } else {
+                                array = this.opaqueObjects;
+                            }
+
+                            array.push({
+                                object: object,
+                                geometry: object.geometry,
+                                material: groupMaterial,
+                                z: helpVector3.z,
+                                group: group
+                            });
+
+                            if (object.castShadow) {
+                                this.shadowObjects.push({
+                                    object: object,
+                                    geometry: object.geometry,
+                                    material: groupMaterial,
+                                    z: helpVector3.z,
+                                    group: group
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    var array;
+                    if (object.type == OBJECT_TYPE.CANVAS2D) {
+                        array = this.canvas2dObjects;
+                    } else if (material.transparent) {
+                        array = this.transparentObjects;
+                    } else {
+                        array = this.opaqueObjects;
+                    }
+
+                    array.push({
                         object: object,
                         geometry: object.geometry,
                         material: object.material,
                         z: helpVector3.z
                     });
+
+                    if (object.castShadow) {
+                        this.shadowObjects.push({
+                            object: object,
+                            geometry: object.geometry,
+                            material: object.material,
+                            z: helpVector3.z
+                        });
+                    }
                 }
 
                 break;

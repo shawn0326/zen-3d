@@ -7,7 +7,8 @@ var files = {
 	],
 	"geometry": [
 		"geometry_geometries",
-		"geometry_loader_assimp2json"
+		"geometry_loader_assimp2json",
+		"geometry_groups"
 	],
 	"material": [
 		"material_materials",

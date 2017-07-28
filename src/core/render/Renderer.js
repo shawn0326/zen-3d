@@ -180,6 +180,7 @@
                     var object = renderItem.object;
                     var material = renderItem.material;
                     var geometry = renderItem.geometry;
+                    var group = renderItem.group;
                     var depthMaterial = this.depthMaterial;
 
                     var program = zen3d.getProgram(gl, this, depthMaterial, object);
@@ -223,8 +224,16 @@
 
                     this.setStates(depthMaterial);
 
+                    // groups
+                    var drawStart = 0;
+                    var drawCount = geometry.getIndicesCount();
+                    var groupStart = group ? group.start : 0;
+        		    var groupCount = group ? group.count : Infinity;
+                    drawStart = Math.max(drawStart, groupStart);
+                    drawCount = Math.min(drawCount, groupCount);
+
                     // draw
-                    gl.drawElements(gl.TRIANGLES, object.geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
+                    gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
                 }
 
             }
@@ -251,6 +260,7 @@
             var object = renderItem.object;
             var material = renderItem.material;
             var geometry = renderItem.geometry;
+            var group = renderItem.group;
 
             var program = zen3d.getProgram(gl, this, material, object, lights, fog);
             state.setProgram(program);
@@ -420,18 +430,26 @@
 
             this.setStates(material);
 
+            // groups
+            var drawStart = 0;
+            var drawCount = geometry.getIndicesCount() || geometry.getVerticesCount();
+            var groupStart = group ? group.start : 0;
+		    var groupCount = group ? group.count : Infinity;
+            drawStart = Math.max(drawStart, groupStart);
+            drawCount = Math.min(drawCount, groupCount);
+
             // draw
             if (object.type === zen3d.OBJECT_TYPE.POINT) {
-                gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.POINTS, drawStart, drawCount);
             } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
                 state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_STRIP, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.LINE_STRIP, drawStart, drawCount);
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
                 state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_LOOP, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.LINE_LOOP, drawStart, drawCount);
             } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
                 state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINES, 0, geometry.getVerticesCount());
+                gl.drawArrays(gl.LINES, drawStart, drawCount);
             } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
@@ -446,7 +464,7 @@
                     this._usedTextureUnits = 0;
                 }
             } else {
-                gl.drawElements(gl.TRIANGLES, geometry.getIndicesCount(), gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
             }
 
             // reset used tex Unit
