@@ -22,12 +22,22 @@
     "dependencies": {},
     "repository": {},
     "devDependencies": {
-        "gulp": "",
-        "gulp-uglify": "",
-        "gulp-concat": "",
-        "gulp-rename": "",
-        "gulp-notify": "",
-        "gulp-watch": "",
-        "gulp-qunit": ""
+        "gulp": "^3.9.1",
+        "gulp-concat": "^2.6.1",
+        "gulp-notify": "^3.0.0",
+        "gulp-qunit": "^1.5.0",
+        "gulp-rename": "^1.2.2",
+        "gulp-uglify": "^3.0.0",
+        "gulp-watch": "^4.3.11",
+        "live-server": "^1.2.0"
+    },
+    "scripts": {
+        "default": "gulp",
+        "build": "gulp build",
+        "watch": "gulp watch",
+        "extension": "gulp extension",
+        "shader": "gulp shader",
+        "test": "gulp test",
+        "example": "live-server --port=8080 --open=examples --watch=examples,build"
     }
 }
