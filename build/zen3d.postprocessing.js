@@ -43,6 +43,7 @@
 
             if(i === this.passes.length - 1) {
                 pass.render(renderer, this.readBuffer, undefined);
+                this.swapBuffers();
             } else {
                 pass.render(renderer, this.readBuffer, this.writeBuffer);
                 this.swapBuffers();
