@@ -27,18 +27,32 @@ The aim of the project is to create an easy to use, lightweight, 3D/2D library. 
 
 ### Build ###
 
-zen3d is built by [gulp](http://gulpjs.com/).
-first run:
+* install [Node.js](https://nodejs.org) (include NPM).
 
-    npm install
+* install devDependencies packages.
 
-and then, run:
+````
+npm install
+````
 
-    gulp build
+* you can run the following scripts
 
-or:
-
-    gulp watch
+````
+// build shader & zen3d
+npm run default
+// build zen3d
+npm run build
+// watch build zen3d
+npm run watch
+// build extensions
+npm run extension
+// build shader
+npm run shader
+// run qunit test
+npm run test
+// start a server to run examples
+npm run example
+````
 
 build path is `./build`.
 
