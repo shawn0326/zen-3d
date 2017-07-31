@@ -154,14 +154,6 @@
 
                 fshader_define.push(props.doubleSided ? '#define DOUBLE_SIDED' : '');
             case MATERIAL_TYPE.BASIC:
-                fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
-                fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
-
-                fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
-                fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
-                fshader_define.push(getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding));
-                fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
-            case MATERIAL_TYPE.LINE_BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
 
@@ -186,6 +178,16 @@
                     }
                     fshader_define.push('#define ' + define);
                 }
+            case MATERIAL_TYPE.LINE:
+            case MATERIAL_TYPE.LINE_LOOP:
+                fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
+                fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
+
+                fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding));
+                fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
+
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
             case MATERIAL_TYPE.DEPTH:
                 vshader_define.push(props.useSkinning ? '#define USE_SKINNING' : '');
@@ -257,13 +259,14 @@
             case MATERIAL_TYPE.PHONG:
             case MATERIAL_TYPE.PBR:
             case MATERIAL_TYPE.POINT:
+            case MATERIAL_TYPE.LINE:
+            case MATERIAL_TYPE.LINE_LOOP:
                 props.gammaFactor = render.gammaFactor;
                 props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget ? currentRenderTarget.texture : null, render.gammaOutput);
                 props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
                 props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
                 props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
             case MATERIAL_TYPE.CUBE:
-            case MATERIAL_TYPE.LINE_BASIC:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;
                 props.useNormalMap = !!material.normalMap;

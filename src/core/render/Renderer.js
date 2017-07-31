@@ -224,16 +224,7 @@
 
                     this.setStates(depthMaterial);
 
-                    // groups
-                    var drawStart = 0;
-                    var drawCount = geometry.getIndicesCount();
-                    var groupStart = group ? group.start : 0;
-        		    var groupCount = group ? group.count : Infinity;
-                    drawStart = Math.max(drawStart, groupStart);
-                    drawCount = Math.min(drawCount, groupCount);
-
-                    // draw
-                    gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+                    this.draw(geometry, material, group);
                 }
 
             }
@@ -430,27 +421,7 @@
 
             this.setStates(material);
 
-            // groups
-            var drawStart = 0;
-            var drawCount = geometry.getIndicesCount() || geometry.getVerticesCount();
-            var groupStart = group ? group.start : 0;
-		    var groupCount = group ? group.count : Infinity;
-            drawStart = Math.max(drawStart, groupStart);
-            drawCount = Math.min(drawCount, groupCount);
-
-            // draw
-            if (object.type === zen3d.OBJECT_TYPE.POINT) {
-                gl.drawArrays(gl.POINTS, drawStart, drawCount);
-            } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
-                state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_STRIP, drawStart, drawCount);
-            } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
-                state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_LOOP, drawStart, drawCount);
-            } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
-                state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINES, drawStart, drawCount);
-            } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+            if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
                     var drawData = object.drawArray[j];
@@ -464,7 +435,7 @@
                     this._usedTextureUnits = 0;
                 }
             } else {
-                gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+                this.draw(geometry, material, group);
             }
 
             // reset used tex Unit
@@ -566,7 +537,7 @@
             this.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(material.drawMode, 6, gl.UNSIGNED_SHORT, 0);
 
             // reset used tex Unit
             this._usedTextureUnits = 0;
@@ -612,7 +583,7 @@
 
             this.setStates(material);
 
-            gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+            gl.drawArrays(material.drawMode, 0, geometry.getVerticesCount());
 
             this._usedTextureUnits = 0;
         }
@@ -868,6 +839,33 @@
         state.setFlipSided(
             material.side === DRAW_SIDE.BACK
         );
+
+        // set line width
+        if(material.lineWidth !== undefined) {
+            state.setLineWidth(material.lineWidth);
+        }
+    }
+
+    /**
+     * gl draw
+     */
+    Renderer.prototype.draw = function(geometry, material, group) {
+        var gl = this.gl;
+
+        var useIndexBuffer = geometry.getIndicesCount() > 0;
+
+        var drawStart = 0;
+        var drawCount = useIndexBuffer ? geometry.getIndicesCount() : geometry.getVerticesCount();
+        var groupStart = group ? group.start : 0;
+        var groupCount = group ? group.count : Infinity;
+        drawStart = Math.max(drawStart, groupStart);
+        drawCount = Math.min(drawCount, groupCount);
+
+        if(useIndexBuffer) {
+            gl.drawElements(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+        } else {
+            gl.drawArrays(material.drawMode, drawStart, drawCount);
+        }
     }
 
     /**

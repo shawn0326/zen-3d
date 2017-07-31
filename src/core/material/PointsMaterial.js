@@ -11,6 +11,8 @@
         this.size = 1;
 
         this.sizeAttenuation = true;
+
+        this.drawMode = zen3d.DRAW_MODE.POINTS;
     }
 
     zen3d.inherit(PointsMaterial, zen3d.Material);

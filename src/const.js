@@ -42,7 +42,8 @@
         PBR: "pbr",
         CUBE: "cube",
         POINT: "point",
-        LINE_BASIC: "linebasic",
+        LINE: "line",
+        LINE_LOOP: "lineloop",
         LINE_DASHED: "linedashed",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
@@ -244,4 +245,16 @@
     }
 
     zen3d.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
+
+    var DRAW_MODE = {
+        POINTS: 0,
+        LINES: 1,
+        LINE_LOOP: 2,
+        LINE_STRIP: 3,
+        TRIANGLES: 4,
+        TRIANGLE_STRIP: 5,
+        TRIANGLE_FAN: 6
+    }
+
+    zen3d.DRAW_MODE = DRAW_MODE;
 })();

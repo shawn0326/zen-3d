@@ -194,7 +194,8 @@
         PBR: "pbr",
         CUBE: "cube",
         POINT: "point",
-        LINE_BASIC: "linebasic",
+        LINE: "line",
+        LINE_LOOP: "lineloop",
         LINE_DASHED: "linedashed",
         CANVAS2D: "canvas2d",
         SPRITE: "sprite",
@@ -396,6 +397,18 @@
     }
 
     zen3d.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
+
+    var DRAW_MODE = {
+        POINTS: 0,
+        LINES: 1,
+        LINE_LOOP: 2,
+        LINE_STRIP: 3,
+        TRIANGLES: 4,
+        TRIANGLE_STRIP: 5,
+        TRIANGLE_FAN: 6
+    }
+
+    zen3d.DRAW_MODE = DRAW_MODE;
 })();
 
 (function() {
@@ -4788,14 +4801,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 fshader_define.push(props.doubleSided ? '#define DOUBLE_SIDED' : '');
             case MATERIAL_TYPE.BASIC:
-                fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
-                fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
-
-                fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
-                fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
-                fshader_define.push(getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding));
-                fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
-            case MATERIAL_TYPE.LINE_BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
 
@@ -4820,6 +4825,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
                     fshader_define.push('#define ' + define);
                 }
+            case MATERIAL_TYPE.LINE:
+            case MATERIAL_TYPE.LINE_LOOP:
+                fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
+                fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
+
+                fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
+                fshader_define.push(getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding));
+                fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
+
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
             case MATERIAL_TYPE.DEPTH:
                 vshader_define.push(props.useSkinning ? '#define USE_SKINNING' : '');
@@ -4891,13 +4906,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             case MATERIAL_TYPE.PHONG:
             case MATERIAL_TYPE.PBR:
             case MATERIAL_TYPE.POINT:
+            case MATERIAL_TYPE.LINE:
+            case MATERIAL_TYPE.LINE_LOOP:
                 props.gammaFactor = render.gammaFactor;
                 props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget ? currentRenderTarget.texture : null, render.gammaOutput);
                 props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
                 props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
                 props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
             case MATERIAL_TYPE.CUBE:
-            case MATERIAL_TYPE.LINE_BASIC:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;
                 props.useNormalMap = !!material.normalMap;
@@ -5193,16 +5209,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                     this.setStates(depthMaterial);
 
-                    // groups
-                    var drawStart = 0;
-                    var drawCount = geometry.getIndicesCount();
-                    var groupStart = group ? group.start : 0;
-        		    var groupCount = group ? group.count : Infinity;
-                    drawStart = Math.max(drawStart, groupStart);
-                    drawCount = Math.min(drawCount, groupCount);
-
-                    // draw
-                    gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+                    this.draw(geometry, material, group);
                 }
 
             }
@@ -5399,27 +5406,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             this.setStates(material);
 
-            // groups
-            var drawStart = 0;
-            var drawCount = geometry.getIndicesCount() || geometry.getVerticesCount();
-            var groupStart = group ? group.start : 0;
-		    var groupCount = group ? group.count : Infinity;
-            drawStart = Math.max(drawStart, groupStart);
-            drawCount = Math.min(drawCount, groupCount);
-
-            // draw
-            if (object.type === zen3d.OBJECT_TYPE.POINT) {
-                gl.drawArrays(gl.POINTS, drawStart, drawCount);
-            } else if(object.type === zen3d.OBJECT_TYPE.LINE) {
-                state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_STRIP, drawStart, drawCount);
-            } else if(object.type === zen3d.OBJECT_TYPE.LINE_LOOP) {
-                state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINE_LOOP, drawStart, drawCount);
-            } else if(object.type === zen3d.OBJECT_TYPE.LINE_SEGMENTS) {
-                state.setLineWidth(material.lineWidth);
-                gl.drawArrays(gl.LINES, drawStart, drawCount);
-            } else if (object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+            if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
                     var drawData = object.drawArray[j];
@@ -5433,7 +5420,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     this._usedTextureUnits = 0;
                 }
             } else {
-                gl.drawElements(gl.TRIANGLES, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+                this.draw(geometry, material, group);
             }
 
             // reset used tex Unit
@@ -5535,7 +5522,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             this.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(material.drawMode, 6, gl.UNSIGNED_SHORT, 0);
 
             // reset used tex Unit
             this._usedTextureUnits = 0;
@@ -5581,7 +5568,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             this.setStates(material);
 
-            gl.drawArrays(gl.POINTS, 0, geometry.getVerticesCount());
+            gl.drawArrays(material.drawMode, 0, geometry.getVerticesCount());
 
             this._usedTextureUnits = 0;
         }
@@ -5837,6 +5824,33 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         state.setFlipSided(
             material.side === DRAW_SIDE.BACK
         );
+
+        // set line width
+        if(material.lineWidth !== undefined) {
+            state.setLineWidth(material.lineWidth);
+        }
+    }
+
+    /**
+     * gl draw
+     */
+    Renderer.prototype.draw = function(geometry, material, group) {
+        var gl = this.gl;
+
+        var useIndexBuffer = geometry.getIndicesCount() > 0;
+
+        var drawStart = 0;
+        var drawCount = useIndexBuffer ? geometry.getIndicesCount() : geometry.getVerticesCount();
+        var groupStart = group ? group.start : 0;
+        var groupCount = group ? group.count : Infinity;
+        drawStart = Math.max(drawStart, groupStart);
+        drawCount = Math.min(drawCount, groupCount);
+
+        if(useIndexBuffer) {
+            gl.drawElements(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+        } else {
+            gl.drawArrays(material.drawMode, drawStart, drawCount);
+        }
     }
 
     /**
@@ -7117,6 +7131,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // use light
         // if use light, renderer will try to upload light uniforms
         this.acceptLight = false;
+
+        // draw mode
+        this.drawMode = zen3d.DRAW_MODE.TRIANGLES;
     }
 
     zen3d.Material = Material;
@@ -7231,6 +7248,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.size = 1;
 
         this.sizeAttenuation = true;
+
+        this.drawMode = zen3d.DRAW_MODE.POINTS;
     }
 
     zen3d.inherit(PointsMaterial, zen3d.Material);
@@ -7240,20 +7259,44 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
 (function() {
     /**
-     * LineBasicMaterial
+     * LineMaterial
      * @class
      */
-    var LineBasicMaterial = function() {
-        LineBasicMaterial.superClass.constructor.call(this);
+    var LineMaterial = function() {
+        LineMaterial.superClass.constructor.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.LINE_BASIC;
+        this.type = zen3d.MATERIAL_TYPE.LINE;
 
+        // chrome bug on MacOS: gl.lineWidth no effect
         this.lineWidth = 1;
+
+        this.drawMode = zen3d.DRAW_MODE.LINES;
     }
 
-    zen3d.inherit(LineBasicMaterial, zen3d.Material);
+    zen3d.inherit(LineMaterial, zen3d.Material);
 
-    zen3d.LineBasicMaterial = LineBasicMaterial;
+    zen3d.LineMaterial = LineMaterial;
+})();
+
+(function() {
+    /**
+     * LineLoopMaterial
+     * @class
+     */
+    var LineLoopMaterial = function() {
+        LineLoopMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.LINE_LOOP;
+
+        // chrome bug on MacOS: gl.lineWidth no effect
+        this.lineWidth = 1;
+
+        this.drawMode = zen3d.DRAW_MODE.LINE_LOOP;
+    }
+
+    zen3d.inherit(LineLoopMaterial, zen3d.Material);
+
+    zen3d.LineLoopMaterial = LineLoopMaterial;
 })();
 
 (function() {
@@ -7266,11 +7309,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.type = zen3d.MATERIAL_TYPE.LINE_DASHED;
 
+        // chrome bug on MacOS: gl.lineWidth no effect
         this.lineWidth = 1;
 
         this.scale = 1;
         this.dashSize = 3;
         this.gapSize = 1;
+
+        this.drawMode = zen3d.DRAW_MODE.LINE_STRIP;
     }
 
     zen3d.inherit(LineDashedMaterial, zen3d.Material);
@@ -7356,6 +7402,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.depthTest = true;
         this.depthWrite = false;
+
+        this.drawMode = zen3d.DRAW_MODE.POINTS;
     }
 
     zen3d.inherit(ParticleMaterial, zen3d.Material);
@@ -8269,37 +8317,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.Line = Line;
 })();
 
-(function() {
-    /**
-     * LineLoop
-     * @class
-     */
-    var LineLoop = function(geometry, material) {
-        LineLoop.superClass.constructor.call(this, geometry, material);
-
-        this.type = zen3d.OBJECT_TYPE.LINE_LOOP;
-    }
-
-    zen3d.inherit(LineLoop, zen3d.Line);
-
-    zen3d.LineLoop = LineLoop;
-})();
-
-(function() {
-    /**
-     * LineSegments
-     * @class
-     */
-    var LineSegments = function(geometry, material) {
-        LineSegments.superClass.constructor.call(this, geometry, material);
-
-        this.type = zen3d.OBJECT_TYPE.LINE_SEGMENTS;
-    }
-
-    zen3d.inherit(LineSegments, zen3d.Line);
-
-    zen3d.LineSegments = LineSegments;
-})();
 (function() {
 
     // all sprites used one shared geometry

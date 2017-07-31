@@ -14,6 +14,8 @@
 
         this.depthTest = true;
         this.depthWrite = false;
+
+        this.drawMode = zen3d.DRAW_MODE.POINTS;
     }
 
     zen3d.inherit(ParticleMaterial, zen3d.Material);

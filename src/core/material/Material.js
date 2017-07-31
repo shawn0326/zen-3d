@@ -51,6 +51,9 @@
         // use light
         // if use light, renderer will try to upload light uniforms
         this.acceptLight = false;
+
+        // draw mode
+        this.drawMode = zen3d.DRAW_MODE.TRIANGLES;
     }
 
     zen3d.Material = Material;
