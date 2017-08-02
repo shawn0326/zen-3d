@@ -10,11 +10,11 @@ uniform vec3 emissive;
 #include <diffuseMap_pars_frag>
 #include <normalMap_pars_frag>
 #include <bumpMap_pars_frag>
+#include <envMap_pars_frag>
 #include <light_pars_frag>
 #include <normal_pars_frag>
 #include <viewModelPos_pars_frag>
 #include <bsdfs>
-#include <envMap_pars_frag>
 #include <shadowMap_pars_frag>
 #include <fog_pars_frag>
 #include <emissiveMap_pars_frag>

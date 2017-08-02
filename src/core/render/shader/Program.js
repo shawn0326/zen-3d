@@ -153,6 +153,8 @@
                 fshader_define.push(props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '');
 
                 fshader_define.push(props.doubleSided ? '#define DOUBLE_SIDED' : '');
+
+                fshader_define.push((props.envMap && props.useShaderTextureLOD) ? '#define TEXTURE_LOD_EXT' : '');
             case MATERIAL_TYPE.BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
@@ -210,6 +212,7 @@
 
         var fshader = [
             '#extension GL_OES_standard_derivatives : enable',
+            (props.useShaderTextureLOD && props.useEnvMap) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
             'precision ' + props.precision + ' float;',
             'precision ' + props.precision + ' int;',
             fshader_define.join("\n"),
@@ -266,6 +269,7 @@
                 props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
                 props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
                 props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
+                props.useShaderTextureLOD = !!render.capabilities.shaderTextureLOD;
             case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;

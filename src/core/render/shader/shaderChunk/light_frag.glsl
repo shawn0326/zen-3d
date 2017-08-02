@@ -52,15 +52,9 @@
         #ifdef USE_PBR
             reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
             #ifdef USE_ENV_MAP
-                vec4 envColor = textureCube(envMap, v_EnvPos);
+                reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;
 
-                envColor = envMapTexelToLinear( envColor );
-
-                envColor *= u_EnvMap_Intensity;
-
-                reflectLight.rgb += (envColor * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;
-
-                reflectLight.rgb += (envColor * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;
+                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;
             #endif
         #endif
 
@@ -96,15 +90,9 @@
         #ifdef USE_PBR
             reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
             #ifdef USE_ENV_MAP
-                vec4 envColor = textureCube(envMap, v_EnvPos);
+            reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;
 
-                envColor = envMapTexelToLinear( envColor );
-
-                envColor *= u_EnvMap_Intensity;
-
-                reflectLight += envColor * specularStrength * BRDF_Diffuse_Lambert(diffuseColor);
-
-                reflectLight += envColor * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength;
+            reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;
             #endif
         #endif
 
@@ -145,15 +133,9 @@
             #ifdef USE_PBR
                 reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
                 #ifdef USE_ENV_MAP
-                    vec4 envColor = textureCube(envMap, v_EnvPos);
+                reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;
 
-                    envColor = envMapTexelToLinear( envColor );
-
-                    envColor *= u_EnvMap_Intensity;
-
-                    reflectLight += envColor * specularStrength * BRDF_Diffuse_Lambert(diffuseColor);
-
-                    reflectLight += envColor * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength;
+                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;
                 #endif
             #endif
 

@@ -57,6 +57,8 @@
 
         this.anisotropyExt = getExtension(gl, 'EXT_texture_filter_anisotropic');
 
+        this.shaderTextureLOD = getExtension(gl, 'EXT_shader_texture_lod');
+
         this.maxAnisotropy = (this.anisotropyExt !== null) ? gl.getParameter(this.anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
 
         // use dfdx and dfdy must enable OES_standard_derivatives
