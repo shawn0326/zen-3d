@@ -29,6 +29,7 @@ var files = {
 	],
 	"camera": [
 		"camera_cameras",
+		"camera_multiple",
 		"camera_controller_hover"
 	],
 	"scene": [
