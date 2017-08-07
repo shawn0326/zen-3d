@@ -53,8 +53,10 @@
 			sphere.position.z = -30;
 			scene.add(sphere);
 
-	        var canvas2d = new zen3d.Canvas2D(50, 50);
-			canvas2d.isScreenCanvas = true;
+	        var canvas2d = new zen3d.Canvas2D(50, 50, true);
+			// canvas2d.setScreenMatchMode(zen3d.Canvas2D.SCREEN_MATCH_MODE.CONSTANT);
+			canvas2d.setScreenMatchMode(zen3d.Canvas2D.SCREEN_MATCH_MODE.SHRINK);
+			// canvas2d.setScreenMatchMode(zen3d.Canvas2D.SCREEN_MATCH_MODE.EXPAND);
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			// var texture2 = new zen3d.Texture2D.fromSrc("resources/hi.png");
 			var sprites = [];

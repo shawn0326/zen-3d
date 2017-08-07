@@ -422,6 +422,16 @@
             this.setStates(material);
 
             if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+                var curViewX, curViewY, curViewW, curViewH;
+                if(object.isScreenCanvas) {
+                    curViewX = this._currentViewport.x;
+                    curViewY = this._currentViewport.y;
+                    curViewW = this._currentViewport.z;
+                    curViewH = this._currentViewport.w;
+                    object.setRenderViewport(curViewX, curViewY, curViewW, curViewH);
+                    this.setViewport(object.viewport.x, object.viewport.y, object.viewport.z, object.viewport.w);
+                }
+
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
                     var drawData = object.drawArray[j];
@@ -433,6 +443,10 @@
                     gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
                     _offset += drawData.count * 6;
                     this._usedTextureUnits = 0;
+                }
+
+                if(object.isScreenCanvas) {
+                    this.setViewport(curViewX, curViewY, curViewW, curViewH);
                 }
             } else {
                 this.draw(geometry, material, group);
