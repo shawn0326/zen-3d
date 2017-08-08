@@ -482,11 +482,15 @@
 
         for (var i = 0, mesh; node.meshes && i < node.meshes.length; ++i) {
             var idx = node.meshes[i];
+            var material = materials[json.meshes[idx].materialindex];
             if (skeletons[idx]) {
-                mesh = new zen3d.SkinnedMesh(meshes[idx], materials[json.meshes[idx].materialindex]);
+                mesh = new zen3d.SkinnedMesh(meshes[idx], material);
                 mesh.skeleton = skeletons[idx];
             } else {
-                mesh = new zen3d.Mesh(meshes[idx], materials[json.meshes[idx].materialindex]);
+                mesh = new zen3d.Mesh(meshes[idx], material);
+            }
+            if(material.transparent) {
+                mesh.layer = zen3d.RENDER_LAYER.TRANSPARENT;
             }
             mesh.frustumCulled = false;
             group.add(mesh);

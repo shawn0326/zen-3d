@@ -86,6 +86,8 @@
 
         this.type = zen3d.OBJECT_TYPE.CANVAS2D;
 
+        this.layer = zen3d.RENDER_LAYER.CANVAS2D;
+
         this.frustumCulled = false;
 
         this.geometry = new zen3d.Geometry();

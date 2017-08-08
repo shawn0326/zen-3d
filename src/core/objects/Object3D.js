@@ -11,6 +11,9 @@
         // type of this object, set by subclass
         this.type = "";
 
+        // render layer
+        this.layer = zen3d.RENDER_LAYER.DEFAULT;
+
         // position
         this.position = new zen3d.Vector3();
         // scale

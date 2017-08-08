@@ -60,14 +60,17 @@
 			phong.premultipliedAlpha = true;
 
 	        var sphere1 = new zen3d.Mesh(sphere_geometry, phong);
+			sphere1.layer = zen3d.RENDER_LAYER.TRANSPARENT;
 			sphere1.position.z = -20;
 			scene.add(sphere1);
 
 	        var sphere2 = new zen3d.Mesh(sphere_geometry, phong);
+			sphere2.layer = zen3d.RENDER_LAYER.TRANSPARENT;
 			sphere2.position.z = 0;
 			scene.add(sphere2);
 
 	        var sphere3 = new zen3d.Mesh(sphere_geometry, phong);
+			sphere3.layer = zen3d.RENDER_LAYER.TRANSPARENT;
 			sphere3.position.z = 20;
 			scene.add(sphere3);
 

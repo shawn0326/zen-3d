@@ -28,6 +28,8 @@
         this.material = (material !== undefined) ? material : new zen3d.SpriteMaterial();
 
         this.type = zen3d.OBJECT_TYPE.SPRITE;
+
+        this.layer = zen3d.RENDER_LAYER.SPRITE;
     }
 
     zen3d.inherit(Sprite, zen3d.Object3D);

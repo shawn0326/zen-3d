@@ -257,4 +257,24 @@
     }
 
     zen3d.DRAW_MODE = DRAW_MODE;
+
+    var RENDER_LAYER = {
+        DEFAULT: "default",
+        TRANSPARENT: "transparent",
+        CANVAS2D: "canvas2d",
+        SPRITE: "sprite",
+        PARTICLE: "particle"
+    }
+
+    zen3d.RENDER_LAYER = RENDER_LAYER;
+
+    var LAYER_RENDER_LIST = [
+        RENDER_LAYER.DEFAULT,
+        RENDER_LAYER.TRANSPARENT,
+        RENDER_LAYER.CANVAS2D,
+        RENDER_LAYER.SPRITE,
+        RENDER_LAYER.PARTICLE
+    ];
+
+    zen3d.LAYER_RENDER_LIST = LAYER_RENDER_LIST;
 })();

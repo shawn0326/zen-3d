@@ -53,7 +53,6 @@
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
 			phong.diffuseMap = texture;
-			// phong.transparent = true;
 	        var cube = new zen3d.Mesh(cube_geometry, phong);
 			cube.frustumTest = false;
 			scene.add(cube);

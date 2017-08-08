@@ -409,6 +409,26 @@
     }
 
     zen3d.DRAW_MODE = DRAW_MODE;
+
+    var RENDER_LAYER = {
+        DEFAULT: "default",
+        TRANSPARENT: "transparent",
+        CANVAS2D: "canvas2d",
+        SPRITE: "sprite",
+        PARTICLE: "particle"
+    }
+
+    zen3d.RENDER_LAYER = RENDER_LAYER;
+
+    var LAYER_RENDER_LIST = [
+        RENDER_LAYER.DEFAULT,
+        RENDER_LAYER.TRANSPARENT,
+        RENDER_LAYER.CANVAS2D,
+        RENDER_LAYER.SPRITE,
+        RENDER_LAYER.PARTICLE
+    ];
+
+    zen3d.LAYER_RENDER_LIST = LAYER_RENDER_LIST;
 })();
 
 (function() {
@@ -4995,6 +5015,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     var BLEND_TYPE = zen3d.BLEND_TYPE;
     var DRAW_SIDE = zen3d.DRAW_SIDE;
     var WEBGL_UNIFORM_TYPE = zen3d.WEBGL_UNIFORM_TYPE;
+    var RENDER_LAYER = zen3d.RENDER_LAYER;
+    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
 
     /**
      * Renderer
@@ -5114,11 +5136,18 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         performance.startCounter("renderList", 60);
-        this.renderList(this.cache.opaqueObjects);
-        this.renderList(this.cache.transparentObjects);
-        this.renderList(this.cache.canvas2dObjects);
-        this.renderSprites(this.cache.sprites);
-        this.renderParticles(this.cache.particles);
+        var renderLists = this.cache.renderLists;
+        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
+            var layer = LAYER_RENDER_LIST[i];
+            // TODO separate different renderers to avoid this branch
+            if(layer === RENDER_LAYER.SPRITE) {
+                this.renderSprites(renderLists[layer]);
+            } else if(layer === RENDER_LAYER.PARTICLE) {
+                this.renderParticles(renderLists[layer]);
+            } else {
+                this.renderList(renderLists[layer]);
+            }
+        }
         performance.endCounter("renderList");
 
         this.cache.clear();
@@ -5453,7 +5482,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     var spriteScale = new zen3d.Vector3();
 
     Renderer.prototype.renderSprites = function(sprites) {
-        if (this.cache.sprites.length === 0) {
+        if (sprites.length === 0) {
             return;
         }
 
@@ -5551,7 +5580,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     Renderer.prototype.renderParticles = function(particles) {
-        if (this.cache.particles.length === 0) {
+        if (particles.length === 0) {
             return;
         }
 
@@ -5976,6 +6005,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 (function() {
     var OBJECT_TYPE = zen3d.OBJECT_TYPE;
     var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var RENDER_LAYER = zen3d.RENDER_LAYER;
+    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
+
+    var sortFrontToBack = function(a, b) {
+        return a.z - b.z;
+    }
+
+    var sortBackToFront = function(a, b) {
+        return b.z - a.z;
+    }
 
     /**
      * Render Cache
@@ -5984,15 +6023,22 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     var RenderCache = function() {
 
         // render list
-        this.opaqueObjects = new Array();
-        this.transparentObjects = new Array();
-        this.canvas2dObjects = new Array();
+        var renderLists = {};
+        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
+            renderLists[LAYER_RENDER_LIST[i]] = new Array();
+        }
+        this.renderLists = renderLists;
+
+
+        // this.opaqueObjects = new Array();
+        // this.transparentObjects = new Array();
+        // this.canvas2dObjects = new Array();
 
         this.shadowObjects = new Array();
 
-        this.sprites = new Array();
+        // this.sprites = new Array();
 
-        this.particles = new Array();
+        // this.particles = new Array();
 
         // lights
         this.lights = {
@@ -6071,16 +6117,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         var group = groups[i];
                         var groupMaterial = material[group.materialIndex];
                         if(groupMaterial) {
-                            var array;
-                            if (object.type == OBJECT_TYPE.CANVAS2D) {
-                                array = this.canvas2dObjects;
-                            } else if (groupMaterial.transparent) {
-                                array = this.transparentObjects;
-                            } else {
-                                array = this.opaqueObjects;
-                            }
 
-                            array.push({
+                            // var array;
+                            // if (object.type == OBJECT_TYPE.CANVAS2D) {
+                            //     array = this.canvas2dObjects;
+                            // } else if (groupMaterial.transparent) {
+                            //     array = this.transparentObjects;
+                            // } else {
+                            //     array = this.opaqueObjects;
+                            // }
+
+                            this.renderLists[object.layer].push({
                                 object: object,
                                 geometry: object.geometry,
                                 material: groupMaterial,
@@ -6100,16 +6147,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         }
                     }
                 } else {
-                    var array;
-                    if (object.type == OBJECT_TYPE.CANVAS2D) {
-                        array = this.canvas2dObjects;
-                    } else if (material.transparent) {
-                        array = this.transparentObjects;
-                    } else {
-                        array = this.opaqueObjects;
-                    }
+                    // var array;
+                    // if (object.type == OBJECT_TYPE.CANVAS2D) {
+                    //     array = this.canvas2dObjects;
+                    // } else if (material.transparent) {
+                    //     array = this.transparentObjects;
+                    // } else {
+                    //     array = this.opaqueObjects;
+                    // }
 
-                    array.push({
+                    this.renderLists[object.layer].push({
                         object: object,
                         geometry: object.geometry,
                         material: object.material,
@@ -6141,12 +6188,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
                 }
 
-                var array = this.sprites;
+                // var array = this.sprites;
 
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                array.push({
+                this.renderLists[object.layer].push({
                     object: object,
                     material: object.material,
                     z: helpVector3.z
@@ -6155,12 +6202,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 // no shadow
                 break;
             case OBJECT_TYPE.PARTICLE:
-                var array = this.particles;
+                // var array = this.particles;
 
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                array.push({
+                this.renderLists[object.layer].push({
                     object: object,
                     geometry: object.geometry,
                     material: object.material,
@@ -6218,50 +6265,31 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * sort render list
      */
     RenderCache.prototype.sort = function() {
-        // opaque objects render from front to back
-        this.opaqueObjects.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return za - zb;
-        });
-
-        // transparent objects render from back to front
-        this.transparentObjects.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return zb - za;
-        });
-
-        // sprites render from back to front
-        this.sprites.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return zb - za;
-        });
-
-        // particles render from back to front
-        this.particles.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return zb - za;
-        });
-
-        // TODO canvas2d object should render in order
+        var renderLists = this.renderLists;
+        renderLists[RENDER_LAYER.DEFAULT].sort(sortFrontToBack); // need sort?
+        renderLists[RENDER_LAYER.TRANSPARENT].sort(sortBackToFront);
+        renderLists[RENDER_LAYER.SPRITE].sort(sortBackToFront);
+        renderLists[RENDER_LAYER.PARTICLE].sort(sortBackToFront);
+        // TODO canvas2d object should render in order?
     }
 
     /**
      * clear
      */
     RenderCache.prototype.clear = function() {
-        this.transparentObjects.length = 0;
-        this.opaqueObjects.length = 0;
-        this.canvas2dObjects.length = 0;
+        // this.transparentObjects.length = 0;
+        // this.opaqueObjects.length = 0;
+        // this.canvas2dObjects.length = 0;
+        var renderLists = this.renderLists;
+        for(var layer in renderLists) {
+            renderLists[layer].length = 0;
+        }
 
         this.shadowObjects.length = 0;
 
-        this.sprites.length = 0;
+        // this.sprites.length = 0;
 
-        this.particles.length = 0;
+        // this.particles.length = 0;
 
         var lights = this.lights;
         lights.ambients.length = 0;
@@ -7443,6 +7471,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // type of this object, set by subclass
         this.type = "";
 
+        // render layer
+        this.layer = zen3d.RENDER_LAYER.DEFAULT;
+
         // position
         this.position = new zen3d.Vector3();
         // scale
@@ -8367,6 +8398,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.material = (material !== undefined) ? material : new zen3d.SpriteMaterial();
 
         this.type = zen3d.OBJECT_TYPE.SPRITE;
+
+        this.layer = zen3d.RENDER_LAYER.SPRITE;
     }
 
     zen3d.inherit(Sprite, zen3d.Object3D);
@@ -8425,6 +8458,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.time = 0;
 
         this.type = zen3d.OBJECT_TYPE.PARTICLE;
+
+		this.layer = zen3d.RENDER_LAYER.PARTICLE;
 
 		this.material = new zen3d.ParticleMaterial();
     }
@@ -9421,11 +9456,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         for (var i = 0, mesh; node.meshes && i < node.meshes.length; ++i) {
             var idx = node.meshes[i];
+            var material = materials[json.meshes[idx].materialindex];
             if (skeletons[idx]) {
-                mesh = new zen3d.SkinnedMesh(meshes[idx], materials[json.meshes[idx].materialindex]);
+                mesh = new zen3d.SkinnedMesh(meshes[idx], material);
                 mesh.skeleton = skeletons[idx];
             } else {
-                mesh = new zen3d.Mesh(meshes[idx], materials[json.meshes[idx].materialindex]);
+                mesh = new zen3d.Mesh(meshes[idx], material);
+            }
+            if(material.transparent) {
+                mesh.layer = zen3d.RENDER_LAYER.TRANSPARENT;
             }
             mesh.frustumCulled = false;
             group.add(mesh);

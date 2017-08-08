@@ -1,6 +1,16 @@
 (function() {
     var OBJECT_TYPE = zen3d.OBJECT_TYPE;
     var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var RENDER_LAYER = zen3d.RENDER_LAYER;
+    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
+
+    var sortFrontToBack = function(a, b) {
+        return a.z - b.z;
+    }
+
+    var sortBackToFront = function(a, b) {
+        return b.z - a.z;
+    }
 
     /**
      * Render Cache
@@ -9,15 +19,13 @@
     var RenderCache = function() {
 
         // render list
-        this.opaqueObjects = new Array();
-        this.transparentObjects = new Array();
-        this.canvas2dObjects = new Array();
+        var renderLists = {};
+        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
+            renderLists[LAYER_RENDER_LIST[i]] = new Array();
+        }
+        this.renderLists = renderLists;
 
         this.shadowObjects = new Array();
-
-        this.sprites = new Array();
-
-        this.particles = new Array();
 
         // lights
         this.lights = {
@@ -33,11 +41,6 @@
             shadowsNum: 0,
             totalNum: 0
         }
-        // this.ambientLights = new Array();
-        // this.directLights = new Array();
-        // this.pointLights = new Array();
-        // this.spotLights = new Array();
-        // this.shadowLights = new Array();
 
         // camera
         this.camera = null;
@@ -96,16 +99,8 @@
                         var group = groups[i];
                         var groupMaterial = material[group.materialIndex];
                         if(groupMaterial) {
-                            var array;
-                            if (object.type == OBJECT_TYPE.CANVAS2D) {
-                                array = this.canvas2dObjects;
-                            } else if (groupMaterial.transparent) {
-                                array = this.transparentObjects;
-                            } else {
-                                array = this.opaqueObjects;
-                            }
 
-                            array.push({
+                            this.renderLists[object.layer].push({
                                 object: object,
                                 geometry: object.geometry,
                                 material: groupMaterial,
@@ -125,16 +120,7 @@
                         }
                     }
                 } else {
-                    var array;
-                    if (object.type == OBJECT_TYPE.CANVAS2D) {
-                        array = this.canvas2dObjects;
-                    } else if (material.transparent) {
-                        array = this.transparentObjects;
-                    } else {
-                        array = this.opaqueObjects;
-                    }
-
-                    array.push({
+                    this.renderLists[object.layer].push({
                         object: object,
                         geometry: object.geometry,
                         material: object.material,
@@ -166,12 +152,10 @@
                     }
                 }
 
-                var array = this.sprites;
-
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                array.push({
+                this.renderLists[object.layer].push({
                     object: object,
                     material: object.material,
                     z: helpVector3.z
@@ -180,12 +164,11 @@
                 // no shadow
                 break;
             case OBJECT_TYPE.PARTICLE:
-                var array = this.particles;
 
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                array.push({
+                this.renderLists[object.layer].push({
                     object: object,
                     geometry: object.geometry,
                     material: object.material,
@@ -243,50 +226,24 @@
      * sort render list
      */
     RenderCache.prototype.sort = function() {
-        // opaque objects render from front to back
-        this.opaqueObjects.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return za - zb;
-        });
-
-        // transparent objects render from back to front
-        this.transparentObjects.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return zb - za;
-        });
-
-        // sprites render from back to front
-        this.sprites.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return zb - za;
-        });
-
-        // particles render from back to front
-        this.particles.sort(function(a, b) {
-            var za = a.z;
-            var zb = b.z;
-            return zb - za;
-        });
-
-        // TODO canvas2d object should render in order
+        var renderLists = this.renderLists;
+        renderLists[RENDER_LAYER.DEFAULT].sort(sortFrontToBack); // need sort?
+        renderLists[RENDER_LAYER.TRANSPARENT].sort(sortBackToFront);
+        renderLists[RENDER_LAYER.SPRITE].sort(sortBackToFront);
+        renderLists[RENDER_LAYER.PARTICLE].sort(sortBackToFront);
+        // TODO canvas2d object should render in order?
     }
 
     /**
      * clear
      */
     RenderCache.prototype.clear = function() {
-        this.transparentObjects.length = 0;
-        this.opaqueObjects.length = 0;
-        this.canvas2dObjects.length = 0;
+        var renderLists = this.renderLists;
+        for(var layer in renderLists) {
+            renderLists[layer].length = 0;
+        }
 
         this.shadowObjects.length = 0;
-
-        this.sprites.length = 0;
-
-        this.particles.length = 0;
 
         var lights = this.lights;
         lights.ambients.length = 0;

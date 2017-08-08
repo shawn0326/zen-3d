@@ -121,6 +121,7 @@
 			glow_mat.blending = zen3d.BLEND_TYPE.ADD;
 
 			var glow = new zen3d.Mesh(glow_geo, glow_mat);
+			glow.layer = zen3d.RENDER_LAYER.TRANSPARENT;
 			glow.scale.set(1.8, 1.8, 1.8);
 			scene.add(glow);
 
@@ -128,9 +129,11 @@
 			scene.add(earth);
 
 	        var cloud1 = new zen3d.Mesh(cloud1_geo, cloud_mat);
+			cloud1.layer = zen3d.RENDER_LAYER.TRANSPARENT;
 			scene.add(cloud1);
 
 	        var cloud2 = new zen3d.Mesh(cloud2_geo, cloud_mat);
+			cloud2.layer = zen3d.RENDER_LAYER.TRANSPARENT;
 			scene.add(cloud2);
 
 	        var ambientLight = new zen3d.AmbientLight();

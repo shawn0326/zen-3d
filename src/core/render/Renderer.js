@@ -4,6 +4,8 @@
     var BLEND_TYPE = zen3d.BLEND_TYPE;
     var DRAW_SIDE = zen3d.DRAW_SIDE;
     var WEBGL_UNIFORM_TYPE = zen3d.WEBGL_UNIFORM_TYPE;
+    var RENDER_LAYER = zen3d.RENDER_LAYER;
+    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
 
     /**
      * Renderer
@@ -123,11 +125,18 @@
         }
 
         performance.startCounter("renderList", 60);
-        this.renderList(this.cache.opaqueObjects);
-        this.renderList(this.cache.transparentObjects);
-        this.renderList(this.cache.canvas2dObjects);
-        this.renderSprites(this.cache.sprites);
-        this.renderParticles(this.cache.particles);
+        var renderLists = this.cache.renderLists;
+        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
+            var layer = LAYER_RENDER_LIST[i];
+            // TODO separate different renderers to avoid branchs
+            if(layer === RENDER_LAYER.SPRITE) {
+                this.renderSprites(renderLists[layer]);
+            } else if(layer === RENDER_LAYER.PARTICLE) {
+                this.renderParticles(renderLists[layer]);
+            } else {
+                this.renderList(renderLists[layer]);
+            }
+        }
         performance.endCounter("renderList");
 
         this.cache.clear();
@@ -462,7 +471,7 @@
     var spriteScale = new zen3d.Vector3();
 
     Renderer.prototype.renderSprites = function(sprites) {
-        if (this.cache.sprites.length === 0) {
+        if (sprites.length === 0) {
             return;
         }
 
@@ -560,7 +569,7 @@
     }
 
     Renderer.prototype.renderParticles = function(particles) {
-        if (this.cache.particles.length === 0) {
+        if (particles.length === 0) {
             return;
         }
 
