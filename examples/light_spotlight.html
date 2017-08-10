@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="../build/zen3d.input.js"></script>
 </head>
 <body>
 
@@ -84,8 +85,6 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			// input
-
 			function toggleShadow() {
 				sphere.castShadow = !sphere.castShadow;
 				plane.receiveShadow = !plane.receiveShadow;
@@ -94,11 +93,8 @@
 
 			toggleShadow();
 
-			document.onkeydown = function(e) {
-				if(e.keyCode == 83) { // 's'
-					toggleShadow();
-				}
-	        }
+			// input
+			var keyboard = new zen3d.Keyboard(window);
 
 	        function loop(count) {
 
@@ -109,7 +105,14 @@
 				camera.position.z = 100 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
+				// handle input
+				if(keyboard.wasPressed("s")) {
+					toggleShadow();
+				}
+
 	            renderer.render(scene, camera);
+
+				keyboard.update();
 	        }
 
 	        loop(0);

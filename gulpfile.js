@@ -178,6 +178,11 @@ var postprocessingSrc = [
     "src/extension/postprocessing/Pass.js"
 ];
 
+var inputSrc = [
+    // input
+    "src/extension/input/Keyboard.js"
+];
+
 gulp.task('default', ["shader", 'build'], function() {
     // do nothing
 });
@@ -229,6 +234,14 @@ gulp.task("extension", function() {
 
     gulp.src(postprocessingSrc)
     .pipe(concat(outputName + '.postprocessing.js'))
+    .pipe(gulp.dest('build'))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(uglify())
+    .pipe(gulp.dest('build'))
+    .pipe(notify({ message: 'extension postprocessing build success' }));
+
+    gulp.src(inputSrc)
+    .pipe(concat(outputName + '.input.js'))
     .pipe(gulp.dest('build'))
     .pipe(rename({ suffix: '.min' }))
     .pipe(uglify())
