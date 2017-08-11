@@ -180,7 +180,8 @@ var postprocessingSrc = [
 
 var inputSrc = [
     // input
-    "src/extension/input/Keyboard.js"
+    "src/extension/input/Keyboard.js",
+    "src/extension/input/Mouse.js"
 ];
 
 gulp.task('default', ["shader", 'build'], function() {
