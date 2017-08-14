@@ -119,9 +119,9 @@
 	            requestAnimationFrame(loop);
 
 				// rotate camera
-				// camera.position.x = 30 * Math.sin(count / 1000 * .5);
-				// camera.position.z = 30 * Math.cos(count / 1000 * .5);
-				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.position.x = 30 * Math.sin(count / 1000 * .5);
+				camera.position.z = 30 * Math.cos(count / 1000 * .5);
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 	            renderer.render(scene, camera);
 	        }

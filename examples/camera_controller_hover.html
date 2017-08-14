@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="../build/zen3d.input.js"></script>
 </head>
 <body>
 
@@ -87,49 +88,18 @@
 			// add a hover controller
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
 			controller.distance = 100;
-			var pressed = false;
-			var touchX = 0;
-			var touchY = 0;
-			function touchScale(e) {
-			    e.preventDefault();
-			    controller.distance += e.deltaY;
-			}
-			function touchDown(e) {
-			    e.preventDefault();
-			    pressed = true;
-			    touchX = e.pageX;
-			    touchY = e.pageY;
-			}
-			function touchMove(e) {
-			    e.preventDefault();
-			    if(pressed) {
-			        var moveX = e.pageX - touchX;
-			        var moveY = e.pageY - touchY;
-
-			        touchX = e.pageX;
-			        touchY = e.pageY;
-
-			        controller.panAngle -= moveX;
-			        controller.tiltAngle += moveY;
-			    }
-			}
-			function touchRelease(e) {
-			    e.preventDefault();
-			    pressed = false;
-			}
-			canvas.addEventListener("mousewheel", touchScale);
-			canvas.addEventListener("mousedown", touchDown);
-			canvas.addEventListener("mouseup", touchRelease);
-			canvas.addEventListener("mousemove", touchMove);
-			canvas.addEventListener("touchstart", touchDown);
-			canvas.addEventListener("touchend", touchRelease);
-			canvas.addEventListener("touchmove", touchMove);
+			var mouse = new zen3d.Mouse(canvas);
+			var touch = new zen3d.Touch(canvas);
+			controller.bindMouse = mouse;
+			controller.bindTouch = touch;
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
 				controller.update();
+				mouse.update();
+				touch.update();
 
 	            renderer.render(scene, camera);
 	        }

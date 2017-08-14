@@ -5139,7 +5139,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var renderLists = this.cache.renderLists;
         for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
             var layer = LAYER_RENDER_LIST[i];
-            // TODO separate different renderers to avoid this branch
+            // TODO separate different renderers to avoid branchs
             if(layer === RENDER_LAYER.SPRITE) {
                 this.renderSprites(renderLists[layer]);
             } else if(layer === RENDER_LAYER.PARTICLE) {
@@ -6029,16 +6029,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
         this.renderLists = renderLists;
 
-
-        // this.opaqueObjects = new Array();
-        // this.transparentObjects = new Array();
-        // this.canvas2dObjects = new Array();
-
         this.shadowObjects = new Array();
-
-        // this.sprites = new Array();
-
-        // this.particles = new Array();
 
         // lights
         this.lights = {
@@ -6054,11 +6045,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             shadowsNum: 0,
             totalNum: 0
         }
-        // this.ambientLights = new Array();
-        // this.directLights = new Array();
-        // this.pointLights = new Array();
-        // this.spotLights = new Array();
-        // this.shadowLights = new Array();
 
         // camera
         this.camera = null;
@@ -6118,15 +6104,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         var groupMaterial = material[group.materialIndex];
                         if(groupMaterial) {
 
-                            // var array;
-                            // if (object.type == OBJECT_TYPE.CANVAS2D) {
-                            //     array = this.canvas2dObjects;
-                            // } else if (groupMaterial.transparent) {
-                            //     array = this.transparentObjects;
-                            // } else {
-                            //     array = this.opaqueObjects;
-                            // }
-
                             this.renderLists[object.layer].push({
                                 object: object,
                                 geometry: object.geometry,
@@ -6147,15 +6124,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         }
                     }
                 } else {
-                    // var array;
-                    // if (object.type == OBJECT_TYPE.CANVAS2D) {
-                    //     array = this.canvas2dObjects;
-                    // } else if (material.transparent) {
-                    //     array = this.transparentObjects;
-                    // } else {
-                    //     array = this.opaqueObjects;
-                    // }
-
                     this.renderLists[object.layer].push({
                         object: object,
                         geometry: object.geometry,
@@ -6188,8 +6156,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
                 }
 
-                // var array = this.sprites;
-
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
@@ -6202,7 +6168,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 // no shadow
                 break;
             case OBJECT_TYPE.PARTICLE:
-                // var array = this.particles;
 
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
@@ -6277,19 +6242,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * clear
      */
     RenderCache.prototype.clear = function() {
-        // this.transparentObjects.length = 0;
-        // this.opaqueObjects.length = 0;
-        // this.canvas2dObjects.length = 0;
         var renderLists = this.renderLists;
         for(var layer in renderLists) {
             renderLists[layer].length = 0;
         }
 
         this.shadowObjects.length = 0;
-
-        // this.sprites.length = 0;
-
-        // this.particles.length = 0;
 
         var lights = this.lights;
         lights.ambients.length = 0;
@@ -10267,6 +10225,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this._tiltRad = 0;
         this.minTileAngle = -90;
         this.maxTileAngle = 90;
+
+        this.bindMouse = undefined;
+        this._lastMouseX, this._lastMouseY, this._mouseDown = false;
+
+        this.bindTouch = undefined;
+        this._lastTouchX, this._lastTouchY, this._fingerTwo = false, this._lastDistance;
     }
 
     Object.defineProperties(HoverController.prototype, {
@@ -10291,6 +10255,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     });
 
     HoverController.prototype.update = function() {
+        this.bindMouse && this._updateMouse();
+        this.bindTouch && this._updateTouch();
+
         var distanceX = this.distance * Math.sin(this._panRad) * Math.cos(this._tiltRad);
         var distanceY = this.distance * Math.sin(this._tiltRad);
         var distanceZ = this.distance * Math.cos(this._panRad) * Math.cos(this._tiltRad);
@@ -10299,6 +10266,76 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var target = this.lookAtPoint;
         camera.position.set(distanceX + target.x, distanceY + target.y, distanceZ + target.z);
         camera.setLookAt(target, this.up);
+    }
+
+    HoverController.prototype._updateMouse = function() {
+        var mouse = this.bindMouse;
+        if(mouse.isPressed(0)) {
+            if(!this._mouseDown) {
+                this._mouseDown = true;
+                this._lastMouseX = mouse.position.x;
+                this._lastMouseY = mouse.position.y;
+            } else {
+                var moveX = mouse.position.x - this._lastMouseX;
+                var moveY = mouse.position.y - this._lastMouseY;
+
+                this.panAngle -= moveX;
+                this.tiltAngle += moveY;
+
+                this._lastMouseX = mouse.position.x;
+                this._lastMouseY = mouse.position.y;
+            }
+        } else if(mouse.wasReleased(0)) {
+            this._mouseDown = false;
+        }
+        this.distance = Math.max(this.distance - mouse.wheel * 2, 1);
+    }
+
+    var hVec2_1 = new zen3d.Vector2();
+    var hVec2_2 = new zen3d.Vector2();
+
+    HoverController.prototype._updateTouch = function(touch) {
+        var touch = this.bindTouch;
+        if(touch.touchCount > 0) {
+            if(touch.touchCount == 1) {
+                var _touch = touch.getTouch(0);
+                if(_touch.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo) {
+                    this._lastTouchX = _touch.position.x;
+                    this._lastTouchY = _touch.position.y;
+                } else {
+                    var moveX = _touch.position.x - this._lastTouchX;
+                    var moveY = _touch.position.y - this._lastTouchY;
+
+                    this.panAngle -= moveX * 0.5;
+                    this.tiltAngle += moveY * 0.5;
+
+                    this._lastTouchX = _touch.position.x;
+                    this._lastTouchY = _touch.position.y;
+                }
+                this._fingerTwo = false;
+            } else if(touch.touchCount == 2) {
+                var _touch1 = touch.getTouch(0);
+                var _touch2 = touch.getTouch(1);
+                if(_touch1.phase == zen3d.TouchPhase.BEGAN || _touch2.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo == false) {
+                    hVec2_1.set(_touch1.position.x, _touch1.position.y);
+                    hVec2_2.set(_touch2.position.x, _touch2.position.y);
+                    this._lastDistance = hVec2_1.distanceTo(hVec2_2);
+                } else {
+                    hVec2_1.set(_touch1.position.x, _touch1.position.y);
+                    hVec2_2.set(_touch2.position.x, _touch2.position.y);
+                    var distance = hVec2_1.distanceTo(hVec2_2);
+
+                    var deltaDistance = distance - this._lastDistance;
+
+                    this.distance = Math.max(this.distance - deltaDistance, 1);
+
+                    this._lastDistance = distance;
+                }
+                this._fingerTwo = true;
+            } else {
+                this._fingerTwo = false;
+            }
+        }
     }
 
     zen3d.HoverController = HoverController;
