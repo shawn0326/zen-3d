@@ -146,7 +146,8 @@ var filesSrc = [
     "core/Performance.js",
 
     // controller
-    "extension/controller/HoverController.js"
+    "extension/controller/HoverController.js",
+    "extension/controller/FreeController.js"
 ];
 
 for(var i = 0, l = filesSrc.length; i < l; i++) {
