@@ -14,6 +14,9 @@
 
         this.premultipliedAlpha = false;
 
+        // use vertex colors
+        this.vertexColors = false;
+
         // diffuse
         this.diffuse = new zen3d.Color3(0xffffff);
         this.diffuseMap = null;

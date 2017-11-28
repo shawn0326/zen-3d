@@ -1,6 +1,7 @@
 #include <common_vert>
 #include <normal_pars_vert>
 #include <uv_pars_vert>
+#include <color_pars_vert>
 #include <viewModelPos_pars_vert>
 #include <envMap_pars_vert>
 #include <shadowMap_pars_vert>
@@ -11,6 +12,7 @@ void main() {
     #include <pvm_vert>
     #include <normal_vert>
     #include <uv_vert>
+    #include <color_vert>
     #include <viewModelPos_vert>
     #include <envMap_vert>
     #include <shadowMap_vert>

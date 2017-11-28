@@ -19,6 +19,7 @@
         this.vertexFormat = {
             "a_Position": {size: 3, normalized: false, stride: 17, offset: 0},
             "a_Normal": {size: 3, normalized: false, stride: 17, offset: 3},
+            "a_Color": {size: 4, normalized: false, stride: 17, offset: 9},
             "a_Uv": {size: 2, normalized: false, stride: 17, offset: 13}
         };
 

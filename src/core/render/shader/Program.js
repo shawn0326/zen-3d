@@ -158,11 +158,13 @@
             case MATERIAL_TYPE.BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
+                vshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
 
                 vshader_define.push(props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '');
 
                 fshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 fshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
+                fshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
                 if(props.useEnvMap) {
                     var define = "";
                     switch (props.envMapCombine) {
@@ -270,6 +272,7 @@
                 props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
                 props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
                 props.useShaderTextureLOD = !!render.capabilities.shaderTextureLOD;
+                props.useVertexColors = material.vertexColors;
             case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;

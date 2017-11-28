@@ -25,6 +25,7 @@ var files = {
 		"material_transparent",
 		"material_shadermaterial",
 		"material_flatshading",
+		"material_vertexcolors",
 		"material_earth"
 	],
 	"camera": [
