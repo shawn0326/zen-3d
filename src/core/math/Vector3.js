@@ -163,6 +163,19 @@
 
     }
 
+    Vector3.prototype.applyMatrix3 = function ( m ) {
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
+		this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
+		this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+
+		return this;
+
+	}
+
     /**
      * transformDirection
      **/

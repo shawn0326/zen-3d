@@ -8,6 +8,7 @@ var files = {
 	"geometry": [
 		"geometry_geometries",
 		"geometry_loader_assimp2json",
+		"geometry_loader_vox",
 		"geometry_groups"
 	],
 	"material": [

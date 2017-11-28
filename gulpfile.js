@@ -186,6 +186,18 @@ var inputSrc = [
     "src/extension/input/Touch.js"
 ];
 
+var voxSrc = [
+    // vox
+    "src/extension/vox/md5.js",
+    "src/extension/vox/VOXData.js",
+    "src/extension/vox/VOXDefaultPalette.js",
+    "src/extension/vox/VOXFace3.js",
+    "src/extension/vox/VOXGeometry.js",
+    "src/extension/vox/VOXLoader.js",
+    "src/extension/vox/VOXMeshBuilder.js",
+    "src/extension/vox/VOXTextureFactory.js"
+];
+
 gulp.task('default', ["shader", 'build'], function() {
     // do nothing
 });
@@ -249,7 +261,15 @@ gulp.task("extension", function() {
     .pipe(rename({ suffix: '.min' }))
     .pipe(uglify())
     .pipe(gulp.dest('build'))
-    .pipe(notify({ message: 'extension postprocessing build success' }));
+    .pipe(notify({ message: 'extension input build success' }));
+
+    gulp.src(voxSrc)
+    .pipe(concat(outputName + '.vox.js'))
+    .pipe(gulp.dest('build'))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(uglify())
+    .pipe(gulp.dest('build'))
+    .pipe(notify({ message: 'extension vox build success' }));
 });
 
 gulp.task('test', function() {

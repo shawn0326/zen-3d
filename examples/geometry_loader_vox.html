@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - vox</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="../build/zen3d.vox.js"></script>
+	<script src="../build/zen3d.input.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - vox
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+			renderer.gammaInput = true;
+			renderer.gammaOutput = true;
+
+	        var scene = new zen3d.Scene();
+
+			var loader = new zen3d.VOXLoader();
+			loader.load("resources/models/vox/p1.vox", function(voxData) {
+				var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxData, {
+					optimizeFaces: true,
+					voxelSize: 4,
+					originToBottom: false,
+					vertexColor: true
+				});
+				scene.add(voxMeshBuilder.createMesh());
+			});
+
+			var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xacacac);
+	        scene.add(ambientLight);
+
+			var pointLight = new zen3d.PointLight();
+	        pointLight.color.setHex(0xffffff);
+			pointLight.distance = 200;
+	        pointLight.position.set(0, 20, 30);
+	        scene.add(pointLight);
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 4, 10);
+	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+			// add a hover controller
+			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
+			controller.distance = 120;
+			controller.panAngle = 25;
+			controller.tiltAngle = 25;
+			var mouse = new zen3d.Mouse(canvas);
+			var touch = new zen3d.Touch(canvas);
+			controller.bindMouse = mouse;
+			controller.bindTouch = touch;
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				controller.update();
+				mouse.update();
+				touch.update();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
