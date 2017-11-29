@@ -51,27 +51,38 @@
 			loader.load("resources/models/vox/p1.vox", function(voxData) {
 				var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxData, {
 					optimizeFaces: true,
-					voxelSize: 4,
-					originToBottom: false,
+					voxelSize: 2,
+					originToBottom: true,
 					vertexColor: true
 				});
-				scene.add(voxMeshBuilder.createMesh());
+				var mesh = voxMeshBuilder.createMesh();
+				mesh.castShadow = true;
+				scene.add(mesh);
 			});
 
+			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.diffuse.setHex(0x88ff88);
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+			plane.receiveShadow = true;
+	        scene.add(plane);
+
 			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xacacac);
+	        ambientLight.color.setHex(0xaaaaaa);
 	        scene.add(ambientLight);
 
-			var pointLight = new zen3d.PointLight();
-	        pointLight.color.setHex(0xffffff);
-			pointLight.distance = 200;
-	        pointLight.position.set(0, 20, 30);
-	        scene.add(pointLight);
+			var directionalLight = new zen3d.DirectionalLight();
+	        directionalLight.euler.set(Math.PI / 4, Math.PI / 4, 0);
+	        directionalLight.color.setHex(0xffffff);
+	        directionalLight.position.set(-40, 40, 0);
+			directionalLight.shadow.windowSize = 100;
+			directionalLight.castShadow = true;
+	        scene.add(directionalLight);
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 4, 10);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 2000);
 	        scene.add(camera);
 
 			// add a hover controller
@@ -101,7 +112,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 3000);
 
 				renderer.resize(width, height);
 			}

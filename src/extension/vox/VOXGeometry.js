@@ -276,7 +276,9 @@
 
             pushFaceData(posArray, normalArray, colorArray, uvArray);
 
-            geometry.indicesArray.push(index++, index++, index++);
+            // if(geometry.indicesArray.length < 75535) {
+            //     geometry.indicesArray.push(index++, index++, index++);
+            // }
 
 		}
 
