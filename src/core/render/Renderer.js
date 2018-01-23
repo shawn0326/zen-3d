@@ -111,7 +111,14 @@
         performance.endCounter("cacheScene");
 
         performance.startCounter("renderShadow", 60);
+        var useStencil = this.state.states[this.gl.STENCIL_TEST];
+        if(useStencil) {
+            this.state.disable(this.gl.STENCIL_TEST);
+        }
         this.renderShadow();
+        if(useStencil) {
+            this.state.enable(this.gl.STENCIL_TEST);
+        }
         performance.endCounter("renderShadow");
 
         if (renderTarget === undefined) {

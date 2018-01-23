@@ -37,7 +37,8 @@ var files = {
 	],
 	"scene": [
 		"scene_fog",
-		"scene_gamma_correction"
+		"scene_gamma_correction",
+		"scene_stencil"
 	],
 	"math": [
 		"math_frustumtest",

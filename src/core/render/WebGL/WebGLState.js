@@ -30,6 +30,8 @@
 
         this.currentViewport = new zen3d.Vector4();
 
+        this.currentColorMask = null;
+
         this.currentClearColor = new zen3d.Vector4();
 
         this.currentTextureSlot = null;
@@ -48,6 +50,18 @@
         this.currentLineWidth = null;
 
         this.currentProgram = null;
+
+        this.currentStencilMask = null
+
+        this.currentStencilFunc = null;
+	    this.currentStencilRef = null;
+	    this.currentStencilFuncMask = null;
+
+        this.currentStencilFail = null;
+        this.currentStencilZFail = null;
+        this.currentStencilZPass = null;
+
+        this.currentStencilClear = null;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -135,6 +149,15 @@
             gl.viewport(x, y, width, height);
             currentViewport.set(x, y, width, height);
         }
+    }
+
+    WebGLState.prototype.colorMask = function(colorMask) {
+        if ( this.currentColorMask !== colorMask ) {
+
+			this.gl.colorMask( colorMask, colorMask, colorMask, colorMask );
+			this.currentColorMask = colorMask;
+
+		}
     }
 
     WebGLState.prototype.clearColor = function(r, g, b, a) {
@@ -234,6 +257,50 @@
             this.gl.useProgram(program.id);
             this.currentProgram = program;
         }
+    }
+
+    WebGLState.prototype.stencilMask = function(stencilMask) {
+        if(this.currentStencilMask !== stencilMask) {
+            this.gl.stencilMask( stencilMask );
+		    this.currentStencilMask = stencilMask;
+        }
+    }
+
+    WebGLState.prototype.stencilFunc = function(stencilFunc, stencilRef, stencilMask) {
+        if ( this.currentStencilFunc !== stencilFunc ||
+		     this.currentStencilRef 	!== stencilRef 	||
+		     this.currentStencilFuncMask !== stencilMask ) {
+
+			this.gl.stencilFunc( stencilFunc, stencilRef, stencilMask );
+
+			this.currentStencilFunc = stencilFunc;
+			this.currentStencilRef = stencilRef;
+			this.currentStencilFuncMask = stencilMask;
+
+		}
+    }
+
+    WebGLState.prototype.stencilOp = function(stencilFail, stencilZFail, stencilZPass) {
+        if ( this.currentStencilFail	 !== stencilFail 	||
+		     this.currentStencilZFail !== stencilZFail ||
+		     this.currentStencilZPass !== stencilZPass ) {
+
+			this.gl.stencilOp( stencilFail, stencilZFail, stencilZPass );
+
+			this.currentStencilFail = stencilFail;
+			this.currentStencilZFail = stencilZFail;
+			this.currentStencilZPass = stencilZPass;
+
+		}
+    }
+
+    WebGLState.prototype.clearStencil = function(stencil) {
+        if ( this.currentStencilClear !== stencil ) {
+
+			this.gl.clearStencil( stencil );
+			this.currentStencilClear = stencil;
+
+		}
     }
 
     zen3d.WebGLState = WebGLState;
