@@ -48,17 +48,27 @@
 	        var scene = new zen3d.Scene();
 			var stencilScene = new zen3d.Scene();
 
+			var cube_geometry = new zen3d.CubeGeometry(15, 15, 15);
+	        var phong = new zen3d.PhongMaterial();
+	        phong.diffuse.setHex(0xffffff);
+			phong.diffuseMap = floorTexture;
+	        var cube = new zen3d.Mesh(cube_geometry, phong);
+			cube.castShadow = true;
+			// scene.add(cube);
+
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere);
+			sphere.castShadow = true;
+			// scene.add(sphere);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
+			plane.receiveShadow = true;
 	        scene.add(plane);
 
 			var mask_geometry = new zen3d.SphereGeometry(20, 20, 20);
@@ -77,6 +87,7 @@
 	        directionalLight.color.setHex(0xffffff);
 	        directionalLight.position.set(-40, 40, 0);
 			directionalLight.shadow.windowSize = 100;
+			directionalLight.castShadow = true;
 	        scene.add(directionalLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
@@ -93,17 +104,6 @@
 	        scene.add(camera);
 			stencilScene.add(camera);
 
-			function toggleShadow() {
-				sphere.castShadow = !sphere.castShadow;
-				plane.receiveShadow = !plane.receiveShadow;
-				directionalLight.castShadow = !directionalLight.castShadow;
-			}
-
-			toggleShadow();
-
-			// input
-			var keyboard = new zen3d.Keyboard(window);
-
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
@@ -115,18 +115,23 @@
 
 				mask.position.z = 30 * Math.cos(count / 1000);
 
-				// handle input
-				if(keyboard.wasPressed("s")) {
-					toggleShadow();
-				}
-
 				var gl = renderer.gl;
-
-				renderer.state.enable(gl.STENCIL_TEST);
 
 				renderer.state.clearColor(0, 0, 0, 0);
 				renderer.state.clearStencil(0);
 				renderer.clear(true, true, true);
+
+				directionalLight.color.setHex(0xffffff);
+				sphere.scale.set(1, 1, 1);
+				plane.scale.set(1, 1, 1);
+				lambert.diffuseMap = null;
+				scene.remove(cube);
+				scene.add(sphere);
+				renderer.render(scene, camera, undefined, false);
+
+				renderer.clear(false, true, false);
+
+				renderer.state.enable(gl.STENCIL_TEST);
 
 				renderer.state.stencilFunc(gl.ALWAYS, 1, 1);
 				renderer.state.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
@@ -141,20 +146,12 @@
 				directionalLight.color.setHex(0xffaaaa);
 				sphere.scale.set(1.1, 1.1, 1.1);
 				plane.scale.set(1.1, 1.1, 1.1);
-				plane.position.y = -9.5;
 				lambert.diffuseMap = floorTexture;
-				phong.diffuseMap = floorTexture;
+				scene.add(cube);
+				scene.remove(sphere);
 				renderer.render(scene, camera, undefined, false);
 
 				renderer.state.disable(gl.STENCIL_TEST);
-
-				directionalLight.color.setHex(0xffffff);
-				sphere.scale.set(1, 1, 1);
-				plane.scale.set(1, 1, 1);
-				plane.position.y = -10;
-				lambert.diffuseMap = null;
-				phong.diffuseMap = null;
-				renderer.render(scene, camera, undefined, false);
 
 				keyboard.update();
 	        }
