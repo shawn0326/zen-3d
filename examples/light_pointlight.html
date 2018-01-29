@@ -67,6 +67,7 @@
 	        pointLight.color.setHex(0xffffff);
 			pointLight.distance = 200;
 	        pointLight.position.set(-20, 20, 0);
+			pointLight.shadow.bias = -0.003;
 	        scene.add(pointLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
@@ -84,6 +85,7 @@
 
 			function toggleShadow() {
 				sphere.castShadow = !sphere.castShadow;
+				sphere.receiveShadow = !sphere.receiveShadow;
 				plane.receiveShadow = !plane.receiveShadow;
 				pointLight.castShadow = !pointLight.castShadow;
 			}

@@ -49,6 +49,7 @@
         SPRITE: "sprite",
         SHADER: "shader",
         DEPTH: "depth",
+        DISTANCE: "distance",
         PARTICLE: "particle"
     };
 

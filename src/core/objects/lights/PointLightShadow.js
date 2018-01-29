@@ -22,6 +22,9 @@
         this.bias = 0.0003;
 	    this.radius = 2;
 
+        this.cameraNear = 1;
+        this.cameraFar = 500;
+
         this._targets = [
             new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
             new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1), new zen3d.Vector3(0, 0, -1)
@@ -67,7 +70,7 @@
         camera.viewMatrix.getInverse(camera.worldMatrix);
 
         // update projection
-        camera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
+        camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);
     }
 
     /**

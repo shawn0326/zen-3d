@@ -78,7 +78,7 @@
 
         #ifdef USE_SHADOW
             vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;
-            irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize ) : 1.0;
+            irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize, u_Point[i].shadowCameraNear, u_Point[i].shadowCameraFar ) : 1.0;
         #endif
 
         vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);

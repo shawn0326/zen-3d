@@ -22,6 +22,9 @@
         this.bias = 0.0003;
 	    this.radius = 2;
 
+        this.cameraNear = 1;
+        this.cameraFar = 500;
+
         this._lookTarget = new zen3d.Vector3();
 
         this._up = new zen3d.Vector3(0, 1, 0);
@@ -59,7 +62,7 @@
 
         // update projection
         // TODO distance should be custom?
-        camera.setPerspective(light.angle * 2, 1, 1, 1000);
+        camera.setPerspective(light.angle * 2, 1, this.cameraNear, this.cameraFar);
     }
 
     /**

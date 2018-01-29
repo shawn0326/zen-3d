@@ -22,6 +22,9 @@
         this.bias = 0.0003;
 	    this.radius = 2;
 
+        this.cameraNear = 1;
+        this.cameraFar = 500;
+
         // the cast shadow window size
         this.windowSize = 500;
 
@@ -62,7 +65,7 @@
 
         // update projection
         var halfWindowSize = this.windowSize / 2;
-        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, 1, 1000);
+        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, this.cameraNear, this.cameraFar);
     }
 
     /**

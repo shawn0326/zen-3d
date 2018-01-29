@@ -52,6 +52,7 @@
 			loader.load(monkey, function(object) {
 				var monkey = object.getObjectByName("Suzanne").children[0];
 				monkey.castShadow = true;
+				monkey.receiveShadow = true;
 				object.scale.set(10, 10, 10);
 				object.position.y = 2;
 				scene.add(object);
@@ -74,6 +75,8 @@
 	        pointLight.color.setHex(0x00ff00);
 			pointLight.distance = 100;
 	        pointLight.position.set(20, 10, -20);
+			pointLight.shadow.bias = -0.003;
+			pointLight.shadow.cameraFar = 200;
 	        scene.add(pointLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
@@ -87,6 +90,8 @@
 	        pointLight2.color.setHex(0xff0000);
 			pointLight2.distance = 100;
 	        pointLight2.position.set(20, 10, 20);
+			pointLight2.shadow.bias = -0.003;
+			pointLight2.shadow.cameraFar = 200;
 	        scene.add(pointLight2);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
@@ -102,6 +107,9 @@
 	        directionalLight.color.setHex(0xffffff);
 	        directionalLight.position.set(-30, 10, 0);
 			directionalLight.shadow.windowSize = 100;
+			directionalLight.shadow.bias = -0.04;
+			directionalLight.shadow.radius = 1;
+			directionalLight.shadow.cameraFar = 200;
 	        scene.add(directionalLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
@@ -133,7 +141,6 @@
 			pointLight2.castShadow = true;
 			directionalLight.castShadow = true;
 			directionalLight.shadow.mapSize.set(1024, 1024);
-			directionalLight.shadow.radius = 3;
 
 	        function loop(count) {
 

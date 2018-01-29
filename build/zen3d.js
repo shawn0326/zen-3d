@@ -201,6 +201,7 @@
         SPRITE: "sprite",
         SHADER: "shader",
         DEPTH: "depth",
+        DISTANCE: "distance",
         PARTICLE: "particle"
     };
 
@@ -4791,7 +4792,7 @@ envMap_vert: "#ifdef USE_ENV_MAP\n    v_EnvPos = reflect(normalize((u_Model * ve
 fog_frag: "#ifdef USE_FOG\n    float depth = gl_FragCoord.z / gl_FragCoord.w;\n    #ifdef USE_EXP2_FOG\n        float fogFactor = whiteCompliment( exp2( - u_FogDensity * u_FogDensity * depth * depth * LOG2 ) );\n    #else\n        float fogFactor = smoothstep( u_FogNear, u_FogFar, depth );\n    #endif\n    gl_FragColor.rgb = mix( gl_FragColor.rgb, u_FogColor, fogFactor );\n#endif",
 fog_pars_frag: "#ifdef USE_FOG\n    uniform vec3 u_FogColor;\n    #ifdef USE_EXP2_FOG\n        uniform float u_FogDensity;\n    #else\n        uniform float u_FogNear;\n        uniform float u_FogFar;\n    #endif\n#endif",
 inverse: "mat4 inverse(mat4 m) {\n    float\n    a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3],\n    a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3],\n    a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3],\n    a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3],\n    b00 = a00 * a11 - a01 * a10,\n    b01 = a00 * a12 - a02 * a10,\n    b02 = a00 * a13 - a03 * a10,\n    b03 = a01 * a12 - a02 * a11,\n    b04 = a01 * a13 - a03 * a11,\n    b05 = a02 * a13 - a03 * a12,\n    b06 = a20 * a31 - a21 * a30,\n    b07 = a20 * a32 - a22 * a30,\n    b08 = a20 * a33 - a23 * a30,\n    b09 = a21 * a32 - a22 * a31,\n    b10 = a21 * a33 - a23 * a31,\n    b11 = a22 * a33 - a23 * a32,\n    det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n    return mat4(\n        a11 * b11 - a12 * b10 + a13 * b09,\n        a02 * b10 - a01 * b11 - a03 * b09,\n        a31 * b05 - a32 * b04 + a33 * b03,\n        a22 * b04 - a21 * b05 - a23 * b03,\n        a12 * b08 - a10 * b11 - a13 * b07,\n        a00 * b11 - a02 * b08 + a03 * b07,\n        a32 * b02 - a30 * b05 - a33 * b01,\n        a20 * b05 - a22 * b02 + a23 * b01,\n        a10 * b10 - a11 * b08 + a13 * b06,\n        a01 * b08 - a00 * b10 - a03 * b06,\n        a30 * b04 - a31 * b02 + a33 * b00,\n        a21 * b02 - a20 * b04 - a23 * b00,\n        a11 * b07 - a10 * b09 - a12 * b06,\n        a00 * b09 - a01 * b07 + a02 * b06,\n        a31 * b01 - a30 * b03 - a32 * b00,\n        a20 * b03 - a21 * b01 + a22 * b00) / det;\n}",
-light_frag: "#ifdef USE_LIGHT\n    vec4 light;\n    vec3 L;\n    vec4 totalReflect = vec4(0., 0., 0., 0.);\n    #ifdef USE_PBR\n        vec4 diffuseColor = outColor.xyzw * (1.0 - u_Metalness);\n        vec4 specularColor = mix(vec4(0.04), outColor.xyzw, u_Metalness);\n        float roughness = clamp(u_Roughness, 0.04, 1.0);\n    #else\n        vec4 diffuseColor = outColor.xyzw;\n        #ifdef USE_PHONG\n            vec4 specularColor = u_SpecularColor;\n            float shininess = u_Specular;\n        #endif\n    #endif\n    #ifdef USE_AMBIENT_LIGHT\n        #ifdef USE_PBR\n            totalReflect += diffuseColor * u_AmbientLightColor;\n        #else\n            totalReflect += RECIPROCAL_PI * diffuseColor * u_AmbientLightColor;\n        #endif\n    #endif\n    #if (defined(USE_PHONG) || defined(USE_PBR)) && (defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT))\n        vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);\n    #endif\n    #ifdef USE_DIRECT_LIGHT\n    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {\n        L = -u_Directional[i].direction;\n        light = u_Directional[i].color * u_Directional[i].intensity;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_SHADOW\n            irradiance *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;\n        #endif\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n            #ifdef USE_ENV_MAP\n                reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;\n                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;\n            #endif\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    for(int i = 0; i < USE_POINT_LIGHT; i++) {\n        L = u_Point[i].position - v_ViewModelPos;\n        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);\n        light = u_Point[i].color * u_Point[i].intensity * dist;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        #ifdef USE_SHADOW\n            vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;\n            irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize ) : 1.0;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n            #ifdef USE_ENV_MAP\n            reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;\n            reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;\n            #endif\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_SPOT_LIGHT\n    for(int i = 0; i < USE_SPOT_LIGHT; i++) {\n        L = u_Spot[i].position - v_ViewModelPos;\n        float lightDistance = length(L);\n        L = normalize(L);\n        float angleCos = dot( L, -normalize(u_Spot[i].direction) );\n        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {\n            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );\n            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);\n            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;\n            float dotNL = saturate( dot(N, L) );\n            vec4 irradiance = light * dotNL;\n            #ifdef USE_PBR\n                irradiance *= PI;\n            #endif\n            #ifdef USE_SHADOW\n                irradiance *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;\n            #endif\n            vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n            #ifdef USE_PHONG\n                reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n            #endif\n            #ifdef USE_PBR\n                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n                #ifdef USE_ENV_MAP\n                reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;\n                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;\n                #endif\n            #endif\n            totalReflect += reflectLight;\n        }\n    }\n    #endif\n    outColor.xyz = totalReflect.xyz;\n#endif",
+light_frag: "#ifdef USE_LIGHT\n    vec4 light;\n    vec3 L;\n    vec4 totalReflect = vec4(0., 0., 0., 0.);\n    #ifdef USE_PBR\n        vec4 diffuseColor = outColor.xyzw * (1.0 - u_Metalness);\n        vec4 specularColor = mix(vec4(0.04), outColor.xyzw, u_Metalness);\n        float roughness = clamp(u_Roughness, 0.04, 1.0);\n    #else\n        vec4 diffuseColor = outColor.xyzw;\n        #ifdef USE_PHONG\n            vec4 specularColor = u_SpecularColor;\n            float shininess = u_Specular;\n        #endif\n    #endif\n    #ifdef USE_AMBIENT_LIGHT\n        #ifdef USE_PBR\n            totalReflect += diffuseColor * u_AmbientLightColor;\n        #else\n            totalReflect += RECIPROCAL_PI * diffuseColor * u_AmbientLightColor;\n        #endif\n    #endif\n    #if (defined(USE_PHONG) || defined(USE_PBR)) && (defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT))\n        vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);\n    #endif\n    #ifdef USE_DIRECT_LIGHT\n    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {\n        L = -u_Directional[i].direction;\n        light = u_Directional[i].color * u_Directional[i].intensity;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_SHADOW\n            irradiance *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;\n        #endif\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n            #ifdef USE_ENV_MAP\n                reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;\n                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;\n            #endif\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    for(int i = 0; i < USE_POINT_LIGHT; i++) {\n        L = u_Point[i].position - v_ViewModelPos;\n        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);\n        light = u_Point[i].color * u_Point[i].intensity * dist;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        #ifdef USE_SHADOW\n            vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;\n            irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize, u_Point[i].shadowCameraNear, u_Point[i].shadowCameraFar ) : 1.0;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n            #ifdef USE_ENV_MAP\n            reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;\n            reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;\n            #endif\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_SPOT_LIGHT\n    for(int i = 0; i < USE_SPOT_LIGHT; i++) {\n        L = u_Spot[i].position - v_ViewModelPos;\n        float lightDistance = length(L);\n        L = normalize(L);\n        float angleCos = dot( L, -normalize(u_Spot[i].direction) );\n        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {\n            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );\n            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);\n            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;\n            float dotNL = saturate( dot(N, L) );\n            vec4 irradiance = light * dotNL;\n            #ifdef USE_PBR\n                irradiance *= PI;\n            #endif\n            #ifdef USE_SHADOW\n                irradiance *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;\n            #endif\n            vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n            #ifdef USE_PHONG\n                reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n            #endif\n            #ifdef USE_PBR\n                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n                #ifdef USE_ENV_MAP\n                reflectLight.rgb += (getLightProbeIndirectIrradiance(8) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;\n                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;\n                #endif\n            #endif\n            totalReflect += reflectLight;\n        }\n    }\n    #endif\n    outColor.xyz = totalReflect.xyz;\n#endif",
 light_pars_frag: "#ifdef USE_AMBIENT_LIGHT\n    #include <ambientlight_pars_frag>\n#endif\n#ifdef USE_DIRECT_LIGHT\n    #include <directlight_pars_frag>\n#endif\n#ifdef USE_POINT_LIGHT\n    #include <pointlight_pars_frag>\n#endif\n#ifdef USE_SPOT_LIGHT\n    #include <spotlight_pars_frag>\n#endif\n#if defined(USE_PBR) && defined(USE_ENV_MAP)\n    vec4 getLightProbeIndirectIrradiance(const in int maxMIPLevel) {\n    \t#ifdef TEXTURE_LOD_EXT\n    \t\tvec4 envMapColor = textureCubeLodEXT( envMap, v_EnvPos, float( maxMIPLevel ) );\n    \t#else\n    \t\tvec4 envMapColor = textureCube( envMap, v_EnvPos, float( maxMIPLevel ) );\n    \t#endif\n        envMapColor = envMapTexelToLinear( envMapColor );\n        return PI * envMapColor * u_EnvMap_Intensity;\n    }\n    float getSpecularMIPLevel( const in float blinnShininessExponent, const in int maxMIPLevel ) {\n    \tfloat maxMIPLevelScalar = float( maxMIPLevel );\n    \tfloat desiredMIPLevel = maxMIPLevelScalar - 0.79248 - 0.5 * log2( pow2( blinnShininessExponent ) + 1.0 );\n    \treturn clamp( desiredMIPLevel, 0.0, maxMIPLevelScalar );\n    }\n    vec4 getLightProbeIndirectRadiance(const in float blinnShininessExponent, const in int maxMIPLevel) {\n        float specularMIPLevel = getSpecularMIPLevel( blinnShininessExponent, maxMIPLevel );\n        #ifdef TEXTURE_LOD_EXT\n    \t\tvec4 envMapColor = textureCubeLodEXT( envMap, v_EnvPos, specularMIPLevel );\n    \t#else\n    \t\tvec4 envMapColor = textureCube( envMap, v_EnvPos, specularMIPLevel );\n    \t#endif\n        envMapColor = envMapTexelToLinear( envMapColor );\n        return envMapColor * u_EnvMap_Intensity;\n    }\n#endif",
 normalMap_pars_frag: "#include <tbn>\n#include <tsn>\nuniform sampler2D normalMap;",
 normal_frag: "#ifdef USE_NORMAL\n    #ifdef DOUBLE_SIDED\n    \tfloat flipNormal = ( float( gl_FrontFacing ) * 2.0 - 1.0 );\n    #else\n    \tfloat flipNormal = 1.0;\n    #endif\n    #ifdef FLAT_SHADED\n    \tvec3 fdx = vec3( dFdx( v_ViewModelPos.x ), dFdx( v_ViewModelPos.y ), dFdx( v_ViewModelPos.z ) );\n    \tvec3 fdy = vec3( dFdy( v_ViewModelPos.x ), dFdy( v_ViewModelPos.y ), dFdy( v_ViewModelPos.z ) );\n    \tvec3 N = normalize( cross( fdx, fdy ) );\n    #else\n        vec3 N = normalize(v_Normal) * flipNormal;\n    #endif\n    #ifdef USE_NORMAL_MAP\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\n        mat3 tspace = tsn(N, -v_ViewModelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\n    #elif defined(USE_BUMPMAP)\n        N = perturbNormalArb(-v_ViewModelPos, N, dHdxy_fwd(v_Uv));\n    #endif\n#endif",
@@ -4799,11 +4800,11 @@ normal_pars_frag: "#ifdef USE_NORMAL\n    varying vec3 v_Normal;\n#endif",
 normal_pars_vert: "#ifdef USE_NORMAL\n    varying vec3 v_Normal;\n#endif",
 normal_vert: "#ifdef USE_NORMAL\n    v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(objectNormal, 1.0)).xyz;\n    #ifdef FLIP_SIDED\n    \tv_Normal = - v_Normal;\n    #endif\n#endif",
 packing: "const float PackUpscale = 256. / 255.;const float UnpackDownscale = 255. / 256.;\nconst vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256.,  256. );\nconst vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );\nconst float ShiftRight8 = 1. / 256.;\nvec4 packDepthToRGBA( const in float v ) {\n    vec4 r = vec4( fract( v * PackFactors ), v );\n    r.yzw -= r.xyz * ShiftRight8;    return r * PackUpscale;\n}\nfloat unpackRGBAToDepth( const in vec4 v ) {\n    return dot( v, UnpackFactors );\n}",
-pointlight_pars_frag: "struct PointLight\n{\n    vec3 position;\n    vec4 color;\n    float intensity;\n    float distance;\n    float decay;\n    int shadow;\n    float shadowBias;\n    float shadowRadius;\n    vec2 shadowMapSize;\n};\nuniform PointLight u_Point[USE_POINT_LIGHT];",
+pointlight_pars_frag: "struct PointLight\n{\n    vec3 position;\n    vec4 color;\n    float intensity;\n    float distance;\n    float decay;\n    int shadow;\n    float shadowBias;\n    float shadowRadius;\n    vec2 shadowMapSize;\n    float shadowCameraNear;\n    float shadowCameraFar;\n};\nuniform PointLight u_Point[USE_POINT_LIGHT];",
 premultipliedAlpha_frag: "#ifdef USE_PREMULTIPLIED_ALPHA\n    gl_FragColor.rgb = gl_FragColor.rgb * gl_FragColor.a;\n#endif",
 pvm_vert: "gl_Position = u_Projection * u_View * u_Model * vec4(transformed, 1.0);",
 shadowMap_frag: "#ifdef USE_SHADOW\n#endif",
-shadowMap_pars_frag: "#ifdef USE_SHADOW\n    #include <packing>\n    #ifdef USE_DIRECT_LIGHT\n        uniform sampler2D directionalShadowMap[ USE_DIRECT_LIGHT ];\n        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];\n    #endif\n    #ifdef USE_POINT_LIGHT\n        uniform samplerCube pointShadowMap[ USE_POINT_LIGHT ];\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];\n        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];\n    #endif\n    float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n    }\n    float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );\n    }\n    float getShadow( sampler2D shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {\n        shadowCoord.xyz /= shadowCoord.w;\n        float depth = shadowCoord.z + shadowBias;\n        bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\n        bool inFrustum = all( inFrustumVec );\n        bvec2 frustumTestVec = bvec2( inFrustum, depth <= 1.0 );\n        bool frustumTest = all( frustumTestVec );\n        if ( frustumTest ) {\n            #ifdef USE_PCF_SOFT_SHADOW\n                float texelSize = shadowRadius / shadowMapSize.x;\n                vec2 poissonDisk[4];\n                poissonDisk[0] = vec2(-0.94201624, -0.39906216);\n                poissonDisk[1] = vec2(0.94558609, -0.76890725);\n                poissonDisk[2] = vec2(-0.094184101, -0.92938870);\n                poissonDisk[3] = vec2(0.34495938, 0.29387760);\n                return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, depth ) * 0.25 +\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, depth ) * 0.25 +\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, depth ) * 0.25 +\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, depth ) * 0.25;\n            #else\n                return texture2DCompare( shadowMap, shadowCoord.xy, depth );\n            #endif\n        }\n        return 1.0;\n    }\n    float getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {\n        float depth = (length(V) + shadowBias) / 1000.;\n        #ifdef USE_PCF_SOFT_SHADOW\n            float texelSize = shadowRadius / shadowMapSize.x;\n            vec3 poissonDisk[4];\n    \t\tpoissonDisk[0] = vec3(-1.0, 1.0, -1.0);\n    \t\tpoissonDisk[1] = vec3(1.0, -1.0, -1.0);\n    \t\tpoissonDisk[2] = vec3(-1.0, -1.0, -1.0);\n    \t\tpoissonDisk[3] = vec3(1.0, -1.0, 1.0);\n            return textureCubeCompare( shadowMap, normalize(V) + poissonDisk[0] * texelSize, depth ) * 0.25 +\n                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[1] * texelSize, depth ) * 0.25 +\n                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[2] * texelSize, depth ) * 0.25 +\n                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[3] * texelSize, depth ) * 0.25;\n        #else\n            return textureCubeCompare( shadowMap, normalize(V), depth);\n        #endif\n    }\n#endif",
+shadowMap_pars_frag: "#ifdef USE_SHADOW\n    #include <packing>\n    #ifdef USE_DIRECT_LIGHT\n        uniform sampler2D directionalShadowMap[ USE_DIRECT_LIGHT ];\n        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];\n    #endif\n    #ifdef USE_POINT_LIGHT\n        uniform samplerCube pointShadowMap[ USE_POINT_LIGHT ];\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];\n        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];\n    #endif\n    float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n    }\n    float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {\n        return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );\n    }\n    float getShadow( sampler2D shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {\n        shadowCoord.xyz /= shadowCoord.w;\n        float depth = shadowCoord.z + shadowBias;\n        bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\n        bool inFrustum = all( inFrustumVec );\n        bvec2 frustumTestVec = bvec2( inFrustum, depth <= 1.0 );\n        bool frustumTest = all( frustumTestVec );\n        if ( frustumTest ) {\n            #ifdef USE_PCF_SOFT_SHADOW\n                float texelSize = shadowRadius / shadowMapSize.x;\n                vec2 poissonDisk[4];\n                poissonDisk[0] = vec2(-0.94201624, -0.39906216);\n                poissonDisk[1] = vec2(0.94558609, -0.76890725);\n                poissonDisk[2] = vec2(-0.094184101, -0.92938870);\n                poissonDisk[3] = vec2(0.34495938, 0.29387760);\n                return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, depth ) * 0.25 +\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, depth ) * 0.25 +\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, depth ) * 0.25 +\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, depth ) * 0.25;\n            #else\n                return texture2DCompare( shadowMap, shadowCoord.xy, depth );\n            #endif\n        }\n        return 1.0;\n    }\n    float getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize, float shadowCameraNear, float shadowCameraFar ) {\n\t\tfloat depth = ( length( V ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear );\t\tdepth += shadowBias;\n        #ifdef USE_PCF_SOFT_SHADOW\n            float texelSize = shadowRadius / shadowMapSize.x;\n            vec3 poissonDisk[4];\n    \t\tpoissonDisk[0] = vec3(-1.0, 1.0, -1.0);\n    \t\tpoissonDisk[1] = vec3(1.0, -1.0, -1.0);\n    \t\tpoissonDisk[2] = vec3(-1.0, -1.0, -1.0);\n    \t\tpoissonDisk[3] = vec3(1.0, -1.0, 1.0);\n            return textureCubeCompare( shadowMap, normalize(V) + poissonDisk[0] * texelSize, depth ) * 0.25 +\n                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[1] * texelSize, depth ) * 0.25 +\n                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[2] * texelSize, depth ) * 0.25 +\n                textureCubeCompare( shadowMap, normalize(V) + poissonDisk[3] * texelSize, depth ) * 0.25;\n        #else\n            return textureCubeCompare( shadowMap, normalize(V), depth);\n        #endif\n    }\n#endif",
 shadowMap_pars_vert: "#ifdef USE_SHADOW\n    #ifdef USE_DIRECT_LIGHT\n        uniform mat4 directionalShadowMatrix[ USE_DIRECT_LIGHT ];\n        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];\n    #endif\n    #ifdef USE_POINT_LIGHT\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        uniform mat4 spotShadowMatrix[ USE_SPOT_LIGHT ];\n        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];\n    #endif\n#endif",
 shadowMap_vert: "#ifdef USE_SHADOW\n    vec4 worldPosition = u_Model * vec4(transformed, 1.0);\n    #ifdef USE_DIRECT_LIGHT\n        for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {\n            vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;\n        }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    #endif\n    #ifdef USE_SPOT_LIGHT\n        for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {\n            vSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * worldPosition;\n        }\n    #endif\n#endif",
 skinning_pars_vert: "#ifdef USE_SKINNING\n    attribute vec4 skinIndex;\n\tattribute vec4 skinWeight;\n    #ifdef BONE_TEXTURE\n        uniform sampler2D boneTexture;\n        uniform int boneTextureSize;\n        mat4 getBoneMatrix( const in float i ) {\n            float j = i * 4.0;\n            float x = mod( j, float( boneTextureSize ) );\n            float y = floor( j / float( boneTextureSize ) );\n            float dx = 1.0 / float( boneTextureSize );\n            float dy = 1.0 / float( boneTextureSize );\n            y = dy * ( y + 0.5 );\n            vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );\n            vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );\n            vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );\n            vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );\n            mat4 bone = mat4( v1, v2, v3, v4 );\n            return bone;\n        }\n    #else\n        uniform mat4 boneMatrices[MAX_BONES];\n        mat4 getBoneMatrix(const in float i) {\n            mat4 bone = boneMatrices[int(i)];\n            return bone;\n        }\n    #endif\n#endif",
@@ -4830,8 +4831,10 @@ canvas2d_frag: "#include <common_frag>\nvarying vec2 v_Uv;\nuniform sampler2D sp
 canvas2d_vert: "#include <common_vert>\nattribute vec2 a_Uv;\nvarying vec2 v_Uv;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    v_Uv = a_Uv;\n}",
 cube_frag: "#include <common_frag>\nuniform samplerCube cubeMap;\nvarying vec3 v_ModelPos;\nvoid main() {\n    #include <begin_frag>\n    outColor *= textureCube(cubeMap, v_ModelPos);\n    #include <end_frag>\n}",
 cube_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
-depth_frag: "#include <common_frag>\nuniform vec3 lightPos;\nvarying vec3 v_ModelPos;\n#include <packing>\nvoid main() {\n    gl_FragColor = packDepthToRGBA(length(v_ModelPos - lightPos) / 1000.);\n}",
-depth_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
+depth_frag: "#include <common_frag>\n#include <packing>\nvoid main() {\n    gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\n}",
+depth_vert: "#include <common_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n}",
+distance_frag: "#include <common_frag>\nuniform vec3 lightPos;\nuniform float nearDistance;\nuniform float farDistance;\nvarying vec3 v_ModelPos;\n#include <packing>\nvoid main() {\n    float dist = length( v_ModelPos - lightPos );\n\tdist = ( dist - nearDistance ) / ( farDistance - nearDistance );\n\tdist = saturate( dist );\n    gl_FragColor = packDepthToRGBA(dist);\n}",
+distance_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
 lambert_frag: "#include <common_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <color_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <bsdfs>\n#include <envMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\nvoid main() {\n    #include <begin_frag>\n    #include <color_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <encodings_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 lambert_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <color_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <color_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
 linedashed_frag: "#include <common_frag>\n#include <fog_pars_frag>\nuniform float dashSize;\nuniform float totalSize;\nvarying float vLineDistance;\nvoid main() {\n    if ( mod( vLineDistance, totalSize ) > dashSize ) {\n\t\tdiscard;\n\t}\n    #include <begin_frag>\n    #include <end_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
@@ -5044,6 +5047,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
             case MATERIAL_TYPE.DEPTH:
+            case MATERIAL_TYPE.DISTANCE:
                 vshader_define.push(props.useSkinning ? '#define USE_SKINNING' : '');
                 vshader_define.push((props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '');
                 vshader_define.push(props.useVertexTexture ? '#define BONE_TEXTURE' : '');
@@ -5147,6 +5151,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.doubleSided = material.side === zen3d.DRAW_SIDE.DOUBLE;
                 props.flipSided = material.side === zen3d.DRAW_SIDE.BACK;
             case MATERIAL_TYPE.DEPTH:
+            case MATERIAL_TYPE.DISTANCE:
                 var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
                 var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
                 var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
@@ -5252,6 +5257,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.performance = new zen3d.Performance();
 
         this.depthMaterial = new zen3d.DepthMaterial();
+        this.distanceMaterial = new zen3d.DistanceMaterial();
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -5392,9 +5398,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     var material = renderItem.material;
                     var geometry = renderItem.geometry;
                     var group = renderItem.group;
-                    var depthMaterial = this.depthMaterial;
+                    var materialForShadow = isPointLight ? this.distanceMaterial : this.depthMaterial;
 
-                    var program = zen3d.getProgram(gl, this, depthMaterial, object);
+                    var program = zen3d.getProgram(gl, this, materialForShadow, object);
                     state.setProgram(program);
 
                     this.geometry.setGeometry(geometry);
@@ -5422,6 +5428,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                                 helpVector3.setFromMatrixPosition(light.worldMatrix);
                                 uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                                 break;
+                            case "nearDistance":
+                                uniform.setValue(shadow.cameraNear);
+                                break;
+                            case "farDistance":
+                                uniform.setValue(shadow.cameraFar);
+                                break;
                         }
                     }
 
@@ -5431,9 +5443,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
 
                     // copy draw side
-                    depthMaterial.side = material.side;
+                    materialForShadow.side = material.side;
 
-                    this.setStates(depthMaterial);
+                    this.setStates(materialForShadow);
 
                     this.draw(geometry, material, group);
                 }
@@ -5957,6 +5969,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 u_Point_shadowRadius.setValue(light.shadow.radius);
                 var u_Point_shadowMapSize = uniforms["u_Point[" + k + "].shadowMapSize"];
                 u_Point_shadowMapSize.setValue(light.shadow.mapSize.x, light.shadow.mapSize.y);
+                var u_Point_shadowCameraNear = uniforms["u_Point[" + k + "].shadowCameraNear"];
+                u_Point_shadowCameraNear.setValue(light.shadow.cameraNear);
+                var u_Point_shadowCameraFar = uniforms["u_Point[" + k + "].shadowCameraFar"];
+                u_Point_shadowCameraFar.setValue(light.shadow.cameraFar);
 
                 var slot = this.allocTexUnit();
                 this.texture.setTextureCube(light.shadow.map, slot);
@@ -7579,13 +7595,28 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.type = zen3d.MATERIAL_TYPE.DEPTH;
 
         this.blending = zen3d.BLEND_TYPE.NONE;
-
-        this.depthTest = false;
     }
 
     zen3d.inherit(DepthMaterial, zen3d.Material);
 
     zen3d.DepthMaterial = DepthMaterial;
+})();
+(function() {
+    /**
+     * DistanceMaterial
+     * @class
+     */
+    var DistanceMaterial = function() {
+        DistanceMaterial.superClass.constructor.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.DISTANCE;
+
+        this.blending = zen3d.BLEND_TYPE.NONE;
+    }
+
+    zen3d.inherit(DistanceMaterial, zen3d.Material);
+
+    zen3d.DistanceMaterial = DistanceMaterial;
 })();
 (function() {
     /**
@@ -7981,6 +8012,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.bias = 0.0003;
 	    this.radius = 2;
 
+        this.cameraNear = 1;
+        this.cameraFar = 500;
+
         // the cast shadow window size
         this.windowSize = 500;
 
@@ -8021,7 +8055,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // update projection
         var halfWindowSize = this.windowSize / 2;
-        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, 1, 1000);
+        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, this.cameraNear, this.cameraFar);
     }
 
     /**
@@ -8069,6 +8103,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.bias = 0.0003;
 	    this.radius = 2;
 
+        this.cameraNear = 1;
+        this.cameraFar = 500;
+
         this._lookTarget = new zen3d.Vector3();
 
         this._up = new zen3d.Vector3(0, 1, 0);
@@ -8106,7 +8143,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // update projection
         // TODO distance should be custom?
-        camera.setPerspective(light.angle * 2, 1, 1, 1000);
+        camera.setPerspective(light.angle * 2, 1, this.cameraNear, this.cameraFar);
     }
 
     /**
@@ -8154,6 +8191,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.bias = 0.0003;
 	    this.radius = 2;
 
+        this.cameraNear = 1;
+        this.cameraFar = 500;
+
         this._targets = [
             new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
             new zen3d.Vector3(0, -1, 0), new zen3d.Vector3(0, 0, 1), new zen3d.Vector3(0, 0, -1)
@@ -8199,7 +8239,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         camera.viewMatrix.getInverse(camera.worldMatrix);
 
         // update projection
-        camera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
+        camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);
     }
 
     /**

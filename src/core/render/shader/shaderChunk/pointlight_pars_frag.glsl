@@ -10,5 +10,8 @@ struct PointLight
     float shadowBias;
     float shadowRadius;
     vec2 shadowMapSize;
+
+    float shadowCameraNear;
+    float shadowCameraFar;
 };
 uniform PointLight u_Point[USE_POINT_LIGHT];

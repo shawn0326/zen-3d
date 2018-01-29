@@ -57,6 +57,7 @@
         this.performance = new zen3d.Performance();
 
         this.depthMaterial = new zen3d.DepthMaterial();
+        this.distanceMaterial = new zen3d.DistanceMaterial();
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -197,9 +198,9 @@
                     var material = renderItem.material;
                     var geometry = renderItem.geometry;
                     var group = renderItem.group;
-                    var depthMaterial = this.depthMaterial;
+                    var materialForShadow = isPointLight ? this.distanceMaterial : this.depthMaterial;
 
-                    var program = zen3d.getProgram(gl, this, depthMaterial, object);
+                    var program = zen3d.getProgram(gl, this, materialForShadow, object);
                     state.setProgram(program);
 
                     this.geometry.setGeometry(geometry);
@@ -227,6 +228,12 @@
                                 helpVector3.setFromMatrixPosition(light.worldMatrix);
                                 uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                                 break;
+                            case "nearDistance":
+                                uniform.setValue(shadow.cameraNear);
+                                break;
+                            case "farDistance":
+                                uniform.setValue(shadow.cameraFar);
+                                break;
                         }
                     }
 
@@ -236,9 +243,9 @@
                     }
 
                     // copy draw side
-                    depthMaterial.side = material.side;
+                    materialForShadow.side = material.side;
 
-                    this.setStates(depthMaterial);
+                    this.setStates(materialForShadow);
 
                     this.draw(geometry, material, group);
                 }
@@ -762,6 +769,10 @@
                 u_Point_shadowRadius.setValue(light.shadow.radius);
                 var u_Point_shadowMapSize = uniforms["u_Point[" + k + "].shadowMapSize"];
                 u_Point_shadowMapSize.setValue(light.shadow.mapSize.x, light.shadow.mapSize.y);
+                var u_Point_shadowCameraNear = uniforms["u_Point[" + k + "].shadowCameraNear"];
+                u_Point_shadowCameraNear.setValue(light.shadow.cameraNear);
+                var u_Point_shadowCameraFar = uniforms["u_Point[" + k + "].shadowCameraFar"];
+                u_Point_shadowCameraFar.setValue(light.shadow.cameraFar);
 
                 var slot = this.allocTexUnit();
                 this.texture.setTextureCube(light.shadow.map, slot);

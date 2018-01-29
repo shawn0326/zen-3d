@@ -70,9 +70,11 @@
 
     }
 
-    float getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
+    float getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize, float shadowCameraNear, float shadowCameraFar ) {
 
-        float depth = (length(V) + shadowBias) / 1000.;// TODO point shadow bias not work ?
+        // depth = normalized distance from light to fragment position
+		float depth = ( length( V ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear ); // need to clamp?
+		depth += shadowBias;
 
         #ifdef USE_PCF_SOFT_SHADOW
             // TODO x, y equal force
@@ -92,31 +94,5 @@
             return textureCubeCompare( shadowMap, normalize(V), depth);
         #endif
     }
-
-    // TODO delete?
-    // float getShadowMask() {
-    //     float shadow = 1.0;
-    //
-    //     #ifdef USE_DIRECT_LIGHT
-    //         for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {
-    //             shadow *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ] ) : 1.0;
-    //         }
-    //     #endif
-    //
-    //     #ifdef USE_POINT_LIGHT
-    //         for ( int i = 0; i < USE_POINT_LIGHT; i ++ ) {
-    //             vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;
-    //             shadow *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV ) : 1.0;
-    //         }
-    //     #endif
-    //
-    //     #ifdef USE_SPOT_LIGHT
-    //         for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {
-    //             shadow *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ] ) : 1.0;
-    //         }
-    //     #endif
-    //
-    //     return shadow;
-    // }
 
 #endif
