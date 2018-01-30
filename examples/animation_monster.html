@@ -55,6 +55,7 @@
 			loader.load(monster, function(object, anim) {
 				monster = object.getObjectByName("monster").children[0];
 				monster.castShadow = true;
+				monster.material.diffuseMap = null;
 
 				animation = anim;
 				aniNames = animation.getAllClipNames();
