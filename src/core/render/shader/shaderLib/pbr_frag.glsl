@@ -19,7 +19,9 @@ uniform vec3 emissive;
 #include <shadowMap_pars_frag>
 #include <fog_pars_frag>
 #include <emissiveMap_pars_frag>
+#include <clippingPlanes_pars_frag>
 void main() {
+    #include <clippingPlanes_frag>
     #include <begin_frag>
     #include <color_frag>
     #include <diffuseMap_frag>

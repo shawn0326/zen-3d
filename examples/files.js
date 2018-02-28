@@ -79,5 +79,8 @@ var files = {
 	],
 	"postprocessing": [
 		"postprocessing_film"
+	],
+	"webgl": [
+		"webgl_clippingplanes"
 	]
 };

@@ -133,6 +133,8 @@
 
                 vshader_define.push(props.flipSided ? '#define FLIP_SIDED' : '');
 
+                vshader_define.push(props.numClippingPlanes > 0 ? ('#define NUM_CLIPPING_PLANES ' + props.numClippingPlanes) : '');
+
                 fshader_define.push((props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '');
                 fshader_define.push((props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '');
                 fshader_define.push((props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '');
@@ -155,6 +157,8 @@
                 fshader_define.push(props.doubleSided ? '#define DOUBLE_SIDED' : '');
 
                 fshader_define.push((props.envMap && props.useShaderTextureLOD) ? '#define TEXTURE_LOD_EXT' : '');
+
+                fshader_define.push(props.numClippingPlanes > 0 ? ('#define NUM_CLIPPING_PLANES ' + props.numClippingPlanes) : '');
             case MATERIAL_TYPE.BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
@@ -274,6 +278,7 @@
                 props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
                 props.useShaderTextureLOD = !!render.capabilities.shaderTextureLOD;
                 props.useVertexColors = material.vertexColors;
+                props.numClippingPlanes = render.clippingPlanes.length;
             case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;

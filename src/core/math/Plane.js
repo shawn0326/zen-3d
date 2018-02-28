@@ -32,5 +32,36 @@
         return this.normal.dot(point) + this.constant;
     }
 
+    Plane.prototype.coplanarPoint = function ( optionalTarget ) {
+		var result = optionalTarget || new Vector3();
+
+		return result.copy( this.normal ).multiplyScalar( - this.constant );
+	}
+
+    Plane.prototype.copy = function(plane) {
+        this.normal.copy(plane.normal);
+        this.constant = plane.constant;
+        return this;
+    }
+
+    Plane.prototype.applyMatrix4 = function() {
+
+        var v1 = new zen3d.Vector3();
+		var m1 = new zen3d.Matrix3();
+
+        return function applyMatrix4(matrix, optionalNormalMatrix) {
+            var normalMatrix = optionalNormalMatrix || m1.setFromMatrix4( matrix ).inverse().transpose();
+
+			var referencePoint = this.coplanarPoint( v1 ).applyMatrix4( matrix );
+
+			var normal = this.normal.applyMatrix3( normalMatrix ).normalize();
+
+			this.constant = - referencePoint.dot( normal );
+
+			return this;
+        }
+
+    }();
+
     zen3d.Plane = Plane;
 })();

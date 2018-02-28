@@ -7,6 +7,26 @@
     var RENDER_LAYER = zen3d.RENDER_LAYER;
     var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
 
+    var getClippingPlanesData = function() {
+        var planesData;
+        var plane = new zen3d.Plane();
+        return function getClippingPlanesData(planes, camera) {
+            if(!planesData || planesData.length < planes.length * 4) {
+                planesData = new Float32Array(planes.length * 4);
+            }
+
+            for(var i = 0; i < planes.length; i++) {
+                plane.copy(planes[i]).applyMatrix4(camera.viewMatrix);
+                planesData[i * 4 + 0] = plane.normal.x;
+                planesData[i * 4 + 1] = plane.normal.y;
+                planesData[i * 4 + 2] = plane.normal.z;
+                planesData[i * 4 + 3] = plane.constant;
+            }
+            return planesData;
+        }
+    }();
+
+
     /**
      * Renderer
      * @class
@@ -29,6 +49,8 @@
         this.autoClear = true;
 
         this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
+
+        this.clippingPlanes = []; // Planes array
 
         this.gammaFactor = 2.0;
     	this.gammaInput = false;
@@ -413,6 +435,10 @@
                         break;
                     case "scale":
                         uniform.setValue(material.scale);
+                        break;
+                    case "clippingPlanes[0]":
+                        var planesData = getClippingPlanesData(this.clippingPlanes, camera);
+                        gl.uniform4fv(uniform.location, planesData);
                         break;
                     default:
                         // upload custom uniforms
