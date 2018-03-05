@@ -267,7 +267,9 @@
                     // copy draw side
                     materialForShadow.side = material.side;
 
-                    this.setStates(materialForShadow);
+                    var frontFaceCW = object.worldMatrix.determinant() < 0;
+
+                    this.setStates(materialForShadow, frontFaceCW);
 
                     this.draw(geometry, material, group);
                 }
@@ -468,7 +470,8 @@
                 this.uploadLights(uniforms, lights, object.receiveShadow, camera, program.id);
             }
 
-            this.setStates(material);
+            var frontFaceCW = object.worldMatrix.determinant() < 0;
+            this.setStates(material, frontFaceCW);
 
             if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
                 var curViewX, curViewY, curViewW, curViewH;
@@ -879,8 +882,9 @@
 
     /**
      * set states
+     * @param {boolean} frontFaceCW
      */
-    Renderer.prototype.setStates = function(material) {
+    Renderer.prototype.setStates = function(material, frontFaceCW) {
         var gl = this.gl;
         var state = this.state;
 
@@ -903,9 +907,11 @@
         state.setCullFace(
             (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
         );
-        state.setFlipSided(
-            material.side === DRAW_SIDE.BACK
-        );
+
+        var flipSided = ( material.side === DRAW_SIDE.BACK );
+		if ( frontFaceCW ) flipSided = ! flipSided;
+
+        state.setFlipSided(flipSided);
 
         // set line width
         if(material.lineWidth !== undefined) {
