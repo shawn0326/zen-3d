@@ -701,6 +701,10 @@
     var pointShadowMaps = [];
     var spotShadowMaps = [];
 
+    var directShadowMatrices;
+    var pointShadowMatrices;
+    var spotShadowMatrices;
+
     /**
      * upload lights uniforms
      * TODO a better function for array & struct uniforms upload
@@ -721,6 +725,10 @@
         }
         if(lights.ambientsNum > 0) {
             uniforms.u_AmbientLightColor.setValue(r, g, b, 1);
+        }
+
+        if(!directShadowMatrices || directShadowMatrices.length < lights.directsNum * 16) {
+            directShadowMatrices = new Float32Array(lights.directsNum * 16);
         }
 
         for (var k = 0; k < lights.directsNum; k++) {
@@ -750,8 +758,7 @@
                 var u_Directional_shadowMapSize = uniforms["u_Directional[" + k + "].shadowMapSize"];
                 u_Directional_shadowMapSize.setValue(light.shadow.mapSize.x, light.shadow.mapSize.y);
 
-                var directionalShadowMatrix = uniforms["directionalShadowMatrix[" + k + "]"];
-                directionalShadowMatrix.setValue(light.shadow.matrix.elements);
+                directShadowMatrices.set(light.shadow.matrix.elements, k * 16);
 
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(light.shadow.map, slot);
@@ -764,6 +771,9 @@
             gl.uniform1iv(directionalShadowMap.location, directShadowMaps);
 
             directShadowMaps.length = 0;
+
+            var directionalShadowMatrix = uniforms["directionalShadowMatrix[0]"];
+            gl.uniformMatrix4fv(directionalShadowMatrix.location, false, directShadowMatrices);
         }
 
         for (var k = 0; k < lights.pointsNum; k++) {
@@ -816,6 +826,10 @@
             pointShadowMaps.length = 0;
         }
 
+        if(!spotShadowMatrices || spotShadowMatrices.length < lights.spotsNum * 16) {
+            spotShadowMatrices = new Float32Array(lights.spotsNum * 16);
+        }
+
         for (var k = 0; k < lights.spotsNum; k++) {
             var light = lights.spots[k];
 
@@ -863,8 +877,7 @@
                 var u_Spot_shadowMapSize = uniforms["u_Spot[" + k + "].shadowMapSize"];
                 u_Spot_shadowMapSize.setValue(light.shadow.mapSize.x, light.shadow.mapSize.y);
 
-                var spotShadowMatrix = uniforms["spotShadowMatrix[" + k + "]"];
-                spotShadowMatrix.setValue(light.shadow.matrix.elements);
+                spotShadowMatrices.set(light.shadow.matrix.elements, k * 16);
 
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(light.shadow.map, slot);
@@ -877,6 +890,9 @@
             gl.uniform1iv(spotShadowMap.location, spotShadowMaps);
 
             spotShadowMaps.length = 0;
+
+            var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
+            gl.uniformMatrix4fv(spotShadowMatrix.location, false, spotShadowMatrices);
         }
     }
 
