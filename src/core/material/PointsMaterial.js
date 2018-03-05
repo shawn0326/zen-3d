@@ -17,5 +17,14 @@
 
     zen3d.inherit(PointsMaterial, zen3d.Material);
 
+    PointsMaterial.prototype.copy = function(source) {
+        PointsMaterial.superClass.copy.call(this, source);
+
+        this.size = source.size;
+        this.sizeAttenuation = source.sizeAttenuation;
+
+        return this;
+    }
+
     zen3d.PointsMaterial = PointsMaterial;
 })();

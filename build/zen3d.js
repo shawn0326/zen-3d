@@ -2445,6 +2445,19 @@
 		return this;
 	}
 
+    Quaternion.prototype.fromArray = function ( array, offset ) {
+		if ( offset === undefined ) offset = 0;
+
+		this._x = array[ offset ];
+		this._y = array[ offset + 1 ];
+		this._z = array[ offset + 2 ];
+		this._w = array[ offset + 3 ];
+
+		this.onChangeCallback();
+
+		return this;
+	}
+
     /**
      * set change callback
      **/
@@ -2941,6 +2954,16 @@
         };
 
     }();
+
+    Color3.prototype.fromArray = function( array, offset ) {
+		if ( offset === undefined ) offset = 0;
+
+		this.r = array[ offset ];
+		this.g = array[ offset + 1 ];
+		this.b = array[ offset + 2 ];
+
+		return this;
+	}
 
     zen3d.Color3 = Color3;
 })();
@@ -7417,6 +7440,38 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.drawMode = zen3d.DRAW_MODE.TRIANGLES;
     }
 
+    Material.prototype.clone = function () {
+		return new this.constructor().copy( this );
+	}
+
+    Material.prototype.copy = function(source) {
+        this.type = source.type;
+        this.opacity = source.opacity;
+        this.transparent = source.transparent;
+        this.premultipliedAlpha = source.premultipliedAlpha;
+        this.vertexColors = source.vertexColors;
+        this.diffuse.copy(source.diffuse);
+        this.diffuseMap = source.diffuseMap;
+        this.normalMap = source.normalMap;
+        this.bumpMap = source.bumpMap;
+	    this.bumpScale = source.bumpScale;
+        this.envMap = source.envMap;
+        this.envMapIntensity = source.envMapIntensity;
+        this.envMapCombine = source.envMapCombine;
+        this.emissive.copy(source.emissive);
+        this.emissiveMap = source.emissiveMap;
+        this.emissiveIntensity = source.emissiveIntensity;
+        this.blending = source.blending;
+        this.depthTest = source.depthTest;
+        this.depthWrite = source.depthWrite;
+        this.side = source.side;
+        this.shading = source.shading;
+        this.acceptLight = source.acceptLight;
+        this.drawMode = source.drawMode;
+
+        return this;
+    }
+
     zen3d.Material = Material;
 })();
 
@@ -7474,6 +7529,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(PhongMaterial, zen3d.Material);
 
+    PhongMaterial.prototype.copy = function(source) {
+        PhongMaterial.superClass.copy.call(this, source);
+
+        this.shininess = source.shininess;
+        this.specular.copy(source.specular);
+        this.specularMap = source.specularMap;
+
+        return this;
+    }
+
     zen3d.PhongMaterial = PhongMaterial;
 })();
 
@@ -7495,6 +7560,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(PBRMaterial, zen3d.Material);
 
+    PBRMaterial.prototype.copy = function(source) {
+        PBRMaterial.superClass.copy.call(this, source);
+
+        this.roughness = source.roughness;
+        this.metalness = source.metalness;
+
+        return this;
+    }
+
     zen3d.PBRMaterial = PBRMaterial;
 })();
 
@@ -7512,6 +7586,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.inherit(CubeMaterial, zen3d.Material);
+
+    CubeMaterial.prototype.copy = function(source) {
+        CubeMaterial.superClass.copy.call(this, source);
+
+        this.cubeMap = source.cubeMap;
+
+        return this;
+    }
 
     zen3d.CubeMaterial = CubeMaterial;
 })();
@@ -7535,6 +7617,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(PointsMaterial, zen3d.Material);
 
+    PointsMaterial.prototype.copy = function(source) {
+        PointsMaterial.superClass.copy.call(this, source);
+
+        this.size = source.size;
+        this.sizeAttenuation = source.sizeAttenuation;
+
+        return this;
+    }
+
     zen3d.PointsMaterial = PointsMaterial;
 })();
 
@@ -7556,6 +7647,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(LineMaterial, zen3d.Material);
 
+    LineMaterial.prototype.copy = function(source) {
+        LineMaterial.superClass.copy.call(this, source);
+
+        this.lineWidth = source.lineWidth;
+
+        return this;
+    }
+
     zen3d.LineMaterial = LineMaterial;
 })();
 
@@ -7576,6 +7675,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.inherit(LineLoopMaterial, zen3d.Material);
+
+    LineLoopMaterial.prototype.copy = function(source) {
+        LineLoopMaterial.superClass.copy.call(this, source);
+
+        this.lineWidth = source.lineWidth;
+
+        return this;
+    }
 
     zen3d.LineLoopMaterial = LineLoopMaterial;
 })();
@@ -7602,6 +7709,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(LineDashedMaterial, zen3d.Material);
 
+    LineDashedMaterial.prototype.copy = function(source) {
+        LineDashedMaterial.superClass.copy.call(this, source);
+
+        this.lineWidth = source.lineWidth;
+        this.scale = source.scale;
+        this.dashSize = source.dashSize;
+        this.gapSize = source.gapSize;
+
+        return this;
+    }
+
     zen3d.LineDashedMaterial = LineDashedMaterial;
 })();
 
@@ -7621,6 +7739,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.inherit(SpriteMaterial, zen3d.Material);
+
+    SpriteMaterial.prototype.copy = function(source) {
+        SpriteMaterial.superClass.copy.call(this, source);
+
+        this.rotation = source.rotation;
+        this.fog = source.fog;
+
+        return this;
+    }
 
     zen3d.SpriteMaterial = SpriteMaterial;
 })();
@@ -7644,6 +7771,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.inherit(ShaderMaterial, zen3d.Material);
+
+    ShaderMaterial.prototype.copy = function(source) {
+        ShaderMaterial.superClass.copy.call(this, source);
+
+        this.vertexShader = source.vertexShader;
+        this.fragmentShader = source.fragmentShader;
+
+        return this;
+    }
 
     zen3d.ShaderMaterial = ShaderMaterial;
 })();
@@ -7756,6 +7892,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // frustum test
         this.frustumCulled = true;
+
+        this.userData = {};
     }
 
     Object.defineProperties(Object3D.prototype, {
@@ -7872,6 +8010,47 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // implemental by subclass
     }
 
+    Object3D.prototype.clone = function ( recursive ) {
+		return new this.constructor().copy( this, recursive );
+	}
+
+    Object3D.prototype.copy = function( source, recursive ) {
+        if ( recursive === undefined ) recursive = true;
+
+        this.name = source.name;
+
+        this.type = source.type;
+
+        this.layer = source.layer;
+
+        this.position.copy( source.position );
+		this.quaternion.copy( source.quaternion );
+		this.scale.copy( source.scale );
+
+        this.matrix.copy( source.matrix );
+		this.worldMatrix.copy( source.worldMatrix );
+
+        this.castShadow = source.castShadow;
+		this.receiveShadow = source.receiveShadow;
+
+        this.frustumCulled = source.frustumCulled;
+
+        this.userData = JSON.parse( JSON.stringify( source.userData ) );
+
+        if ( recursive === true ) {
+
+			for ( var i = 0; i < source.children.length; i ++ ) {
+
+				var child = source.children[ i ];
+				this.add( child.clone() );
+
+			}
+
+		}
+
+		return this;
+    }
+
     zen3d.Object3D = Object3D;
 })();
 (function() {
@@ -7962,6 +8141,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(Light, zen3d.Object3D);
 
+    Light.prototype.copy = function(source) {
+        Light.superClass.copy.call(this, source);
+
+        this.type = source.type;
+        this.lightType = source.lightType;
+        this.color.copy(source.color);
+        this.intensity = source.intensity;
+
+        return this;
+    }
+
     zen3d.Light = Light;
 })();
 
@@ -7996,6 +8186,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(DirectionalLight, zen3d.Light);
 
+    DirectionalLight.prototype.copy = function(source) {
+        DirectionalLight.superClass.copy.call(this, source);
+
+        this.shadow.copy(source.shadow);
+        
+        return this;
+    }
+
     zen3d.DirectionalLight = DirectionalLight;
 })();
 
@@ -8019,6 +8217,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.inherit(PointLight, zen3d.Light);
+
+    PointLight.prototype.copy = function(source) {
+        PointLight.superClass.copy.call(this, source);
+
+        this.shadow.copy(source.shadow);
+
+        return this;
+    }
 
     zen3d.PointLight = PointLight;
 })();
@@ -8049,35 +8255,73 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     zen3d.inherit(SpotLight, zen3d.Light);
 
+    SpotLight.prototype.copy = function(source) {
+        SpotLight.superClass.copy.call(this, source);
+
+        this.shadow.copy(source.shadow);
+
+        return this;
+    }
+
     zen3d.SpotLight = SpotLight;
 })();
 
 (function() {
-    /**
-     * DirectionalLightShadow
-     * @class
-     */
-    var DirectionalLightShadow = function() {
+    var LightShadow = function() {
         this.camera = new zen3d.Camera();
-
         this.matrix = new zen3d.Matrix4();
-
-        var mapSize = new zen3d.Vector2(512, 512);
-
-        this.renderTarget = new zen3d.RenderTarget2D(mapSize.x, mapSize.y);
-
-        var map = this.renderTarget.texture;
-        map.generateMipmaps = false;
-        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
-        this.map = map;
-        this.mapSize = mapSize;
 
         this.bias = 0.0003;
 	    this.radius = 2;
 
         this.cameraNear = 1;
         this.cameraFar = 500;
+
+        this.mapSize = new zen3d.Vector2(512, 512);
+
+        this.renderTarget = null;
+        this.map = null;
+    }
+
+    LightShadow.prototype.update = function(light, face) {
+
+    }
+
+    LightShadow.prototype.copy = function(source) {
+        this.camera.copy(source.camera);
+        this.matrix.copy(source.matrix);
+
+        this.bias = source.bias;
+        this.radius = source.radius;
+
+        this.cameraNear = source.cameraNear;
+        this.cameraFar = source.cameraFar;
+
+        this.mapSize.copy(source.mapSize);
+
+        return this;
+    }
+
+    LightShadow.prototype.clone = function() {
+        return new this.constructor().copy( this );
+    }
+
+    zen3d.LightShadow = LightShadow;
+})();
+(function() {
+    /**
+     * DirectionalLightShadow
+     * @class
+     */
+    var DirectionalLightShadow = function() {
+        DirectionalLightShadow.superClass.constructor.call(this);
+
+        this.renderTarget = new zen3d.RenderTarget2D(this.mapSize.x, this.mapSize.y);
+
+        var map = this.renderTarget.texture;
+        map.generateMipmaps = false;
+        map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        this.map = map;
 
         // the cast shadow window size
         this.windowSize = 500;
@@ -8086,6 +8330,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this._up = new zen3d.Vector3(0, 1, 0);
     }
+
+    zen3d.inherit(DirectionalLightShadow, zen3d.LightShadow);
 
     /**
      * update by light
@@ -8141,6 +8387,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         matrix.multiply(camera.viewMatrix);
     }
 
+    DirectionalLightShadow.prototype.copy = function(source) {
+        DirectionalLightShadow.superClass.copy.call(this, source);
+
+        this.windowSize = source.windowSize;
+
+        return this;
+    }
+
     zen3d.DirectionalLightShadow = DirectionalLightShadow;
 })();
 (function() {
@@ -8149,31 +8403,21 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * @class
      */
     var SpotLightShadow = function() {
-        this.camera = new zen3d.Camera();
+        SpotLightShadow.superClass.constructor.call(this);
 
-        this.matrix = new zen3d.Matrix4();
-
-        var mapSize = new zen3d.Vector2(512, 512);
-
-        this.renderTarget = new zen3d.RenderTarget2D(mapSize.x, mapSize.y);
+        this.renderTarget = new zen3d.RenderTarget2D(this.mapSize.x, this.mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
         this.map = map;
-        this.mapSize = mapSize;
-
-        this.bias = 0.0003;
-	    this.radius = 2;
-
-        this.cameraNear = 1;
-        this.cameraFar = 500;
 
         this._lookTarget = new zen3d.Vector3();
 
         this._up = new zen3d.Vector3(0, 1, 0);
     }
+
+    zen3d.inherit(SpotLightShadow, zen3d.LightShadow);
 
     /**
      * update by light
@@ -8237,26 +8481,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * @class
      */
     var PointLightShadow = function() {
-        this.camera = new zen3d.Camera();
+        PointLightShadow.superClass.constructor.call(this);
 
-        this.matrix = new zen3d.Matrix4();
-
-        var mapSize = new zen3d.Vector2(512, 512);
-
-        this.renderTarget = new zen3d.RenderTargetCube(mapSize.x, mapSize.y);
+        this.renderTarget = new zen3d.RenderTargetCube(this.mapSize.x, this.mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
         this.map = map;
-        this.mapSize = mapSize;
-
-        this.bias = 0.0003;
-	    this.radius = 2;
-
-        this.cameraNear = 1;
-        this.cameraFar = 500;
 
         this._targets = [
             new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
@@ -8270,6 +8502,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this._lookTarget = new zen3d.Vector3();
     }
+
+    zen3d.inherit(PointLightShadow, zen3d.LightShadow);
 
     /**
      * update by light
@@ -8418,6 +8652,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         };
     }();
 
+    Camera.prototype.copy = function ( source, recursive ) {
+		Camera.superClass.copy.call( this, source, recursive );
+
+		this.viewMatrix.copy( source.viewMatrix );
+		this.projectionMatrix.copy( source.projectionMatrix );
+
+		return this;
+	}
+
     zen3d.Camera = Camera;
 })();
 (function() {
@@ -8550,6 +8793,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     }()
 
+    Mesh.prototype.clone = function() {
+        return new this.constructor( this.geometry, this.material ).copy( this );
+    }
+
     zen3d.Mesh = Mesh;
 })();
 (function() {
@@ -8574,6 +8821,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             this.skeleton.updateBones();
         }
     }
+
+    SkinnedMesh.prototype.clone = function () {
+		return new this.constructor( this.geometry, this.material ).copy( this );
+	}
 
     zen3d.SkinnedMesh = SkinnedMesh;
 })();

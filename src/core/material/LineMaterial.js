@@ -16,5 +16,13 @@
 
     zen3d.inherit(LineMaterial, zen3d.Material);
 
+    LineMaterial.prototype.copy = function(source) {
+        LineMaterial.superClass.copy.call(this, source);
+
+        this.lineWidth = source.lineWidth;
+
+        return this;
+    }
+
     zen3d.LineMaterial = LineMaterial;
 })();

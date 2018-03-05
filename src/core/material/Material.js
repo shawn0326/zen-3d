@@ -59,5 +59,37 @@
         this.drawMode = zen3d.DRAW_MODE.TRIANGLES;
     }
 
+    Material.prototype.clone = function () {
+		return new this.constructor().copy( this );
+	}
+
+    Material.prototype.copy = function(source) {
+        this.type = source.type;
+        this.opacity = source.opacity;
+        this.transparent = source.transparent;
+        this.premultipliedAlpha = source.premultipliedAlpha;
+        this.vertexColors = source.vertexColors;
+        this.diffuse.copy(source.diffuse);
+        this.diffuseMap = source.diffuseMap;
+        this.normalMap = source.normalMap;
+        this.bumpMap = source.bumpMap;
+	    this.bumpScale = source.bumpScale;
+        this.envMap = source.envMap;
+        this.envMapIntensity = source.envMapIntensity;
+        this.envMapCombine = source.envMapCombine;
+        this.emissive.copy(source.emissive);
+        this.emissiveMap = source.emissiveMap;
+        this.emissiveIntensity = source.emissiveIntensity;
+        this.blending = source.blending;
+        this.depthTest = source.depthTest;
+        this.depthWrite = source.depthWrite;
+        this.side = source.side;
+        this.shading = source.shading;
+        this.acceptLight = source.acceptLight;
+        this.drawMode = source.drawMode;
+
+        return this;
+    }
+
     zen3d.Material = Material;
 })();

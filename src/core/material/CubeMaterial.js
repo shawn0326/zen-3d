@@ -13,5 +13,13 @@
 
     zen3d.inherit(CubeMaterial, zen3d.Material);
 
+    CubeMaterial.prototype.copy = function(source) {
+        CubeMaterial.superClass.copy.call(this, source);
+
+        this.cubeMap = source.cubeMap;
+
+        return this;
+    }
+
     zen3d.CubeMaterial = CubeMaterial;
 })();

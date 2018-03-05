@@ -89,5 +89,15 @@
 
     }();
 
+    Color3.prototype.fromArray = function( array, offset ) {
+		if ( offset === undefined ) offset = 0;
+
+		this.r = array[ offset ];
+		this.g = array[ offset + 1 ];
+		this.b = array[ offset + 2 ];
+
+		return this;
+	}
+
     zen3d.Color3 = Color3;
 })();

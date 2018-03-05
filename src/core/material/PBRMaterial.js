@@ -16,5 +16,14 @@
 
     zen3d.inherit(PBRMaterial, zen3d.Material);
 
+    PBRMaterial.prototype.copy = function(source) {
+        PBRMaterial.superClass.copy.call(this, source);
+
+        this.roughness = source.roughness;
+        this.metalness = source.metalness;
+
+        return this;
+    }
+
     zen3d.PBRMaterial = PBRMaterial;
 })();

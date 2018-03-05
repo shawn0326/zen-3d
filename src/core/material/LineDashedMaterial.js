@@ -20,5 +20,16 @@
 
     zen3d.inherit(LineDashedMaterial, zen3d.Material);
 
+    LineDashedMaterial.prototype.copy = function(source) {
+        LineDashedMaterial.superClass.copy.call(this, source);
+
+        this.lineWidth = source.lineWidth;
+        this.scale = source.scale;
+        this.dashSize = source.dashSize;
+        this.gapSize = source.gapSize;
+
+        return this;
+    }
+
     zen3d.LineDashedMaterial = LineDashedMaterial;
 })();

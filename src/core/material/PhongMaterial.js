@@ -18,5 +18,15 @@
 
     zen3d.inherit(PhongMaterial, zen3d.Material);
 
+    PhongMaterial.prototype.copy = function(source) {
+        PhongMaterial.superClass.copy.call(this, source);
+
+        this.shininess = source.shininess;
+        this.specular.copy(source.specular);
+        this.specularMap = source.specularMap;
+
+        return this;
+    }
+
     zen3d.PhongMaterial = PhongMaterial;
 })();

@@ -109,6 +109,7 @@ var filesSrc = [
     "core/objects/lights/DirectionalLight.js",
     "core/objects/lights/PointLight.js",
     "core/objects/lights/SpotLight.js",
+    "core/objects/lights/LightShadow.js",
     "core/objects/lights/DirectionalLightShadow.js",
     "core/objects/lights/SpotLightShadow.js",
     "core/objects/lights/PointLightShadow.js",

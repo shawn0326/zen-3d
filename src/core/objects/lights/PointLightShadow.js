@@ -4,26 +4,14 @@
      * @class
      */
     var PointLightShadow = function() {
-        this.camera = new zen3d.Camera();
+        PointLightShadow.superClass.constructor.call(this);
 
-        this.matrix = new zen3d.Matrix4();
-
-        var mapSize = new zen3d.Vector2(512, 512);
-
-        this.renderTarget = new zen3d.RenderTargetCube(mapSize.x, mapSize.y);
+        this.renderTarget = new zen3d.RenderTargetCube(this.mapSize.x, this.mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
         this.map = map;
-        this.mapSize = mapSize;
-
-        this.bias = 0.0003;
-	    this.radius = 2;
-
-        this.cameraNear = 1;
-        this.cameraFar = 500;
 
         this._targets = [
             new zen3d.Vector3(1, 0, 0), new zen3d.Vector3(-1, 0, 0), new zen3d.Vector3(0, 1, 0),
@@ -37,6 +25,8 @@
 
         this._lookTarget = new zen3d.Vector3();
     }
+
+    zen3d.inherit(PointLightShadow, zen3d.LightShadow);
 
     /**
      * update by light

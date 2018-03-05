@@ -18,5 +18,14 @@
 
     zen3d.inherit(ShaderMaterial, zen3d.Material);
 
+    ShaderMaterial.prototype.copy = function(source) {
+        ShaderMaterial.superClass.copy.call(this, source);
+
+        this.vertexShader = source.vertexShader;
+        this.fragmentShader = source.fragmentShader;
+
+        return this;
+    }
+
     zen3d.ShaderMaterial = ShaderMaterial;
 })();

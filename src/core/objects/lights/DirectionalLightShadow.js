@@ -4,26 +4,14 @@
      * @class
      */
     var DirectionalLightShadow = function() {
-        this.camera = new zen3d.Camera();
+        DirectionalLightShadow.superClass.constructor.call(this);
 
-        this.matrix = new zen3d.Matrix4();
-
-        var mapSize = new zen3d.Vector2(512, 512);
-
-        this.renderTarget = new zen3d.RenderTarget2D(mapSize.x, mapSize.y);
+        this.renderTarget = new zen3d.RenderTarget2D(this.mapSize.x, this.mapSize.y);
 
         var map = this.renderTarget.texture;
         map.generateMipmaps = false;
         map.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
         this.map = map;
-        this.mapSize = mapSize;
-
-        this.bias = 0.0003;
-	    this.radius = 2;
-
-        this.cameraNear = 1;
-        this.cameraFar = 500;
 
         // the cast shadow window size
         this.windowSize = 500;
@@ -32,6 +20,8 @@
 
         this._up = new zen3d.Vector3(0, 1, 0);
     }
+
+    zen3d.inherit(DirectionalLightShadow, zen3d.LightShadow);
 
     /**
      * update by light
@@ -85,6 +75,14 @@
 
         matrix.multiply(camera.projectionMatrix);
         matrix.multiply(camera.viewMatrix);
+    }
+
+    DirectionalLightShadow.prototype.copy = function(source) {
+        DirectionalLightShadow.superClass.copy.call(this, source);
+
+        this.windowSize = source.windowSize;
+
+        return this;
     }
 
     zen3d.DirectionalLightShadow = DirectionalLightShadow;

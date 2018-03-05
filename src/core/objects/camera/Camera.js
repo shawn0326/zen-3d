@@ -89,5 +89,14 @@
         };
     }();
 
+    Camera.prototype.copy = function ( source, recursive ) {
+		Camera.superClass.copy.call( this, source, recursive );
+
+		this.viewMatrix.copy( source.viewMatrix );
+		this.projectionMatrix.copy( source.projectionMatrix );
+
+		return this;
+	}
+
     zen3d.Camera = Camera;
 })();

@@ -128,5 +128,9 @@
         }
     }()
 
+    Mesh.prototype.clone = function() {
+        return new this.constructor( this.geometry, this.material ).copy( this );
+    }
+
     zen3d.Mesh = Mesh;
 })();

@@ -15,5 +15,14 @@
 
     zen3d.inherit(SpriteMaterial, zen3d.Material);
 
+    SpriteMaterial.prototype.copy = function(source) {
+        SpriteMaterial.superClass.copy.call(this, source);
+
+        this.rotation = source.rotation;
+        this.fog = source.fog;
+
+        return this;
+    }
+
     zen3d.SpriteMaterial = SpriteMaterial;
 })();

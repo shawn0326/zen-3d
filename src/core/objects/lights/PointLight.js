@@ -19,5 +19,13 @@
 
     zen3d.inherit(PointLight, zen3d.Light);
 
+    PointLight.prototype.copy = function(source) {
+        PointLight.superClass.copy.call(this, source);
+
+        this.shadow.copy(source.shadow);
+
+        return this;
+    }
+
     zen3d.PointLight = PointLight;
 })();

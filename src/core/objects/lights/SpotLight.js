@@ -24,5 +24,13 @@
 
     zen3d.inherit(SpotLight, zen3d.Light);
 
+    SpotLight.prototype.copy = function(source) {
+        SpotLight.superClass.copy.call(this, source);
+
+        this.shadow.copy(source.shadow);
+
+        return this;
+    }
+
     zen3d.SpotLight = SpotLight;
 })();

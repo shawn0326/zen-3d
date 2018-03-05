@@ -16,5 +16,13 @@
 
     zen3d.inherit(LineLoopMaterial, zen3d.Material);
 
+    LineLoopMaterial.prototype.copy = function(source) {
+        LineLoopMaterial.superClass.copy.call(this, source);
+
+        this.lineWidth = source.lineWidth;
+
+        return this;
+    }
+
     zen3d.LineLoopMaterial = LineLoopMaterial;
 })();

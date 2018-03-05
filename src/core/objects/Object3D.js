@@ -48,6 +48,8 @@
 
         // frustum test
         this.frustumCulled = true;
+
+        this.userData = {};
     }
 
     Object.defineProperties(Object3D.prototype, {
@@ -162,6 +164,47 @@
      */
     Object3D.prototype.raycast = function() {
         // implemental by subclass
+    }
+
+    Object3D.prototype.clone = function ( recursive ) {
+		return new this.constructor().copy( this, recursive );
+	}
+
+    Object3D.prototype.copy = function( source, recursive ) {
+        if ( recursive === undefined ) recursive = true;
+
+        this.name = source.name;
+
+        this.type = source.type;
+
+        this.layer = source.layer;
+
+        this.position.copy( source.position );
+		this.quaternion.copy( source.quaternion );
+		this.scale.copy( source.scale );
+
+        this.matrix.copy( source.matrix );
+		this.worldMatrix.copy( source.worldMatrix );
+
+        this.castShadow = source.castShadow;
+		this.receiveShadow = source.receiveShadow;
+
+        this.frustumCulled = source.frustumCulled;
+
+        this.userData = JSON.parse( JSON.stringify( source.userData ) );
+
+        if ( recursive === true ) {
+
+			for ( var i = 0; i < source.children.length; i ++ ) {
+
+				var child = source.children[ i ];
+				this.add( child.clone() );
+
+			}
+
+		}
+
+		return this;
     }
 
     zen3d.Object3D = Object3D;

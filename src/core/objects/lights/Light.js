@@ -19,5 +19,16 @@
 
     zen3d.inherit(Light, zen3d.Object3D);
 
+    Light.prototype.copy = function(source) {
+        Light.superClass.copy.call(this, source);
+
+        this.type = source.type;
+        this.lightType = source.lightType;
+        this.color.copy(source.color);
+        this.intensity = source.intensity;
+
+        return this;
+    }
+
     zen3d.Light = Light;
 })();
