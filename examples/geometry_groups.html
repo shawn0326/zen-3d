@@ -80,12 +80,12 @@
 			phong6.side = zen3d.DRAW_SIDE.DOUBLE;
 
 			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
-			cube_geometry.addGroup(0, 6, 0);
-			cube_geometry.addGroup(6, 6, 1);
-			cube_geometry.addGroup(12, 6, 2);
-			cube_geometry.addGroup(18, 6, 3);
-			cube_geometry.addGroup(24, 6, 4);
-			cube_geometry.addGroup(30, 6, 5);
+			// cube_geometry.addGroup(0, 6, 0);
+			// cube_geometry.addGroup(6, 6, 1);
+			// cube_geometry.addGroup(12, 6, 2);
+			// cube_geometry.addGroup(18, 6, 3);
+			// cube_geometry.addGroup(24, 6, 4);
+			// cube_geometry.addGroup(30, 6, 5);
 
 			var cube = new zen3d.Mesh(cube_geometry, [phong1, phong2, phong3, phong4, phong5, phong6]);
 			scene.add(cube);

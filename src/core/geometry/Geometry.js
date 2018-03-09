@@ -23,13 +23,14 @@
             "a_Uv": {size: 2, normalized: false, stride: 17, offset: 13}
         };
 
+        this.attributes = {};
+        this.index = null;
+
         this.usageType = zen3d.WEBGL_BUFFER_USAGE.STATIC_DRAW;
 
         this.boundingBox = new zen3d.Box3();
 
         this.boundingSphere = new zen3d.Sphere();
-
-        this.dirty = true;
 
         // if part dirty, update part of buffers
         this.dirtyRange = {enable: false, start: 0, count: 0};
@@ -38,6 +39,26 @@
     }
 
     zen3d.inherit(Geometry, zen3d.EventDispatcher);
+
+    Geometry.prototype.addAttribute = function(name, attribute) {
+        this.attributes[name] = attribute;
+    }
+
+    Geometry.prototype.getAttribute = function(name) {
+        return this.attributes[name];
+    }
+
+    Geometry.prototype.removeAttribute = function(name) {
+        delete this.attributes[name];
+    }
+
+    Geometry.prototype.setIndex = function(index) {
+        if(Array.isArray(index)) {
+            this.index = new zen3d.BufferAttribute(new Uint16Array( index ), 1);
+        } else {
+            this.index = index;
+        }
+    }
 
     Geometry.prototype.addGroup = function(start, count, materialIndex) {
         this.groups.push({
@@ -52,25 +73,27 @@
     }
 
     Geometry.prototype.computeBoundingBox = function() {
-        this.boundingBox.setFromArray(this.verticesArray, this.vertexSize);
+        var position = this.attributes["a_Position"];
+        if(position.isInterleavedBufferAttribute) {
+            var data = position.data;
+            this.boundingBox.setFromArray(data.array, data.stride);
+        } else {
+            this.boundingBox.setFromArray(position.array, position.size);
+        }
     }
 
     Geometry.prototype.computeBoundingSphere = function() {
-        this.boundingSphere.setFromArray(this.verticesArray, this.vertexSize);
-    }
-
-    Geometry.prototype.getVerticesCount = function() {
-        return this.verticesArray.length / this.vertexSize;
-    }
-
-    Geometry.prototype.getIndicesCount = function() {
-        return this.indicesArray.length;
+        var position = this.attributes["a_Position"];
+        if(position.isInterleavedBufferAttribute) {
+            var data = position.data;
+            this.boundingSphere.setFromArray(data.array, data.stride);
+        } else {
+            this.boundingSphere.setFromArray(position.array, position.size);
+        }
     }
 
     Geometry.prototype.dispose = function() {
         this.dispatchEvent({type: 'dispose'});
-
-        this.dirty = true;
     }
 
     zen3d.Geometry = Geometry;

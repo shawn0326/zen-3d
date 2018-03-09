@@ -77,10 +77,12 @@
 	        var cylinder_geometry = new zen3d.CylinderGeometry(2, 2, distance, 10, numBones);
 
 			// insert skinIndex & skinWeight
-			var verticesArray = cylinder_geometry.verticesArray;
-			var vertexCount = cylinder_geometry.getVerticesCount();
+			var skinIndexArray = [];
+			var skinWeightArray = [];
+			var verticesArray = cylinder_geometry.getAttribute("a_Position").array;
+			var vertexCount = cylinder_geometry.getAttribute("a_Position").count;
 			for(var i = 0; i < vertexCount; i++) {
-				var offset = i * 19;
+				var offset = i * 3;
 				var y = verticesArray[offset + 1];
 
 				var boneId = 0;
@@ -92,18 +94,13 @@
 				}
 
 				// bind bone
-				verticesArray.splice(offset + 6, 4, boneId, 0, 0, 0);
-				verticesArray.splice(offset + 15, 2, 1, 0, 0, 0);
+				skinIndexArray.push(boneId, 0, 0, 0);
+				skinWeightArray.push(1, 0, 0, 0);
 			}
 
-			cylinder_geometry.vertexFormat = {
-	            "a_Position": {size: 3, normalized: false, stride: 19, offset: 0},
-	            "a_Normal": {size: 3, normalized: false, stride: 19, offset: 3},
-	            "a_Uv": {size: 2, normalized: false, stride: 19, offset: 13},
-				"skinIndex": {size: 4, normalized: false, stride: 19, offset: 6},
-				"skinWeight": {size: 4, normalized: false, stride: 19, offset: 15},
-	        };
-			cylinder_geometry.vertexSize = 19;
+			cylinder_geometry.removeAttribute("a_Color");
+			cylinder_geometry.addAttribute("skinIndex", new zen3d.BufferAttribute(new Float32Array(skinIndexArray), 4));
+			cylinder_geometry.addAttribute("skinWeight", new zen3d.BufferAttribute(new Float32Array(skinWeightArray), 4));
 
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);

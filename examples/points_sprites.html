@@ -51,18 +51,18 @@
 			var texture5 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake5.png");
 
 			var pointsGeometry = new zen3d.Geometry();
+			var verticesArray = [];
 
 			for(var i = 0; i < 10000; i++) {
-				pointsGeometry.verticesArray.push(
+				verticesArray.push(
 					Math.random() * 2000 - 1000,
 					Math.random() * 2000 - 1000,
 					Math.random() * 2000 - 1000
 				);
 			}
-			pointsGeometry.vertexSize = 3;
-			pointsGeometry.vertexFormat = {
-	            "a_Position": {size: 3, normalized: false, stride: 3, offset: 0}
-	        };
+
+			pointsGeometry.addAttribute("a_Position", new zen3d.BufferAttribute(new Float32Array(verticesArray), 3));
+
 			pointsGeometry.computeBoundingBox();
 			pointsGeometry.computeBoundingSphere();
 

@@ -424,48 +424,40 @@
 
         }
 
-        if (bones) {
-            geometry.vertexFormat = {
-                "a_Position": {
-                    size: 3,
-                    normalized: false,
-                    stride: 19,
-                    offset: 0
-                },
-                "a_Normal": {
-                    size: 3,
-                    normalized: false,
-                    stride: 19,
-                    offset: 3
-                },
-                "a_Uv": {
-                    size: 2,
-                    normalized: false,
-                    stride: 19,
-                    offset: 13
-                },
-                "skinIndex": {
-                    size: 4,
-                    normalized: false,
-                    stride: 19,
-                    offset: 9
-                },
-                "skinWeight": {
-                    size: 4,
-                    normalized: false,
-                    stride: 19,
-                    offset: 15
-                },
-            };
-            geometry.vertexSize = 19;
+        if(bones) {
+            var buffer = new zen3d.InterleavedBuffer(new Float32Array(g_v), 19);
+            var attribute;
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 0);
+            geometry.addAttribute("a_Position", attribute);
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 3);
+            geometry.addAttribute("a_Normal", attribute);
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 9);
+            geometry.addAttribute("skinIndex", attribute);
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 15);
+            geometry.addAttribute("skinWeight", attribute);
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 2, 13);
+            geometry.addAttribute("a_Uv", attribute);
+        } else {
+            var buffer = new zen3d.InterleavedBuffer(new Float32Array(g_v), 17);
+            var attribute;
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 0);
+            geometry.addAttribute("a_Position", attribute);
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 3);
+            geometry.addAttribute("a_Normal", attribute);
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 9);
+            geometry.addAttribute("a_Color", attribute);
+            attribute = new zen3d.InterleavedBufferAttribute(buffer, 2, 13);
+            geometry.addAttribute("a_Uv", attribute);
         }
 
-        var g_i = geometry.indicesArray;
+        var g_i = [];
         for (var i = 0; i < faces.length; i++) {
             g_i.push(faces[i][0]);
             g_i.push(faces[i][1]);
             g_i.push(faces[i][2]);
         }
+
+        geometry.setIndex(g_i);
 
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();

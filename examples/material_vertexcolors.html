@@ -46,18 +46,17 @@
 
 	        var scene = new zen3d.Scene();
 
-			function changeGeometryVertexColors(geometry, r, g, b, a) {
-				let array = geometry.verticesArray;
-				for(let i = 9; i < array.length; i += 17) {
-					array[i] = r;
-					array[i + 1] = g;
-					array[i + 2] = b;
-					array[i + 3] = a;
+			function addVertexColors(geometry, r, g, b, a) {
+				let count = geometry.getAttribute("a_Position").count;
+				let colors = [];
+				for(let i = 0; i < count; i ++) {
+					colors.push(r, g, b, a);
 				}
+				geometry.addAttribute("a_Color", new zen3d.BufferAttribute(new Float32Array(colors), 4));
 			}
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-			changeGeometryVertexColors(sphere_geometry, 1, 0, 0, 1);
+			addVertexColors(sphere_geometry, 1, 0, 0, 1);
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
 			phong.vertexColors = true;
@@ -65,7 +64,7 @@
 			scene.add(sphere);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-			changeGeometryVertexColors(plane_geometry, 1, 0, 0, 1);
+			addVertexColors(plane_geometry, 0, 1, 0, 1);
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
 			lambert.vertexColors = true;

@@ -649,7 +649,7 @@
 
             this.setStates(material);
 
-            gl.drawArrays(material.drawMode, 0, geometry.getVerticesCount());
+            gl.drawArrays(material.drawMode, 0, geometry.getAttribute("a_Position").count);
 
             this._usedTextureUnits = 0;
         }
@@ -941,10 +941,10 @@
     Renderer.prototype.draw = function(geometry, material, group) {
         var gl = this.gl;
 
-        var useIndexBuffer = geometry.getIndicesCount() > 0;
+        var useIndexBuffer = geometry.index !== null;
 
         var drawStart = 0;
-        var drawCount = useIndexBuffer ? geometry.getIndicesCount() : geometry.getVerticesCount();
+        var drawCount = useIndexBuffer ? geometry.index.count : geometry.getAttribute("a_Position").count;
         var groupStart = group ? group.start : 0;
         var groupCount = group ? group.count : Infinity;
         drawStart = Math.max(drawStart, groupStart);
@@ -1040,18 +1040,52 @@
     Renderer.prototype.setupVertexAttributes = function(program, geometry) {
         var gl = this.gl;
         var attributes = program.attributes;
+        var properties = this.properties;
         for (var key in attributes) {
-            var attribute = attributes[key];
-            var format = geometry.vertexFormat[key];
-            if(format) {
-                if(attribute.count !== format.size) {
-                    console.warn("Renderer: attribute " + key + " size not match!");
+            var programAttribute = attributes[key];
+            var geometryAttribute = geometry.getAttribute(key);
+            if(geometryAttribute) {
+                var normalized = geometryAttribute.normalized;
+				var size = geometryAttribute.size;
+                if(programAttribute.count !== size) {
+                    console.warn("Renderer: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
                 }
-                gl.vertexAttribPointer(attribute.location, attribute.count, attribute.format, format.normalized, 4 * format.stride, 4 * format.offset);
-                gl.enableVertexAttribArray(attribute.location);
+
+                var attribute;
+                if(geometryAttribute.isInterleavedBufferAttribute) {
+                    attribute = properties.get(geometryAttribute.data);
+                } else {
+                    attribute = properties.get(geometryAttribute);
+                }
+                var buffer = attribute.buffer;
+				var type = attribute.type;
+                if(programAttribute.format !== type) {
+                    console.warn("Renderer: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
+                }
+				var bytesPerElement = attribute.bytesPerElement;
+
+                if(geometryAttribute.isInterleavedBufferAttribute) {
+                    var data = geometryAttribute.data;
+    				var stride = data.stride;
+    				var offset = geometryAttribute.offset;
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, bytesPerElement * stride, bytesPerElement * offset);
+                    gl.enableVertexAttribArray(programAttribute.location);
+                } else {
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, 0, 0);
+                    gl.enableVertexAttribArray(programAttribute.location);
+                }
             } else {
-                console.warn("Renderer: attribute " + key + " not found!");
+                console.warn("Renderer: geometry attribute " + key + " not found!");
             }
+        }
+
+        // TODO bind index if could
+        if(geometry.index) {
+            var indexProperty = properties.get(geometry.index);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);
         }
     }
 

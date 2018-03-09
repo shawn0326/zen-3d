@@ -1,4 +1,88 @@
 (function() {
+
+    function createBuffer(gl, data, attribute, bufferType) {
+        var array = attribute.array;
+        var usage = attribute.dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW;
+
+        var buffer = gl.createBuffer();
+
+        gl.bindBuffer(bufferType, buffer);
+        gl.bufferData(bufferType, array, usage);
+
+        var type = gl.FLOAT;
+
+        if (array instanceof Float32Array) {
+            type = gl.FLOAT;
+        } else if (array instanceof Float64Array) {
+            console.warn('Unsupported data buffer format: Float64Array.');
+        } else if (array instanceof Uint16Array) {
+            type = gl.UNSIGNED_SHORT;
+        } else if (array instanceof Int16Array) {
+            type = gl.SHORT;
+        } else if (array instanceof Uint32Array) {
+            type = gl.UNSIGNED_INT;
+        } else if (array instanceof Int32Array) {
+            type = gl.INT;
+        } else if (array instanceof Int8Array) {
+            type = gl.BYTE;
+        } else if (array instanceof Uint8Array) {
+            type = gl.UNSIGNED_BYTE;
+        }
+
+        data.buffer = buffer;
+        data.type = type;
+        data.bytesPerElement = array.BYTES_PER_ELEMENT;
+        data.version = attribute.version;
+    }
+
+    function updateBuffer(gl, buffer, attribute, bufferType) {
+        var array = attribute.array;
+        var updateRange = attribute.updateRange;
+
+        gl.bindBuffer(bufferType, buffer);
+
+        if (attribute.dynamic === false) {
+            gl.bufferData(bufferType, array, gl.STATIC_DRAW);
+        } else if (updateRange.count === -1) {
+            // Not using update ranges
+            gl.bufferSubData(bufferType, 0, array);
+        } else if (updateRange.count === 0) {
+            console.error('updateBuffer: dynamic BufferAttribute marked as needsUpdate but updateRange.count is 0, ensure you are using set methods or updating manually.');
+        } else {
+            gl.bufferSubData(bufferType, updateRange.offset * array.BYTES_PER_ELEMENT,
+                array.subarray(updateRange.offset, updateRange.offset + updateRange.count));
+
+            updateRange.count = -1; // reset range
+        }
+    }
+
+    function updateAttribute(gl, properties, attribute, bufferType) {
+        // if isInterleavedBufferAttribute, get InterleavedBuffer as data.
+        // else get BufferAttribute as data
+        if (attribute.isInterleavedBufferAttribute) attribute = attribute.data;
+
+        var data = properties.get(attribute);
+
+        if (data.buffer === undefined) {
+            createBuffer(gl, data, attribute, bufferType);
+        } else if (data.version < attribute.version) {
+            updateBuffer(gl, data.buffer, attribute, bufferType);
+            data.version = attribute.version;
+        }
+    }
+
+    function removeAttribute(gl, properties, attribute) {
+        if (attribute.isInterleavedBufferAttribute) attribute = attribute.data;
+
+        var data = properties.get(attribute);
+
+        if (data.buffer) {
+            gl.deleteBuffer(data.buffer);
+        }
+
+        buffers.delete(attribute);
+    }
+
     var WebGLGeometry = function(gl, state, properties, capabilities) {
         this.gl = gl;
 
@@ -9,54 +93,24 @@
         this.capabilities = capabilities;
     }
 
+    // if need, create webgl buffers; but not bind
     WebGLGeometry.prototype.setGeometry = function(geometry) {
         var gl = this.gl;
         var state = this.state;
+        var properties = this.properties;
 
         var geometryProperties = this.properties.get(geometry);
-
-        if(geometry.dirty) {
-
-            if(geometryProperties.__webglVAO === undefined) {
-                geometry.addEventListener('dispose', this.onGeometryDispose, this);
-                geometryProperties.__webglVAO = gl.createBuffer();
-                geometry.dirtyRange.enable = false;
-            }
-
-            state.bindBuffer(gl.ARRAY_BUFFER, geometryProperties.__webglVAO);
-
-            // geometry.dirtyRange.enable = false;
-            if(geometry.dirtyRange.enable) {
-                var vertices = new Float32Array(geometry.verticesArray);
-                vertices = vertices.subarray(geometry.dirtyRange.start, geometry.dirtyRange.start + geometry.dirtyRange.count);
-                gl.bufferSubData(gl.ARRAY_BUFFER, geometry.dirtyRange.start * 4, vertices)
-                geometry.dirtyRange.enable = false;
-                geometry.dirtyRange.start = 0;
-                geometry.dirtyRange.count = 0;
-            } else {
-                var vertices = new Float32Array(geometry.verticesArray);
-                gl.bufferData(gl.ARRAY_BUFFER, vertices, geometry.usageType);
-            }
-
-            if(geometry.indicesArray.length > 0) {
-                if(geometryProperties.__webglEAO === undefined) {
-                    geometryProperties.__webglEAO = gl.createBuffer();
-                }
-
-                state.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometryProperties.__webglEAO);
-
-                var indices = new Uint16Array(geometry.indicesArray);
-                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, geometry.usageType);
-            }
-
-            geometry.dirty = false;
-
-            return;
+        if (!geometryProperties.created) {
+            geometry.addEventListener('dispose', this.onGeometryDispose2, this);
+            geometryProperties.created = true;
         }
 
-        state.bindBuffer(gl.ARRAY_BUFFER, geometryProperties.__webglVAO);
-        if(geometry.indicesArray.length > 0) {
-            state.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometryProperties.__webglEAO);
+        if (geometry.index !== null) {
+            updateAttribute(gl, properties, geometry.index, gl.ELEMENT_ARRAY_BUFFER);
+        }
+
+        for (var name in geometry.attributes) {
+            updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
         }
     }
 
@@ -67,12 +121,12 @@
 
         geometry.removeEventListener('dispose', this.onGeometryDispose, this);
 
-        if(geometryProperties.__webglVAO) {
-            gl.deleteBuffer(geometryProperties.__webglVAO);
+        if (geometry.index !== null) {
+            removeAttribute(gl, properties, geometry.index);
         }
 
-        if(geometryProperties.__webglEAO) {
-            gl.deleteBuffer(geometryProperties.__webglEAO);
+        for (var name in geometry.attributes) {
+            removeAttribute(gl, properties, geometry.attributes[name]);
         }
 
         this.properties.delete(geometry);

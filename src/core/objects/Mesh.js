@@ -96,8 +96,9 @@
             inverseMatrix.getInverse(worldMatrix);
             ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
 
-            var index = geometry.indicesArray;
-            var vertex = geometry.verticesArray;
+            var index = geometry.index.array;
+			var position = geometry.getAttribute("a_Position");
+			var uv = geometry.getAttribute("a_Uv");
             var a, b, c;
 
             for (var i = 0; i < index.length; i += 3) {
@@ -105,17 +106,17 @@
                 b = index[i + 1];
                 c = index[i + 2];
 
-                vA.fromArray(vertex, a * geometry.vertexSize);
-                vB.fromArray(vertex, b * geometry.vertexSize);
-                vC.fromArray(vertex, c * geometry.vertexSize);
+                vA.fromArray(position.array, a * 3);
+                vB.fromArray(position.array, b * 3);
+                vC.fromArray(position.array, c * 3);
 
                 var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
 
                 if (intersection) {
                     // uv
-                    uvA.fromArray(vertex, a * geometry.vertexSize + 13);
-                    uvB.fromArray(vertex, b * geometry.vertexSize + 13);
-                    uvC.fromArray(vertex, c * geometry.vertexSize + 13);
+                    uvA.fromArray(uv.array, a * 2);
+                    uvB.fromArray(uv.array, b * 2);
+                    uvC.fromArray(uv.array, c * 2);
 
                     intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
 

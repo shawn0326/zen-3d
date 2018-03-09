@@ -81,6 +81,7 @@
 
 			var sky_geom = new zen3d.CubeGeometry(1000, 1000, 1000, false);
 			var basic = new zen3d.BasicMaterial();
+			basic.side = zen3d.DRAW_SIDE.BACK;
 	        basic.diffuse.setHex(0x777777);
 	        var sky = new zen3d.Mesh(sky_geom, basic);
 	        scene.add(sky);

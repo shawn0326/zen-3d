@@ -63,6 +63,9 @@ var filesSrc = [
     "core/render/RenderTargetCube.js",
 
     // geometry
+    "core/geometry/BufferAttribute.js",
+    "core/geometry/InterleavedBuffer.js",
+    "core/geometry/InterleavedBufferAttribute.js",
     "core/geometry/Geometry.js",
     "core/geometry/CubeGeometry.js",
     "core/geometry/PlaneGeometry.js",

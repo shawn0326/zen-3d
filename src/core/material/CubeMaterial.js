@@ -8,6 +8,8 @@
 
         this.type = zen3d.MATERIAL_TYPE.CUBE;
 
+        this.side = zen3d.DRAW_SIDE.BACK;
+
         this.cubeMap = null;
     }
 

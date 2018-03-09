@@ -91,11 +91,12 @@
         this.frustumCulled = false;
 
         this.geometry = new zen3d.Geometry();
-        this.geometry.vertexSize = 5;
-        this.geometry.vertexFormat = {
-            "a_Position": {size: 3, normalized: false, stride: 5, offset: 0},
-            "a_Uv": {size: 2, normalized: false, stride: 5, offset: 3}
-        };
+        this.buffer = new zen3d.InterleavedBuffer(new Float32Array(), 5);
+        this.buffer.dynamic = true;
+        this.geometry.addAttribute("a_Position", new zen3d.InterleavedBufferAttribute(this.buffer, 3, 0));
+        this.geometry.addAttribute("a_Uv", new zen3d.InterleavedBufferAttribute(this.buffer, 2, 3));
+        this.geometry.setIndex([]);
+
         this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
         this.material = new zen3d.Canvas2DMaterial();
 
@@ -205,10 +206,10 @@
         }
     }
 
+    var vertices = [];
+    var indices = [];
+
     Canvas2D.prototype.updateSprites = function() {
-        var geometry = this.geometry;
-        var vertices = geometry.verticesArray;
-        var indices = geometry.indicesArray;
         var vertexIndex = 0,
             indexIndex = 0;
 
@@ -275,10 +276,16 @@
             indices[indexIndex++] = vertCount + 3;
             indices[indexIndex++] = vertCount + 0;
         }
+
         vertices.length = vertexIndex;
         indices.length = indexIndex;
 
-        geometry.dirty = true;
+        var geometry = this.geometry;
+        this.buffer.setArray(new Float32Array(vertices));
+        geometry.index.setArray(new Uint16Array(indices));
+
+        this.buffer.version++;
+        geometry.index.version++;
 
         // drawArray
         this.drawArray = [];

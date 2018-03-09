@@ -77,30 +77,27 @@
 	        var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
 
 			// insert skinIndex & skinWeight
-			var verticesArray = cube_geometry.verticesArray;
-			var vertexCount = cube_geometry.getVerticesCount();
+			var skinIndexArray = [];
+			var skinWeightArray = [];
+			var vertexCount = cube_geometry.getAttribute("a_Position").count;
+			var verticesArray = cube_geometry.getAttribute("a_Position").array;
 			for(var i = 0; i < vertexCount; i++) {
-				var offset = i * 19;
+				var offset = i * 3;
 				var y = verticesArray[offset + 1];
 				if(y > 0) {
 					// top vertices bind bone2
-					verticesArray.splice(offset + 6, 4, 1, 0, 0, 0);
-					verticesArray.splice(offset + 15, 2, 1, 0, 0, 0);
+					skinIndexArray.push(1, 0, 0, 0);
+					skinWeightArray.push(1, 0, 0, 0);
 				} else {
 					// bottom vertices bind bone
-					verticesArray.splice(offset + 6, 4, 0, 0, 0, 0);
-					verticesArray.splice(offset + 15, 2, 1, 0, 0, 0);
+					skinIndexArray.push(0, 0, 0, 0);
+					skinWeightArray.push(1, 0, 0, 0);
 				}
 			}
 
-			cube_geometry.vertexFormat = {
-	            "a_Position": {size: 3, normalized: false, stride: 19, offset: 0},
-	            "a_Normal": {size: 3, normalized: false, stride: 19, offset: 3},
-	            "a_Uv": {size: 2, normalized: false, stride: 19, offset: 13},
-				"skinIndex": {size: 4, normalized: false, stride: 19, offset: 6},
-				"skinWeight": {size: 4, normalized: false, stride: 19, offset: 15},
-	        };
-			cube_geometry.vertexSize = 19;
+			cube_geometry.removeAttribute("a_Color");
+			cube_geometry.addAttribute("skinIndex", new zen3d.BufferAttribute(new Float32Array(skinIndexArray), 4));
+			cube_geometry.addAttribute("skinWeight", new zen3d.BufferAttribute(new Float32Array(skinWeightArray), 4));
 
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);

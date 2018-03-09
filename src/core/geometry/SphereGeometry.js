@@ -3,162 +3,102 @@
      * SphereGeometry data
      * @class
      */
-    var SphereGeometry = function(radius, segmentsW, segmentsH, front) {
+    var SphereGeometry = function(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
         SphereGeometry.superClass.constructor.call(this);
 
-        this.buildGeometry(radius, segmentsW || 20, segmentsH || 20, (front === undefined) ? true : front);
+        this.buildGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength);
     }
 
     zen3d.inherit(SphereGeometry, zen3d.Geometry);
 
-    SphereGeometry.prototype.buildGeometry = function(radius, segmentsW, segmentsH, front) {
-        var i = 0, j = 0, triIndex = 0;
-        var numVerts = (segmentsH + 1) * (segmentsW + 1);
+    SphereGeometry.prototype.buildGeometry = function(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
+        radius = radius || 1;
 
-        var stride = 17;
-        var skip = stride - 9;
+        widthSegments = Math.max(3, Math.floor(widthSegments) || 8);
+        heightSegments = Math.max(2, Math.floor(heightSegments) || 6);
 
-        var verticesData = this.verticesArray;
-        var indexData = this.indicesArray;
+        phiStart = phiStart !== undefined ? phiStart : 0;
+        phiLength = phiLength !== undefined ? phiLength : Math.PI * 2;
 
-        var startIndex = 0;
+        thetaStart = thetaStart !== undefined ? thetaStart : 0;
+        thetaLength = thetaLength !== undefined ? thetaLength : Math.PI;
+
+        var thetaEnd = thetaStart + thetaLength;
+
+        var ix, iy;
+
         var index = 0;
-        var comp1 = 0, comp2 = 0, t1 = 0, t2 = 0;
+        var grid = [];
 
-        for (j = 0; j <= segmentsH; ++j) {
+        var vertex = new zen3d.Vector3();
+        var normal = new zen3d.Vector3();
 
-            startIndex = index;
+        // buffers
 
-            var horangle = Math.PI * j / segmentsH;
-            var z = -radius * Math.cos(horangle);
-            var ringradius = radius * Math.sin(horangle);
+        var indices = [];
+        var vertices = [];
+        var normals = [];
+        var uvs = [];
 
-            for (i = 0; i <= segmentsW; ++i) {
-                var verangle = 2 * Math.PI * i / segmentsW;
-                var x = ringradius * Math.cos(verangle);
-                var y = ringradius * Math.sin(verangle);
-                var normLen = 1 / Math.sqrt(x * x + y * y + z * z);
-                var tanLen = Math.sqrt(y * y + x * x);
+        // generate vertices, normals and uvs
 
-                t1 = 0;
-                t2 = tanLen > .007 ? x / tanLen : 0;
-                comp1 = -z;
-                comp2 = y;
+        for (iy = 0; iy <= heightSegments; iy++) {
 
-                if (i == segmentsW) {
+            var verticesRow = [];
 
-                    verticesData[index++] = verticesData[startIndex];
-                    verticesData[index++] = verticesData[startIndex + 1];
-                    verticesData[index++] = verticesData[startIndex + 2];
+            var v = iy / heightSegments;
 
-                    verticesData[index++] = x * normLen;;
-                    verticesData[index++] = comp1 * normLen;;
-                    verticesData[index++] = comp2 * normLen;;
+            for (ix = 0; ix <= widthSegments; ix++) {
 
-                    verticesData[index++] = tanLen > .007 ? -y / tanLen : 1;
-                    verticesData[index++] = t1;
-                    verticesData[index++] = t2;
+                var u = ix / widthSegments;
 
-                    verticesData[index + 0] = 1.0;
-                    verticesData[index + 1] = 1.0;
-                    verticesData[index + 2] = 1.0;
-                    verticesData[index + 3] = 1.0;
+                // vertex
 
-                } else {
-                    verticesData[index++] = x;
-                    verticesData[index++] = comp1;
-                    verticesData[index++] = comp2;
+                vertex.x = -radius * Math.cos(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
+                vertex.y = radius * Math.cos(thetaStart + v * thetaLength);
+                vertex.z = radius * Math.sin(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
 
-                    verticesData[index++] = x * normLen;
-                    verticesData[index++] = comp1 * normLen;
-                    verticesData[index++] = comp2 * normLen;
-                    verticesData[index++] = tanLen > .007 ? -y / tanLen : 1;
-                    verticesData[index++] = t1;
-                    verticesData[index++] = t2;
+                vertices.push(vertex.x, vertex.y, vertex.z);
 
-                    verticesData[index] = 1.0;
-                    verticesData[index + 1] = 1.0;
-                    verticesData[index + 2] = 1.0;
-                    verticesData[index + 3] = 1.0;
-                }
+                // normal
 
-                if (i > 0 && j > 0) {
-                    var a = (segmentsW + 1) * j + i;
-                    var b = (segmentsW + 1) * j + i - 1;
-                    var c = (segmentsW + 1) * (j - 1) + i - 1;
-                    var d = (segmentsW + 1) * (j - 1) + i;
+                normal.set(vertex.x, vertex.y, vertex.z).normalize();
+                normals.push(normal.x, normal.y, normal.z);
 
-                    if (j == segmentsH) {
-                        verticesData[index - 9] = verticesData[startIndex];
-                        verticesData[index - 8] = verticesData[startIndex + 1];
-                        verticesData[index - 7] = verticesData[startIndex + 2];
+                // uv
 
-                        if (front) {
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = d;
-                        }
-                        else {
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = d;
-                            indexData[triIndex++] = c;
-                        }
+                uvs.push(u, 1 - v);
 
+                verticesRow.push(index++);
 
-                    } else if (j == 1) {
-
-                        if (front) {
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = b;
-                            indexData[triIndex++] = c;
-                        }
-                        else {
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = b;
-                        }
-
-
-                    } else {
-
-                        if (front) {
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = c
-                            indexData[triIndex++] = d;
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = b;
-                            indexData[triIndex++] = c;
-                        }
-                        else {
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = d
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = a;
-                            indexData[triIndex++] = c;
-                            indexData[triIndex++] = b;
-                        }
-                    }
-                }
-
-                index += skip;
             }
+
+            grid.push(verticesRow);
+
         }
 
-        //var i, j;
-        var stride = 17;
-        var numUvs = (segmentsH + 1) * (segmentsW + 1) * stride;
-        var data;
-        var skip = stride - 2;
+        // indices
 
+        for (iy = 0; iy < heightSegments; iy++) {
 
-        var index = 13;
-        for (j = 0; j <= segmentsH; ++j) {
-            for (i = 0; i <= segmentsW; ++i) {
-                verticesData[index++] = (i / segmentsW);
-                verticesData[index++] = (j / segmentsH);
-                index += skip;
+            for (ix = 0; ix < widthSegments; ix++) {
+
+                var a = grid[iy][ix + 1];
+                var b = grid[iy][ix];
+                var c = grid[iy + 1][ix];
+                var d = grid[iy + 1][ix + 1];
+
+                if (iy !== 0 || thetaStart > 0) indices.push(a, b, d);
+                if (iy !== heightSegments - 1 || thetaEnd < Math.PI) indices.push(b, c, d);
+
             }
+
         }
+
+        this.setIndex(indices);
+        this.addAttribute('a_Position', new zen3d.BufferAttribute(new Float32Array(vertices), 3));
+        this.addAttribute('a_Normal', new zen3d.BufferAttribute(new Float32Array(normals), 3));
+        this.addAttribute('a_Uv', new zen3d.BufferAttribute(new Float32Array(uvs), 2));
 
         this.computeBoundingBox();
         this.computeBoundingSphere();

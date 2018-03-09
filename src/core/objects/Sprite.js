@@ -2,19 +2,19 @@
 
     // all sprites used one shared geometry
     var sharedGeometry = new zen3d.Geometry();
-    sharedGeometry.verticesArray = [-0.5, -0.5, 0, 0,
+    var array = new Float32Array([
+        -0.5, -0.5, 0, 0,
         0.5, -0.5, 1, 0,
-        0.5, 0.5, 1, 1, -0.5, 0.5, 0, 1
-    ];
-    sharedGeometry.indicesArray = [
+        0.5, 0.5, 1, 1,
+        -0.5, 0.5, 0, 1
+    ]);
+    var buffer = new zen3d.InterleavedBuffer(array, 4);
+    sharedGeometry.addAttribute("position", new zen3d.InterleavedBufferAttribute(buffer, 2, 0));
+    sharedGeometry.addAttribute("uv", new zen3d.InterleavedBufferAttribute(buffer, 2, 2));
+    sharedGeometry.setIndex([
         0, 1, 2,
         0, 2, 3
-    ];
-    sharedGeometry.vertexSize = 4;
-    sharedGeometry.vertexFormat = {
-        "position": {size: 2, normalized: false, stride: 4, offset: 0},
-        "uv": {size: 2, normalized: false, stride: 4, offset: 2}
-    };
+    ]);
 
     /**
      * Sprite

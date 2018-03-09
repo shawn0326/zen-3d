@@ -731,23 +731,17 @@
 
     VOXGeometry.prototype.createGeometry = function() {
         var geometry = new zen3d.Geometry();
-        geometry.vertexFormat = {
-            "a_Position": {size: 3, normalized: false, stride: 12, offset: 0},
-            "a_Normal": {size: 3, normalized: false, stride: 12, offset: 3},
-            "a_Color": {size: 4, normalized: false, stride: 12, offset: 6},
-            "a_Uv": {size: 2, normalized: false, stride: 12, offset: 10}
-        };
-        geometry.vertexSize = 12;
+        var verticesArray = [];
 
         function pushFaceData(posArray, normalArray, colorArray, uvArray) {
             for(var i = 0; i < 3; i++) {
-                geometry.verticesArray.push(posArray[i].x, posArray[i].y, posArray[i].z);
-                geometry.verticesArray.push(normalArray[i].x, normalArray[i].y, normalArray[i].z);
-                geometry.verticesArray.push(colorArray[i].r, colorArray[i].g, colorArray[i].b, 1);
+                verticesArray.push(posArray[i].x, posArray[i].y, posArray[i].z);
+                verticesArray.push(normalArray[i].x, normalArray[i].y, normalArray[i].z);
+                verticesArray.push(colorArray[i].r, colorArray[i].g, colorArray[i].b, 1);
                 if(uvArray) {
-                    geometry.verticesArray.push(uvArray[i].x, uvArray[i].y);
+                    verticesArray.push(uvArray[i].x, uvArray[i].y);
                 } else {
-                    geometry.verticesArray.push(0, 0);
+                    verticesArray.push(0, 0);
                 }
             }
         }
@@ -820,6 +814,17 @@
             // }
 
 		}
+
+        var buffer = new zen3d.InterleavedBuffer(new Float32Array(verticesArray), 12);
+        var attribute;
+        attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 0);
+        geometry.addAttribute("a_Position", attribute);
+        attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 3);
+        geometry.addAttribute("a_Normal", attribute);
+        attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 6);
+        geometry.addAttribute("a_Color", attribute);
+        attribute = new zen3d.InterleavedBufferAttribute(buffer, 2, 10);
+        geometry.addAttribute("a_Uv", attribute);
 
         return geometry;
     }

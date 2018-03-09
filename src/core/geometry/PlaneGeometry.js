@@ -3,66 +3,86 @@
      * PlaneGeometry data
      * @class
      */
-    var PlaneGeometry = function(width, height, segmentsW, segmentsH) {
+    var PlaneGeometry = function(width, height, widthSegments, heightSegments) {
         PlaneGeometry.superClass.constructor.call(this);
 
-        this.buildGeometry(width, height, segmentsW || 1, segmentsH || 1);
+        this.buildGeometry(width, height, widthSegments, heightSegments);
     }
 
     zen3d.inherit(PlaneGeometry, zen3d.Geometry);
 
-    PlaneGeometry.prototype.buildGeometry = function(width, height, segmentsW, segmentsH) {
-        var tw = segmentsW + 1;
-        var th = segmentsH + 1;
+    PlaneGeometry.prototype.buildGeometry = function(width, height, widthSegments, heightSegments) {
+        width = width || 1;
+    	height = height || 1;
 
-        var verticesData = this.verticesArray;
-        var indexData = this.indicesArray;
+    	var width_half = width / 2;
+    	var height_half = height / 2;
 
-        var index = 0;
-        var numIndices = 0;
-        for(var yi = 0; yi < th; yi++) {
-            for(var xi = 0; xi < tw; xi++) {
-                var x = (xi / segmentsW - .5) * width;
-                var y = (yi / segmentsH - .5) * height;
+    	var gridX = Math.floor( widthSegments ) || 1;
+    	var gridY = Math.floor( heightSegments ) || 1;
 
-                verticesData[index++] = x;
-                verticesData[index++] = 0;
-                verticesData[index++] = y;
+    	var gridX1 = gridX + 1;
+    	var gridY1 = gridY + 1;
 
-                verticesData[index++] = 0;
-                verticesData[index++] = 1;
-                verticesData[index++] = 0;
+    	var segment_width = width / gridX;
+    	var segment_height = height / gridY;
 
-                verticesData[index++] = 1;
-                verticesData[index++] = 0;
-                verticesData[index++] = 0;
+    	var ix, iy;
 
-                verticesData[index++] = 1;
-                verticesData[index++] = 1;
-                verticesData[index++] = 1;
-                verticesData[index++] = 1;
+    	// buffers
 
-                verticesData[index++] = (xi / segmentsW) * 1;
-                verticesData[index++] = (1 - yi / segmentsH) * 1;
+    	var indices = [];
+    	var vertices = [];
+    	var normals = [];
+    	var uvs = [];
 
-                verticesData[index++] = (xi / segmentsW) * 1;
-                verticesData[index++] = (1 - yi / segmentsH) * 1;
+    	// generate vertices, normals and uvs
 
-                if (xi != segmentsW && yi != segmentsH) {
-                    base = xi + yi * tw;
-                    var mult = 1;
+    	for ( iy = 0; iy < gridY1; iy ++ ) {
 
-                    indexData[numIndices++] = base * mult;
-                    indexData[numIndices++] = (base + tw) * mult;
-                    indexData[numIndices++] = (base + tw + 1) * mult;
+    		var y = iy * segment_height - height_half;
 
-                    indexData[numIndices++] = base * mult;
-                    indexData[numIndices++] = (base + tw + 1) * mult;
-                    indexData[numIndices++] = (base + 1) * mult;
+    		for ( ix = 0; ix < gridX1; ix ++ ) {
 
-                }
-            }
-        }
+    			var x = ix * segment_width - width_half;
+
+    			vertices.push( x, 0, y );
+
+    			normals.push( 0, 1, 0 );
+
+    			uvs.push( ix / gridX );
+    			uvs.push( 1 - ( iy / gridY ) );
+
+    		}
+
+    	}
+
+    	// indices
+
+    	for ( iy = 0; iy < gridY; iy ++ ) {
+
+    		for ( ix = 0; ix < gridX; ix ++ ) {
+
+    			var a = ix + gridX1 * iy;
+    			var b = ix + gridX1 * ( iy + 1 );
+    			var c = ( ix + 1 ) + gridX1 * ( iy + 1 );
+    			var d = ( ix + 1 ) + gridX1 * iy;
+
+    			// faces
+
+    			indices.push( a, b, d );
+    			indices.push( b, c, d );
+
+    		}
+
+    	}
+
+    	// build geometry
+
+        this.setIndex(indices);
+        this.addAttribute('a_Position', new zen3d.BufferAttribute(new Float32Array(vertices), 3));
+        this.addAttribute('a_Normal', new zen3d.BufferAttribute(new Float32Array(normals), 3));
+        this.addAttribute('a_Uv', new zen3d.BufferAttribute(new Float32Array(uvs), 2));
 
         this.computeBoundingBox();
         this.computeBoundingSphere();

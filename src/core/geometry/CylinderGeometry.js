@@ -7,155 +7,263 @@
     var CylinderGeometry = function(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
         CylinderGeometry.superClass.constructor.call(this);
 
-        radiusTop = radiusTop !== undefined ? radiusTop : 20;
-        radiusBottom = radiusBottom !== undefined ? radiusBottom : 20;
-        height = height !== undefined ? height : 100;
-
-        radialSegments = Math.floor(radialSegments) || 8;
-        heightSegments = Math.floor(heightSegments) || 1;
-
-        openEnded = openEnded !== undefined ? openEnded : false;
-        thetaStart = thetaStart !== undefined ? thetaStart : 0.0;
-        thetaLength = thetaLength !== undefined ? thetaLength : 2.0 * Math.PI;
-
         this.buildGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
     }
 
     zen3d.inherit(CylinderGeometry, zen3d.Geometry);
 
     CylinderGeometry.prototype.buildGeometry = function(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
-        var vertices = this.verticesArray;
-        var indices = this.indicesArray;
+        var scope = this;
 
-        var halfHeight = height / 2;
+    	radiusTop = radiusTop !== undefined ? radiusTop : 1;
+    	radiusBottom = radiusBottom !== undefined ? radiusBottom : 1;
+    	height = height || 1;
 
-        var index = 0;
-        var indexArray = [];
+    	radialSegments = Math.floor( radialSegments ) || 8;
+    	heightSegments = Math.floor( heightSegments ) || 1;
 
-        generateTorso();
+    	openEnded = openEnded !== undefined ? openEnded : false;
+    	thetaStart = thetaStart !== undefined ? thetaStart : 0.0;
+    	thetaLength = thetaLength !== undefined ? thetaLength : Math.PI * 2;
 
-        if (openEnded === false) {
-            if (radiusTop > 0) {
-                generateCap(true);
-            }
-            if (radiusBottom > 0) {
-                generateCap(false);
-            }
-        }
+    	// buffers
 
-        function generateTorso() {
-            var x, y;
-            var normal = new zen3d.Vector3();
-            var vertex = new zen3d.Vector3();
+    	var indices = [];
+    	var vertices = [];
+    	var normals = [];
+    	var uvs = [];
 
-            // this will be used to calculate the normal
-            var slope = (radiusBottom - radiusTop) / height;
+    	// helper variables
 
-            // generate vertices
-            for (y = 0; y <= heightSegments; y++) {
-                var indexRow = [];
+    	var index = 0;
+    	var indexArray = [];
+    	var halfHeight = height / 2;
+    	var groupStart = 0;
 
-                var v = y / heightSegments;
+    	// generate geometry
 
-                // calculate the radius of the current row
-                var radius = v * (radiusBottom - radiusTop) + radiusTop;
+    	generateTorso();
 
-                for (x = 0; x <= radialSegments; x++) {
-                    var u = x / radialSegments;
+    	if ( openEnded === false ) {
 
-                    var theta = u * thetaLength + thetaStart;
+    		if ( radiusTop > 0 ) generateCap( true );
+    		if ( radiusBottom > 0 ) generateCap( false );
 
-                    var sinTheta = Math.sin(theta);
-                    var cosTheta = Math.cos(theta);
+    	}
 
-                    vertex.x = radius * sinTheta;
-                    vertex.y = -v * height + halfHeight;
-                    vertex.z = radius * cosTheta;
+    	// build geometry
 
-                    normal.set(sinTheta, slope, cosTheta).normalize();
+        this.setIndex(indices);
+        this.addAttribute('a_Position', new zen3d.BufferAttribute(new Float32Array(vertices), 3));
+        this.addAttribute('a_Normal', new zen3d.BufferAttribute(new Float32Array(normals), 3));
+        this.addAttribute('a_Uv', new zen3d.BufferAttribute(new Float32Array(uvs), 2));
 
-                    vertices.push(vertex.x, vertex.y, vertex.z, normal.x, normal.y, normal.z, 1.0, 0.0, 0.0, 1, 1, 1, 1, u, 1 - v, 0., 0.);
+    	function generateTorso() {
 
-                    // save index of vertex in respective row
-                    indexRow.push(index++);
-                }
-                // now save vertices of the row in our index array
-                indexArray.push(indexRow);
-            }
+    		var x, y;
+    		var normal = new zen3d.Vector3();
+    		var vertex = new zen3d.Vector3();
 
-            // generate indices
-            for (x = 0; x < radialSegments; x++) {
-                for (y = 0; y < heightSegments; y++) {
-                    // we use the index array to access the correct indices
-                    var a = indexArray[y][x];
-                    var b = indexArray[y + 1][x];
-                    var c = indexArray[y + 1][x + 1];
-                    var d = indexArray[y][x + 1];
+    		var groupCount = 0;
 
-                    // faces
-                    indices.push(a, b, d);
-                    indices.push(b, c, d);
-                }
-            }
-        }
+    		// this will be used to calculate the normal
+    		var slope = ( radiusBottom - radiusTop ) / height;
 
-        function generateCap(top) {
-            var x, centerIndexStart, centerIndexEnd;
+    		// generate vertices, normals and uvs
 
-            var uv = new zen3d.Vector2();
-            var vertex = new zen3d.Vector3();
+    		for ( y = 0; y <= heightSegments; y ++ ) {
 
-            var radius = (top === true) ? radiusTop : radiusBottom;
-            var sign = (top === true) ? 1 : -1;
+    			var indexRow = [];
 
-            // save the index of the first center vertex
-            centerIndexStart = index;
+    			var v = y / heightSegments;
 
-            // first we generate the center vertex data of the cap.
-            // because the geometry needs one set of uvs per face,
-            // we must generate a center vertex per face/segment
+    			// calculate the radius of the current row
 
-            for (x = 1; x <= radialSegments; x++) {
-                vertices.push(0, halfHeight * sign, 0, 0, sign, 0, 1.0, 0.0, 0.0, 1, 1, 1, 1, 0.5, 0.5, 0., 0.);
+    			var radius = v * ( radiusBottom - radiusTop ) + radiusTop;
 
-                index++;
-            }
+    			for ( x = 0; x <= radialSegments; x ++ ) {
 
-            // save the index of the last center vertex
-            centerIndexEnd = index;
+    				var u = x / radialSegments;
 
-            // now we generate the surrounding vertices
-            for (x = 0; x <= radialSegments; x++) {
-                var u = x / radialSegments;
-                var theta = u * thetaLength + thetaStart;
+    				var theta = u * thetaLength + thetaStart;
 
-                var cosTheta = Math.cos(theta);
-                var sinTheta = Math.sin(theta);
+    				var sinTheta = Math.sin( theta );
+    				var cosTheta = Math.cos( theta );
 
-                vertex.x = radius * sinTheta;
-                vertex.y = halfHeight * sign;
-                vertex.z = radius * cosTheta;
+    				// vertex
 
-                uv.x = (cosTheta * 0.5) + 0.5;
-                uv.y = (sinTheta * 0.5 * sign) + 0.5;
+    				vertex.x = radius * sinTheta;
+    				vertex.y = - v * height + halfHeight;
+    				vertex.z = radius * cosTheta;
+    				vertices.push( vertex.x, vertex.y, vertex.z );
 
-                vertices.push(vertex.x, vertex.y, vertex.z, 0, sign, 0, 1.0, 0.0, 0.0, 1, 1, 1, 1, uv.x, uv.y, 0., 0.);
+    				// normal
 
-                index++;
-            }
+    				normal.set( sinTheta, slope, cosTheta ).normalize();
+    				normals.push( normal.x, normal.y, normal.z );
 
-            // generate indices
-            for (x = 0; x < radialSegments; x++) {
-                var c = centerIndexStart + x;
-                var i = centerIndexEnd + x;
+    				// uv
 
-                if (top === true) {
-                    indices.push(i, i + 1, c);
-                } else {
-                    indices.push(i + 1, i, c);
-                }
-            }
-        }
+    				uvs.push( u, 1 - v );
+
+    				// save index of vertex in respective row
+
+    				indexRow.push( index ++ );
+
+    			}
+
+    			// now save vertices of the row in our index array
+
+    			indexArray.push( indexRow );
+
+    		}
+
+    		// generate indices
+
+    		for ( x = 0; x < radialSegments; x ++ ) {
+
+    			for ( y = 0; y < heightSegments; y ++ ) {
+
+    				// we use the index array to access the correct indices
+
+    				var a = indexArray[ y ][ x ];
+    				var b = indexArray[ y + 1 ][ x ];
+    				var c = indexArray[ y + 1 ][ x + 1 ];
+    				var d = indexArray[ y ][ x + 1 ];
+
+    				// faces
+
+    				indices.push( a, b, d );
+    				indices.push( b, c, d );
+
+    				// update group counter
+
+    				groupCount += 6;
+
+    			}
+
+    		}
+
+    		// add a group to the geometry. this will ensure multi material support
+
+    		scope.addGroup( groupStart, groupCount, 0 );
+
+    		// calculate new start value for groups
+
+    		groupStart += groupCount;
+
+    	}
+
+    	function generateCap( top ) {
+
+    		var x, centerIndexStart, centerIndexEnd;
+
+    		var uv = new zen3d.Vector2();
+    		var vertex = new zen3d.Vector3();
+
+    		var groupCount = 0;
+
+    		var radius = ( top === true ) ? radiusTop : radiusBottom;
+    		var sign = ( top === true ) ? 1 : - 1;
+
+    		// save the index of the first center vertex
+    		centerIndexStart = index;
+
+    		// first we generate the center vertex data of the cap.
+    		// because the geometry needs one set of uvs per face,
+    		// we must generate a center vertex per face/segment
+
+    		for ( x = 1; x <= radialSegments; x ++ ) {
+
+    			// vertex
+
+    			vertices.push( 0, halfHeight * sign, 0 );
+
+    			// normal
+
+    			normals.push( 0, sign, 0 );
+
+    			// uv
+
+    			uvs.push( 0.5, 0.5 );
+
+    			// increase index
+
+    			index ++;
+
+    		}
+
+    		// save the index of the last center vertex
+
+    		centerIndexEnd = index;
+
+    		// now we generate the surrounding vertices, normals and uvs
+
+    		for ( x = 0; x <= radialSegments; x ++ ) {
+
+    			var u = x / radialSegments;
+    			var theta = u * thetaLength + thetaStart;
+
+    			var cosTheta = Math.cos( theta );
+    			var sinTheta = Math.sin( theta );
+
+    			// vertex
+
+    			vertex.x = radius * sinTheta;
+    			vertex.y = halfHeight * sign;
+    			vertex.z = radius * cosTheta;
+    			vertices.push( vertex.x, vertex.y, vertex.z );
+
+    			// normal
+
+    			normals.push( 0, sign, 0 );
+
+    			// uv
+
+    			uv.x = ( cosTheta * 0.5 ) + 0.5;
+    			uv.y = ( sinTheta * 0.5 * sign ) + 0.5;
+    			uvs.push( uv.x, uv.y );
+
+    			// increase index
+
+    			index ++;
+
+    		}
+
+    		// generate indices
+
+    		for ( x = 0; x < radialSegments; x ++ ) {
+
+    			var c = centerIndexStart + x;
+    			var i = centerIndexEnd + x;
+
+    			if ( top === true ) {
+
+    				// face top
+
+    				indices.push( i, i + 1, c );
+
+    			} else {
+
+    				// face bottom
+
+    				indices.push( i + 1, i, c );
+
+    			}
+
+    			groupCount += 3;
+
+    		}
+
+    		// add a group to the geometry. this will ensure multi material support
+
+    		scope.addGroup( groupStart, groupCount, top === true ? 1 : 2 );
+
+    		// calculate new start value for groups
+
+    		groupStart += groupCount;
+
+    	}
 
         this.computeBoundingBox();
         this.computeBoundingSphere();

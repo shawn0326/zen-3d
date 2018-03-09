@@ -45,20 +45,22 @@
 			scene.fog = new zen3d.FogExp2(0x000000, 0.001);
 
 			var lineGeometry = new zen3d.Geometry();
+			var verticesArray = [];
 
 			for(var i = 0; i < 100; i++) {
-				lineGeometry.verticesArray.push(
+				verticesArray.push(
 					Math.random() * 2000 - 1000,
 					Math.random() * 2000 - 1000,
 					Math.random() * 2000 - 1000,
 					i % 2 == 0 ? 0 : 100
 				);
 			}
-			lineGeometry.vertexSize = 4;
-			lineGeometry.vertexFormat = {
-	            "a_Position": {size: 3, normalized: false, stride: 4, offset: 0},
-				"lineDistance": {size: 1, normalized: false, stride: 4, offset: 3}
-	        };
+
+			var buffer = new zen3d.InterleavedBuffer(new Float32Array(verticesArray), 4);
+
+			lineGeometry.addAttribute("a_Position", new zen3d.InterleavedBufferAttribute(buffer, 3, 0));
+			lineGeometry.addAttribute("lineDistance", new zen3d.InterleavedBufferAttribute(buffer, 1, 3));
+
 			lineGeometry.computeBoundingBox();
 			lineGeometry.computeBoundingSphere();
 

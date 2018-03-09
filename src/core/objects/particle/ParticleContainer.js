@@ -26,7 +26,8 @@
         this.particleSpriteTex = options.particleSpriteTex || null;
 
         this.geometry = new zen3d.Geometry();
-        var vertices = this.geometry.verticesArray = [];
+
+        var vertices = [];
         for(var i = 0; i < this.maxParticleCount; i++) {
             vertices[i * 8 + 0] = 100                        ; //x
             vertices[i * 8 + 1] = 0                          ; //y
@@ -37,12 +38,15 @@
             vertices[i * 8 + 6] = 1.0                        ; //size
             vertices[i * 8 + 7] = 0.0                        ; //lifespan
         }
-        this.geometry.vertexSize = 8;
-		this.geometry.vertexFormat = {
-            "particlePositionsStartTime": {size: 4, normalized: false, stride: 8, offset: 0},
-            "particleVelColSizeLife": {size: 4, normalized: false, stride: 8, offset: 4}
-        };
-		this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
+		var buffer = new zen3d.InterleavedBuffer(new Float32Array(vertices), 8);
+		buffer.dynamic = true;
+		var attribute;
+		attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 0);
+		this.geometry.addAttribute("a_Position", attribute);
+		attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 0);
+		this.geometry.addAttribute("particlePositionsStartTime", attribute);
+		attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 4);
+		this.geometry.addAttribute("particleVelColSizeLife", attribute);
 
         this.particleCursor = 0;
         this.time = 0;
@@ -86,8 +90,10 @@
 		sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0.0;
 
         var cursor = this.particleCursor;
-        var vertices = this.geometry.verticesArray;
-        var vertexSize = this.geometry.vertexSize;
+		var particlePositionsStartTimeAttribute = this.geometry.getAttribute("particlePositionsStartTime");
+		var buffer = particlePositionsStartTimeAttribute.data;
+        var vertices = buffer.array;
+        var vertexSize = buffer.stride;
 
         vertices[cursor * vertexSize + 0] = position.x + (Math.random() - 0.5) * positionRandomness; //x
         vertices[cursor * vertexSize + 1] = position.y + (Math.random() - 0.5) * positionRandomness; //y
@@ -127,23 +133,18 @@
 
         if(this.particleCursor >= this.maxParticleCount) {
             this.particleCursor = 0;
-			this.geometry.dirty = true;
-			this.geometry.dirtyRange.enable = false;
-			this.geometry.dirtyRange.start = 0;
-			this.geometry.dirtyRange.count = 0;
+			buffer.version++;
+			buffer.updateRange.offset = 0;
+			buffer.updateRange.count = -1;
         } else {
-			this.geometry.dirty = true;
-			if(this.geometry.dirtyRange.enable) {
-				this.geometry.dirtyRange.count = this.particleCursor * vertexSize - this.geometry.dirtyRange.start;
+			buffer.version++;
+			if(buffer.updateRange.count > -1) {
+				buffer.updateRange.count = this.particleCursor * vertexSize - buffer.updateRange.offset;
 			} else {
-				this.geometry.dirtyRange.enable = true;
-				this.geometry.dirtyRange.start = cursor * vertexSize;
-				this.geometry.dirtyRange.count = vertexSize;
+				buffer.updateRange.offset = cursor * vertexSize;
+				buffer.updateRange.count = vertexSize;
 			}
-
 		}
-
-
     }
 
     ParticleContainer.prototype.update = function(time) {
