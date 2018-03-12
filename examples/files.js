@@ -9,6 +9,7 @@ var files = {
 		"geometry_geometries",
 		"geometry_loader_assimp2json",
 		"geometry_loader_vox",
+		"geometry_loader_gltf",
 		"geometry_groups"
 	],
 	"material": [

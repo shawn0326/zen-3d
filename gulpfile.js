@@ -146,6 +146,7 @@ var filesSrc = [
     "core/loader/FileLoader.js",
     "core/loader/ImageLoader.js",
     "core/loader/TGALoader.js",
+    "core/loader/GLTFLoader.js",
 
     //performance
     "core/Performance.js",

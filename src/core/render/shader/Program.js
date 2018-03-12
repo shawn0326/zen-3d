@@ -125,6 +125,7 @@
                 vshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '');
                 vshader_define.push(((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '');
 
+                vshader_define.push(props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '');
                 vshader_define.push(props.useShadow ? '#define USE_SHADOW' : '');
 
                 vshader_define.push(props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '');
