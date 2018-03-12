@@ -41,37 +41,62 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.gammaInput = true;
 			renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
 			var file = "resources/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
 
+			var cube_texture = zen3d.TextureCube.fromSrc([
+			    "resources/skybox/right.jpg",
+			    "resources/skybox/left.jpg",
+			    "resources/skybox/up.jpg",
+			    "resources/skybox/down.jpg",
+			    "resources/skybox/back.jpg",
+			    "resources/skybox/front.jpg"
+			]);
+
+			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
+			var sky_material = new zen3d.CubeMaterial();
+			sky_material.cubeMap = cube_texture;
+			var sky_box = new zen3d.Mesh(sky_geom, sky_material);
+			scene.add(sky_box);
+
+			let objectMaterial;
+
 			var loader = new zen3d.GLTFLoader();
 			loader.load(file, function(result) {
 				console.log(result);
 				// add mesh to scene
 				let object = result.scene.children[0];
+
+				objectMaterial = object.material;
+
 				object.scale.set(10, 10, 10);
 				object.euler.z = -Math.PI / 10;
+
 				scene.add(object);
 			});
 
-			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x4c4c4c);
-	        scene.add(ambientLight);
+			var directionalLight = new zen3d.DirectionalLight();
+			directionalLight.color.setHex(0xaaaaaa);
+			directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+	        scene.add(directionalLight);
 
 			var directionalLight = new zen3d.DirectionalLight();
-	        directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        directionalLight.color.setHex(0xffffff);
-	        directionalLight.position.set(-40, 40, 0);
+			directionalLight.color.setHex(0xbbbbff);
+			directionalLight.euler.set(Math.PI / 2, 0, 0);
+	        scene.add(directionalLight);
+
+			var directionalLight = new zen3d.DirectionalLight();
+			directionalLight.color.setHex(0x444422);
+			directionalLight.euler.set(-Math.PI / 2, 0, 0);
 	        scene.add(directionalLight);
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 4, 10);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
 	        scene.add(camera);
 
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
@@ -81,9 +106,17 @@
 			controller.bindMouse = mouse;
 			controller.bindTouch = touch;
 
+			let time = 0;
+
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
+
+				time++;
+
+				if(objectMaterial) {
+					objectMaterial.emissiveIntensity = Math.cos(time / 40);
+				}
 
 				controller.update();
 				mouse.update();

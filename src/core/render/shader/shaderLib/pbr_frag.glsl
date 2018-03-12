@@ -2,7 +2,14 @@
 
 // if no light> this will not active
 uniform float u_Metalness;
+#ifdef USE_METALNESSMAP
+	uniform sampler2D metalnessMap;
+#endif
+
 uniform float u_Roughness;
+#ifdef USE_ROUGHNESSMAP
+	uniform sampler2D roughnessMap;
+#endif
 
 uniform vec3 emissive;
 
@@ -27,6 +34,21 @@ void main() {
     #include <diffuseMap_frag>
     #include <normal_frag>
     #include <specularMap_frag>
+
+    float roughnessFactor = u_Roughness;
+    #ifdef USE_ROUGHNESSMAP
+    	vec4 texelRoughness = texture2D( roughnessMap, v_Uv );
+    	// reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
+    	roughnessFactor *= texelRoughness.g;
+    #endif
+
+    float metalnessFactor = u_Metalness;
+    #ifdef USE_METALNESSMAP
+    	vec4 texelMetalness = texture2D( metalnessMap, v_Uv );
+    	// reads channel B, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
+    	metalnessFactor *= texelMetalness.b;
+    #endif
+
     #include <light_frag>
     #include <shadowMap_frag>
 

@@ -392,8 +392,18 @@
                     case "u_Roughness":
                         uniform.setValue(material.roughness);
                         break;
+                    case "roughnessMap":
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(material.roughnessMap, slot);
+                        uniform.setValue(slot);
+                        break;
                     case "u_Metalness":
                         uniform.setValue(material.metalness);
+                        break;
+                    case "metalnessMap":
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(material.metalnessMap, slot);
+                        uniform.setValue(slot);
                         break;
                     case "emissive":
                         var color = material.emissive;

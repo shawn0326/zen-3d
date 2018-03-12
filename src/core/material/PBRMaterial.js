@@ -11,6 +11,9 @@
         this.roughness = 0.5;
 	    this.metalness = 0.5;
 
+        this.roughnessMap = null;
+	    this.metalnessMap = null;
+
         this.acceptLight = true;
     }
 

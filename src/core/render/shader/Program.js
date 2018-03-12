@@ -114,6 +114,8 @@
             case MATERIAL_TYPE.LAMBERT:
             case MATERIAL_TYPE.PHONG:
             case MATERIAL_TYPE.PBR:
+                fshader_define.push(props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '');
+                fshader_define.push(props.useMetalnessMap ? '#define USE_METALNESSMAP' : '');
             case MATERIAL_TYPE.POINT:
                 vshader_define.push((props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '');
                 vshader_define.push((props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '');
@@ -265,10 +267,12 @@
         var currentRenderTarget = render.getCurrentRenderTarget();
 
         switch (material.type) {
+            case MATERIAL_TYPE.PBR:
+                props.useRoughnessMap = !!material.roughnessMap;
+                props.useMetalnessMap = !!material.metalnessMap;
             case MATERIAL_TYPE.BASIC:
             case MATERIAL_TYPE.LAMBERT:
             case MATERIAL_TYPE.PHONG:
-            case MATERIAL_TYPE.PBR:
             case MATERIAL_TYPE.POINT:
             case MATERIAL_TYPE.LINE:
             case MATERIAL_TYPE.LINE_LOOP:

@@ -3,9 +3,9 @@
     vec3 L;
     vec4 totalReflect = vec4(0., 0., 0., 0.);
     #ifdef USE_PBR
-        vec4 diffuseColor = outColor.xyzw * (1.0 - u_Metalness);
-        vec4 specularColor = mix(vec4(0.04), outColor.xyzw, u_Metalness);
-        float roughness = clamp(u_Roughness, 0.04, 1.0);
+        vec4 diffuseColor = outColor.xyzw * (1.0 - metalnessFactor);
+        vec4 specularColor = mix(vec4(0.04), outColor.xyzw, metalnessFactor);
+        float roughness = clamp(roughnessFactor, 0.04, 1.0);
     #else
         vec4 diffuseColor = outColor.xyzw;
         #ifdef USE_PHONG
