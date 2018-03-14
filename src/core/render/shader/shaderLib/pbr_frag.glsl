@@ -49,6 +49,15 @@ void main() {
     	metalnessFactor *= texelMetalness.b;
     #endif
 
+	#ifdef USE_ENV_MAP
+		vec3 envDir;
+	    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)
+	        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);
+	    #else
+	        envDir = v_EnvPos;
+	    #endif
+	#endif
+
     #include <light_frag>
     #include <shadowMap_frag>
 

@@ -13,18 +13,18 @@
 
 #if defined(USE_PBR) && defined(USE_ENV_MAP)
 
-    vec4 getLightProbeIndirectIrradiance(const in int maxMIPLevel) {
+    vec4 getLightProbeIndirectIrradiance(const in int maxMIPLevel, const in vec3 envDir) {
         // TODO: replace with properly filtered cubemaps and access the irradiance LOD level, be it the last LOD level
     	// of a specular cubemap, or just the default level of a specially created irradiance cubemap.
 
     	#ifdef TEXTURE_LOD_EXT
 
-    		vec4 envMapColor = textureCubeLodEXT( envMap, v_EnvPos, float( maxMIPLevel ) );
+    		vec4 envMapColor = textureCubeLodEXT( envMap, envDir, float( maxMIPLevel ) );
 
     	#else
 
     		// force the bias high to get the last LOD level as it is the most blurred.
-    		vec4 envMapColor = textureCube( envMap, v_EnvPos, float( maxMIPLevel ) );
+    		vec4 envMapColor = textureCube( envMap, envDir, float( maxMIPLevel ) );
 
     	#endif
 
@@ -47,16 +47,16 @@
 
     }
 
-    vec4 getLightProbeIndirectRadiance(const in float blinnShininessExponent, const in int maxMIPLevel) {
+    vec4 getLightProbeIndirectRadiance(const in float blinnShininessExponent, const in int maxMIPLevel, const in vec3 envDir) {
         float specularMIPLevel = getSpecularMIPLevel( blinnShininessExponent, maxMIPLevel );
 
         #ifdef TEXTURE_LOD_EXT
 
-    		vec4 envMapColor = textureCubeLodEXT( envMap, v_EnvPos, specularMIPLevel );
+    		vec4 envMapColor = textureCubeLodEXT( envMap, envDir, specularMIPLevel );
 
     	#else
 
-    		vec4 envMapColor = textureCube( envMap, v_EnvPos, specularMIPLevel );
+    		vec4 envMapColor = textureCube( envMap, envDir, specularMIPLevel );
 
     	#endif
 

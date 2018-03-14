@@ -1,5 +1,13 @@
 #ifdef USE_ENV_MAP
-    vec4 envColor = textureCube(envMap, v_EnvPos);
+
+    vec3 envDir;
+    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)
+        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);
+    #else
+        envDir = v_EnvPos;
+    #endif
+
+    vec4 envColor = textureCube(envMap, envDir);
 
     envColor = envMapTexelToLinear( envColor );
 
