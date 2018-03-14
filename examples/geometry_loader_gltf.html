@@ -36,8 +36,10 @@
 	        var height = window.innerHeight || 2;
 
 	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
+	        canvas.width = width * window.devicePixelRatio;
+	        canvas.height = height * window.devicePixelRatio;
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
@@ -137,7 +139,10 @@
 
 				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
 
-				renderer.resize(width, height);
+				renderer.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
+
+				canvas.style.width = width + "px";
+				canvas.style.height = height + "px";
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();
