@@ -52,7 +52,7 @@
         var mouse = this.bindMouse;
 
         if(mouse.isPressed(0)) {
-            if(!this._mouseDown) {
+            if(!this._mouseDown || this._lastMouseX == undefined || this._lastMouseY == undefined) {
                 this._mouseDown = true;
                 this._lastMouseX = mouse.position.x;
                 this._lastMouseY = mouse.position.y;

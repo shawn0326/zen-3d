@@ -12969,7 +12969,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     HoverController.prototype._updateMouse = function() {
         var mouse = this.bindMouse;
         if(mouse.isPressed(0)) {
-            if(!this._mouseDown) {
+            if(!this._mouseDown || this._lastMouseX == undefined || this._lastMouseY == undefined) {
                 this._mouseDown = true;
                 this._lastMouseX = mouse.position.x;
                 this._lastMouseY = mouse.position.y;
@@ -12997,7 +12997,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         if(touch.touchCount > 0) {
             if(touch.touchCount == 1) {
                 var _touch = touch.getTouch(0);
-                if(_touch.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo) {
+                if(_touch.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo || this._lastTouchX == undefined || this._lastTouchY == undefined) {
                     this._lastTouchX = _touch.position.x;
                     this._lastTouchY = _touch.position.y;
                 } else {
@@ -13014,7 +13014,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             } else if(touch.touchCount == 2) {
                 var _touch1 = touch.getTouch(0);
                 var _touch2 = touch.getTouch(1);
-                if(_touch1.phase == zen3d.TouchPhase.BEGAN || _touch2.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo == false) {
+                if(_touch1.phase == zen3d.TouchPhase.BEGAN || _touch2.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo == false || this._lastDistance == undefined) {
                     hVec2_1.set(_touch1.position.x, _touch1.position.y);
                     hVec2_2.set(_touch2.position.x, _touch2.position.y);
                     this._lastDistance = hVec2_1.distanceTo(hVec2_2);
@@ -13092,7 +13092,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var mouse = this.bindMouse;
 
         if(mouse.isPressed(0)) {
-            if(!this._mouseDown) {
+            if(!this._mouseDown || this._lastMouseX == undefined || this._lastMouseY == undefined) {
                 this._mouseDown = true;
                 this._lastMouseX = mouse.position.x;
                 this._lastMouseY = mouse.position.y;
