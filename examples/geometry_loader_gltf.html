@@ -50,12 +50,12 @@
 			var file = "resources/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
 
 			var cube_texture = zen3d.TextureCube.fromSrc([
-			    "resources/skybox/right.jpg",
-			    "resources/skybox/left.jpg",
-			    "resources/skybox/up.jpg",
-			    "resources/skybox/down.jpg",
-			    "resources/skybox/back.jpg",
-			    "resources/skybox/front.jpg"
+			    "resources/skybox/skyboxsun25deg/px.jpg",
+			    "resources/skybox/skyboxsun25deg/nx.jpg",
+			    "resources/skybox/skyboxsun25deg/py.jpg",
+			    "resources/skybox/skyboxsun25deg/ny.jpg",
+			    "resources/skybox/skyboxsun25deg/pz.jpg",
+			    "resources/skybox/skyboxsun25deg/nz.jpg"
 			]);
 
 			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
@@ -75,28 +75,26 @@
 				objectMaterial = object.material;
 
 				objectMaterial.envMap = cube_texture;
-				objectMaterial.envMapIntensity = 0.2;
-				objectMaterial.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.MIX;
+				objectMaterial.envMapIntensity = 0.7;
 
 				object.scale.set(10, 10, 10);
-				object.euler.z = -Math.PI / 10;
+				object.euler.z = -Math.PI / 6;
 
 				scene.add(object);
 			});
 
-			var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.color.setHex(0xaaaaaa);
-			directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        scene.add(directionalLight);
-
+			// top light
 			var directionalLight = new zen3d.DirectionalLight();
 			directionalLight.color.setHex(0xbbbbff);
 			directionalLight.euler.set(Math.PI / 2, 0, 0);
+			directionalLight.intensity = 0.5;
 	        scene.add(directionalLight);
 
+			// bottom light
 			var directionalLight = new zen3d.DirectionalLight();
 			directionalLight.color.setHex(0x444422);
 			directionalLight.euler.set(-Math.PI / 2, 0, 0);
+			directionalLight.intensity = 0.5;
 	        scene.add(directionalLight);
 
 	        var camera = new zen3d.Camera();
@@ -106,7 +104,7 @@
 	        scene.add(camera);
 
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 50;
+			controller.distance = 30;
 			var mouse = new zen3d.Mouse(canvas);
 			var touch = new zen3d.Touch(canvas);
 			controller.bindMouse = mouse;
@@ -117,12 +115,6 @@
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
-
-				// time++;
-				//
-				// if(objectMaterial) {
-				// 	objectMaterial.emissiveIntensity = Math.cos(time / 40);
-				// }
 
 				controller.update();
 				mouse.update();

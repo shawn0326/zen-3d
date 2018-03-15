@@ -389,6 +389,14 @@
                         this.texture.setTexture2D(material.specularMap, slot);
                         uniform.setValue(slot);
                         break;
+                    case "aoMap":
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(material.aoMap, slot);
+                        uniform.setValue(slot);
+                        break;
+                    case "aoMapIntensity":
+                        uniform.setValue(material.aoMapIntensity);
+                        break;
                     case "u_Roughness":
                         uniform.setValue(material.roughness);
                         break;

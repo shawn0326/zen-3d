@@ -17,6 +17,7 @@ uniform vec3 emissive;
 #include <viewModelPos_pars_frag>
 #include <bsdfs>
 #include <envMap_pars_frag>
+#include <aoMap_pars_frag>
 #include <shadowMap_pars_frag>
 #include <fog_pars_frag>
 #include <emissiveMap_pars_frag>

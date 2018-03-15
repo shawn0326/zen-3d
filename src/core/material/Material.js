@@ -24,6 +24,10 @@
         // normal
         this.normalMap = null;
 
+        // aoMap
+        this.aoMap = null;
+	    this.aoMapIntensity = 1.0;
+
         // bump
         this.bumpMap = null;
 	    this.bumpScale = 1;

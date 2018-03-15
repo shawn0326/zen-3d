@@ -65,4 +65,11 @@
         return envMapColor * u_EnvMap_Intensity;
     }
 
+    // ref: https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
+    float computeSpecularOcclusion( const in float dotNV, const in float ambientOcclusion, const in float roughness ) {
+
+    	return saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );
+
+    }
+
 #endif

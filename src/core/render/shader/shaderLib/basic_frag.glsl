@@ -3,6 +3,7 @@
 #include <color_pars_frag>
 #include <diffuseMap_pars_frag>
 #include <envMap_pars_frag>
+#include <aoMap_pars_frag>
 #include <fog_pars_frag>
 void main() {
     #include <begin_frag>

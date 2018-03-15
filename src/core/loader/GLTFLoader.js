@@ -667,16 +667,15 @@
                         createDefaultMaterial() :
                         dependencies.materials[primitive.material];
 
-                    // TODO AOMap support
                     // add a_Uv2 for aoMap
-                    // if ( material.aoMap
-                    // 		&& geometry.attributes.a_Uv2 === undefined
-                    // 		&& geometry.attributes.a_Uv !== undefined ) {
-                    //
-                    // 	console.log( 'GLTFLoader: Duplicating UVs to support aoMap.' );
-                    // 	geometry.addAttribute( 'a_Uv2', new zen3d.BufferAttribute( geometry.attributes.a_Uv.array, 2 ) );
-                    //
-                    // }
+                    if ( material.aoMap
+                    		&& geometry.attributes.a_Uv2 === undefined
+                    		&& geometry.attributes.a_Uv !== undefined ) {
+
+                    	console.log( 'GLTFLoader: Duplicating UVs to support aoMap.' );
+                    	geometry.addAttribute( 'a_Uv2', new zen3d.BufferAttribute( geometry.attributes.a_Uv.array, 2 ) );
+
+                    }
 
                     // If the material will be modified later on, clone it now.
                     var useVertexColors = geometry.attributes.a_Color !== undefined;
@@ -1325,18 +1324,18 @@
 
         }
 
-        // TODO AOMap support
-        // if ( materialDef.occlusionTexture !== undefined && materialType !== THREE.MeshBasicMaterial) {
-        //
-        // 	pending.push( parser.assignTexture( materialParams, 'aoMap', materialDef.occlusionTexture.index ) );
-        //
-        // 	if ( materialDef.occlusionTexture.strength !== undefined ) {
-        //
-        // 		materialParams.aoMapIntensity = materialDef.occlusionTexture.strength;
-        //
-        // 	}
-        //
-        // }
+        // AOMap support
+        if ( materialDef.occlusionTexture !== undefined) {
+
+        	pending.push( parser.assignTexture( materialParams, 'aoMap', materialDef.occlusionTexture.index ) );
+
+        	if ( materialDef.occlusionTexture.strength !== undefined ) {
+
+        		materialParams.aoMapIntensity = materialDef.occlusionTexture.strength;
+
+        	}
+
+        }
 
         if (materialDef.emissiveFactor !== undefined) {
 

@@ -168,6 +168,7 @@
                 vshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
 
                 vshader_define.push(props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '');
+                vshader_define.push(props.useAOMap ? '#define USE_AOMAP' : '');
 
                 fshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 fshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
@@ -189,6 +190,7 @@
                     }
                     fshader_define.push('#define ' + define);
                 }
+                fshader_define.push(props.useAOMap ? '#define USE_AOMAP' : '');
             case MATERIAL_TYPE.LINE:
             case MATERIAL_TYPE.LINE_LOOP:
                 fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
@@ -284,6 +286,7 @@
                 props.useShaderTextureLOD = !!render.capabilities.shaderTextureLOD;
                 props.useVertexColors = material.vertexColors;
                 props.numClippingPlanes = render.clippingPlanes.length;
+                props.useAOMap = !!material.aoMap;
             case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_DASHED:
                 props.useDiffuseMap = !!material.diffuseMap;

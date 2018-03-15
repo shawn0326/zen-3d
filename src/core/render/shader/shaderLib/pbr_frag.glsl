@@ -19,6 +19,7 @@ uniform vec3 emissive;
 #include <normalMap_pars_frag>
 #include <bumpMap_pars_frag>
 #include <envMap_pars_frag>
+#include <aoMap_pars_frag>
 #include <light_pars_frag>
 #include <normal_pars_frag>
 #include <viewModelPos_pars_frag>
@@ -48,15 +49,6 @@ void main() {
     	// reads channel B, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
     	metalnessFactor *= texelMetalness.b;
     #endif
-
-	#ifdef USE_ENV_MAP
-		vec3 envDir;
-	    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)
-	        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);
-	    #else
-	        envDir = v_EnvPos;
-	    #endif
-	#endif
 
     #include <light_frag>
     #include <shadowMap_frag>

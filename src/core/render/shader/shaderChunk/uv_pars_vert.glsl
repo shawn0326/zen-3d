@@ -2,3 +2,8 @@
     attribute vec2 a_Uv;
     varying vec2 v_Uv;
 #endif
+
+#ifdef USE_AOMAP
+    attribute vec2 a_Uv2;
+    varying vec2 v_Uv2;
+#endif

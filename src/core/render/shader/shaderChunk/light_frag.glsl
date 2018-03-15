@@ -1,7 +1,11 @@
 #ifdef USE_LIGHT
     vec4 light;
     vec3 L;
-    vec4 totalReflect = vec4(0., 0., 0., 0.);
+
+    vec4 totalReflect = vec4(0., 0., 0., 0.); // direct light
+    vec4 indirectIrradiance = vec4(0., 0., 0., 0.); // for indirect diffuse
+    vec4 indirectRadiance = vec4(0., 0., 0., 0.); // for indirect specular
+
     #ifdef USE_PBR
         vec4 diffuseColor = outColor.xyzw * (1.0 - metalnessFactor);
         vec4 specularColor = mix(vec4(0.04), outColor.xyzw, metalnessFactor);
@@ -16,13 +20,28 @@
 
     #ifdef USE_AMBIENT_LIGHT
         #ifdef USE_PBR
-            totalReflect += diffuseColor * u_AmbientLightColor;
+            indirectIrradiance += PI * diffuseColor * u_AmbientLightColor;
         #else
-            totalReflect += RECIPROCAL_PI * diffuseColor * u_AmbientLightColor;
+            indirectIrradiance += diffuseColor * u_AmbientLightColor;
         #endif
     #endif
 
-    #if (defined(USE_PHONG) || defined(USE_PBR)) && (defined(USE_DIRECT_LIGHT) || defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT))
+    // TODO light map
+
+    #ifdef USE_PBR
+        #ifdef USE_ENV_MAP
+    		vec3 envDir;
+    	    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)
+    	        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);
+    	    #else
+    	        envDir = v_EnvPos;
+    	    #endif
+            indirectIrradiance += getLightProbeIndirectIrradiance(8, envDir);
+            indirectRadiance += getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir);
+    	#endif
+    #endif
+
+    #if (defined(USE_PHONG) || defined(USE_PBR))
         vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);
     #endif
 
@@ -51,11 +70,6 @@
 
         #ifdef USE_PBR
             reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
-            #ifdef USE_ENV_MAP
-                reflectLight.rgb += (getLightProbeIndirectIrradiance(8, envDir) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;
-
-                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;
-            #endif
         #endif
 
         totalReflect += reflectLight;
@@ -89,11 +103,6 @@
 
         #ifdef USE_PBR
             reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
-            #ifdef USE_ENV_MAP
-            reflectLight.rgb += (getLightProbeIndirectIrradiance(8, envDir) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;
-
-            reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;
-            #endif
         #endif
 
         totalReflect += reflectLight;
@@ -132,11 +141,6 @@
 
             #ifdef USE_PBR
                 reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
-                #ifdef USE_ENV_MAP
-                reflectLight.rgb += (getLightProbeIndirectIrradiance(8, envDir) * specularStrength * BRDF_Diffuse_Lambert(diffuseColor)).rgb;
-
-                reflectLight.rgb += (getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir) * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength).rgb;
-                #endif
             #endif
 
             totalReflect += reflectLight;
@@ -145,5 +149,29 @@
     }
     #endif
 
-    outColor.xyz = totalReflect.xyz;
+    vec4 indirectDiffuse = indirectIrradiance * BRDF_Diffuse_Lambert(diffuseColor);
+    vec4 indirectSpecular = vec4(0., 0., 0., 0.);
+
+    #if defined( USE_ENV_MAP ) && defined( USE_PBR )
+        indirectSpecular += indirectRadiance * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength;
+    #endif
+
+    #ifdef USE_AOMAP
+
+    	// reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
+    	float ambientOcclusion = ( texture2D( aoMap, v_Uv2 ).r - 1.0 ) * aoMapIntensity + 1.0;
+
+    	indirectDiffuse *= ambientOcclusion;
+
+    	#if defined( USE_ENV_MAP ) && defined( USE_PBR )
+
+    		float dotNV = saturate( dot( N, V ) );
+
+    		indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, GGXRoughnessToBlinnExponent(roughness) );
+
+    	#endif
+
+    #endif
+
+    outColor.xyz = totalReflect.xyz + indirectDiffuse.xyz + indirectSpecular.xyz;
 #endif
