@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
 
@@ -81,6 +82,18 @@
 				size: 5,
 				sizeRandomness: 1
 			}
+
+			// gui
+			var gui = new dat.GUI();
+			gui.add(options, "positionRandomness", 0, 3);
+			gui.add(options, "velocityRandomness", 0, 3);
+			gui.add(options, "colorRandomness", 0, 1);
+			gui.add(options, "turbulence", 0, 1);
+			gui.add(options, "lifetime", 0, 25);
+			gui.add(options, "size", 0, 10);
+			gui.add(options, "sizeRandomness", 0, 25);
+			gui.close();
+
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);

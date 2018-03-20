@@ -59,10 +59,14 @@
 			texture2.wrapT = texture2.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
 
 	        var plane_geometry = new zen3d.PlaneGeometry(1000, 1000);
-			for(var i = 0; i < 4; i++) {
-				plane_geometry.verticesArray[13 + i * 17] *= 20;
-				plane_geometry.verticesArray[14 + i * 17] *= 20;
+			var vertexCount = plane_geometry.getAttribute("a_Position").count;
+			var uvArray = plane_geometry.getAttribute("a_Uv").array;
+			for(var i = 0; i < vertexCount; i++) {
+				uvArray[i * 2 + 0] *= 20;
+				uvArray[i * 2 + 1] *= 20;
 			}
+			plane_geometry.getAttribute("a_Uv").version++;
+
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
 			lambert.diffuseMap = texture2;

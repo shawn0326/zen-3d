@@ -21,14 +21,12 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="../build/zen3d.input.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
 
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - point light
-        <br/>
-        press 's' to toggle shadow
     </div>
 
 	<script>
@@ -60,7 +58,7 @@
 	        scene.add(plane);
 
 	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xbbcccc);
+	        ambientLight.color.setHex(0xffffff);
 	        scene.add(ambientLight);
 
 	        var pointLight = new zen3d.PointLight();
@@ -92,8 +90,21 @@
 
 			toggleShadow();
 
-			// input
-			var keyboard = new zen3d.Keyboard(window);
+			// gui
+			var params = {intensity: 1, decay: 2, distance: 200, color: [255, 255, 255], useShadow: true};
+			var gui = new dat.GUI();
+			gui.add(params, "intensity", 0, 1).onChange(function(value) {pointLight.intensity = value;});
+			gui.add(params, "decay", 0, 4).onChange(function(value) {pointLight.decay = value;});
+			gui.add(params, "distance", 1, 500).onChange(function(value) {pointLight.distance = value;});
+			gui.addColor(params, "color").onChange(function(value) {
+				pointLight.color.r = value[0] / 255;
+				pointLight.color.g = value[1] / 255;
+				pointLight.color.b = value[2] / 255;
+			});
+			gui.add(params, "useShadow").onChange(function() {
+				toggleShadow()
+			});
+			gui.close();
 
 	        function loop(count) {
 
@@ -104,14 +115,7 @@
 				camera.position.z = 100 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-				// handle input
-				if(keyboard.wasPressed("s")) {
-					toggleShadow();
-				}
-
 	            renderer.render(scene, camera);
-
-				keyboard.update();
 	        }
 
 	        loop(0);

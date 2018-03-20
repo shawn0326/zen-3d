@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
 
@@ -43,6 +44,7 @@
 
 	        var renderer = new zen3d.Renderer(canvas);
 			renderer.gammaFactor = 1.5;
+			renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
@@ -88,14 +90,11 @@
 			plane.receiveShadow = true;
 			pointLight.castShadow = true;
 
-			// input
-			function toggleGammaCorrection() {
-				renderer.gammaInput = !renderer.gammaInput;
-				renderer.gammaOutput = !renderer.gammaOutput;
-			}
-
-			document.addEventListener("mouseup", toggleGammaCorrection);
-			document.addEventListener("touchend", toggleGammaCorrection);
+			var gui = new dat.GUI();
+			gui.add(renderer, "gammaInput");
+			gui.add(renderer, "gammaOutput");
+			gui.add(renderer, "gammaFactor", 0, 2).step(0.1);
+			gui.close();
 
 	        function loop(count) {
 

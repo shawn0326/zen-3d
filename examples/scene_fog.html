@@ -21,17 +21,12 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
 
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - fog
-		<br/>
-		press 'z' to enable fog
-		<br/>
-		press 'x' to enable exp2 fog
-		<br/>
-		press 'c' to disable fog
     </div>
 
 	<script>
@@ -106,17 +101,31 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
 	        scene.add(camera);
 
-			// input
-
-			document.onkeydown = function(e) {
-				if(e.keyCode == 90) { // 'z'
-					scene.fog = fog;
-				} else if(e.keyCode == 88) { // 'x'
-					scene.fog = fogExp2;
-				} else if(e.keyCode == 67) { // 'c'
-					scene.fog = null;
+			// gui
+			var params = {type: "exp", density: 0.002, near: 1, far: 1000};
+			var gui = new dat.GUI();
+			gui.add(params, "type", ["linear", "exp", "none"]).onChange(function(value) {
+				switch (value) {
+					case "linear":
+						scene.fog = fog;
+						break;
+					case "exp":
+						scene.fog = fogExp2;
+						break;
+					default:
+						scene.fog = null;
 				}
-	        }
+			});
+			gui.add(params, "density", 0, 0.005).onChange(function(value) {
+				fogExp2.density = value;
+			});
+			gui.add(params, "near", 1, 100).onChange(function(value) {
+				fog.near = value;
+			});
+			gui.add(params, "far", 100, 1000).onChange(function(value) {
+				fog.far = value;
+			});
+			gui.close();
 
 	        function loop(count) {
 

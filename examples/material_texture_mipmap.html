@@ -21,19 +21,12 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
 
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - mipmap
-		<br/>
-		press 'z' to close mipmaps and use LINEAR min filter
-		<br/>
-		press 'x' to close mipmaps and use NEAREST min filter
-		<br/>
-		press 'c' to open mipmaps and use LINEAR_MIPMAP_LINEAR min filter
-		<br/>
-		press 'v' to open mipmaps and use NEAREST_MIPMAP_NEAREST min filter
     </div>
 
 	<script>
@@ -86,25 +79,31 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			// input
-
-			document.onkeydown = function(e) {
-				if(e.keyCode == 90) { // 'z'
-					texture.generateMipMaps = false;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-				} else if(e.keyCode == 88) { // 'x'
-					texture.generateMipMaps = false;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-				} else if(e.keyCode == 67) { // 'c'
-					texture.generateMipMaps = true;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
-				} else if(e.keyCode == 86) { // 'v'
-					texture.generateMipMaps = true;
-					texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST_MIPMAP_NEAREST;
+			// gui
+			var params = {minFilter: "LINEAR"};
+			var gui = new dat.GUI();
+			gui.add(params, "minFilter", ["LINEAR", "NEAREST", "LINEAR_MIPMAP_LINEAR", "NEAREST_MIPMAP_NEAREST"]).onChange(function(value) {
+				switch (value) {
+					case "LINEAR":
+						texture.generateMipMaps = false;
+						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+						break;
+					case "NEAREST":
+						texture.generateMipMaps = false;
+						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+						break;
+					case "LINEAR_MIPMAP_LINEAR":
+						texture.generateMipMaps = true;
+						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+						break;
+					case "NEAREST_MIPMAP_NEAREST":
+						texture.generateMipMaps = true;
+						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST_MIPMAP_NEAREST;
+						break;
 				}
-
 				texture.version++;
-	        }
+			});
+			gui.close();
 
 	        function loop(count) {
 
