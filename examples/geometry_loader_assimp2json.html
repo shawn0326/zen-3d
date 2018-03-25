@@ -42,6 +42,7 @@
 	        var renderer = new zen3d.Renderer(canvas);
 			renderer.gammaInput = true;
 			renderer.gammaOutput = true;
+			renderer.shadowAutoUpdate = false;
 
 	        var scene = new zen3d.Scene();
 
@@ -51,11 +52,26 @@
 			var loader1 = new zen3d.AssimpJsonLoader();
 			loader1.load(jeep, function(object) {
 				object.scale.set(0.4, 0.4, 0.4);
+
+				object.traverse(function(obj) {
+					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+						obj.castShadow = true;
+					}
+				});
+
 				scene.add(object);
+
+				renderer.shadowNeedsUpdate = true;
 			});
 
 			var loader2 = new zen3d.AssimpJsonLoader();
 			loader2.load(interior, function(object) {
+				object.traverse(function(obj) {
+					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+						obj.receiveShadow = true;
+					}
+				});
+
 				scene.add(object);
 			});
 
@@ -64,12 +80,14 @@
 	        scene.add(ambientLight);
 
 	        var spotLight = new zen3d.SpotLight();
+			spotLight.position.set(0, 5, 0);
 	        spotLight.euler.set(Math.PI / 2, 0, 0);
 	        spotLight.color.setHex(0xffffff);
-			spotLight.angle = Math.PI / 3;
+			spotLight.angle = Math.PI / 5;
 			spotLight.penumbra = 0.3;
 	        spotLight.position.set(0, 10, 0);
-			spotLight.distance = 300;
+			spotLight.distance = 30;
+			spotLight.castShadow = true;
 	        scene.add(spotLight);
 
 	        var camera = new zen3d.Camera();

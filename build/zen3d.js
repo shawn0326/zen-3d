@@ -8400,6 +8400,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // implemental by subclass
     }
 
+    Object3D.prototype.traverse = function ( callback ) {
+		callback( this );
+
+		var children = this.children;
+		for ( var i = 0, l = children.length; i < l; i ++ ) {
+			children[ i ].traverse( callback );
+		}
+	}
+
     Object3D.prototype.clone = function ( recursive ) {
 		return new this.constructor().copy( this, recursive );
 	}
