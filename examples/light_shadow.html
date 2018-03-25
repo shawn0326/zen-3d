@@ -43,6 +43,7 @@
 	        var renderer = new zen3d.Renderer(canvas);
 			renderer.gammaInput = true;
 			renderer.gammaOutput = true;
+			renderer.shadowAutoUpdate = false;
 
 	        var scene = new zen3d.Scene();
 
@@ -56,6 +57,8 @@
 				object.scale.set(10, 10, 10);
 				object.position.y = 2;
 				scene.add(object);
+
+				renderer.shadowNeedsUpdate = true;
 			});
 
 	        // var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);

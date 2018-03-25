@@ -89,6 +89,9 @@
         this._currentRenderTarget = null;
 
         this._currentViewport = new zen3d.Vector4(0, 0, this.width, this.height);
+
+        this.shadowAutoUpdate = true;
+        this.shadowNeedsUpdate = false
     }
 
     /**
@@ -182,6 +185,8 @@
      * render shadow map for lights
      */
     Renderer.prototype.renderShadow = function() {
+		if ( this.shadowAutoUpdate === false && this.shadowNeedsUpdate === false ) return;
+
         var gl = this.gl;
         var state = this.state;
 
@@ -280,6 +285,8 @@
             // this.texture.updateRenderTargetMipmap(shadowTarget);
 
         }
+
+        this.shadowNeedsUpdate = false;
     }
 
     var helpVector3 = new zen3d.Vector3();

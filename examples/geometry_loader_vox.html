@@ -44,6 +44,7 @@
 	        var renderer = new zen3d.Renderer(canvas);
 			renderer.gammaInput = true;
 			renderer.gammaOutput = true;
+			renderer.shadowAutoUpdate = false;
 
 	        var scene = new zen3d.Scene();
 
@@ -58,6 +59,8 @@
 				var mesh = voxMeshBuilder.createMesh();
 				mesh.castShadow = true;
 				scene.add(mesh);
+
+				renderer.shadowNeedsUpdate = true;
 			});
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
