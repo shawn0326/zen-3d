@@ -79,6 +79,7 @@
         this.performance = new zen3d.Performance();
 
         this.depthMaterial = new zen3d.DepthMaterial();
+        this.depthMaterial.packToRGBA = true;
         this.distanceMaterial = new zen3d.DistanceMaterial();
 
         // object cache

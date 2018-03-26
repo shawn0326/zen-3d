@@ -203,6 +203,7 @@
 
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
             case MATERIAL_TYPE.DEPTH:
+                fshader_define.push(props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '');
             case MATERIAL_TYPE.DISTANCE:
                 vshader_define.push(props.useSkinning ? '#define USE_SKINNING' : '');
                 vshader_define.push((props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '');
@@ -311,6 +312,7 @@
                 props.doubleSided = material.side === zen3d.DRAW_SIDE.DOUBLE;
                 props.flipSided = material.side === zen3d.DRAW_SIDE.BACK;
             case MATERIAL_TYPE.DEPTH:
+                props.packDepthToRGBA = material.packToRGBA;
             case MATERIAL_TYPE.DISTANCE:
                 var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
                 var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;

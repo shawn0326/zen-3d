@@ -9,6 +9,8 @@
         this.type = zen3d.MATERIAL_TYPE.DEPTH;
 
         this.blending = zen3d.BLEND_TYPE.NONE;
+
+        this.packToRGBA = false;
     }
 
     zen3d.inherit(DepthMaterial, zen3d.Material);

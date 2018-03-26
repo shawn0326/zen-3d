@@ -79,14 +79,18 @@
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 80, 100);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        // camera.setPerspective(45 / 180 * Math.PI, width / height, 2, 400);
+			camera.setOrtho(- width / 4 / 2, width / 4 / 2, - height / 4 / 2, height / 4 / 2, 2, 300);
 	        scene.add(camera);
 
 			// gui
-			var params = {onlyDepth: true};
+			var params = {onlyDepth: true, packToRGBA: false};
 			var gui = new dat.GUI();
 			gui.add(params, "onlyDepth").onChange(function(value) {
 				scene.overrideMaterial = value ? depthMaterial : null;
+			});
+			gui.add(params, "packToRGBA").onChange(function(value) {
+				depthMaterial.packToRGBA = value;
 			});
 
 	        function loop(count) {
@@ -107,7 +111,8 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+				// camera.setPerspective(45 / 180 * Math.PI, width / height, 2, 400);
+				camera.setOrtho(- width / 4 / 2, width / 4 / 2, - height / 4 / 2, height / 4 / 2, 2, 300);
 
 				renderer.resize(width, height);
 			}

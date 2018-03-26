@@ -4942,7 +4942,7 @@ canvas2d_frag: "#include <common_frag>\nvarying vec2 v_Uv;\nuniform sampler2D sp
 canvas2d_vert: "#include <common_vert>\nattribute vec2 a_Uv;\nvarying vec2 v_Uv;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    v_Uv = a_Uv;\n}",
 cube_frag: "#include <common_frag>\nuniform samplerCube cubeMap;\nvarying vec3 v_ModelPos;\nvoid main() {\n    #include <begin_frag>\n    outColor *= textureCube(cubeMap, v_ModelPos);\n    #include <end_frag>\n}",
 cube_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
-depth_frag: "#include <common_frag>\n#include <packing>\nvoid main() {\n    gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\n}",
+depth_frag: "#include <common_frag>\n#include <packing>\nvoid main() {\n    #ifdef DEPTH_PACKING_RGBA\n        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\n    #else\n        gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), u_Opacity );\n    #endif\n}",
 depth_vert: "#include <common_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n}",
 distance_frag: "#include <common_frag>\nuniform vec3 lightPos;\nuniform float nearDistance;\nuniform float farDistance;\nvarying vec3 v_ModelPos;\n#include <packing>\nvoid main() {\n    float dist = length( v_ModelPos - lightPos );\n\tdist = ( dist - nearDistance ) / ( farDistance - nearDistance );\n\tdist = saturate( dist );\n    gl_FragColor = packDepthToRGBA(dist);\n}",
 distance_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
@@ -5167,6 +5167,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
             case MATERIAL_TYPE.DEPTH:
+                fshader_define.push(props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '');
             case MATERIAL_TYPE.DISTANCE:
                 vshader_define.push(props.useSkinning ? '#define USE_SKINNING' : '');
                 vshader_define.push((props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '');
@@ -5275,6 +5276,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.doubleSided = material.side === zen3d.DRAW_SIDE.DOUBLE;
                 props.flipSided = material.side === zen3d.DRAW_SIDE.BACK;
             case MATERIAL_TYPE.DEPTH:
+                props.packDepthToRGBA = material.packToRGBA;
             case MATERIAL_TYPE.DISTANCE:
                 var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
                 var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
@@ -5403,6 +5405,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.performance = new zen3d.Performance();
 
         this.depthMaterial = new zen3d.DepthMaterial();
+        this.depthMaterial.packToRGBA = true;
         this.distanceMaterial = new zen3d.DistanceMaterial();
 
         // object cache
@@ -8185,6 +8188,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.type = zen3d.MATERIAL_TYPE.DEPTH;
 
         this.blending = zen3d.BLEND_TYPE.NONE;
+
+        this.packToRGBA = false;
     }
 
     zen3d.inherit(DepthMaterial, zen3d.Material);
