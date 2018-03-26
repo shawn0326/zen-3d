@@ -8,6 +8,8 @@
 
         this.type = zen3d.OBJECT_TYPE.SCENE;
 
+        this.overrideMaterial = null;
+
         this.fog = null;
     }
 

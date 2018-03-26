@@ -167,7 +167,7 @@
             } else if(layer === RENDER_LAYER.PARTICLE) {
                 this.renderParticles(renderLists[layer]);
             } else {
-                this.renderList(renderLists[layer]);
+                this.renderList(renderLists[layer], scene.overrideMaterial);
             }
         }
         performance.endCounter("renderList");
@@ -291,7 +291,7 @@
 
     var helpVector3 = new zen3d.Vector3();
 
-    Renderer.prototype.renderList = function(renderList) {
+    Renderer.prototype.renderList = function(renderList, overrideMaterial) {
         var camera = this.cache.camera;
         var fog = this.cache.fog;
         var gl = this.gl;
@@ -303,7 +303,7 @@
 
             var renderItem = renderList[i];
             var object = renderItem.object;
-            var material = renderItem.material;
+            var material = overrideMaterial ? overrideMaterial : renderItem.material;
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 

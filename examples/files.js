@@ -15,6 +15,7 @@ var files = {
 	"material": [
 		"material_materials",
 		"material_pbr",
+		"material_depth",
 		"material_texture_normalmap",
 		"material_texture_emissivemap",
 		"material_texture_bumpmap",
