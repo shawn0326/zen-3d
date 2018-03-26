@@ -36,16 +36,14 @@
     EffectComposer.prototype.render = function(scene, camera) {
         var renderer = this.renderer;
 
-        renderer.render(scene, camera, this.readBuffer, true);
-
         for(var i = 0; i < this.passes.length; i++) {
             var pass = this.passes[i];
 
-            if(i === this.passes.length - 1) {
-                pass.render(renderer, this.readBuffer, undefined);
-                this.swapBuffers();
-            } else {
-                pass.render(renderer, this.readBuffer, this.writeBuffer);
+            if ( pass.enabled === false ) continue;
+
+            pass.render(renderer, this.readBuffer, this.writeBuffer);
+
+            if(pass.needsSwap) {
                 this.swapBuffers();
             }
         }
@@ -54,7 +52,69 @@
     zen3d.EffectComposer = EffectComposer;
 })();
 (function() {
-    var Pass = function(vertexShader, fragmentShader, uniforms) {
+    var Pass = function() {
+        // if set to true, the pass is processed by the composer
+	    this.enabled = true;
+
+        // if set to true, the pass indicates to swap read and write buffer after rendering
+        this.needsSwap = true;
+
+        // if set to true, the pass clears its buffer before rendering
+	    this.clear = false;
+
+        // if set to true, the result of the pass is rendered to screen
+	    this.renderToScreen = false;
+    }
+
+    Pass.prototype.render = function(renderer, readBuffer, writeBuffer) {
+        console.error( 'zen3d.Pass: .render() must be implemented in derived pass.' );
+    }
+
+    zen3d.Pass = Pass;
+})();
+(function() {
+    var RenderPass = function(scene, camera) {
+        RenderPass.superClass.constructor.call(this);
+
+        this.scene = scene;
+    	this.camera = camera;
+
+    	this.needsSwap = false;
+    }
+
+    zen3d.inherit(RenderPass, zen3d.Pass);
+
+    RenderPass.prototype.render = function(renderer, readBuffer, writeBuffer) {
+
+        renderer.render(this.scene, this.camera, this.renderToScreen ? null : readBuffer, this.clear);
+
+    }
+
+    zen3d.RenderPass = RenderPass;
+})();
+(function() {
+
+    function cloneUniforms(uniforms_src) {
+        var uniforms_dst = {};
+
+        for(var name in uniforms_src) {
+            var uniform_src = uniforms_src[name];
+            // TODO zen3d object clone
+            if ( Array.isArray( uniform_src ) ) {
+                uniforms_dst[name] = uniform_src.slice();
+            } else {
+                uniforms_dst[name] = uniform_src;
+            }
+        }
+
+        return uniforms_dst;
+    }
+
+    var ShaderPass = function(shader, textureID) {
+        ShaderPass.superClass.constructor.call(this);
+
+        this.textureID = ( textureID !== undefined ) ? textureID : "tDiffuse";
+
         var scene = this.scene = new zen3d.Scene();
 
         var camera = this.camera = new zen3d.Camera();
@@ -64,16 +124,23 @@
         scene.add(camera);
 
         var geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
-        var material = this.shader = new zen3d.ShaderMaterial(vertexShader, fragmentShader, uniforms);
+        this.uniforms = cloneUniforms(shader.uniforms);
+        var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
         var plane = new zen3d.Mesh(geometry, material);
         scene.add(plane);
     }
 
-    Pass.prototype.render = function(renderer, readBuffer, writeBuffer) {
-        this.shader.diffuseMap = readBuffer.texture;
+    zen3d.inherit(ShaderPass, zen3d.Pass);
 
-        renderer.render(this.scene, this.camera, writeBuffer, (writeBuffer != undefined));
+    ShaderPass.prototype.render = function(renderer, readBuffer, writeBuffer) {
+        this.uniforms[this.textureID] = readBuffer.texture;
+
+        if(this.renderToScreen) {
+            renderer.render(this.scene, this.camera);
+        } else {
+            renderer.render(this.scene, this.camera, writeBuffer, this.clear);
+        }
     }
 
-    zen3d.Pass = Pass;
+    zen3d.ShaderPass = ShaderPass;
 })();

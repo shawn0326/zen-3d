@@ -36,16 +36,14 @@
     EffectComposer.prototype.render = function(scene, camera) {
         var renderer = this.renderer;
 
-        renderer.render(scene, camera, this.readBuffer, true);
-
         for(var i = 0; i < this.passes.length; i++) {
             var pass = this.passes[i];
 
-            if(i === this.passes.length - 1) {
-                pass.render(renderer, this.readBuffer, undefined);
-                this.swapBuffers();
-            } else {
-                pass.render(renderer, this.readBuffer, this.writeBuffer);
+            if ( pass.enabled === false ) continue;
+
+            pass.render(renderer, this.readBuffer, this.writeBuffer);
+
+            if(pass.needsSwap) {
                 this.swapBuffers();
             }
         }

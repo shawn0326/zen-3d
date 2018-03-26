@@ -182,7 +182,9 @@ var inspectorSrc = [
 var postprocessingSrc = [
     // postprocessing
     "src/extension/postprocessing/EffectComposer.js",
-    "src/extension/postprocessing/Pass.js"
+    "src/extension/postprocessing/Pass.js",
+    "src/extension/postprocessing/RenderPass.js",
+    "src/extension/postprocessing/ShaderPass.js"
 ];
 
 var inputSrc = [
