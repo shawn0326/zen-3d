@@ -5,6 +5,8 @@
      */
     var Object3D = function() {
 
+        this.uuid = zen3d.generateUUID();
+
         // a custom name for this object
         this.name = "";
 

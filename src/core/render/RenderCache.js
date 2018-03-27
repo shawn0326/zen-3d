@@ -12,6 +12,61 @@
         return b.z - a.z;
     }
 
+    var lightCaches = {};
+
+    function getLightCache(light) {
+        if(lightCaches[light.uuid] !== undefined) {
+            return lightCaches[light.uuid];
+        }
+
+        var cache;
+        switch ( light.lightType ) {
+            case LIGHT_TYPE.DIRECT:
+                cache = {
+                    direction: new Float32Array(3),
+                    color: new Float32Array([0, 0, 0, 1]),
+                    shadow: false,
+                    shadowBias: 0,
+                    shadowRadius: 1,
+                    shadowMapSize: new Float32Array(2)
+                };
+                break;
+            case LIGHT_TYPE.POINT:
+                cache = {
+                    position: new Float32Array(3),
+                    color: new Float32Array([0, 0, 0, 1]),
+                    distance: 0,
+                    decay: 0,
+                    shadow: false,
+                    shadowBias: 0,
+                    shadowRadius: 1,
+                    shadowMapSize: new Float32Array(2),
+                    shadowCameraNear: 1,
+                    shadowCameraFar: 1000
+                };
+                break;
+            case LIGHT_TYPE.SPOT:
+                cache = {
+                    position: new Float32Array(3),
+                    direction: new Float32Array(3),
+                    color: new Float32Array([0, 0, 0, 1]),
+                    distance: 0,
+                    coneCos: 0,
+                    penumbraCos: 0,
+                    decay: 0,
+                    shadow: false,
+                    shadowBias: 0,
+                    shadowRadius: 1,
+                    shadowMapSize: new Float32Array(2)
+                };
+                break;
+        }
+
+        lightCaches[light.uuid] = cache;
+
+        return cache;
+    }
+
     /**
      * Render Cache
      * use this class to cache and organize objects
@@ -29,10 +84,16 @@
 
         // lights
         this.lights = {
-            ambients: [],
-            directs: [],
-            points: [],
-            spots: [],
+            ambient: new Float32Array([0, 0, 0, 1]),
+            directional: [],
+            directionalShadowMap: [],
+            directionalShadowMatrix: [],
+            point: [],
+            pointShadowMap: [],
+            pointShadowMatrix: [],
+            spot: [],
+            spotShadowMap: [],
+            spotShadowMatrix: [],
             shadows: [],
             ambientsNum: 0,
             directsNum: 0,
@@ -40,7 +101,7 @@
             spotsNum: 0,
             shadowsNum: 0,
             totalNum: 0
-        }
+        };
 
         // camera
         this.camera = null;
@@ -178,16 +239,170 @@
             case OBJECT_TYPE.LIGHT:
                 var lights = this.lights;
                 if (object.lightType == LIGHT_TYPE.AMBIENT) {
-                    lights.ambients.push(object);
+                    var intensity = object.intensity;
+                    var color = object.color;
+
+                    lights.ambient[0] += color.r * intensity;
+                    lights.ambient[1] += color.g * intensity;
+                    lights.ambient[2] += color.b * intensity;
+
                     lights.ambientsNum++;
                 } else if (object.lightType == LIGHT_TYPE.DIRECT) {
-                    lights.directs.push(object);
+                    var intensity = object.intensity;
+                    var color = object.color;
+
+                    var cache = getLightCache(object);
+
+                    cache.color[0] = color.r * intensity;
+                    cache.color[1] = color.g * intensity;
+                    cache.color[2] = color.b * intensity;
+
+                    var direction = helpVector3;
+                    object.getWorldDirection(direction);
+                    direction.transformDirection(camera.viewMatrix);
+
+                    cache.direction[0] = direction.x;
+                    cache.direction[1] = direction.y;
+                    cache.direction[2] = direction.z;
+
+                    if(object.castShadow) {
+                        cache.shadow = true;
+                        cache.shadowBias = object.shadow.bias;
+                        cache.shadowRadius = object.shadow.radius;
+                        cache.shadowMapSize[0] = object.shadow.mapSize.x;
+                        cache.shadowMapSize[1] = object.shadow.mapSize.y;
+                    } else {
+                        cache.shadow = false;
+                    }
+
+                    if(object.castShadow) {
+
+                        // resize typed array
+                        var needSize = (lights.directsNum + 1) * 16;
+                        if(lights.directionalShadowMatrix.length < needSize) {
+                            var old = lights.directionalShadowMatrix;
+                            lights.directionalShadowMatrix = new Float32Array(needSize);
+                            lights.directionalShadowMatrix.set(old);
+                        }
+
+                        lights.directionalShadowMatrix.set(object.shadow.matrix.elements, lights.directsNum * 16);
+                        lights.directionalShadowMap[lights.directsNum] = object.shadow.map;
+                    }
+
+                    lights.directional[lights.directsNum] = cache;
+
                     lights.directsNum++;
                 } else if (object.lightType == LIGHT_TYPE.POINT) {
-                    lights.points.push(object);
+                    var intensity = object.intensity;
+                    var color = object.color;
+                    var distance = object.distance;
+                    var decay = object.decay;
+
+                    var cache = getLightCache(object);
+
+                    cache.color[0] = color.r * intensity;
+                    cache.color[1] = color.g * intensity;
+                    cache.color[2] = color.b * intensity;
+
+                    cache.distance = distance;
+                    cache.decay = decay;
+
+                    var position = helpVector3.setFromMatrixPosition(object.worldMatrix).applyMatrix4(camera.viewMatrix);
+
+                    cache.position[0] = position.x;
+                    cache.position[1] = position.y;
+                    cache.position[2] = position.z;
+
+                    if(object.castShadow) {
+                        cache.shadow = true;
+                        cache.shadowBias = object.shadow.bias;
+                        cache.shadowRadius = object.shadow.radius;
+                        cache.shadowMapSize[0] = object.shadow.mapSize.x;
+                        cache.shadowMapSize[1] = object.shadow.mapSize.y;
+                        cache.shadowCameraNear = object.shadow.cameraNear;
+                        cache.shadowCameraFar = object.shadow.cameraFar;
+                    } else {
+                        cache.shadow = false;
+                    }
+
+                    if(object.castShadow) {
+
+                        // resize typed array
+                        var needSize = (lights.pointsNum + 1) * 16;
+                        if(lights.pointShadowMatrix.length < needSize) {
+                            var old = lights.pointShadowMatrix;
+                            lights.pointShadowMatrix = new Float32Array(needSize);
+                            lights.pointShadowMatrix.set(old);
+                        }
+
+                        lights.pointShadowMatrix.set(object.shadow.matrix.elements, lights.pointsNum * 16);
+                        lights.pointShadowMap[lights.pointsNum] = object.shadow.map;
+                    }
+
+                    lights.point[lights.pointsNum] = cache;
+
                     lights.pointsNum++;
                 } else if (object.lightType == LIGHT_TYPE.SPOT) {
-                    lights.spots.push(object);
+                    var intensity = object.intensity;
+                    var color = object.color;
+                    var distance = object.distance;
+                    var decay = object.decay;
+
+                    var cache = getLightCache(object);
+
+                    cache.color[0] = color.r * intensity;
+                    cache.color[1] = color.g * intensity;
+                    cache.color[2] = color.b * intensity;
+
+                    cache.distance = distance;
+                    cache.decay = decay;
+
+                    var position = helpVector3.setFromMatrixPosition(object.worldMatrix).applyMatrix4(camera.viewMatrix);
+
+                    cache.position[0] = position.x;
+                    cache.position[1] = position.y;
+                    cache.position[2] = position.z;
+
+                    var direction = helpVector3;
+                    object.getWorldDirection(helpVector3);
+                    helpVector3.transformDirection(camera.viewMatrix);
+
+                    cache.direction[0] = direction.x;
+                    cache.direction[1] = direction.y;
+                    cache.direction[2] = direction.z;
+
+                    var coneCos = Math.cos(object.angle);
+                    var penumbraCos = Math.cos(object.angle * (1 - object.penumbra));
+
+                    cache.coneCos = coneCos;
+                    cache.penumbraCos = penumbraCos;
+
+                    if(object.castShadow) {
+                        cache.shadow = true;
+                        cache.shadowBias = object.shadow.bias;
+                        cache.shadowRadius = object.shadow.radius;
+                        cache.shadowMapSize[0] = object.shadow.mapSize.x;
+                        cache.shadowMapSize[1] = object.shadow.mapSize.y;
+                    } else {
+                        cache.shadow = false;
+                    }
+
+                    if(object.castShadow) {
+
+                        // resize typed array
+                        var needSize = (lights.spotsNum + 1) * 16;
+                        if(lights.spotShadowMatrix.length < needSize) {
+                            var old = lights.spotShadowMatrix;
+                            lights.spotShadowMatrix = new Float32Array(needSize);
+                            lights.spotShadowMatrix.set(old);
+                        }
+
+                        lights.spotShadowMatrix.set(object.shadow.matrix.elements, lights.spotsNum * 16);
+                        lights.spotShadowMap[lights.spotsNum] = object.shadow.map;
+                    }
+
+                    lights.spot[lights.spotsNum] = cache;
+
                     lights.spotsNum++;
                 }
 
@@ -246,10 +461,9 @@
         this.shadowObjects.length = 0;
 
         var lights = this.lights;
-        lights.ambients.length = 0;
-        lights.directs.length = 0;
-        lights.points.length = 0;
-        lights.spots.length = 0;
+        for(var i = 0; i < 3; i++) {
+            lights.ambient[i] = 0;
+        }
         lights.shadows.length = 0;
         lights.ambientsNum = 0;
         lights.directsNum = 0;
