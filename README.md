@@ -16,7 +16,7 @@ The aim of the project is to create an easy to use, lightweight, 3D/2D library. 
 [Tests](https://shawn0326.github.io/zen-3d/tests/)
 
 [![image](./examples/resources/screenshot/screenshot1.png)](https://shawn0326.github.io/zen-3d/examples/#material_cubetexture_realtimeenvmap)
-[![image](./examples/resources/screenshot/screenshot2.png)](https://shawn0326.github.io/zen-3d/examples/#material_cubetexture_envmap)
+[![image](./examples/resources/screenshot/screenshot0.png)](https://shawn0326.github.io/zen-3d/examples/#geometry_loader_gltf)
 [![image](./examples/resources/screenshot/screenshot3.png)](https://shawn0326.github.io/zen-3d/examples/#canvas2d_canvas2d)
 [![image](./examples/resources/screenshot/screenshot4.png)](https://shawn0326.github.io/zen-3d/examples/#webvr_car)
 <br />
@@ -64,7 +64,10 @@ you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
 <script src="zen3d.min.js"></script>
 ````
 
-zen-3d use JSON([assimp2json](https://github.com/acgessler/assimp2json)) as default supported format of model.
+### 3D Format Support ###
+
+[GLTF](https://github.com/KhronosGroup/glTF) /
+[assimp2json](https://github.com/acgessler/assimp2json)
 
 ### About Me ###
 
