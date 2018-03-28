@@ -133,7 +133,6 @@
             case OBJECT_TYPE.LINE:
             case OBJECT_TYPE.LINE_LOOP:
             case OBJECT_TYPE.LINE_SEGMENTS:
-            case OBJECT_TYPE.CANVAS2D:
             case OBJECT_TYPE.MESH:
             case OBJECT_TYPE.SKINNED_MESH:
 
@@ -161,7 +160,7 @@
                         var groupMaterial = material[group.materialIndex];
                         if(groupMaterial) {
 
-                            this.renderLists[object.layer].push({
+                            this.renderLists[groupMaterial.transparent ? RENDER_LAYER.TRANSPARENT : RENDER_LAYER.DEFAULT].push({
                                 object: object,
                                 geometry: object.geometry,
                                 material: groupMaterial,
@@ -181,7 +180,7 @@
                         }
                     }
                 } else {
-                    this.renderLists[object.layer].push({
+                    this.renderLists[material.transparent ? RENDER_LAYER.TRANSPARENT : RENDER_LAYER.DEFAULT].push({
                         object: object,
                         geometry: object.geometry,
                         material: object.material,
@@ -198,6 +197,28 @@
                     }
                 }
 
+                break;
+            case OBJECT_TYPE.CANVAS2D:
+                // frustum test
+                if(object.frustumCulled) {
+                    helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
+                    helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
+                    helpFrustum.setFromMatrix(helpMatrix);
+                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
+                    if(!frustumTest) {
+                        break;
+                    }
+                }
+
+                helpVector3.setFromMatrixPosition(object.worldMatrix);
+                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+                this.renderLists[RENDER_LAYER.CANVAS2D].push({
+                    object: object,
+                    geometry: object.geometry,
+                    material: object.material,
+                    z: helpVector3.z
+                });
                 break;
             case OBJECT_TYPE.SPRITE:
                 // frustum test
@@ -216,7 +237,7 @@
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                this.renderLists[object.layer].push({
+                this.renderLists[RENDER_LAYER.SPRITE].push({
                     object: object,
                     material: object.material,
                     z: helpVector3.z
@@ -229,7 +250,7 @@
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                this.renderLists[object.layer].push({
+                this.renderLists[RENDER_LAYER.PARTICLE].push({
                     object: object,
                     geometry: object.geometry,
                     material: object.material,

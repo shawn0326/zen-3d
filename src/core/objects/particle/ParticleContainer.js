@@ -53,8 +53,6 @@
 
         this.type = zen3d.OBJECT_TYPE.PARTICLE;
 
-		this.layer = zen3d.RENDER_LAYER.PARTICLE;
-
 		this.material = new zen3d.ParticleMaterial();
     }
 

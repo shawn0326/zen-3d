@@ -481,9 +481,6 @@
             } else {
                 mesh = new zen3d.Mesh(meshes[idx], material);
             }
-            if(material.transparent) {
-                mesh.layer = zen3d.RENDER_LAYER.TRANSPARENT;
-            }
             mesh.frustumCulled = false;
             group.add(mesh);
         }

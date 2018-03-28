@@ -58,6 +58,8 @@
 			var phong1 = new zen3d.PhongMaterial();
 			phong1.diffuse.setHex(0xff0000);
 			phong1.side = zen3d.DRAW_SIDE.DOUBLE;
+			phong1.transparent = true;
+			phong1.opacity = 0.5;
 
 			var phong2 = new zen3d.PhongMaterial();
 			phong2.diffuse.setHex(0x00ff00);

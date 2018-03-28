@@ -6397,7 +6397,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             case OBJECT_TYPE.LINE:
             case OBJECT_TYPE.LINE_LOOP:
             case OBJECT_TYPE.LINE_SEGMENTS:
-            case OBJECT_TYPE.CANVAS2D:
             case OBJECT_TYPE.MESH:
             case OBJECT_TYPE.SKINNED_MESH:
 
@@ -6425,7 +6424,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         var groupMaterial = material[group.materialIndex];
                         if(groupMaterial) {
 
-                            this.renderLists[object.layer].push({
+                            this.renderLists[groupMaterial.transparent ? RENDER_LAYER.TRANSPARENT : RENDER_LAYER.DEFAULT].push({
                                 object: object,
                                 geometry: object.geometry,
                                 material: groupMaterial,
@@ -6445,7 +6444,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         }
                     }
                 } else {
-                    this.renderLists[object.layer].push({
+                    this.renderLists[material.transparent ? RENDER_LAYER.TRANSPARENT : RENDER_LAYER.DEFAULT].push({
                         object: object,
                         geometry: object.geometry,
                         material: object.material,
@@ -6462,6 +6461,28 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     }
                 }
 
+                break;
+            case OBJECT_TYPE.CANVAS2D:
+                // frustum test
+                if(object.frustumCulled) {
+                    helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
+                    helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
+                    helpFrustum.setFromMatrix(helpMatrix);
+                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
+                    if(!frustumTest) {
+                        break;
+                    }
+                }
+
+                helpVector3.setFromMatrixPosition(object.worldMatrix);
+                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+                this.renderLists[RENDER_LAYER.CANVAS2D].push({
+                    object: object,
+                    geometry: object.geometry,
+                    material: object.material,
+                    z: helpVector3.z
+                });
                 break;
             case OBJECT_TYPE.SPRITE:
                 // frustum test
@@ -6480,7 +6501,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                this.renderLists[object.layer].push({
+                this.renderLists[RENDER_LAYER.SPRITE].push({
                     object: object,
                     material: object.material,
                     z: helpVector3.z
@@ -6493,7 +6514,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 helpVector3.setFromMatrixPosition(object.worldMatrix);
                 helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-                this.renderLists[object.layer].push({
+                this.renderLists[RENDER_LAYER.PARTICLE].push({
                     object: object,
                     geometry: object.geometry,
                     material: object.material,
@@ -8285,9 +8306,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // type of this object, set by subclass
         this.type = "";
 
-        // render layer
-        this.layer = zen3d.RENDER_LAYER.DEFAULT;
-
         // position
         this.position = new zen3d.Vector3();
         // scale
@@ -8459,8 +8477,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.name = source.name;
 
         this.type = source.type;
-
-        this.layer = source.layer;
 
         this.position.copy( source.position );
 		this.quaternion.copy( source.quaternion );
@@ -9348,8 +9364,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.material = (material !== undefined) ? material : new zen3d.SpriteMaterial();
 
         this.type = zen3d.OBJECT_TYPE.SPRITE;
-
-        this.layer = zen3d.RENDER_LAYER.SPRITE;
     }
 
     zen3d.inherit(Sprite, zen3d.Object3D);
@@ -9412,8 +9426,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.time = 0;
 
         this.type = zen3d.OBJECT_TYPE.PARTICLE;
-
-		this.layer = zen3d.RENDER_LAYER.PARTICLE;
 
 		this.material = new zen3d.ParticleMaterial();
     }
@@ -10405,9 +10417,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 mesh.skeleton = skeletons[idx];
             } else {
                 mesh = new zen3d.Mesh(meshes[idx], material);
-            }
-            if(material.transparent) {
-                mesh.layer = zen3d.RENDER_LAYER.TRANSPARENT;
             }
             mesh.frustumCulled = false;
             group.add(mesh);
