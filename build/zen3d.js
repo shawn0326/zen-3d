@@ -4817,7 +4817,7 @@ cube_frag: "#include <common_frag>\nuniform samplerCube cubeMap;\nvarying vec3 v
 cube_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\nvoid main() {\n    #include <begin_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
 depth_frag: "#include <common_frag>\n#include <packing>\nvoid main() {\n    #ifdef DEPTH_PACKING_RGBA\n        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\n    #else\n        gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), u_Opacity );\n    #endif\n}",
 depth_vert: "#include <common_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n}",
-distance_frag: "#include <common_frag>\nuniform vec3 lightPos;\nuniform float nearDistance;\nuniform float farDistance;\nvarying vec3 v_ModelPos;\n#include <packing>\nvoid main() {\n    float dist = length( v_ModelPos - lightPos );\n\tdist = ( dist - nearDistance ) / ( farDistance - nearDistance );\n\tdist = saturate( dist );\n    gl_FragColor = packDepthToRGBA(dist);\n}",
+distance_frag: "#include <common_frag>\nuniform float nearDistance;\nuniform float farDistance;\nvarying vec3 v_ModelPos;\n#include <packing>\nvoid main() {\n    float dist = length( v_ModelPos - u_CameraPosition );\n\tdist = ( dist - nearDistance ) / ( farDistance - nearDistance );\n\tdist = saturate( dist );\n    gl_FragColor = packDepthToRGBA(dist);\n}",
 distance_vert: "#include <common_vert>\nvarying vec3 v_ModelPos;\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n}",
 lambert_frag: "#include <common_frag>\nuniform vec3 emissive;\n#include <uv_pars_frag>\n#include <color_pars_frag>\n#include <diffuseMap_pars_frag>\n#include <normalMap_pars_frag>\n#include <bumpMap_pars_frag>\n#include <light_pars_frag>\n#include <normal_pars_frag>\n#include <viewModelPos_pars_frag>\n#include <bsdfs>\n#include <envMap_pars_frag>\n#include <aoMap_pars_frag>\n#include <shadowMap_pars_frag>\n#include <fog_pars_frag>\n#include <emissiveMap_pars_frag>\n#include <clippingPlanes_pars_frag>\nvoid main() {\n    #include <clippingPlanes_frag>\n    #include <begin_frag>\n    #include <color_frag>\n    #include <diffuseMap_frag>\n    #include <normal_frag>\n    #include <light_frag>\n    #include <envMap_frag>\n    #include <shadowMap_frag>\n    vec3 totalEmissiveRadiance = emissive;\n    #include <emissiveMap_frag>\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\n    #include <end_frag>\n    #include <encodings_frag>\n    #include <premultipliedAlpha_frag>\n    #include <fog_frag>\n}",
 lambert_vert: "#include <common_vert>\n#include <normal_pars_vert>\n#include <uv_pars_vert>\n#include <color_pars_vert>\n#include <viewModelPos_pars_vert>\n#include <envMap_pars_vert>\n#include <shadowMap_pars_vert>\n#include <skinning_pars_vert>\nvoid main() {\n    #include <begin_vert>\n    #include <skinning_vert>\n    #include <pvm_vert>\n    #include <normal_vert>\n    #include <uv_vert>\n    #include <color_vert>\n    #include <viewModelPos_vert>\n    #include <envMap_vert>\n    #include <shadowMap_vert>\n}",
@@ -5367,7 +5367,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             } else if(layer === RENDER_LAYER.PARTICLE) {
                 this.renderParticles(renderLists[layer]);
             } else {
-                this.renderList(renderLists[layer], scene.overrideMaterial);
+                this.renderList(renderLists[layer], camera, {
+                    getMaterial: function(renderable) {
+                        return scene.overrideMaterial || renderable.material;
+                    }
+                });
             }
         }
         performance.endCounter("renderList");
@@ -5419,65 +5423,78 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     continue;
                 }
 
-                for (var n = 0, l = renderList.length; n < l; n++) {
-                    var renderItem = renderList[n];
-                    var object = renderItem.object;
-                    var material = renderItem.material;
-                    var geometry = renderItem.geometry;
-                    var group = renderItem.group;
-                    var materialForShadow = isPointLight ? this.distanceMaterial : this.depthMaterial;
+                var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
+                material.uniforms = material.uniforms || {};
+                material.uniforms["nearDistance"] = shadow.cameraNear;
+                material.uniforms["farDistance"] = shadow.cameraFar;
 
-                    var program = zen3d.getProgram(gl, this, materialForShadow, object);
-                    state.setProgram(program);
-
-                    this.geometry.setGeometry(geometry);
-                    this.setupVertexAttributes(program, geometry);
-
-                    // update uniforms
-                    var uniforms = program.uniforms;
-                    for (var key in uniforms) {
-                        var uniform = uniforms[key];
-                        switch (key) {
-                            // pvm matrix
-                            case "u_Projection":
-                                var projectionMat = camera.projectionMatrix.elements;
-                                uniform.setValue(projectionMat);
-                                break;
-                            case "u_View":
-                                var viewMatrix = camera.viewMatrix.elements;
-                                uniform.setValue(viewMatrix);
-                                break;
-                            case "u_Model":
-                                var modelMatrix = object.worldMatrix.elements;
-                                uniform.setValue(modelMatrix);
-                                break;
-                            case "lightPos":
-                                helpVector3.setFromMatrixPosition(light.worldMatrix);
-                                uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
-                                break;
-                            case "nearDistance":
-                                uniform.setValue(shadow.cameraNear);
-                                break;
-                            case "farDistance":
-                                uniform.setValue(shadow.cameraFar);
-                                break;
-                        }
+                this.renderList(renderList, camera, {
+                    getMaterial: function(renderable) {
+                        // copy draw side
+                        material.side = renderable.material.side;
+                        return material;
                     }
+                });
 
-                    // boneMatrices
-                    if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH) {
-                        this.uploadSkeleton(uniforms, object, program.id);
-                    }
+            //     for (var n = 0, l = renderList.length; n < l; n++) {
+            //         var renderItem = renderList[n];
+            //         var object = renderItem.object;
+            //         var material = renderItem.material;
+            //         var geometry = renderItem.geometry;
+            //         var group = renderItem.group;
+            //         var materialForShadow = isPointLight ? this.distanceMaterial : this.depthMaterial;
 
-                    // copy draw side
-                    materialForShadow.side = material.side;
+            //         var program = zen3d.getProgram(gl, this, materialForShadow, object);
+            //         state.setProgram(program);
 
-                    var frontFaceCW = object.worldMatrix.determinant() < 0;
+            //         this.geometry.setGeometry(geometry);
+            //         this.setupVertexAttributes(program, geometry);
 
-                    this.setStates(materialForShadow, frontFaceCW);
+            //         // update uniforms
+            //         var uniforms = program.uniforms;
+            //         for (var key in uniforms) {
+            //             var uniform = uniforms[key];
+            //             switch (key) {
+            //                 // pvm matrix
+            //                 case "u_Projection":
+            //                     var projectionMat = camera.projectionMatrix.elements;
+            //                     uniform.setValue(projectionMat);
+            //                     break;
+            //                 case "u_View":
+            //                     var viewMatrix = camera.viewMatrix.elements;
+            //                     uniform.setValue(viewMatrix);
+            //                     break;
+            //                 case "u_Model":
+            //                     var modelMatrix = object.worldMatrix.elements;
+            //                     uniform.setValue(modelMatrix);
+            //                     break;
+            //                 case "u_CameraPosition":
+            //                     helpVector3.setFromMatrixPosition(light.worldMatrix);
+            //                     uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+            //                     break;
+            //                 case "nearDistance":
+            //                     uniform.setValue(shadow.cameraNear);
+            //                     break;
+            //                 case "farDistance":
+            //                     uniform.setValue(shadow.cameraFar);
+            //                     break;
+            //             }
+            //         }
 
-                    this.draw(geometry, material, group);
-                }
+            //         // boneMatrices
+            //         if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH) {
+            //             this.uploadSkeleton(uniforms, object, program.id);
+            //         }
+
+            //         // copy draw side
+            //         materialForShadow.side = material.side;
+
+            //         var frontFaceCW = object.worldMatrix.determinant() < 0;
+
+            //         this.setStates(materialForShadow, frontFaceCW);
+
+            //         this.draw(geometry, material, group);
+            //     }
 
             }
 
@@ -5491,19 +5508,33 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     var helpVector3 = new zen3d.Vector3();
 
-    Renderer.prototype.renderList = function(renderList, overrideMaterial) {
-        var camera = this.cache.camera;
+    var defaultGetMaterial = function(renderable) {
+        return renderable.material;
+    };
+
+    /**
+     * Render a single renderable list in camera in sequence
+     * @param {Array} list List of all renderables.
+     * @param {zen3d.Camera} [camera] Camera provide view matrix and porjection matrix.
+     * @param {Object} [config]
+     * @param {Function} [config.getMaterial] Get renderable material.
+     * @return {IRenderInfo}
+     */
+    Renderer.prototype.renderList = function(renderList, camera, config) {
         var fog = this.cache.fog;
         var gl = this.gl;
         var state = this.state;
 
         var lights = this.cache.lights;
 
+        config = config || {};
+        var getMaterial = config.getMaterial || defaultGetMaterial;
+
         for (var i = 0, l = renderList.length; i < l; i++) {
 
             var renderItem = renderList[i];
             var object = renderItem.object;
-            var material = overrideMaterial ? overrideMaterial : renderItem.material;
+            var material = getMaterial.call(this, renderItem);
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 

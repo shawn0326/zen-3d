@@ -168,7 +168,11 @@
             } else if(layer === RENDER_LAYER.PARTICLE) {
                 this.renderParticles(renderLists[layer]);
             } else {
-                this.renderList(renderLists[layer], scene.overrideMaterial);
+                this.renderList(renderLists[layer], camera, {
+                    getMaterial: function(renderable) {
+                        return scene.overrideMaterial || renderable.material;
+                    }
+                });
             }
         }
         performance.endCounter("renderList");
@@ -220,65 +224,18 @@
                     continue;
                 }
 
-                for (var n = 0, l = renderList.length; n < l; n++) {
-                    var renderItem = renderList[n];
-                    var object = renderItem.object;
-                    var material = renderItem.material;
-                    var geometry = renderItem.geometry;
-                    var group = renderItem.group;
-                    var materialForShadow = isPointLight ? this.distanceMaterial : this.depthMaterial;
+                var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
+                material.uniforms = material.uniforms || {};
+                material.uniforms["nearDistance"] = shadow.cameraNear;
+                material.uniforms["farDistance"] = shadow.cameraFar;
 
-                    var program = zen3d.getProgram(gl, this, materialForShadow, object);
-                    state.setProgram(program);
-
-                    this.geometry.setGeometry(geometry);
-                    this.setupVertexAttributes(program, geometry);
-
-                    // update uniforms
-                    var uniforms = program.uniforms;
-                    for (var key in uniforms) {
-                        var uniform = uniforms[key];
-                        switch (key) {
-                            // pvm matrix
-                            case "u_Projection":
-                                var projectionMat = camera.projectionMatrix.elements;
-                                uniform.setValue(projectionMat);
-                                break;
-                            case "u_View":
-                                var viewMatrix = camera.viewMatrix.elements;
-                                uniform.setValue(viewMatrix);
-                                break;
-                            case "u_Model":
-                                var modelMatrix = object.worldMatrix.elements;
-                                uniform.setValue(modelMatrix);
-                                break;
-                            case "lightPos":
-                                helpVector3.setFromMatrixPosition(light.worldMatrix);
-                                uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
-                                break;
-                            case "nearDistance":
-                                uniform.setValue(shadow.cameraNear);
-                                break;
-                            case "farDistance":
-                                uniform.setValue(shadow.cameraFar);
-                                break;
-                        }
+                this.renderList(renderList, camera, {
+                    getMaterial: function(renderable) {
+                        // copy draw side
+                        material.side = renderable.material.side;
+                        return material;
                     }
-
-                    // boneMatrices
-                    if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH) {
-                        this.uploadSkeleton(uniforms, object, program.id);
-                    }
-
-                    // copy draw side
-                    materialForShadow.side = material.side;
-
-                    var frontFaceCW = object.worldMatrix.determinant() < 0;
-
-                    this.setStates(materialForShadow, frontFaceCW);
-
-                    this.draw(geometry, material, group);
-                }
+                });
 
             }
 
@@ -292,19 +249,33 @@
 
     var helpVector3 = new zen3d.Vector3();
 
-    Renderer.prototype.renderList = function(renderList, overrideMaterial) {
-        var camera = this.cache.camera;
+    var defaultGetMaterial = function(renderable) {
+        return renderable.material;
+    };
+
+    /**
+     * Render a single renderable list in camera in sequence
+     * @param {Array} list List of all renderables.
+     * @param {zen3d.Camera} [camera] Camera provide view matrix and porjection matrix.
+     * @param {Object} [config]
+     * @param {Function} [config.getMaterial] Get renderable material.
+     * @return {IRenderInfo}
+     */
+    Renderer.prototype.renderList = function(renderList, camera, config) {
         var fog = this.cache.fog;
         var gl = this.gl;
         var state = this.state;
 
         var lights = this.cache.lights;
 
+        config = config || {};
+        var getMaterial = config.getMaterial || defaultGetMaterial;
+
         for (var i = 0, l = renderList.length; i < l; i++) {
 
             var renderItem = renderList[i];
             var object = renderItem.object;
-            var material = overrideMaterial ? overrideMaterial : renderItem.material;
+            var material = getMaterial.call(this, renderItem);
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 
