@@ -298,10 +298,10 @@
                 props.envMapCombine = material.envMapCombine;
                 props.useEmissiveMap = !!material.emissiveMap;
                 props.useDiffuseColor = !material.diffuseMap;
-                props.ambientLightNum = lights.ambientsNum;
-                props.directLightNum = lights.directsNum;
-                props.pointLightNum = lights.pointsNum;
-                props.spotLightNum = lights.spotsNum;
+                props.ambientLightNum = !!lights ? lights.ambientsNum : 0;
+                props.directLightNum = !!lights ? lights.directsNum : 0;
+                props.pointLightNum = !!lights ? lights.pointsNum : 0;
+                props.spotLightNum = !!lights ? lights.spotsNum : 0;
                 props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
                 props.useShadow = object.receiveShadow;
                 props.usePCFSoftShadow = render.shadowType === zen3d.SHADOW_TYPE.PCF_SOFT;
