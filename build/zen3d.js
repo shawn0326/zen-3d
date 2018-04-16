@@ -3641,6 +3641,8 @@
         this.currentStencilZPass = null;
 
         this.currentStencilClear = null;
+
+        this.currentRenderTarget = null;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
@@ -4313,6 +4315,44 @@
         this.properties.delete(renderTarget);
     }
 
+    WebGLTexture.prototype.setRenderTarget = function(target) {
+        var gl = this.gl;
+        var state = this.state;
+
+        if (!target.texture) { // back RenderTarget
+            if (state.currentRenderTarget === target) {
+
+            } else {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+                state.currentRenderTarget = target;
+            }
+
+            state.viewport(target.viewport.x, target.viewport.y, target.viewport.z, target.viewport.w);
+
+            return;
+        }
+
+        var isCube = target.activeCubeFace !== undefined;
+
+        if (state.currentRenderTarget !== target) {
+            if (!isCube) {
+                this.setRenderTarget2D(target);
+            } else {
+                this.setRenderTargetCube(target);
+            }
+
+            state.currentRenderTarget = target;
+        } else {
+            if (isCube) {
+                var textureProperties = this.properties.get(target.texture);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+            }
+        }
+
+        state.viewport(0, 0, target.width, target.height);
+    }
+
     zen3d.WebGLTexture = WebGLTexture;
 })();
 (function() {
@@ -4797,6 +4837,21 @@
     }
 
     /**
+     * clear buffer
+     */
+    WebGLRenderer.prototype.clear = function(color, depth, stencil) {
+        var gl = this.gl;
+
+        var bits = 0;
+
+        if (color === undefined || color) bits |= gl.COLOR_BUFFER_BIT;
+        if (depth === undefined || depth) bits |= gl.DEPTH_BUFFER_BIT;
+        if (stencil === undefined || stencil) bits |= gl.STENCIL_BUFFER_BIT;
+
+        gl.clear(bits);
+    }
+
+    /**
      * Render a single renderable list in camera in sequence
      * @param {Renderer} renderer need some global settings.
      * @param {Array} list List of all renderables.
@@ -4818,8 +4873,8 @@
         var fog = config.fog;
         var clippingPlanes = config.clippingPlanes;
         
-        var targetWidth = renderer.width;
-        var targetHeight = renderer.height;
+        var targetWidth = state.currentRenderTarget.width;
+        var targetHeight = state.currentRenderTarget.height;
 
         for (var i = 0, l = renderList.length; i < l; i++) {
 
@@ -5742,7 +5797,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         props.precision = render.capabilities.maxPrecision;
         props.materialType = material.type;
 
-        var currentRenderTarget = render.getCurrentRenderTarget();
+        var currentRenderTarget = render.state.currentRenderTarget;
 
         switch (material.type) {
             case MATERIAL_TYPE.PBR:
@@ -5755,7 +5810,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             case MATERIAL_TYPE.LINE:
             case MATERIAL_TYPE.LINE_LOOP:
                 props.gammaFactor = render.gammaFactor;
-                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget ? currentRenderTarget.texture : null, render.gammaOutput);
+                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, render.gammaOutput);
                 props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
                 props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
                 props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
@@ -5856,8 +5911,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             stencil: true
         });
         // width and height, same with the canvas
-        this.width = view.width;
-        this.height = view.height;
+        var width = view.width;
+        var height = view.height;
 
         this.autoClear = true;
 
@@ -5881,7 +5936,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         state.enable(gl.DEPTH_TEST);
         state.setCullFace(CULL_FACE_TYPE.BACK);
         state.setFlipSided(false);
-        state.viewport(0, 0, this.width, this.height);
+        state.viewport(0, 0, width, height);
         state.clearColor(0, 0, 0, 0);
         this.state = state;
 
@@ -5900,11 +5955,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // object cache
         this.cache = new zen3d.RenderCache();
 
-        this._usedTextureUnits = 0;
-
-        this._currentRenderTarget = null;
-
-        this._currentViewport = new zen3d.Vector4(0, 0, this.width, this.height);
+        // no texture & framebuffer in this render target
+        // just create this as a flag
+        this.backRenderTarget = new zen3d.RenderTargetBase(width, height);
 
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false
@@ -5914,9 +5967,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * resize
      */
     Renderer.prototype.resize = function(width, height) {
-        this.width = width;
-        this.height = height;
-
         this.view.width = width;
         this.view.height = height;
 
@@ -5927,8 +5977,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * setViewport
      */
     Renderer.prototype.setViewport = function(x, y, width, height) {
-        this._currentViewport.set(x, y, width, height);
-        this.state.viewport(x, y, width, height);
+        this.backRenderTarget.viewport.set(x, y, width, height);
     }
 
     /**
@@ -5964,13 +6013,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         performance.endCounter("renderShadow");
 
         if (renderTarget === undefined) {
-            renderTarget = null;
+            renderTarget = this.backRenderTarget;
         }
-        this.setRenderTarget(renderTarget);
+        this.texture.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
             this.state.clearColor(0, 0, 0, 0);
-            this.clear(true, true, true);
+            this.renderer.clear(true, true, true);
         }
 
         performance.startCounter("renderList", 60);
@@ -5997,7 +6046,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.cache.clear();
 
-        if (renderTarget) {
+        if (!!renderTarget.texture) {
             this.texture.updateRenderTargetMipmap(renderTarget);
         }
 
@@ -6034,10 +6083,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     shadow.update(light);
                 }
 
-                this.setRenderTarget(shadowTarget);
+                this.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
-                this.clear(true, true);
+                this.renderer.clear(true, true);
 
                 if (renderList.length == 0) {
                     continue;
@@ -6216,69 +6265,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             this.renderer._usedTextureUnits = 0;
         }
-    }
-
-    /**
-     * set render target
-     */
-    Renderer.prototype.setRenderTarget = function(target) {
-        var gl = this.gl;
-
-        if (!target) {
-            if (this._currentRenderTarget === target) {
-
-            } else {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-                this._currentRenderTarget = null;
-
-                this.state.viewport(
-                    this._currentViewport.x,
-                    this._currentViewport.y,
-                    this._currentViewport.z,
-                    this._currentViewport.w);
-            }
-
-            return;
-        }
-
-        var isCube = target.activeCubeFace !== undefined;
-
-        if (this._currentRenderTarget !== target) {
-            if (!isCube) {
-                this.texture.setRenderTarget2D(target);
-            } else {
-                this.texture.setRenderTargetCube(target);
-            }
-
-            this._currentRenderTarget = target;
-        } else {
-            if (isCube) {
-                var textureProperties = this.properties.get(target.texture);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
-            }
-        }
-
-        this.state.viewport(0, 0, target.width, target.height);
-    }
-
-    Renderer.prototype.getCurrentRenderTarget = function() {
-        return this._currentRenderTarget;
-    }
-
-    /**
-     * clear buffer
-     */
-    Renderer.prototype.clear = function(color, depth, stencil) {
-        var gl = this.gl;
-
-        var bits = 0;
-
-        if (color === undefined || color) bits |= gl.COLOR_BUFFER_BIT;
-        if (depth === undefined || depth) bits |= gl.DEPTH_BUFFER_BIT;
-        if (stencil === undefined || stencil) bits |= gl.STENCIL_BUFFER_BIT;
-
-        gl.clear(bits);
     }
 
     zen3d.Renderer = Renderer;

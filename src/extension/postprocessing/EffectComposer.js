@@ -7,10 +7,10 @@
 
         this.passes = [];
 
-        this.renderTarget1 = new zen3d.RenderTarget2D(renderer.width, renderer.height);
+        this.renderTarget1 = new zen3d.RenderTarget2D(renderer.backRenderTarget.width, renderer.backRenderTarget.height);
         this.renderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
         this.renderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        this.renderTarget2 = new zen3d.RenderTarget2D(renderer.width, renderer.height);
+        this.renderTarget2 = new zen3d.RenderTarget2D(renderer.backRenderTarget.width, renderer.backRenderTarget.height);
         this.renderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
         this.renderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 

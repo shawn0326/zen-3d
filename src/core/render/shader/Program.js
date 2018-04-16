@@ -267,7 +267,7 @@
         props.precision = render.capabilities.maxPrecision;
         props.materialType = material.type;
 
-        var currentRenderTarget = render.getCurrentRenderTarget();
+        var currentRenderTarget = render.state.currentRenderTarget;
 
         switch (material.type) {
             case MATERIAL_TYPE.PBR:
@@ -280,7 +280,7 @@
             case MATERIAL_TYPE.LINE:
             case MATERIAL_TYPE.LINE_LOOP:
                 props.gammaFactor = render.gammaFactor;
-                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget ? currentRenderTarget.texture : null, render.gammaOutput);
+                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, render.gammaOutput);
                 props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
                 props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
                 props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);

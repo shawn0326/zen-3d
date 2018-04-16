@@ -19,8 +19,8 @@
             stencil: true
         });
         // width and height, same with the canvas
-        this.width = view.width;
-        this.height = view.height;
+        var width = view.width;
+        var height = view.height;
 
         this.autoClear = true;
 
@@ -44,7 +44,7 @@
         state.enable(gl.DEPTH_TEST);
         state.setCullFace(CULL_FACE_TYPE.BACK);
         state.setFlipSided(false);
-        state.viewport(0, 0, this.width, this.height);
+        state.viewport(0, 0, width, height);
         state.clearColor(0, 0, 0, 0);
         this.state = state;
 
@@ -63,9 +63,9 @@
         // object cache
         this.cache = new zen3d.RenderCache();
 
-        this._currentRenderTarget = null;
-
-        this._currentViewport = new zen3d.Vector4(0, 0, this.width, this.height);
+        // no texture & framebuffer in this render target
+        // just create this as a flag
+        this.backRenderTarget = new zen3d.RenderTargetBase(width, height);
 
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false
@@ -75,9 +75,6 @@
      * resize
      */
     Renderer.prototype.resize = function(width, height) {
-        this.width = width;
-        this.height = height;
-
         this.view.width = width;
         this.view.height = height;
 
@@ -88,8 +85,7 @@
      * setViewport
      */
     Renderer.prototype.setViewport = function(x, y, width, height) {
-        this._currentViewport.set(x, y, width, height);
-        this.state.viewport(x, y, width, height);
+        this.backRenderTarget.viewport.set(x, y, width, height);
     }
 
     /**
@@ -125,13 +121,13 @@
         performance.endCounter("renderShadow");
 
         if (renderTarget === undefined) {
-            renderTarget = null;
+            renderTarget = this.backRenderTarget;
         }
-        this.setRenderTarget(renderTarget);
+        this.texture.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
             this.state.clearColor(0, 0, 0, 0);
-            this.clear(true, true, true);
+            this.renderer.clear(true, true, true);
         }
 
         performance.startCounter("renderList", 60);
@@ -158,7 +154,7 @@
 
         this.cache.clear();
 
-        if (renderTarget) {
+        if (!!renderTarget.texture) {
             this.texture.updateRenderTargetMipmap(renderTarget);
         }
 
@@ -172,7 +168,6 @@
     Renderer.prototype.renderShadow = function() {
 		if ( this.shadowAutoUpdate === false && this.shadowNeedsUpdate === false ) return;
 
-        var gl = this.gl;
         var state = this.state;
 
         var lights = this.cache.lights.shadows;
@@ -195,10 +190,10 @@
                     shadow.update(light);
                 }
 
-                this.setRenderTarget(shadowTarget);
+                this.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
-                this.clear(true, true);
+                this.renderer.clear(true, true);
 
                 if (renderList.length == 0) {
                     continue;
@@ -377,69 +372,6 @@
 
             this.renderer._usedTextureUnits = 0;
         }
-    }
-
-    /**
-     * set render target
-     */
-    Renderer.prototype.setRenderTarget = function(target) {
-        var gl = this.gl;
-
-        if (!target) {
-            if (this._currentRenderTarget === target) {
-
-            } else {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-                this._currentRenderTarget = null;
-
-                this.state.viewport(
-                    this._currentViewport.x,
-                    this._currentViewport.y,
-                    this._currentViewport.z,
-                    this._currentViewport.w);
-            }
-
-            return;
-        }
-
-        var isCube = target.activeCubeFace !== undefined;
-
-        if (this._currentRenderTarget !== target) {
-            if (!isCube) {
-                this.texture.setRenderTarget2D(target);
-            } else {
-                this.texture.setRenderTargetCube(target);
-            }
-
-            this._currentRenderTarget = target;
-        } else {
-            if (isCube) {
-                var textureProperties = this.properties.get(target.texture);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
-            }
-        }
-
-        this.state.viewport(0, 0, target.width, target.height);
-    }
-
-    Renderer.prototype.getCurrentRenderTarget = function() {
-        return this._currentRenderTarget;
-    }
-
-    /**
-     * clear buffer
-     */
-    Renderer.prototype.clear = function(color, depth, stencil) {
-        var gl = this.gl;
-
-        var bits = 0;
-
-        if (color === undefined || color) bits |= gl.COLOR_BUFFER_BIT;
-        if (depth === undefined || depth) bits |= gl.DEPTH_BUFFER_BIT;
-        if (stencil === undefined || stencil) bits |= gl.STENCIL_BUFFER_BIT;
-
-        gl.clear(bits);
     }
 
     zen3d.Renderer = Renderer;

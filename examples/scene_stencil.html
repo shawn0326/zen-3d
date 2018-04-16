@@ -119,7 +119,7 @@
 
 				renderer.state.clearColor(0, 0, 0, 0);
 				renderer.state.clearStencil(0);
-				renderer.clear(true, true, true);
+				renderer.renderer.clear(true, true, true);
 
 				directionalLight.color.setHex(0xffffff);
 				sphere.scale.set(1, 1, 1);
@@ -129,7 +129,7 @@
 				scene.add(sphere);
 				renderer.render(scene, camera, undefined, false);
 
-				renderer.clear(false, true, false);
+				renderer.renderer.clear(false, true, false);
 
 				renderer.state.enable(gl.STENCIL_TEST);
 

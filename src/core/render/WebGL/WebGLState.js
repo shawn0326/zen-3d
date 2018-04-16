@@ -62,6 +62,8 @@
         this.currentStencilZPass = null;
 
         this.currentStencilClear = null;
+
+        this.currentRenderTarget = null;
     }
 
     WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {

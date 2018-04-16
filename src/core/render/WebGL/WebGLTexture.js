@@ -402,5 +402,43 @@
         this.properties.delete(renderTarget);
     }
 
+    WebGLTexture.prototype.setRenderTarget = function(target) {
+        var gl = this.gl;
+        var state = this.state;
+
+        if (!target.texture) { // back RenderTarget
+            if (state.currentRenderTarget === target) {
+
+            } else {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+                state.currentRenderTarget = target;
+            }
+
+            state.viewport(target.viewport.x, target.viewport.y, target.viewport.z, target.viewport.w);
+
+            return;
+        }
+
+        var isCube = target.activeCubeFace !== undefined;
+
+        if (state.currentRenderTarget !== target) {
+            if (!isCube) {
+                this.setRenderTarget2D(target);
+            } else {
+                this.setRenderTargetCube(target);
+            }
+
+            state.currentRenderTarget = target;
+        } else {
+            if (isCube) {
+                var textureProperties = this.properties.get(target.texture);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+            }
+        }
+
+        state.viewport(0, 0, target.width, target.height);
+    }
+
     zen3d.WebGLTexture = WebGLTexture;
 })();

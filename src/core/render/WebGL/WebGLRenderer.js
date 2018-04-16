@@ -50,6 +50,21 @@
     }
 
     /**
+     * clear buffer
+     */
+    WebGLRenderer.prototype.clear = function(color, depth, stencil) {
+        var gl = this.gl;
+
+        var bits = 0;
+
+        if (color === undefined || color) bits |= gl.COLOR_BUFFER_BIT;
+        if (depth === undefined || depth) bits |= gl.DEPTH_BUFFER_BIT;
+        if (stencil === undefined || stencil) bits |= gl.STENCIL_BUFFER_BIT;
+
+        gl.clear(bits);
+    }
+
+    /**
      * Render a single renderable list in camera in sequence
      * @param {Renderer} renderer need some global settings.
      * @param {Array} list List of all renderables.
@@ -71,8 +86,8 @@
         var fog = config.fog;
         var clippingPlanes = config.clippingPlanes;
         
-        var targetWidth = renderer.width;
-        var targetHeight = renderer.height;
+        var targetWidth = state.currentRenderTarget.width;
+        var targetHeight = state.currentRenderTarget.height;
 
         for (var i = 0, l = renderList.length; i < l; i++) {
 

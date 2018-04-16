@@ -146,15 +146,15 @@
 				cameraMini.position.z = 100 * Math.cos(count / 1000 * .5);
 				cameraMini.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-				renderer.setViewport(0, 0, renderer.width, renderer.height);
+				renderer.setViewport(0, 0, renderer.backRenderTarget.width, renderer.backRenderTarget.height);
 				renderer.state.clearColor(0, 0, 0, 0);
-				renderer.clear(true, true, true);
+				renderer.renderer.clear(true, true, true);
 
 	            renderer.render(scene, camera);
 
-				renderer.setViewport(0, 0, Math.floor(renderer.width / 4), Math.floor(renderer.height / 4));
+				renderer.setViewport(0, 0, Math.floor(renderer.backRenderTarget.width / 4), Math.floor(renderer.backRenderTarget.height / 4));
 				renderer.state.clearColor(1, 0, 0, 1);
-				renderer.clear(false, true, true);
+				renderer.renderer.clear(false, true, true);
 
 				renderer.render(sceneMini, cameraMini);
 	        }
