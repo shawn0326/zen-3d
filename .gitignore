@@ -1,12 +1,14 @@
 bin-debug/
 node_modules/
 .idea/
+.vscode/
 tools/node_modules
 
 tools/nodejs/buildTS.local
 *.local
 *.map
 .idea
+.vscode
 
 *.swp
 *~
