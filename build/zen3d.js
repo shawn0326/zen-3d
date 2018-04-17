@@ -5891,6 +5891,109 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.getProgram = getProgram;
 })();
 (function() {
+    var EnvironmentMapPrePass = function() {
+        this.camera = new zen3d.Camera();
+
+        this.targets = [
+            new zen3d.Vector3( 1, 0, 0 ), new zen3d.Vector3( -1, 0, 0 ), new zen3d.Vector3( 0, 1, 0 ),
+            new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ), new zen3d.Vector3( 0, 0, -1 )
+        ];
+        this.ups = [
+            new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ),
+            new zen3d.Vector3( 0, 0, -1 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 )
+        ];
+
+        this.camera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
+
+        this.position = new zen3d.Vector3();
+        this.lookTarget = new zen3d.Vector3();
+
+        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
+		this.renderTexture = this.renderTarget.texture;
+		this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+    }
+
+    EnvironmentMapPrePass.prototype.render = function(renderer, scene) {
+        this.camera.position.copy(this.position);
+
+        for(var i = 0; i < 6; i++) {
+            this.lookTarget.set(this.targets[i].x + this.camera.position.x, this.targets[i].y + this.camera.position.y, this.targets[i].z + this.camera.position.z);
+            this.camera.setLookAt(this.lookTarget, this.ups[i]);
+
+            this.camera.updateMatrix();
+
+            this.renderTarget.activeCubeFace = i;
+
+            renderer.render(scene, this.camera, this.renderTarget);
+        }
+    }
+
+    zen3d.EnvironmentMapPrePass = EnvironmentMapPrePass;
+})();
+(function() {
+    var ShadowPrePass = function() {
+        this.depthMaterial = new zen3d.DepthMaterial();
+        this.depthMaterial.packToRGBA = true;
+
+        this.distanceMaterial = new zen3d.DistanceMaterial();
+    }
+
+    ShadowPrePass.prototype.render = function(renderer) {
+        var state = renderer.state;
+
+        var lights = renderer.cache.lights.shadows;
+        for (var i = 0; i < lights.length; i++) {
+            var light = lights[i];
+
+            var shadow = light.shadow;
+            var camera = shadow.camera;
+            var shadowTarget = shadow.renderTarget;
+            var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
+            var faces = isPointLight ? 6 : 1;
+            var renderList = renderer.cache.shadowObjects;
+
+            for (var j = 0; j < faces; j++) {
+
+                if (isPointLight) {
+                    shadow.update(light, j);
+                    shadowTarget.activeCubeFace = j;
+                } else {
+                    shadow.update(light);
+                }
+
+                renderer.texture.setRenderTarget(shadowTarget);
+
+                state.clearColor(1, 1, 1, 1);
+                renderer.renderer.clear(true, true);
+
+                if (renderList.length == 0) {
+                    continue;
+                }
+
+                var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
+                material.uniforms = material.uniforms || {};
+                material.uniforms["nearDistance"] = shadow.cameraNear;
+                material.uniforms["farDistance"] = shadow.cameraFar;
+
+                renderer.renderer.renderPass(renderer, renderList, camera, {
+                    getMaterial: function(renderable) {
+                        // copy draw side
+                        material.side = renderable.material.side;
+                        return material;
+                    }
+                });
+
+            }
+
+            // set generateMipmaps false
+            // this.texture.updateRenderTargetMipmap(shadowTarget);
+
+        }
+    }
+
+    zen3d.ShadowPrePass = ShadowPrePass;
+})();
+(function() {
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
     var RENDER_LAYER = zen3d.RENDER_LAYER;
     var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
@@ -5948,9 +6051,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.performance = new zen3d.Performance();
 
-        this.depthMaterial = new zen3d.DepthMaterial();
-        this.depthMaterial.packToRGBA = true;
-        this.distanceMaterial = new zen3d.DistanceMaterial();
+        this.shadowPrePass = new zen3d.ShadowPrePass();
 
         // object cache
         this.cache = new zen3d.RenderCache();
@@ -6006,7 +6107,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         if(useStencil) {
             this.state.disable(this.gl.STENCIL_TEST);
         }
-        this.renderShadow();
+
+        if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
+            this.shadowPrePass.render(this);
+
+            this.shadowNeedsUpdate = false;
+        }
+
         if(useStencil) {
             this.state.enable(this.gl.STENCIL_TEST);
         }
@@ -6051,68 +6158,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         this.performance.endCounter("render");
-    }
-
-    /**
-     * TODO use PrePass insteads
-     * render shadow map for lights
-     */
-    Renderer.prototype.renderShadow = function() {
-		if ( this.shadowAutoUpdate === false && this.shadowNeedsUpdate === false ) return;
-
-        var gl = this.gl;
-        var state = this.state;
-
-        var lights = this.cache.lights.shadows;
-        for (var i = 0; i < lights.length; i++) {
-            var light = lights[i];
-
-            var shadow = light.shadow;
-            var camera = shadow.camera;
-            var shadowTarget = shadow.renderTarget;
-            var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
-            var faces = isPointLight ? 6 : 1;
-            var renderList = this.cache.shadowObjects;
-
-            for (var j = 0; j < faces; j++) {
-
-                if (isPointLight) {
-                    shadow.update(light, j);
-                    shadowTarget.activeCubeFace = j;
-                } else {
-                    shadow.update(light);
-                }
-
-                this.texture.setRenderTarget(shadowTarget);
-
-                state.clearColor(1, 1, 1, 1);
-                this.renderer.clear(true, true);
-
-                if (renderList.length == 0) {
-                    continue;
-                }
-
-                var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
-                material.uniforms = material.uniforms || {};
-                material.uniforms["nearDistance"] = shadow.cameraNear;
-                material.uniforms["farDistance"] = shadow.cameraFar;
-
-                this.renderer.renderPass(this, renderList, camera, {
-                    getMaterial: function(renderable) {
-                        // copy draw side
-                        material.side = renderable.material.side;
-                        return material;
-                    }
-                });
-
-            }
-
-            // set generateMipmaps false
-            // this.texture.updateRenderTargetMipmap(shadowTarget);
-
-        }
-
-        this.shadowNeedsUpdate = false;
     }
 
     var spritePosition = new zen3d.Vector3();

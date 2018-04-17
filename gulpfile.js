@@ -57,6 +57,8 @@ var filesSrc = [
     "core/render/shader/ShaderChunk.js",
     "core/render/shader/ShaderLib.js",
     "core/render/shader/Program.js",
+    "core/render/prePass/EnvironmentMapPrePass.js",
+    "core/render/prePass/ShadowPrePass.js",
     "core/render/Renderer.js",
     "core/render/RenderCache.js",
     "core/render/RenderTargetBase.js",

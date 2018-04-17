@@ -124,6 +124,8 @@
 			scene.add(helpCamera);
 			var lookTarget = new zen3d.Vector3();
 
+			var environmentMapPrePass = new zen3d.EnvironmentMapPrePass();
+
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
@@ -143,15 +145,8 @@
 
 				// render env map on six faces
 			    phong.envMap = null;
-			    for(var i = 0; i < 6; i++) {
-			        lookTarget.set(targets[i].x + helpCamera.position.x, targets[i].y + helpCamera.position.y, targets[i].z + helpCamera.position.z);
-					helpCamera.setLookAt(lookTarget, ups[i]);
-
-			        renderTarget.activeCubeFace = i;
-
-			        renderer.render(scene, helpCamera, renderTarget);
-			    }
-			    phong.envMap = renderTexture;
+			    environmentMapPrePass.render(renderer, scene);
+			    phong.envMap = environmentMapPrePass.renderTexture;
 
 	            renderer.render(scene, camera);
 	        }
