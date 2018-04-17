@@ -41,8 +41,8 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.gammaFactor = 1.5;
-			renderer.gammaOutput = true;
+			renderer.renderer.gammaFactor = 1.5;
+			renderer.renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
@@ -89,9 +89,9 @@
 			pointLight.castShadow = true;
 
 			var gui = new dat.GUI();
-			gui.add(renderer, "gammaInput");
-			gui.add(renderer, "gammaOutput");
-			gui.add(renderer, "gammaFactor", 0, 2).step(0.1);
+			gui.add(renderer.renderer, "gammaInput");
+			gui.add(renderer.renderer, "gammaOutput");
+			gui.add(renderer.renderer, "gammaFactor", 0, 2).step(0.1);
 			gui.close();
 
 	        function loop(count) {

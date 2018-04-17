@@ -1,5 +1,5 @@
 (function() {
-    var EnvironmentMapPrePass = function() {
+    var EnvironmentMapPass = function() {
         this.camera = new zen3d.Camera();
 
         this.targets = [
@@ -21,7 +21,7 @@
 		this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
     }
 
-    EnvironmentMapPrePass.prototype.render = function(renderer, scene) {
+    EnvironmentMapPass.prototype.render = function(renderer, scene) {
         this.camera.position.copy(this.position);
 
         for(var i = 0; i < 6; i++) {
@@ -36,5 +36,5 @@
         }
     }
 
-    zen3d.EnvironmentMapPrePass = EnvironmentMapPrePass;
+    zen3d.EnvironmentMapPass = EnvironmentMapPass;
 })();

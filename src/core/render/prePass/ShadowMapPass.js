@@ -1,15 +1,22 @@
 (function() {
-    var ShadowPrePass = function() {
+    var ShadowMapPass = function() {
         this.depthMaterial = new zen3d.DepthMaterial();
         this.depthMaterial.packToRGBA = true;
 
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowPrePass.prototype.render = function(renderer) {
-        var state = renderer.state;
+    ShadowMapPass.prototype.render = function(renderer, scene) {
+        
+        var state = renderer.renderer.state;
 
-        var lights = renderer.cache.lights.shadows;
+        // force disable stencil
+        var useStencil = state.states[renderer.gl.STENCIL_TEST];
+        if(useStencil) {
+            state.disable(renderer.gl.STENCIL_TEST);
+        }
+
+        var lights = scene.cache.lights.shadows;
         for (var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
@@ -18,7 +25,7 @@
             var shadowTarget = shadow.renderTarget;
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
-            var renderList = renderer.cache.shadowObjects;
+            var renderList = scene.cache.shadowObjects;
 
             for (var j = 0; j < faces; j++) {
 
@@ -29,7 +36,7 @@
                     shadow.update(light);
                 }
 
-                renderer.texture.setRenderTarget(shadowTarget);
+                renderer.renderer.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
                 renderer.renderer.clear(true, true);
@@ -43,7 +50,7 @@
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                renderer.renderer.renderPass(renderer, renderList, camera, {
+                renderer.renderer.renderPass(renderList, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
@@ -57,7 +64,11 @@
             // this.texture.updateRenderTargetMipmap(shadowTarget);
 
         }
+
+        if(useStencil) {
+            state.enable(renderer.gl.STENCIL_TEST);
+        }
     }
 
-    zen3d.ShadowPrePass = ShadowPrePass;
+    zen3d.ShadowMapPass = ShadowMapPass;
 })();

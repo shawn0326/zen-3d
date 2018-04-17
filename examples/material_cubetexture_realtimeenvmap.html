@@ -40,8 +40,8 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.gammaInput = true;
-			renderer.gammaOutput = true;
+			renderer.renderer.gammaInput = true;
+			renderer.renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
@@ -124,7 +124,7 @@
 			scene.add(helpCamera);
 			var lookTarget = new zen3d.Vector3();
 
-			var environmentMapPrePass = new zen3d.EnvironmentMapPrePass();
+			var environmentMapPrePass = new zen3d.EnvironmentMapPass();
 
 	        function loop(count) {
 

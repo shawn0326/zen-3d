@@ -1,7 +1,6 @@
 (function() {
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
-    var RENDER_LAYER = zen3d.RENDER_LAYER;
-    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
+    
 
     /**
      * Renderer
@@ -24,49 +23,19 @@
 
         this.autoClear = true;
 
-        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
-
-        this.clippingPlanes = []; // Planes array
-
-        this.gammaFactor = 2.0;
-    	this.gammaInput = false;
-    	this.gammaOutput = false;
-
-        // init webgl
-        var properties = new zen3d.WebGLProperties();
-        this.properties = properties;
-
-        var capabilities = new zen3d.WebGLCapabilities(gl);
-        this.capabilities = capabilities;
-
-        var state = new zen3d.WebGLState(gl, capabilities);
-        state.enable(gl.STENCIL_TEST);
-        state.enable(gl.DEPTH_TEST);
-        state.setCullFace(CULL_FACE_TYPE.BACK);
-        state.setFlipSided(false);
-        state.viewport(0, 0, width, height);
-        state.clearColor(0, 0, 0, 0);
-        this.state = state;
-
-        this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
-
-        this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
-
-        this.renderer = new zen3d.WebGLRenderer(gl, state, properties, capabilities, this.texture, this.geometry);
+        this.renderer = new zen3d.WebGLRenderer(gl);
 
         this.performance = new zen3d.Performance();
 
-        this.shadowPrePass = new zen3d.ShadowPrePass();
-
-        // object cache
-        this.cache = new zen3d.RenderCache();
+        this.shadowMapPass = new zen3d.ShadowMapPass();
+        this.forwardPass = new zen3d.ForwardPass();
 
         // no texture & framebuffer in this render target
         // just create this as a flag
         this.backRenderTarget = new zen3d.RenderTargetBase(width, height);
 
         this.shadowAutoUpdate = true;
-        this.shadowNeedsUpdate = false
+        this.shadowNeedsUpdate = false;
     }
 
     /**
@@ -96,70 +65,36 @@
 
         performance.startCounter("render", 60);
 
-        performance.startCounter("updateMatrix", 60);
-        scene.updateMatrix();
-        performance.endCounter("updateMatrix");
-
         camera.viewMatrix.getInverse(camera.worldMatrix); // update view matrix
 
-        performance.startCounter("cacheScene", 60);
-        this.cache.cacheScene(scene, camera);
-        this.cache.sort();
-        performance.endCounter("cacheScene");
+        scene.update(camera); // update scene
 
-        performance.startCounter("renderShadow", 60);
-        var useStencil = this.state.states[this.gl.STENCIL_TEST];
-        if(useStencil) {
-            this.state.disable(this.gl.STENCIL_TEST);
-        }
+        performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowPrePass.render(this);
+            this.shadowMapPass.render(this, scene);
 
             this.shadowNeedsUpdate = false;
         }
 
-        if(useStencil) {
-            this.state.enable(this.gl.STENCIL_TEST);
-        }
         performance.endCounter("renderShadow");
 
         if (renderTarget === undefined) {
             renderTarget = this.backRenderTarget;
         }
-        this.texture.setRenderTarget(renderTarget);
+        this.renderer.texture.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
-            this.state.clearColor(0, 0, 0, 0);
+            this.renderer.state.clearColor(0, 0, 0, 0);
             this.renderer.clear(true, true, true);
         }
 
         performance.startCounter("renderList", 60);
-        var renderLists = this.cache.renderLists;
-        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
-            var layer = LAYER_RENDER_LIST[i];
-            // TODO separate different renderers to avoid branchs
-            if(layer === RENDER_LAYER.SPRITE) {
-                this.renderSprites(renderLists[layer]);
-            } else if(layer === RENDER_LAYER.PARTICLE) {
-                this.renderParticles(renderLists[layer]);
-            } else {
-                this.renderer.renderPass(this, renderLists[layer], camera, {
-                    getMaterial: function(renderable) {
-                        return scene.overrideMaterial || renderable.material;
-                    },
-                    lights: this.cache.lights,
-                    fog: this.cache.fog,
-                    clippingPlanes: this.clippingPlanes
-                });
-            }
-        }
+        this.forwardPass.render(this, scene);
         performance.endCounter("renderList");
 
-        this.cache.clear();
-
         if (!!renderTarget.texture) {
-            this.texture.updateRenderTargetMipmap(renderTarget);
+            this.renderer.texture.updateRenderTargetMipmap(renderTarget);
         }
 
         this.performance.endCounter("render");
@@ -172,23 +107,21 @@
     /**
      * TODO use renderPass instead 
      */
-    Renderer.prototype.renderSprites = function(sprites) {
+    Renderer.prototype.renderSprites = function(sprites, camera, fog) {
         if (sprites.length === 0) {
             return;
         }
 
-        var camera = this.cache.camera;
-        var fog = this.cache.fog;
         var gl = this.gl;
-        var state = this.state;
+        var state = this.renderer.state;
         var geometry = zen3d.Sprite.geometry;
         var material = sprites[0].material;
 
-        var program = zen3d.getProgram(gl, this, material);
+        var program = zen3d.getProgram(gl, this.renderer, material);
         state.setProgram(program);
 
         // bind a shared geometry
-        this.geometry.setGeometry(geometry);
+        this.renderer.geometry.setGeometry(geometry);
         this.renderer.setupVertexAttributes(program, geometry);
 
         var uniforms = program.uniforms;
@@ -259,7 +192,7 @@
             this.renderer.setStates(material);
 
             var slot = this.renderer.allocTexUnit();
-            this.texture.setTexture2D(material.diffuseMap, slot);
+            this.renderer.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
             gl.drawElements(material.drawMode, 6, gl.UNSIGNED_SHORT, 0);
@@ -273,24 +206,23 @@
     /**
      * TODO use renderPass instead 
      */
-    Renderer.prototype.renderParticles = function(particles) {
+    Renderer.prototype.renderParticles = function(particles, camera) {
         if (particles.length === 0) {
             return;
         }
 
-        var camera = this.cache.camera;
         var gl = this.gl;
-        var state = this.state;
+        var state = this.renderer.state;
 
         for (var i = 0, l = particles.length; i < l; i++) {
             var particle = particles[i].object;
             var geometry = particles[i].geometry;
             var material = particles[i].material;
 
-            var program = zen3d.getProgram(gl, this, material);
+            var program = zen3d.getProgram(gl, this.renderer, material);
             state.setProgram(program);
 
-            this.geometry.setGeometry(geometry);
+            this.renderer.geometry.setGeometry(geometry);
             this.renderer.setupVertexAttributes(program, geometry);
 
             var uniforms = program.uniforms;
@@ -302,11 +234,11 @@
             uniforms.u_Model.setValue(particle.worldMatrix.elements);
 
             var slot = this.renderer.allocTexUnit();
-            this.texture.setTexture2D(particle.particleNoiseTex, slot);
+            this.renderer.texture.setTexture2D(particle.particleNoiseTex, slot);
             uniforms.tNoise.setValue(slot);
 
             var slot = this.renderer.allocTexUnit();
-            this.texture.setTexture2D(particle.particleSpriteTex, slot);
+            this.renderer.texture.setTexture2D(particle.particleSpriteTex, slot);
             uniforms.tSprite.setValue(slot);
 
             this.renderer.setStates(material);

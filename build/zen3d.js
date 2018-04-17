@@ -4820,20 +4820,38 @@
      * render method by WebGL.
      * just for render pass once in one render target
      */
-    var WebGLRenderer = function(gl, state, properties, capabilities, texture, geometry) {
+    var WebGLRenderer = function(gl) {
         this.gl = gl;
-
-        this.state = state;
-
+        
+        var properties = new zen3d.WebGLProperties();
         this.properties = properties;
 
+        var capabilities = new zen3d.WebGLCapabilities(gl);
         this.capabilities = capabilities;
 
-        this.texture = texture;
+        var state = new zen3d.WebGLState(gl, capabilities);
+        state.enable(gl.STENCIL_TEST);
+        state.enable(gl.DEPTH_TEST);
+        state.setCullFace(CULL_FACE_TYPE.BACK);
+        state.setFlipSided(false);
+        state.clearColor(0, 0, 0, 0);
+        this.state = state;
 
-        this.geometry = geometry;
+        this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
+
+        this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
         this._usedTextureUnits = 0;
+
+        // settings for render
+
+        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
+
+        this.clippingPlanes = []; // Planes array
+
+        this.gammaFactor = 2.0;
+    	this.gammaInput = false;
+    	this.gammaOutput = false;
     }
 
     /**
@@ -4853,7 +4871,6 @@
 
     /**
      * Render a single renderable list in camera in sequence
-     * @param {Renderer} renderer need some global settings.
      * @param {Array} list List of all renderables.
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
      * @param {Object} [config] ?
@@ -4862,7 +4879,7 @@
      * @param {Fog} [config.fog] Render with fog.
      * @param {Plane[]} [config.clippingPlanes] Render width cliping planes.
      */
-    WebGLRenderer.prototype.renderPass = function(renderer, renderList, camera, config) {
+    WebGLRenderer.prototype.renderPass = function(renderList, camera, config) {
         config = config || {};
 
         var gl = this.gl;
@@ -4884,7 +4901,7 @@
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 
-            var program = zen3d.getProgram(gl, renderer, material, object, lights, fog);
+            var program = zen3d.getProgram(gl, this, material, object, lights, fog);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -5891,7 +5908,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.getProgram = getProgram;
 })();
 (function() {
-    var EnvironmentMapPrePass = function() {
+    var EnvironmentMapPass = function() {
         this.camera = new zen3d.Camera();
 
         this.targets = [
@@ -5913,7 +5930,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 		this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
     }
 
-    EnvironmentMapPrePass.prototype.render = function(renderer, scene) {
+    EnvironmentMapPass.prototype.render = function(renderer, scene) {
         this.camera.position.copy(this.position);
 
         for(var i = 0; i < 6; i++) {
@@ -5928,20 +5945,27 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     }
 
-    zen3d.EnvironmentMapPrePass = EnvironmentMapPrePass;
+    zen3d.EnvironmentMapPass = EnvironmentMapPass;
 })();
 (function() {
-    var ShadowPrePass = function() {
+    var ShadowMapPass = function() {
         this.depthMaterial = new zen3d.DepthMaterial();
         this.depthMaterial.packToRGBA = true;
 
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowPrePass.prototype.render = function(renderer) {
-        var state = renderer.state;
+    ShadowMapPass.prototype.render = function(renderer, scene) {
+        
+        var state = renderer.renderer.state;
 
-        var lights = renderer.cache.lights.shadows;
+        // force disable stencil
+        var useStencil = state.states[renderer.gl.STENCIL_TEST];
+        if(useStencil) {
+            state.disable(renderer.gl.STENCIL_TEST);
+        }
+
+        var lights = scene.cache.lights.shadows;
         for (var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
@@ -5950,7 +5974,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var shadowTarget = shadow.renderTarget;
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
-            var renderList = renderer.cache.shadowObjects;
+            var renderList = scene.cache.shadowObjects;
 
             for (var j = 0; j < faces; j++) {
 
@@ -5961,7 +5985,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     shadow.update(light);
                 }
 
-                renderer.texture.setRenderTarget(shadowTarget);
+                renderer.renderer.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
                 renderer.renderer.clear(true, true);
@@ -5975,7 +5999,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                renderer.renderer.renderPass(renderer, renderList, camera, {
+                renderer.renderer.renderPass(renderList, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
@@ -5989,14 +6013,51 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             // this.texture.updateRenderTargetMipmap(shadowTarget);
 
         }
+
+        if(useStencil) {
+            state.enable(renderer.gl.STENCIL_TEST);
+        }
     }
 
-    zen3d.ShadowPrePass = ShadowPrePass;
+    zen3d.ShadowMapPass = ShadowMapPass;
+})();
+(function() {
+    var RENDER_LAYER = zen3d.RENDER_LAYER;
+    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
+
+    var ForwardPass = function() {
+        
+    }
+
+    ForwardPass.prototype.render = function(renderer, scene) {
+        var camera = scene.cache.camera;
+
+        var renderLists = scene.cache.renderLists;
+        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
+            var layer = LAYER_RENDER_LIST[i];
+            // TODO separate different renderers to avoid branchs
+            if(layer === RENDER_LAYER.SPRITE) {
+                renderer.renderSprites(renderLists[layer], camera, scene.cache.fog);
+            } else if(layer === RENDER_LAYER.PARTICLE) {
+                renderer.renderParticles(renderLists[layer], camera);
+            } else {
+                renderer.renderer.renderPass(renderLists[layer], camera, {
+                    getMaterial: function(renderable) {
+                        return scene.overrideMaterial || renderable.material;
+                    },
+                    lights: scene.cache.lights,
+                    fog: scene.cache.fog,
+                    clippingPlanes: renderer.renderer.clippingPlanes
+                });
+            }
+        }
+    }
+
+    zen3d.ForwardPass = ForwardPass;
 })();
 (function() {
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
-    var RENDER_LAYER = zen3d.RENDER_LAYER;
-    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
+    
 
     /**
      * Renderer
@@ -6019,49 +6080,19 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.autoClear = true;
 
-        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
-
-        this.clippingPlanes = []; // Planes array
-
-        this.gammaFactor = 2.0;
-    	this.gammaInput = false;
-    	this.gammaOutput = false;
-
-        // init webgl
-        var properties = new zen3d.WebGLProperties();
-        this.properties = properties;
-
-        var capabilities = new zen3d.WebGLCapabilities(gl);
-        this.capabilities = capabilities;
-
-        var state = new zen3d.WebGLState(gl, capabilities);
-        state.enable(gl.STENCIL_TEST);
-        state.enable(gl.DEPTH_TEST);
-        state.setCullFace(CULL_FACE_TYPE.BACK);
-        state.setFlipSided(false);
-        state.viewport(0, 0, width, height);
-        state.clearColor(0, 0, 0, 0);
-        this.state = state;
-
-        this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
-
-        this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
-
-        this.renderer = new zen3d.WebGLRenderer(gl, state, properties, capabilities, this.texture, this.geometry);
+        this.renderer = new zen3d.WebGLRenderer(gl);
 
         this.performance = new zen3d.Performance();
 
-        this.shadowPrePass = new zen3d.ShadowPrePass();
-
-        // object cache
-        this.cache = new zen3d.RenderCache();
+        this.shadowMapPass = new zen3d.ShadowMapPass();
+        this.forwardPass = new zen3d.ForwardPass();
 
         // no texture & framebuffer in this render target
         // just create this as a flag
         this.backRenderTarget = new zen3d.RenderTargetBase(width, height);
 
         this.shadowAutoUpdate = true;
-        this.shadowNeedsUpdate = false
+        this.shadowNeedsUpdate = false;
     }
 
     /**
@@ -6091,70 +6122,36 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         performance.startCounter("render", 60);
 
-        performance.startCounter("updateMatrix", 60);
-        scene.updateMatrix();
-        performance.endCounter("updateMatrix");
-
         camera.viewMatrix.getInverse(camera.worldMatrix); // update view matrix
 
-        performance.startCounter("cacheScene", 60);
-        this.cache.cacheScene(scene, camera);
-        this.cache.sort();
-        performance.endCounter("cacheScene");
+        scene.update(camera); // update scene
 
-        performance.startCounter("renderShadow", 60);
-        var useStencil = this.state.states[this.gl.STENCIL_TEST];
-        if(useStencil) {
-            this.state.disable(this.gl.STENCIL_TEST);
-        }
+        performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowPrePass.render(this);
+            this.shadowMapPass.render(this, scene);
 
             this.shadowNeedsUpdate = false;
         }
 
-        if(useStencil) {
-            this.state.enable(this.gl.STENCIL_TEST);
-        }
         performance.endCounter("renderShadow");
 
         if (renderTarget === undefined) {
             renderTarget = this.backRenderTarget;
         }
-        this.texture.setRenderTarget(renderTarget);
+        this.renderer.texture.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
-            this.state.clearColor(0, 0, 0, 0);
+            this.renderer.state.clearColor(0, 0, 0, 0);
             this.renderer.clear(true, true, true);
         }
 
         performance.startCounter("renderList", 60);
-        var renderLists = this.cache.renderLists;
-        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
-            var layer = LAYER_RENDER_LIST[i];
-            // TODO separate different renderers to avoid branchs
-            if(layer === RENDER_LAYER.SPRITE) {
-                this.renderSprites(renderLists[layer]);
-            } else if(layer === RENDER_LAYER.PARTICLE) {
-                this.renderParticles(renderLists[layer]);
-            } else {
-                this.renderer.renderPass(this, renderLists[layer], camera, {
-                    getMaterial: function(renderable) {
-                        return scene.overrideMaterial || renderable.material;
-                    },
-                    lights: this.cache.lights,
-                    fog: this.cache.fog,
-                    clippingPlanes: this.clippingPlanes
-                });
-            }
-        }
+        this.forwardPass.render(this, scene);
         performance.endCounter("renderList");
 
-        this.cache.clear();
-
         if (!!renderTarget.texture) {
-            this.texture.updateRenderTargetMipmap(renderTarget);
+            this.renderer.texture.updateRenderTargetMipmap(renderTarget);
         }
 
         this.performance.endCounter("render");
@@ -6167,23 +6164,21 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     /**
      * TODO use renderPass instead 
      */
-    Renderer.prototype.renderSprites = function(sprites) {
+    Renderer.prototype.renderSprites = function(sprites, camera, fog) {
         if (sprites.length === 0) {
             return;
         }
 
-        var camera = this.cache.camera;
-        var fog = this.cache.fog;
         var gl = this.gl;
-        var state = this.state;
+        var state = this.renderer.state;
         var geometry = zen3d.Sprite.geometry;
         var material = sprites[0].material;
 
-        var program = zen3d.getProgram(gl, this, material);
+        var program = zen3d.getProgram(gl, this.renderer, material);
         state.setProgram(program);
 
         // bind a shared geometry
-        this.geometry.setGeometry(geometry);
+        this.renderer.geometry.setGeometry(geometry);
         this.renderer.setupVertexAttributes(program, geometry);
 
         var uniforms = program.uniforms;
@@ -6254,7 +6249,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             this.renderer.setStates(material);
 
             var slot = this.renderer.allocTexUnit();
-            this.texture.setTexture2D(material.diffuseMap, slot);
+            this.renderer.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
             gl.drawElements(material.drawMode, 6, gl.UNSIGNED_SHORT, 0);
@@ -6268,24 +6263,23 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     /**
      * TODO use renderPass instead 
      */
-    Renderer.prototype.renderParticles = function(particles) {
+    Renderer.prototype.renderParticles = function(particles, camera) {
         if (particles.length === 0) {
             return;
         }
 
-        var camera = this.cache.camera;
         var gl = this.gl;
-        var state = this.state;
+        var state = this.renderer.state;
 
         for (var i = 0, l = particles.length; i < l; i++) {
             var particle = particles[i].object;
             var geometry = particles[i].geometry;
             var material = particles[i].material;
 
-            var program = zen3d.getProgram(gl, this, material);
+            var program = zen3d.getProgram(gl, this.renderer, material);
             state.setProgram(program);
 
-            this.geometry.setGeometry(geometry);
+            this.renderer.geometry.setGeometry(geometry);
             this.renderer.setupVertexAttributes(program, geometry);
 
             var uniforms = program.uniforms;
@@ -6297,11 +6291,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             uniforms.u_Model.setValue(particle.worldMatrix.elements);
 
             var slot = this.renderer.allocTexUnit();
-            this.texture.setTexture2D(particle.particleNoiseTex, slot);
+            this.renderer.texture.setTexture2D(particle.particleNoiseTex, slot);
             uniforms.tNoise.setValue(slot);
 
             var slot = this.renderer.allocTexUnit();
-            this.texture.setTexture2D(particle.particleSpriteTex, slot);
+            this.renderer.texture.setTexture2D(particle.particleSpriteTex, slot);
             uniforms.tSprite.setValue(slot);
 
             this.renderer.setStates(material);
@@ -8573,9 +8567,23 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.overrideMaterial = null;
 
         this.fog = null;
+
+        this.cache = new zen3d.RenderCache();
     }
 
     zen3d.inherit(Scene, zen3d.Object3D);
+
+    /**
+     * update scene matrix and cache it
+     * @param {Camera} camera main camera for this scene
+     */
+    Scene.prototype.update = function(camera) {
+        this.updateMatrix();
+
+        this.cache.clear();
+        this.cache.cacheScene(this, camera);
+        this.cache.sort();
+    }
 
     zen3d.Scene = Scene;
 })();

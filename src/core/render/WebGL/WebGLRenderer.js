@@ -33,20 +33,38 @@
      * render method by WebGL.
      * just for render pass once in one render target
      */
-    var WebGLRenderer = function(gl, state, properties, capabilities, texture, geometry) {
+    var WebGLRenderer = function(gl) {
         this.gl = gl;
-
-        this.state = state;
-
+        
+        var properties = new zen3d.WebGLProperties();
         this.properties = properties;
 
+        var capabilities = new zen3d.WebGLCapabilities(gl);
         this.capabilities = capabilities;
 
-        this.texture = texture;
+        var state = new zen3d.WebGLState(gl, capabilities);
+        state.enable(gl.STENCIL_TEST);
+        state.enable(gl.DEPTH_TEST);
+        state.setCullFace(CULL_FACE_TYPE.BACK);
+        state.setFlipSided(false);
+        state.clearColor(0, 0, 0, 0);
+        this.state = state;
 
-        this.geometry = geometry;
+        this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
+
+        this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
         this._usedTextureUnits = 0;
+
+        // settings for render
+
+        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
+
+        this.clippingPlanes = []; // Planes array
+
+        this.gammaFactor = 2.0;
+    	this.gammaInput = false;
+    	this.gammaOutput = false;
     }
 
     /**
@@ -66,7 +84,6 @@
 
     /**
      * Render a single renderable list in camera in sequence
-     * @param {Renderer} renderer need some global settings.
      * @param {Array} list List of all renderables.
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
      * @param {Object} [config] ?
@@ -75,7 +92,7 @@
      * @param {Fog} [config.fog] Render with fog.
      * @param {Plane[]} [config.clippingPlanes] Render width cliping planes.
      */
-    WebGLRenderer.prototype.renderPass = function(renderer, renderList, camera, config) {
+    WebGLRenderer.prototype.renderPass = function(renderList, camera, config) {
         config = config || {};
 
         var gl = this.gl;
@@ -97,7 +114,7 @@
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 
-            var program = zen3d.getProgram(gl, renderer, material, object, lights, fog);
+            var program = zen3d.getProgram(gl, this, material, object, lights, fog);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);

@@ -43,7 +43,7 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.clippingPlanes = [new zen3d.Plane(new zen3d.Vector3(-1, 0, 0), 4), new zen3d.Plane(new zen3d.Vector3(1, 0, 0), 4)];
+			renderer.renderer.clippingPlanes = [new zen3d.Plane(new zen3d.Vector3(-1, 0, 0), 4), new zen3d.Plane(new zen3d.Vector3(1, 0, 0), 4)];
 
 	        var scene = new zen3d.Scene();
 
