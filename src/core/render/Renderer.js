@@ -23,7 +23,7 @@
 
         this.autoClear = true;
 
-        this.renderer = new zen3d.WebGLRenderer(gl);
+        this.glCore = new zen3d.WebGLCore(gl);
 
         this.performance = new zen3d.Performance();
 
@@ -65,8 +65,6 @@
 
         performance.startCounter("render", 60);
 
-        camera.viewMatrix.getInverse(camera.worldMatrix); // update view matrix
-
         scene.update(camera); // update scene
 
         performance.startCounter("renderShadow", 60);   
@@ -82,11 +80,11 @@
         if (renderTarget === undefined) {
             renderTarget = this.backRenderTarget;
         }
-        this.renderer.texture.setRenderTarget(renderTarget);
+        this.glCore.texture.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
-            this.renderer.state.clearColor(0, 0, 0, 0);
-            this.renderer.clear(true, true, true);
+            this.glCore.state.clearColor(0, 0, 0, 0);
+            this.glCore.clear(true, true, true);
         }
 
         performance.startCounter("renderList", 60);
@@ -94,7 +92,7 @@
         performance.endCounter("renderList");
 
         if (!!renderTarget.texture) {
-            this.renderer.texture.updateRenderTargetMipmap(renderTarget);
+            this.glCore.texture.updateRenderTargetMipmap(renderTarget);
         }
 
         this.performance.endCounter("render");
@@ -113,16 +111,16 @@
         }
 
         var gl = this.gl;
-        var state = this.renderer.state;
+        var state = this.glCore.state;
         var geometry = zen3d.Sprite.geometry;
         var material = sprites[0].material;
 
-        var program = zen3d.getProgram(gl, this.renderer, material);
+        var program = zen3d.getProgram(this.glCore, camera, material);
         state.setProgram(program);
 
         // bind a shared geometry
-        this.renderer.geometry.setGeometry(geometry);
-        this.renderer.setupVertexAttributes(program, geometry);
+        this.glCore.geometry.setGeometry(geometry);
+        this.glCore.setupVertexAttributes(program, geometry);
 
         var uniforms = program.uniforms;
         uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
@@ -189,16 +187,16 @@
             uniforms.rotation.setValue(material.rotation);
             uniforms.scale.setValue(scale[0], scale[1]);
 
-            this.renderer.setStates(material);
+            this.glCore.setStates(material);
 
-            var slot = this.renderer.allocTexUnit();
-            this.renderer.texture.setTexture2D(material.diffuseMap, slot);
+            var slot = this.glCore.allocTexUnit();
+            this.glCore.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
             gl.drawElements(material.drawMode, 6, gl.UNSIGNED_SHORT, 0);
 
             // reset used tex Unit
-            this.renderer._usedTextureUnits = 0;
+            this.glCore._usedTextureUnits = 0;
         }
 
     }
@@ -212,18 +210,18 @@
         }
 
         var gl = this.gl;
-        var state = this.renderer.state;
+        var state = this.glCore.state;
 
         for (var i = 0, l = particles.length; i < l; i++) {
             var particle = particles[i].object;
             var geometry = particles[i].geometry;
             var material = particles[i].material;
 
-            var program = zen3d.getProgram(gl, this.renderer, material);
+            var program = zen3d.getProgram(this.glCore, camera, material);
             state.setProgram(program);
 
-            this.renderer.geometry.setGeometry(geometry);
-            this.renderer.setupVertexAttributes(program, geometry);
+            this.glCore.geometry.setGeometry(geometry);
+            this.glCore.setupVertexAttributes(program, geometry);
 
             var uniforms = program.uniforms;
             uniforms.uTime.setValue(particle.time);
@@ -233,19 +231,19 @@
             uniforms.u_View.setValue(camera.viewMatrix.elements);
             uniforms.u_Model.setValue(particle.worldMatrix.elements);
 
-            var slot = this.renderer.allocTexUnit();
-            this.renderer.texture.setTexture2D(particle.particleNoiseTex, slot);
+            var slot = this.glCore.allocTexUnit();
+            this.glCore.texture.setTexture2D(particle.particleNoiseTex, slot);
             uniforms.tNoise.setValue(slot);
 
-            var slot = this.renderer.allocTexUnit();
-            this.renderer.texture.setTexture2D(particle.particleSpriteTex, slot);
+            var slot = this.glCore.allocTexUnit();
+            this.glCore.texture.setTexture2D(particle.particleSpriteTex, slot);
             uniforms.tSprite.setValue(slot);
 
-            this.renderer.setStates(material);
+            this.glCore.setStates(material);
 
             gl.drawArrays(material.drawMode, 0, geometry.getAttribute("a_Position").count);
 
-            this.renderer._usedTextureUnits = 0;
+            this.glCore._usedTextureUnits = 0;
         }
     }
 

@@ -135,7 +135,7 @@
 			setInterval(function() {
 				inspector.showPerformanceInfo(renderer.performance);
 				inspector.showSceneInfo(scene);
-				inspector.showCapabilitiesInfo(renderer.renderer.capabilities);
+				inspector.showCapabilitiesInfo(renderer.glCore.capabilities);
 			}, 1000);
 
 			function onWindowResize() {

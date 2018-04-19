@@ -258,16 +258,28 @@
     }
 
     /**
-     * get a suitable program by object & lights & fog
+     * get a suitable program
+     * @param {WebGLCore} glCore
+     * @param {Camera} camera
+     * @param {Material} material
+     * @param {Object3D} object?
+     * @param {RenderCache} cache?
      */
-    var getProgram = function(gl, render, material, object, lights, fog) {
+    var getProgram = function(glCore, camera, material, object, cache) {
+        var gl = glCore.gl;
+        var capabilities = glCore.capabilities;
         var material = material || object.material;
 
+        // get render context from cache
+        var lights = cache ? cache.lights : null;
+        var fog = cache ? cache.fog : null;
+        var clippingPlanes = cache ? cache.clippingPlanes : null;
+
         var props = {}; // cache this props?
-        props.precision = render.capabilities.maxPrecision;
+        props.precision = capabilities.maxPrecision;
         props.materialType = material.type;
 
-        var currentRenderTarget = render.state.currentRenderTarget;
+        var currentRenderTarget = glCore.state.currentRenderTarget;
 
         switch (material.type) {
             case MATERIAL_TYPE.PBR:
@@ -279,14 +291,14 @@
             case MATERIAL_TYPE.POINT:
             case MATERIAL_TYPE.LINE:
             case MATERIAL_TYPE.LINE_LOOP:
-                props.gammaFactor = render.gammaFactor;
-                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, render.gammaOutput);
-                props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
-                props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
-                props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
-                props.useShaderTextureLOD = !!render.capabilities.shaderTextureLOD;
+                props.gammaFactor = camera.gammaFactor;
+                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
+                props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, camera.gammaInput);
+                props.envMapEncoding = getTextureEncodingFromMap(material.envMap, camera.gammaInput);
+                props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, camera.gammaInput);
+                props.useShaderTextureLOD = !!capabilities.shaderTextureLOD;
                 props.useVertexColors = material.vertexColors;
-                props.numClippingPlanes = render.clippingPlanes.length;
+                props.numClippingPlanes = !!clippingPlanes ? clippingPlanes.length : 0;
                 props.useAOMap = !!material.aoMap;
             case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_DASHED:
@@ -304,7 +316,7 @@
                 props.spotLightNum = !!lights ? lights.spotsNum : 0;
                 props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
                 props.useShadow = object.receiveShadow;
-                props.usePCFSoftShadow = render.shadowType === zen3d.SHADOW_TYPE.PCF_SOFT;
+                props.usePCFSoftShadow = object.shadowType === zen3d.SHADOW_TYPE.PCF_SOFT;
                 props.premultipliedAlpha = material.premultipliedAlpha;
                 props.fog = !!fog;
                 props.fogExp2 = !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2);
@@ -315,8 +327,8 @@
                 props.packDepthToRGBA = material.packToRGBA;
             case MATERIAL_TYPE.DISTANCE:
                 var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-                var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
-                var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+                var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
+                var useVertexTexture = capabilities.maxVertexTextures > 0 && capabilities.floatTextures;
                 var maxBones = 0;
 
                 if(useVertexTexture) {

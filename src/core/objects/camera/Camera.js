@@ -13,6 +13,11 @@
 
         // projection matrix
         this.projectionMatrix = new zen3d.Matrix4();
+
+        // gamma space or linear space
+        this.gammaFactor = 2.0;
+    	this.gammaInput = false;
+    	this.gammaOutput = false;
     }
 
     zen3d.inherit(Camera, zen3d.Object3D);
@@ -88,6 +93,12 @@
 
         };
     }();
+
+    Camera.prototype.updateMatrix = function() {
+        Camera.superClass.updateMatrix.call(this);
+
+        this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
+    }
 
     Camera.prototype.copy = function ( source, recursive ) {
 		Camera.superClass.copy.call( this, source, recursive );

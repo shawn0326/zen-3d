@@ -33,7 +33,7 @@
      * render method by WebGL.
      * just for render pass once in one render target
      */
-    var WebGLRenderer = function(gl) {
+    var WebGLCore = function(gl) {
         this.gl = gl;
         
         var properties = new zen3d.WebGLProperties();
@@ -55,22 +55,12 @@
         this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
         this._usedTextureUnits = 0;
-
-        // settings for render
-
-        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
-
-        this.clippingPlanes = []; // Planes array
-
-        this.gammaFactor = 2.0;
-    	this.gammaInput = false;
-    	this.gammaOutput = false;
     }
 
     /**
      * clear buffer
      */
-    WebGLRenderer.prototype.clear = function(color, depth, stencil) {
+    WebGLCore.prototype.clear = function(color, depth, stencil) {
         var gl = this.gl;
 
         var bits = 0;
@@ -88,20 +78,16 @@
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
      * @param {Object} [config] ?
      * @param {Function} [config.getMaterial] Get renderable material.
-     * @param {Object} [config.lights] Render width lights, lights object get from RenderCache->lights.
-     * @param {Fog} [config.fog] Render with fog.
-     * @param {Plane[]} [config.clippingPlanes] Render width cliping planes.
+     * @param {RenderCache} [config.cache] render cache
      */
-    WebGLRenderer.prototype.renderPass = function(renderList, camera, config) {
+    WebGLCore.prototype.renderPass = function(renderList, camera, config) {
         config = config || {};
 
         var gl = this.gl;
         var state = this.state;
 
         var getMaterial = config.getMaterial || defaultGetMaterial;
-        var lights = config.lights;
-        var fog = config.fog;
-        var clippingPlanes = config.clippingPlanes;
+        var cache = config.cache || {};
         
         var targetWidth = state.currentRenderTarget.width;
         var targetHeight = state.currentRenderTarget.height;
@@ -114,7 +100,7 @@
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 
-            var program = zen3d.getProgram(gl, this, material, object, lights, fog);
+            var program = zen3d.getProgram(this, camera, material, object, cache);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -242,17 +228,17 @@
                         uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                         break;
                     case "u_FogColor":
-                        var color = fog.color;
+                        var color = cache.fog.color;
                         uniform.setValue(color.r, color.g, color.b);
                         break;
                     case "u_FogDensity":
-                        uniform.setValue(fog.density);
+                        uniform.setValue(cache.fog.density);
                         break;
                     case "u_FogNear":
-                        uniform.setValue(fog.near);
+                        uniform.setValue(cache.fog.near);
                         break;
                     case "u_FogFar":
-                        uniform.setValue(fog.far);
+                        uniform.setValue(cache.fog.far);
                         break;
                     case "u_PointSize":
                         uniform.setValue(material.size);
@@ -271,7 +257,7 @@
                         uniform.setValue(material.scale);
                         break;
                     case "clippingPlanes[0]":
-                        var planesData = getClippingPlanesData(clippingPlanes || [], camera);
+                        var planesData = getClippingPlanesData(cache.clippingPlanes || [], camera);
                         gl.uniform4fv(uniform.location, planesData);
                         break;
                     default:
@@ -298,8 +284,8 @@
                 this.uploadSkeleton(uniforms, object, program.id);
             }
 
-            if (material.acceptLight && lights) {
-                this.uploadLights(uniforms, lights, object.receiveShadow, camera, program.id);
+            if (material.acceptLight && cache.lights) {
+                this.uploadLights(uniforms, cache.lights, object.receiveShadow, camera, program.id);
             }
 
             var frontFaceCW = object.worldMatrix.determinant() < 0;
@@ -346,7 +332,7 @@
      * set states
      * @param {boolean} frontFaceCW
      */
-    WebGLRenderer.prototype.setStates = function(material, frontFaceCW) {
+    WebGLCore.prototype.setStates = function(material, frontFaceCW) {
         var gl = this.gl;
         var state = this.state;
 
@@ -385,7 +371,7 @@
      * @private
      * gl draw
      */
-    WebGLRenderer.prototype.draw = function(geometry, material, group) {
+    WebGLCore.prototype.draw = function(geometry, material, group) {
         var gl = this.gl;
 
         var useIndexBuffer = geometry.index !== null;
@@ -408,7 +394,7 @@
      * @private
      * upload skeleton uniforms
      */
-    WebGLRenderer.prototype.uploadSkeleton = function(uniforms, object, programId) {
+    WebGLCore.prototype.uploadSkeleton = function(uniforms, object, programId) {
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
             var gl = this.gl;
@@ -456,7 +442,7 @@
      * upload lights uniforms
      * TODO a better function for array & struct uniforms upload
      */
-    WebGLRenderer.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
+    WebGLCore.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
         var gl = this.gl;
 
         if(lights.ambientsNum > 0) {
@@ -597,7 +583,7 @@
      * @private
      * alloc texture unit
      */
-    WebGLRenderer.prototype.allocTexUnit = function() {
+    WebGLCore.prototype.allocTexUnit = function() {
         var textureUnit = this._usedTextureUnits;
 
         if (textureUnit >= this.capabilities.maxTextures) {
@@ -614,7 +600,7 @@
     /**
      * @private 
      */
-    WebGLRenderer.prototype.setupVertexAttributes = function(program, geometry) {
+    WebGLCore.prototype.setupVertexAttributes = function(program, geometry) {
         var gl = this.gl;
         var attributes = program.attributes;
         var properties = this.properties;
@@ -625,7 +611,7 @@
                 var normalized = geometryAttribute.normalized;
 				var size = geometryAttribute.size;
                 if(programAttribute.count !== size) {
-                    console.warn("WebGLRenderer: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
+                    console.warn("WebGLCore: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
                 }
 
                 var attribute;
@@ -637,7 +623,7 @@
                 var buffer = attribute.buffer;
 				var type = attribute.type;
                 if(programAttribute.format !== type) {
-                    console.warn("WebGLRenderer: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
+                    console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
                 }
 				var bytesPerElement = attribute.bytesPerElement;
 
@@ -655,7 +641,7 @@
                     gl.enableVertexAttribArray(programAttribute.location);
                 }
             } else {
-                console.warn("WebGLRenderer: geometry attribute " + key + " not found!");
+                console.warn("WebGLCore: geometry attribute " + key + " not found!");
             }
         }
 
@@ -666,5 +652,5 @@
         }
     }
 
-    zen3d.WebGLRenderer = WebGLRenderer;
+    zen3d.WebGLCore = WebGLCore;
 })();

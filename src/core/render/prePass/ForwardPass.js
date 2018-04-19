@@ -18,13 +18,11 @@
             } else if(layer === RENDER_LAYER.PARTICLE) {
                 renderer.renderParticles(renderLists[layer], camera);
             } else {
-                renderer.renderer.renderPass(renderLists[layer], camera, {
+                renderer.glCore.renderPass(renderLists[layer], camera, {
                     getMaterial: function(renderable) {
                         return scene.overrideMaterial || renderable.material;
                     },
-                    lights: scene.cache.lights,
-                    fog: scene.cache.fog,
-                    clippingPlanes: renderer.renderer.clippingPlanes
+                    cache: scene.cache
                 });
             }
         }

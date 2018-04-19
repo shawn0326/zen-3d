@@ -40,8 +40,6 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.renderer.gammaInput = true;
-			renderer.renderer.gammaOutput = true;
 			renderer.shadowAutoUpdate = false;
 
 	        var scene = new zen3d.Scene();
@@ -76,7 +74,7 @@
 			});
 
 			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x4c4c4c);
+	        ambientLight.color.setHex(0xffffff);
 	        scene.add(ambientLight);
 
 	        var spotLight = new zen3d.SpotLight();
@@ -88,9 +86,12 @@
 	        spotLight.position.set(0, 10, 0);
 			spotLight.distance = 30;
 			spotLight.castShadow = true;
+			spotLight.intensity = 1.5;
 	        scene.add(spotLight);
 
-	        var camera = new zen3d.Camera();
+			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
 	        camera.position.set(0, 4, 10);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);

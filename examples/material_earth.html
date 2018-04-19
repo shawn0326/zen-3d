@@ -77,9 +77,6 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.renderer.gammaInput = true;
-			renderer.renderer.gammaOutput = true;
-			renderer.renderer.gammaFactor = 1.7;
 
 	        var scene = new zen3d.Scene();
 
@@ -89,7 +86,7 @@
 			var glow_geo = new zen3d.SphereGeometry(5, 40, 40);
 
 			var diff_tex = zen3d.Texture2D.fromSrc("resources/earth4.jpg");
-			// diff_tex.anisotropy = renderer.renderer.capabilities.maxAnisotropy;
+			// diff_tex.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
 			var bump_tex = zen3d.Texture2D.fromSrc("resources/earth_bump.jpg");
 			var spec_tex = zen3d.Texture2D.fromSrc("resources/earth_spec.jpg");
 			var cloud_tex = zen3d.Texture2D.fromSrc("resources/earth_cloud.png");
@@ -156,7 +153,10 @@
 			var originVec = new zen3d.Vector3(0, 0, 1);
 			spotLight.quaternion.setFromUnitVectors(originVec, posToTarget);
 
-	        var camera = new zen3d.Camera();
+			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
+			camera.gammaFactor = 1.7;
 	        camera.position.set(0, 0, 20);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 1000);

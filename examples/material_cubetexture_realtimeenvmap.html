@@ -40,8 +40,6 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.renderer.gammaInput = true;
-			renderer.renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
@@ -104,25 +102,13 @@
 			scene.add(lightball);
 
 			// camera
-	        var camera = new zen3d.Camera();
+			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
 			camera.position.set(0, 20, 100);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 	        scene.add(camera);
-
-			// help camera
-			var helpCamera = new zen3d.Camera();
-			var targets = [
-			    new zen3d.Vector3( 1, 0, 0 ), new zen3d.Vector3( -1, 0, 0 ), new zen3d.Vector3( 0, 1, 0 ),
-				new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ), new zen3d.Vector3( 0, 0, -1 )
-			];
-			var ups = [
-			    new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, 0, 1 ),
-			    new zen3d.Vector3( 0, 0, -1 ), new zen3d.Vector3( 0, -1, 0 ), new zen3d.Vector3( 0, -1, 0 )
-			];
-			helpCamera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
-			scene.add(helpCamera);
-			var lookTarget = new zen3d.Vector3();
 
 			var environmentMapPrePass = new zen3d.EnvironmentMapPass();
 

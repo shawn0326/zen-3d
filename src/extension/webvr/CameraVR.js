@@ -13,5 +13,35 @@
 
     zen3d.inherit(CameraVR, zen3d.Object3D);
 
+    Object.defineProperties(CameraVR.prototype, {
+        gammaFactor: {
+            get: function() {
+                return this.cameraL.gammaFactor;
+            },
+            set: function(value) {
+                this.cameraL.gammaFactor = value;
+                this.cameraR.gammaFactor = value;
+            }
+        },
+        gammaInput: {
+            get: function() {
+                return this.cameraL.gammaInput;
+            },
+            set: function(value) {
+                this.cameraL.gammaInput = value;
+                this.cameraR.gammaInput = value;
+            }
+        },
+        gammaOutput: {
+            get: function() {
+                return this.cameraL.gammaOutput;
+            },
+            set: function(value) {
+                this.cameraL.gammaOutput = value;
+                this.cameraR.gammaOutput = value;
+            }
+        }
+    });
+
     zen3d.CameraVR = CameraVR;
 })();

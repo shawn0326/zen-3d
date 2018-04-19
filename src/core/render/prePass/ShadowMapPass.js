@@ -8,12 +8,13 @@
 
     ShadowMapPass.prototype.render = function(renderer, scene) {
         
-        var state = renderer.renderer.state;
+        var gl = renderer.glCore.gl;
+        var state = renderer.glCore.state;
 
         // force disable stencil
-        var useStencil = state.states[renderer.gl.STENCIL_TEST];
+        var useStencil = state.states[gl.STENCIL_TEST];
         if(useStencil) {
-            state.disable(renderer.gl.STENCIL_TEST);
+            state.disable(gl.STENCIL_TEST);
         }
 
         var lights = scene.cache.lights.shadows;
@@ -36,10 +37,10 @@
                     shadow.update(light);
                 }
 
-                renderer.renderer.texture.setRenderTarget(shadowTarget);
+                renderer.glCore.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
-                renderer.renderer.clear(true, true);
+                renderer.glCore.clear(true, true);
 
                 if (renderList.length == 0) {
                     continue;
@@ -50,7 +51,7 @@
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                renderer.renderer.renderPass(renderList, camera, {
+                renderer.glCore.renderPass(renderList, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
@@ -66,7 +67,7 @@
         }
 
         if(useStencil) {
-            state.enable(renderer.gl.STENCIL_TEST);
+            state.enable(gl.STENCIL_TEST);
         }
     }
 

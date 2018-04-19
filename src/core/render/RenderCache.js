@@ -108,6 +108,9 @@
 
         // fog
         this.fog = null;
+
+        // clippingPlanes
+        this.clippingPlanes = null;
     }
 
     var helpVector3 = new zen3d.Vector3();
@@ -121,6 +124,7 @@
     RenderCache.prototype.cacheScene = function(scene, camera) {
         this.camera = camera;
         this.fog = scene.fog;
+        this.clippingPlanes = camera.clippingPlanes;
         this.cacheObject(scene);
     }
 

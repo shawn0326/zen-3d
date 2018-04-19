@@ -46,7 +46,7 @@
 	        var sphere_geometry = new zen3d.SphereGeometry(9, 20, 20);
 
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
-			texture.anisotropy = renderer.renderer.capabilities.maxAnisotropy;
+			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
 
 	        var baisc = new zen3d.BasicMaterial();
 	        baisc.diffuse.setHex(0xffffff);

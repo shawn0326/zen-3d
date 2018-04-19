@@ -44,6 +44,7 @@
         // shadow
         this.castShadow = false;
         this.receiveShadow = false;
+        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
 
         // frustum test
         this.frustumCulled = true;

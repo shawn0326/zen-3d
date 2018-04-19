@@ -4820,7 +4820,7 @@
      * render method by WebGL.
      * just for render pass once in one render target
      */
-    var WebGLRenderer = function(gl) {
+    var WebGLCore = function(gl) {
         this.gl = gl;
         
         var properties = new zen3d.WebGLProperties();
@@ -4842,22 +4842,12 @@
         this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
         this._usedTextureUnits = 0;
-
-        // settings for render
-
-        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
-
-        this.clippingPlanes = []; // Planes array
-
-        this.gammaFactor = 2.0;
-    	this.gammaInput = false;
-    	this.gammaOutput = false;
     }
 
     /**
      * clear buffer
      */
-    WebGLRenderer.prototype.clear = function(color, depth, stencil) {
+    WebGLCore.prototype.clear = function(color, depth, stencil) {
         var gl = this.gl;
 
         var bits = 0;
@@ -4875,20 +4865,16 @@
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
      * @param {Object} [config] ?
      * @param {Function} [config.getMaterial] Get renderable material.
-     * @param {Object} [config.lights] Render width lights, lights object get from RenderCache->lights.
-     * @param {Fog} [config.fog] Render with fog.
-     * @param {Plane[]} [config.clippingPlanes] Render width cliping planes.
+     * @param {RenderCache} [config.cache] render cache
      */
-    WebGLRenderer.prototype.renderPass = function(renderList, camera, config) {
+    WebGLCore.prototype.renderPass = function(renderList, camera, config) {
         config = config || {};
 
         var gl = this.gl;
         var state = this.state;
 
         var getMaterial = config.getMaterial || defaultGetMaterial;
-        var lights = config.lights;
-        var fog = config.fog;
-        var clippingPlanes = config.clippingPlanes;
+        var cache = config.cache || {};
         
         var targetWidth = state.currentRenderTarget.width;
         var targetHeight = state.currentRenderTarget.height;
@@ -4901,7 +4887,7 @@
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 
-            var program = zen3d.getProgram(gl, this, material, object, lights, fog);
+            var program = zen3d.getProgram(this, camera, material, object, cache);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -5029,17 +5015,17 @@
                         uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                         break;
                     case "u_FogColor":
-                        var color = fog.color;
+                        var color = cache.fog.color;
                         uniform.setValue(color.r, color.g, color.b);
                         break;
                     case "u_FogDensity":
-                        uniform.setValue(fog.density);
+                        uniform.setValue(cache.fog.density);
                         break;
                     case "u_FogNear":
-                        uniform.setValue(fog.near);
+                        uniform.setValue(cache.fog.near);
                         break;
                     case "u_FogFar":
-                        uniform.setValue(fog.far);
+                        uniform.setValue(cache.fog.far);
                         break;
                     case "u_PointSize":
                         uniform.setValue(material.size);
@@ -5058,7 +5044,7 @@
                         uniform.setValue(material.scale);
                         break;
                     case "clippingPlanes[0]":
-                        var planesData = getClippingPlanesData(clippingPlanes || [], camera);
+                        var planesData = getClippingPlanesData(cache.clippingPlanes || [], camera);
                         gl.uniform4fv(uniform.location, planesData);
                         break;
                     default:
@@ -5085,8 +5071,8 @@
                 this.uploadSkeleton(uniforms, object, program.id);
             }
 
-            if (material.acceptLight && lights) {
-                this.uploadLights(uniforms, lights, object.receiveShadow, camera, program.id);
+            if (material.acceptLight && cache.lights) {
+                this.uploadLights(uniforms, cache.lights, object.receiveShadow, camera, program.id);
             }
 
             var frontFaceCW = object.worldMatrix.determinant() < 0;
@@ -5133,7 +5119,7 @@
      * set states
      * @param {boolean} frontFaceCW
      */
-    WebGLRenderer.prototype.setStates = function(material, frontFaceCW) {
+    WebGLCore.prototype.setStates = function(material, frontFaceCW) {
         var gl = this.gl;
         var state = this.state;
 
@@ -5172,7 +5158,7 @@
      * @private
      * gl draw
      */
-    WebGLRenderer.prototype.draw = function(geometry, material, group) {
+    WebGLCore.prototype.draw = function(geometry, material, group) {
         var gl = this.gl;
 
         var useIndexBuffer = geometry.index !== null;
@@ -5195,7 +5181,7 @@
      * @private
      * upload skeleton uniforms
      */
-    WebGLRenderer.prototype.uploadSkeleton = function(uniforms, object, programId) {
+    WebGLCore.prototype.uploadSkeleton = function(uniforms, object, programId) {
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
             var gl = this.gl;
@@ -5243,7 +5229,7 @@
      * upload lights uniforms
      * TODO a better function for array & struct uniforms upload
      */
-    WebGLRenderer.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
+    WebGLCore.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
         var gl = this.gl;
 
         if(lights.ambientsNum > 0) {
@@ -5384,7 +5370,7 @@
      * @private
      * alloc texture unit
      */
-    WebGLRenderer.prototype.allocTexUnit = function() {
+    WebGLCore.prototype.allocTexUnit = function() {
         var textureUnit = this._usedTextureUnits;
 
         if (textureUnit >= this.capabilities.maxTextures) {
@@ -5401,7 +5387,7 @@
     /**
      * @private 
      */
-    WebGLRenderer.prototype.setupVertexAttributes = function(program, geometry) {
+    WebGLCore.prototype.setupVertexAttributes = function(program, geometry) {
         var gl = this.gl;
         var attributes = program.attributes;
         var properties = this.properties;
@@ -5412,7 +5398,7 @@
                 var normalized = geometryAttribute.normalized;
 				var size = geometryAttribute.size;
                 if(programAttribute.count !== size) {
-                    console.warn("WebGLRenderer: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
+                    console.warn("WebGLCore: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
                 }
 
                 var attribute;
@@ -5424,7 +5410,7 @@
                 var buffer = attribute.buffer;
 				var type = attribute.type;
                 if(programAttribute.format !== type) {
-                    console.warn("WebGLRenderer: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
+                    console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
                 }
 				var bytesPerElement = attribute.bytesPerElement;
 
@@ -5442,7 +5428,7 @@
                     gl.enableVertexAttribArray(programAttribute.location);
                 }
             } else {
-                console.warn("WebGLRenderer: geometry attribute " + key + " not found!");
+                console.warn("WebGLCore: geometry attribute " + key + " not found!");
             }
         }
 
@@ -5453,7 +5439,7 @@
         }
     }
 
-    zen3d.WebGLRenderer = WebGLRenderer;
+    zen3d.WebGLCore = WebGLCore;
 })();
 (function(){
 zen3d.ShaderChunk = {
@@ -5805,16 +5791,28 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     /**
-     * get a suitable program by object & lights & fog
+     * get a suitable program
+     * @param {WebGLCore} glCore
+     * @param {Camera} camera
+     * @param {Material} material
+     * @param {Object3D} object?
+     * @param {RenderCache} cache?
      */
-    var getProgram = function(gl, render, material, object, lights, fog) {
+    var getProgram = function(glCore, camera, material, object, cache) {
+        var gl = glCore.gl;
+        var capabilities = glCore.capabilities;
         var material = material || object.material;
 
+        // get render context from cache
+        var lights = cache ? cache.lights : null;
+        var fog = cache ? cache.fog : null;
+        var clippingPlanes = cache ? cache.clippingPlanes : null;
+
         var props = {}; // cache this props?
-        props.precision = render.capabilities.maxPrecision;
+        props.precision = capabilities.maxPrecision;
         props.materialType = material.type;
 
-        var currentRenderTarget = render.state.currentRenderTarget;
+        var currentRenderTarget = glCore.state.currentRenderTarget;
 
         switch (material.type) {
             case MATERIAL_TYPE.PBR:
@@ -5826,14 +5824,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             case MATERIAL_TYPE.POINT:
             case MATERIAL_TYPE.LINE:
             case MATERIAL_TYPE.LINE_LOOP:
-                props.gammaFactor = render.gammaFactor;
-                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, render.gammaOutput);
-                props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, render.gammaInput);
-                props.envMapEncoding = getTextureEncodingFromMap(material.envMap, render.gammaInput);
-                props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, render.gammaInput);
-                props.useShaderTextureLOD = !!render.capabilities.shaderTextureLOD;
+                props.gammaFactor = camera.gammaFactor;
+                props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
+                props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, camera.gammaInput);
+                props.envMapEncoding = getTextureEncodingFromMap(material.envMap, camera.gammaInput);
+                props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, camera.gammaInput);
+                props.useShaderTextureLOD = !!capabilities.shaderTextureLOD;
                 props.useVertexColors = material.vertexColors;
-                props.numClippingPlanes = render.clippingPlanes.length;
+                props.numClippingPlanes = !!clippingPlanes ? clippingPlanes.length : 0;
                 props.useAOMap = !!material.aoMap;
             case MATERIAL_TYPE.CUBE:
             case MATERIAL_TYPE.LINE_DASHED:
@@ -5851,7 +5849,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.spotLightNum = !!lights ? lights.spotsNum : 0;
                 props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
                 props.useShadow = object.receiveShadow;
-                props.usePCFSoftShadow = render.shadowType === zen3d.SHADOW_TYPE.PCF_SOFT;
+                props.usePCFSoftShadow = object.shadowType === zen3d.SHADOW_TYPE.PCF_SOFT;
                 props.premultipliedAlpha = material.premultipliedAlpha;
                 props.fog = !!fog;
                 props.fogExp2 = !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2);
@@ -5862,8 +5860,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 props.packDepthToRGBA = material.packToRGBA;
             case MATERIAL_TYPE.DISTANCE:
                 var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
-                var maxVertexUniformVectors = render.capabilities.maxVertexUniformVectors;
-                var useVertexTexture = render.capabilities.maxVertexTextures > 0 && render.capabilities.floatTextures;
+                var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
+                var useVertexTexture = capabilities.maxVertexTextures > 0 && capabilities.floatTextures;
                 var maxBones = 0;
 
                 if(useVertexTexture) {
@@ -5957,12 +5955,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     ShadowMapPass.prototype.render = function(renderer, scene) {
         
-        var state = renderer.renderer.state;
+        var gl = renderer.glCore.gl;
+        var state = renderer.glCore.state;
 
         // force disable stencil
-        var useStencil = state.states[renderer.gl.STENCIL_TEST];
+        var useStencil = state.states[gl.STENCIL_TEST];
         if(useStencil) {
-            state.disable(renderer.gl.STENCIL_TEST);
+            state.disable(gl.STENCIL_TEST);
         }
 
         var lights = scene.cache.lights.shadows;
@@ -5985,10 +5984,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     shadow.update(light);
                 }
 
-                renderer.renderer.texture.setRenderTarget(shadowTarget);
+                renderer.glCore.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
-                renderer.renderer.clear(true, true);
+                renderer.glCore.clear(true, true);
 
                 if (renderList.length == 0) {
                     continue;
@@ -5999,7 +5998,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                renderer.renderer.renderPass(renderList, camera, {
+                renderer.glCore.renderPass(renderList, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
@@ -6015,7 +6014,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         if(useStencil) {
-            state.enable(renderer.gl.STENCIL_TEST);
+            state.enable(gl.STENCIL_TEST);
         }
     }
 
@@ -6041,13 +6040,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             } else if(layer === RENDER_LAYER.PARTICLE) {
                 renderer.renderParticles(renderLists[layer], camera);
             } else {
-                renderer.renderer.renderPass(renderLists[layer], camera, {
+                renderer.glCore.renderPass(renderLists[layer], camera, {
                     getMaterial: function(renderable) {
                         return scene.overrideMaterial || renderable.material;
                     },
-                    lights: scene.cache.lights,
-                    fog: scene.cache.fog,
-                    clippingPlanes: renderer.renderer.clippingPlanes
+                    cache: scene.cache
                 });
             }
         }
@@ -6080,7 +6077,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.autoClear = true;
 
-        this.renderer = new zen3d.WebGLRenderer(gl);
+        this.glCore = new zen3d.WebGLCore(gl);
 
         this.performance = new zen3d.Performance();
 
@@ -6122,8 +6119,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         performance.startCounter("render", 60);
 
-        camera.viewMatrix.getInverse(camera.worldMatrix); // update view matrix
-
         scene.update(camera); // update scene
 
         performance.startCounter("renderShadow", 60);   
@@ -6139,11 +6134,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         if (renderTarget === undefined) {
             renderTarget = this.backRenderTarget;
         }
-        this.renderer.texture.setRenderTarget(renderTarget);
+        this.glCore.texture.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
-            this.renderer.state.clearColor(0, 0, 0, 0);
-            this.renderer.clear(true, true, true);
+            this.glCore.state.clearColor(0, 0, 0, 0);
+            this.glCore.clear(true, true, true);
         }
 
         performance.startCounter("renderList", 60);
@@ -6151,7 +6146,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         performance.endCounter("renderList");
 
         if (!!renderTarget.texture) {
-            this.renderer.texture.updateRenderTargetMipmap(renderTarget);
+            this.glCore.texture.updateRenderTargetMipmap(renderTarget);
         }
 
         this.performance.endCounter("render");
@@ -6170,16 +6165,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         var gl = this.gl;
-        var state = this.renderer.state;
+        var state = this.glCore.state;
         var geometry = zen3d.Sprite.geometry;
         var material = sprites[0].material;
 
-        var program = zen3d.getProgram(gl, this.renderer, material);
+        var program = zen3d.getProgram(this.glCore, camera, material);
         state.setProgram(program);
 
         // bind a shared geometry
-        this.renderer.geometry.setGeometry(geometry);
-        this.renderer.setupVertexAttributes(program, geometry);
+        this.glCore.geometry.setGeometry(geometry);
+        this.glCore.setupVertexAttributes(program, geometry);
 
         var uniforms = program.uniforms;
         uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
@@ -6246,16 +6241,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             uniforms.rotation.setValue(material.rotation);
             uniforms.scale.setValue(scale[0], scale[1]);
 
-            this.renderer.setStates(material);
+            this.glCore.setStates(material);
 
-            var slot = this.renderer.allocTexUnit();
-            this.renderer.texture.setTexture2D(material.diffuseMap, slot);
+            var slot = this.glCore.allocTexUnit();
+            this.glCore.texture.setTexture2D(material.diffuseMap, slot);
             uniforms.map.setValue(slot);
 
             gl.drawElements(material.drawMode, 6, gl.UNSIGNED_SHORT, 0);
 
             // reset used tex Unit
-            this.renderer._usedTextureUnits = 0;
+            this.glCore._usedTextureUnits = 0;
         }
 
     }
@@ -6269,18 +6264,18 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         var gl = this.gl;
-        var state = this.renderer.state;
+        var state = this.glCore.state;
 
         for (var i = 0, l = particles.length; i < l; i++) {
             var particle = particles[i].object;
             var geometry = particles[i].geometry;
             var material = particles[i].material;
 
-            var program = zen3d.getProgram(gl, this.renderer, material);
+            var program = zen3d.getProgram(this.glCore, camera, material);
             state.setProgram(program);
 
-            this.renderer.geometry.setGeometry(geometry);
-            this.renderer.setupVertexAttributes(program, geometry);
+            this.glCore.geometry.setGeometry(geometry);
+            this.glCore.setupVertexAttributes(program, geometry);
 
             var uniforms = program.uniforms;
             uniforms.uTime.setValue(particle.time);
@@ -6290,19 +6285,19 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             uniforms.u_View.setValue(camera.viewMatrix.elements);
             uniforms.u_Model.setValue(particle.worldMatrix.elements);
 
-            var slot = this.renderer.allocTexUnit();
-            this.renderer.texture.setTexture2D(particle.particleNoiseTex, slot);
+            var slot = this.glCore.allocTexUnit();
+            this.glCore.texture.setTexture2D(particle.particleNoiseTex, slot);
             uniforms.tNoise.setValue(slot);
 
-            var slot = this.renderer.allocTexUnit();
-            this.renderer.texture.setTexture2D(particle.particleSpriteTex, slot);
+            var slot = this.glCore.allocTexUnit();
+            this.glCore.texture.setTexture2D(particle.particleSpriteTex, slot);
             uniforms.tSprite.setValue(slot);
 
-            this.renderer.setStates(material);
+            this.glCore.setStates(material);
 
             gl.drawArrays(material.drawMode, 0, geometry.getAttribute("a_Position").count);
 
-            this.renderer._usedTextureUnits = 0;
+            this.glCore._usedTextureUnits = 0;
         }
     }
 
@@ -6418,6 +6413,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // fog
         this.fog = null;
+
+        // clippingPlanes
+        this.clippingPlanes = null;
     }
 
     var helpVector3 = new zen3d.Vector3();
@@ -6431,6 +6429,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     RenderCache.prototype.cacheScene = function(scene, camera) {
         this.camera = camera;
         this.fog = scene.fog;
+        this.clippingPlanes = camera.clippingPlanes;
         this.cacheObject(scene);
     }
 
@@ -8383,6 +8382,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // shadow
         this.castShadow = false;
         this.receiveShadow = false;
+        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
 
         // frustum test
         this.frustumCulled = true;
@@ -8567,6 +8567,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.overrideMaterial = null;
 
         this.fog = null;
+
+        this.clippingPlanes = []; // Planes array
 
         this.cache = new zen3d.RenderCache();
     }
@@ -9093,6 +9095,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         // projection matrix
         this.projectionMatrix = new zen3d.Matrix4();
+
+        // gamma space or linear space
+        this.gammaFactor = 2.0;
+    	this.gammaInput = false;
+    	this.gammaOutput = false;
     }
 
     zen3d.inherit(Camera, zen3d.Object3D);
@@ -9168,6 +9175,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         };
     }();
+
+    Camera.prototype.updateMatrix = function() {
+        Camera.superClass.updateMatrix.call(this);
+
+        this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
+    }
 
     Camera.prototype.copy = function ( source, recursive ) {
 		Camera.superClass.copy.call( this, source, recursive );

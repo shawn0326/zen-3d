@@ -44,8 +44,6 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.RendererVR(canvas);
-			renderer.renderer.gammaInput = true;
-			renderer.renderer.gammaOutput = true;
 			renderer.shadowAutoUpdate = false;
 
 	        var scene = new zen3d.Scene();
@@ -80,7 +78,7 @@
 			});
 
 			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x4c4c4c);
+	        ambientLight.color.setHex(0xffffff);
 			ambientLight.intensity = 1;
 	        scene.add(ambientLight);
 
@@ -92,6 +90,7 @@
 			spotLight.penumbra = 0.3;
 	        spotLight.position.set(0, 10, 0);
 			spotLight.distance = 30;
+			spotLight.intensity = 1.5;
 			spotLight.castShadow = true;
 	        scene.add(spotLight);
 
@@ -102,7 +101,9 @@
 	        lightBall.position.set(0, 5, 0);
 	        scene.add(lightBall);
 
-	        var camera = new zen3d.CameraVR();
+			var camera = new zen3d.CameraVR();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
 			camera.position.set(3.0, 2.3, 1.0);
 			camera.near = 1;
 			camera.far = 1000;

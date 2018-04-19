@@ -53,7 +53,7 @@ var filesSrc = [
     "core/render/WebGL/WebGLUniform.js",
     "core/render/WebGL/WebGLAttribute.js",
     "core/render/WebGL/WebGLProgram.js",
-    "core/render/WebGL/WebGLRenderer.js",
+    "core/render/WebGL/WebGLCore.js",
     "core/render/shader/ShaderChunk.js",
     "core/render/shader/ShaderLib.js",
     "core/render/shader/Program.js",

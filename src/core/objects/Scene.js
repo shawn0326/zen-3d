@@ -12,6 +12,8 @@
 
         this.fog = null;
 
+        this.clippingPlanes = []; // Planes array
+
         this.cache = new zen3d.RenderCache();
     }
 

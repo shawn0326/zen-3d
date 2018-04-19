@@ -117,9 +117,9 @@
 
 				var gl = renderer.gl;
 
-				renderer.renderer.state.clearColor(0, 0, 0, 0);
-				renderer.renderer.state.clearStencil(0);
-				renderer.renderer.clear(true, true, true);
+				renderer.glCore.state.clearColor(0, 0, 0, 0);
+				renderer.glCore.state.clearStencil(0);
+				renderer.glCore.clear(true, true, true);
 
 				directionalLight.color.setHex(0xffffff);
 				sphere.scale.set(1, 1, 1);
@@ -129,19 +129,19 @@
 				scene.add(sphere);
 				renderer.render(scene, camera, undefined, false);
 
-				renderer.renderer.clear(false, true, false);
+				renderer.glCore.clear(false, true, false);
 
-				renderer.renderer.state.enable(gl.STENCIL_TEST);
+				renderer.glCore.state.enable(gl.STENCIL_TEST);
 
-				renderer.renderer.state.stencilFunc(gl.ALWAYS, 1, 1);
-				renderer.renderer.state.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-				renderer.renderer.state.colorMask(false);
+				renderer.glCore.state.stencilFunc(gl.ALWAYS, 1, 1);
+				renderer.glCore.state.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+				renderer.glCore.state.colorMask(false);
 
 				renderer.render(stencilScene, camera, undefined, false);
 
-				renderer.renderer.state.colorMask(true);
-				renderer.renderer.state.stencilFunc(gl.LEQUAL, 1, 1);
-				renderer.renderer.state.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+				renderer.glCore.state.colorMask(true);
+				renderer.glCore.state.stencilFunc(gl.LEQUAL, 1, 1);
+				renderer.glCore.state.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
 				directionalLight.color.setHex(0xffaaaa);
 				sphere.scale.set(1.1, 1.1, 1.1);
@@ -151,7 +151,7 @@
 				scene.remove(sphere);
 				renderer.render(scene, camera, undefined, false);
 
-				renderer.renderer.state.disable(gl.STENCIL_TEST);
+				renderer.glCore.state.disable(gl.STENCIL_TEST);
 	        }
 
 	        loop(0);

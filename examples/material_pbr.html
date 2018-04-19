@@ -46,13 +46,11 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.renderer.gammaInput = true;
-			renderer.renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
 			var texture = new zen3d.Texture2D.fromSrc("resources/moon_1024.jpg");
-			texture.anisotropy = renderer.renderer.capabilities.maxAnisotropy;
+			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
 			texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 			texture = null;
 
@@ -135,7 +133,9 @@
 	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
 	        particleLight.add(lightBall);
 
-	        var camera = new zen3d.Camera();
+			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 	        scene.add(camera);

@@ -44,15 +44,13 @@
 			document.body.appendChild( canvas );
 
 	        var renderer = new zen3d.Renderer(canvas);
-			renderer.renderer.gammaInput = true;
-			renderer.renderer.gammaOutput = true;
 
 	        var scene = new zen3d.Scene();
 
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			texture.wrapT = texture.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-			texture.anisotropy = renderer.renderer.capabilities.maxAnisotropy;
+			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
 
 			var texture2 = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
@@ -85,7 +83,9 @@
 			directionalLight.intensity = 1.5;
 	        scene.add(directionalLight);
 
-	        var camera = new zen3d.Camera();
+			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
 	        camera.position.set(0, 25, 100);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
@@ -103,7 +103,7 @@
 					msg.innerText = "anisotropy filter: disable";
 				} else {
 					lambert.diffuseMap = texture;
-					msg.innerText = "anisotropy filter: x" + renderer.renderer.capabilities.maxAnisotropy;
+					msg.innerText = "anisotropy filter: x" + renderer.glCore.capabilities.maxAnisotropy;
 				}
 			}
 
