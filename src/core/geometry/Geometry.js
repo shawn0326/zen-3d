@@ -8,21 +8,6 @@
 
         this.uuid = zen3d.generateUUID();
 
-        this.verticesArray = new Array();
-
-        this.indicesArray = new Array();
-
-        // maybe need something to discrib vertex format
-        this.vertexSize = 17; // static
-
-        // vertex format
-        this.vertexFormat = {
-            "a_Position": {size: 3, normalized: false, stride: 17, offset: 0},
-            "a_Normal": {size: 3, normalized: false, stride: 17, offset: 3},
-            "a_Color": {size: 4, normalized: false, stride: 17, offset: 9},
-            "a_Uv": {size: 2, normalized: false, stride: 17, offset: 13}
-        };
-
         this.attributes = {};
         this.index = null;
 

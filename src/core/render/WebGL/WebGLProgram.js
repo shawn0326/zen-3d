@@ -82,6 +82,9 @@
      * @class Program
      */
     var WebGLProgram = function(gl, vshader, fshader) {
+
+        this.uuid = zen3d.generateUUID();
+        
         // vertex shader source
         this.vshaderSource = vshader;
 

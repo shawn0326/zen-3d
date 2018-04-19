@@ -55,6 +55,8 @@
         this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
         this._usedTextureUnits = 0;
+
+        this._currentGeometryProgram = "";
     }
 
     /**
@@ -104,7 +106,12 @@
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
-            this.setupVertexAttributes(program, geometry);
+
+            var geometryProgram = program.uuid + "_" + geometry.uuid;
+            if(geometryProgram !== this._currentGeometryProgram) {
+                this.setupVertexAttributes(program, geometry);
+                this._currentGeometryProgram = geometryProgram;
+            }
 
             // update uniforms
             // TODO need a better upload method
@@ -645,7 +652,7 @@
             }
         }
 
-        // TODO bind index if could
+        // bind index if could
         if(geometry.index) {
             var indexProperty = properties.get(geometry.index);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);

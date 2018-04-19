@@ -313,7 +313,7 @@
         var normals = json.normals;
         var texturecoords = json.texturecoords && json.texturecoords[0];
         var verticesCount = vertices.length / 3;
-        var g_v = geometry.verticesArray;
+        var g_v = [];
 
         // bones
         var bones = json.bones;

@@ -4754,6 +4754,9 @@
      * @class Program
      */
     var WebGLProgram = function(gl, vshader, fshader) {
+
+        this.uuid = zen3d.generateUUID();
+        
         // vertex shader source
         this.vshaderSource = vshader;
 
@@ -4842,6 +4845,8 @@
         this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
 
         this._usedTextureUnits = 0;
+
+        this._currentGeometryProgram = "";
     }
 
     /**
@@ -4891,7 +4896,12 @@
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
-            this.setupVertexAttributes(program, geometry);
+
+            var geometryProgram = program.uuid + "_" + geometry.uuid;
+            if(geometryProgram !== this._currentGeometryProgram) {
+                this.setupVertexAttributes(program, geometry);
+                this._currentGeometryProgram = geometryProgram;
+            }
 
             // update uniforms
             // TODO need a better upload method
@@ -5432,7 +5442,7 @@
             }
         }
 
-        // TODO bind index if could
+        // bind index if could
         if(geometry.index) {
             var indexProperty = properties.get(geometry.index);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);
@@ -6958,21 +6968,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         Geometry.superClass.constructor.call(this);
 
         this.uuid = zen3d.generateUUID();
-
-        this.verticesArray = new Array();
-
-        this.indicesArray = new Array();
-
-        // maybe need something to discrib vertex format
-        this.vertexSize = 17; // static
-
-        // vertex format
-        this.vertexFormat = {
-            "a_Position": {size: 3, normalized: false, stride: 17, offset: 0},
-            "a_Normal": {size: 3, normalized: false, stride: 17, offset: 3},
-            "a_Color": {size: 4, normalized: false, stride: 17, offset: 9},
-            "a_Uv": {size: 2, normalized: false, stride: 17, offset: 13}
-        };
 
         this.attributes = {};
         this.index = null;
@@ -10323,7 +10318,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var normals = json.normals;
         var texturecoords = json.texturecoords && json.texturecoords[0];
         var verticesCount = vertices.length / 3;
-        var g_v = geometry.verticesArray;
+        var g_v = [];
 
         // bones
         var bones = json.bones;
