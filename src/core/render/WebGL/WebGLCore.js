@@ -291,8 +291,16 @@
                 this.uploadSkeleton(uniforms, object, program.id);
             }
 
+            if(object.type === zen3d.OBJECT_TYPE.SPRITE) {
+                this.uploadSpriteUniform(uniforms, object, camera, cache.fog);
+            }
+            
+            if(object.type === zen3d.OBJECT_TYPE.PARTICLE) {
+                this.uploadParticlesUniform(uniforms, object, camera);
+            }
+
             if (material.acceptLight && cache.lights) {
-                this.uploadLights(uniforms, cache.lights, object.receiveShadow, camera, program.id);
+                this.uploadLights(uniforms, cache.lights, object.receiveShadow, camera);
             }
 
             var frontFaceCW = object.worldMatrix.determinant() < 0;
@@ -449,7 +457,7 @@
      * upload lights uniforms
      * TODO a better function for array & struct uniforms upload
      */
-    WebGLCore.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
+    WebGLCore.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera) {
         var gl = this.gl;
 
         if(lights.ambientsNum > 0) {
@@ -584,6 +592,100 @@
             var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
             gl.uniformMatrix4fv(spotShadowMatrix.location, false, lights.spotShadowMatrix);
         }
+    }
+
+    var scale = []; // for sprite scale upload
+    var spritePosition = new zen3d.Vector3();
+    var spriteRotation = new zen3d.Quaternion();
+    var spriteScale = new zen3d.Vector3();
+
+    WebGLCore.prototype.uploadSpriteUniform = function(uniforms, sprite, camera, fog) {
+        var gl = this.gl;
+        var state = this.state;
+        var geometry = sprite.geometry;
+        var material = sprite.material;
+
+        uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
+
+        var sceneFogType = 0;
+        if (fog) {
+            uniforms.fogColor.setValue(fog.color.r, fog.color.g, fog.color.b);
+
+            if (fog.fogType === zen3d.FOG_TYPE.NORMAL) {
+                uniforms.fogNear.setValue(fog.near);
+                uniforms.fogFar.setValue(fog.far);
+
+                uniforms.fogType.setValue(1);
+                sceneFogType = 1;
+            } else if (fog.fogType === zen3d.FOG_TYPE.EXP2) {
+                uniforms.fogDensity.setValue(fog.density);
+                uniforms.fogType.setValue(2);
+                sceneFogType = 2;
+            }
+        } else {
+            uniforms.fogType.setValue(0);
+            sceneFogType = 0;
+        }
+
+        uniforms.alphaTest.setValue(0);
+        uniforms.viewMatrix.setValue(camera.viewMatrix.elements);
+        uniforms.modelMatrix.setValue(sprite.worldMatrix.elements);
+
+        sprite.worldMatrix.decompose(spritePosition, spriteRotation, spriteScale);
+
+        scale[0] = spriteScale.x;
+        scale[1] = spriteScale.y;
+
+        var fogType = 0;
+
+        if (fog && material.fog) {
+            fogType = sceneFogType;
+        }
+
+        uniforms.fogType.setValue(fogType);
+
+        if (material.diffuseMap !== null) {
+            // TODO offset
+            // uniforms.uvOffset.setValue(uniforms.uvOffset, material.diffuseMap.offset.x, material.diffuseMap.offset.y);
+            // uniforms.uvScale.setValue(uniforms.uvScale, material.diffuseMap.repeat.x, material.diffuseMap.repeat.y);
+            uniforms.uvOffset.setValue(0, 0);
+            uniforms.uvScale.setValue(1, 1);
+        } else {
+            uniforms.uvOffset.setValue(0, 0);
+            uniforms.uvScale.setValue(1, 1);
+        }
+
+        uniforms.opacity.setValue(material.opacity);
+        uniforms.color.setValue(material.diffuse.r, material.diffuse.g, material.diffuse.b);
+
+        uniforms.rotation.setValue(material.rotation);
+        uniforms.scale.setValue(scale[0], scale[1]);
+
+        var slot = this.allocTexUnit();
+        this.texture.setTexture2D(material.diffuseMap, slot);
+        uniforms.map.setValue(slot);
+    }
+
+    WebGLCore.prototype.uploadParticlesUniform = function(uniforms, particle, camera) {
+        var gl = this.gl;
+        var state = this.state;
+        var geometry = particle.geometry;
+        var material = particle.material;
+
+        uniforms.uTime.setValue(particle.time);
+        uniforms.uScale.setValue(1);
+
+        uniforms.u_Projection.setValue(camera.projectionMatrix.elements);
+        uniforms.u_View.setValue(camera.viewMatrix.elements);
+        uniforms.u_Model.setValue(particle.worldMatrix.elements);
+
+        var slot = this.allocTexUnit();
+        this.texture.setTexture2D(particle.particleNoiseTex, slot);
+        uniforms.tNoise.setValue(slot);
+
+        var slot = this.allocTexUnit();
+        this.texture.setTexture2D(particle.particleSpriteTex, slot);
+        uniforms.tSprite.setValue(slot);
     }
 
     /**

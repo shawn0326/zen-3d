@@ -5081,8 +5081,16 @@
                 this.uploadSkeleton(uniforms, object, program.id);
             }
 
+            if(object.type === zen3d.OBJECT_TYPE.SPRITE) {
+                this.uploadSpriteUniform(uniforms, object, camera, cache.fog);
+            }
+            
+            if(object.type === zen3d.OBJECT_TYPE.PARTICLE) {
+                this.uploadParticlesUniform(uniforms, object, camera);
+            }
+
             if (material.acceptLight && cache.lights) {
-                this.uploadLights(uniforms, cache.lights, object.receiveShadow, camera, program.id);
+                this.uploadLights(uniforms, cache.lights, object.receiveShadow, camera);
             }
 
             var frontFaceCW = object.worldMatrix.determinant() < 0;
@@ -5239,7 +5247,7 @@
      * upload lights uniforms
      * TODO a better function for array & struct uniforms upload
      */
-    WebGLCore.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera, programId) {
+    WebGLCore.prototype.uploadLights = function(uniforms, lights, receiveShadow, camera) {
         var gl = this.gl;
 
         if(lights.ambientsNum > 0) {
@@ -5374,6 +5382,100 @@
             var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
             gl.uniformMatrix4fv(spotShadowMatrix.location, false, lights.spotShadowMatrix);
         }
+    }
+
+    var scale = []; // for sprite scale upload
+    var spritePosition = new zen3d.Vector3();
+    var spriteRotation = new zen3d.Quaternion();
+    var spriteScale = new zen3d.Vector3();
+
+    WebGLCore.prototype.uploadSpriteUniform = function(uniforms, sprite, camera, fog) {
+        var gl = this.gl;
+        var state = this.state;
+        var geometry = sprite.geometry;
+        var material = sprite.material;
+
+        uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
+
+        var sceneFogType = 0;
+        if (fog) {
+            uniforms.fogColor.setValue(fog.color.r, fog.color.g, fog.color.b);
+
+            if (fog.fogType === zen3d.FOG_TYPE.NORMAL) {
+                uniforms.fogNear.setValue(fog.near);
+                uniforms.fogFar.setValue(fog.far);
+
+                uniforms.fogType.setValue(1);
+                sceneFogType = 1;
+            } else if (fog.fogType === zen3d.FOG_TYPE.EXP2) {
+                uniforms.fogDensity.setValue(fog.density);
+                uniforms.fogType.setValue(2);
+                sceneFogType = 2;
+            }
+        } else {
+            uniforms.fogType.setValue(0);
+            sceneFogType = 0;
+        }
+
+        uniforms.alphaTest.setValue(0);
+        uniforms.viewMatrix.setValue(camera.viewMatrix.elements);
+        uniforms.modelMatrix.setValue(sprite.worldMatrix.elements);
+
+        sprite.worldMatrix.decompose(spritePosition, spriteRotation, spriteScale);
+
+        scale[0] = spriteScale.x;
+        scale[1] = spriteScale.y;
+
+        var fogType = 0;
+
+        if (fog && material.fog) {
+            fogType = sceneFogType;
+        }
+
+        uniforms.fogType.setValue(fogType);
+
+        if (material.diffuseMap !== null) {
+            // TODO offset
+            // uniforms.uvOffset.setValue(uniforms.uvOffset, material.diffuseMap.offset.x, material.diffuseMap.offset.y);
+            // uniforms.uvScale.setValue(uniforms.uvScale, material.diffuseMap.repeat.x, material.diffuseMap.repeat.y);
+            uniforms.uvOffset.setValue(0, 0);
+            uniforms.uvScale.setValue(1, 1);
+        } else {
+            uniforms.uvOffset.setValue(0, 0);
+            uniforms.uvScale.setValue(1, 1);
+        }
+
+        uniforms.opacity.setValue(material.opacity);
+        uniforms.color.setValue(material.diffuse.r, material.diffuse.g, material.diffuse.b);
+
+        uniforms.rotation.setValue(material.rotation);
+        uniforms.scale.setValue(scale[0], scale[1]);
+
+        var slot = this.allocTexUnit();
+        this.texture.setTexture2D(material.diffuseMap, slot);
+        uniforms.map.setValue(slot);
+    }
+
+    WebGLCore.prototype.uploadParticlesUniform = function(uniforms, particle, camera) {
+        var gl = this.gl;
+        var state = this.state;
+        var geometry = particle.geometry;
+        var material = particle.material;
+
+        uniforms.uTime.setValue(particle.time);
+        uniforms.uScale.setValue(1);
+
+        uniforms.u_Projection.setValue(camera.projectionMatrix.elements);
+        uniforms.u_View.setValue(camera.viewMatrix.elements);
+        uniforms.u_Model.setValue(particle.worldMatrix.elements);
+
+        var slot = this.allocTexUnit();
+        this.texture.setTexture2D(particle.particleNoiseTex, slot);
+        uniforms.tNoise.setValue(slot);
+
+        var slot = this.allocTexUnit();
+        this.texture.setTexture2D(particle.particleSpriteTex, slot);
+        uniforms.tSprite.setValue(slot);
     }
 
     /**
@@ -5935,10 +6037,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.renderTarget = new zen3d.RenderTargetCube(512, 512);
 		this.renderTexture = this.renderTarget.texture;
-		this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+        this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+        
+        this.shadowMapPass = new zen3d.ShadowMapPass();
+        this.forwardPass = new zen3d.ForwardPass();
+
+        this.shadowAutoUpdate = true;
+        this.shadowNeedsUpdate = false;
     }
 
-    EnvironmentMapPass.prototype.render = function(renderer, scene) {
+    EnvironmentMapPass.prototype.render = function(glCore, scene) {
         this.camera.position.copy(this.position);
 
         for(var i = 0; i < 6; i++) {
@@ -5947,9 +6055,24 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             this.camera.updateMatrix();
 
+            scene.update(this.camera);
+
+            if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
+                this.shadowMapPass.render(glCore, scene);
+    
+                this.shadowNeedsUpdate = false;
+            }
+
             this.renderTarget.activeCubeFace = i;
 
-            renderer.render(scene, this.camera, this.renderTarget);
+            glCore.texture.setRenderTarget(this.renderTarget);
+
+            glCore.state.clearColor(0, 0, 0, 0);
+            glCore.clear(true, true, true);
+
+            this.forwardPass.render(glCore, scene);
+
+            glCore.texture.updateRenderTargetMipmap(this.renderTarget);
         }
     }
 
@@ -5963,10 +6086,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowMapPass.prototype.render = function(renderer, scene) {
+    ShadowMapPass.prototype.render = function(glCore, scene) {
         
-        var gl = renderer.glCore.gl;
-        var state = renderer.glCore.state;
+        var gl = glCore.gl;
+        var state = glCore.state;
 
         // force disable stencil
         var useStencil = state.states[gl.STENCIL_TEST];
@@ -5994,10 +6117,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                     shadow.update(light);
                 }
 
-                renderer.glCore.texture.setRenderTarget(shadowTarget);
+                glCore.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
-                renderer.glCore.clear(true, true);
+                glCore.clear(true, true);
 
                 if (renderList.length == 0) {
                     continue;
@@ -6008,7 +6131,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                renderer.glCore.renderPass(renderList, camera, {
+                glCore.renderPass(renderList, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
@@ -6038,25 +6161,18 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         
     }
 
-    ForwardPass.prototype.render = function(renderer, scene) {
+    ForwardPass.prototype.render = function(glCore, scene) {
         var camera = scene.cache.camera;
 
         var renderLists = scene.cache.renderLists;
         for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
             var layer = LAYER_RENDER_LIST[i];
-            // TODO separate different renderers to avoid branchs
-            if(layer === RENDER_LAYER.SPRITE) {
-                renderer.renderSprites(renderLists[layer], camera, scene.cache.fog);
-            } else if(layer === RENDER_LAYER.PARTICLE) {
-                renderer.renderParticles(renderLists[layer], camera);
-            } else {
-                renderer.glCore.renderPass(renderLists[layer], camera, {
-                    getMaterial: function(renderable) {
-                        return scene.overrideMaterial || renderable.material;
-                    },
-                    cache: scene.cache
-                });
-            }
+            glCore.renderPass(renderLists[layer], camera, {
+                getMaterial: function(renderable) {
+                    return scene.overrideMaterial || renderable.material;
+                },
+                cache: scene.cache
+            });
         }
     }
 
@@ -6134,7 +6250,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(this, scene);
+            this.shadowMapPass.render(this.glCore, scene);
 
             this.shadowNeedsUpdate = false;
         }
@@ -6152,7 +6268,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         performance.startCounter("renderList", 60);
-        this.forwardPass.render(this, scene);
+        this.forwardPass.render(this.glCore, scene);
         performance.endCounter("renderList");
 
         if (!!renderTarget.texture) {
@@ -6160,155 +6276,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         this.performance.endCounter("render");
-    }
-
-    var spritePosition = new zen3d.Vector3();
-    var spriteRotation = new zen3d.Quaternion();
-    var spriteScale = new zen3d.Vector3();
-
-    /**
-     * TODO use renderPass instead 
-     */
-    Renderer.prototype.renderSprites = function(sprites, camera, fog) {
-        if (sprites.length === 0) {
-            return;
-        }
-
-        var gl = this.gl;
-        var state = this.glCore.state;
-        var geometry = zen3d.Sprite.geometry;
-        var material = sprites[0].material;
-
-        var program = zen3d.getProgram(this.glCore, camera, material);
-        state.setProgram(program);
-
-        // bind a shared geometry
-        this.glCore.geometry.setGeometry(geometry);
-        this.glCore.setupVertexAttributes(program, geometry);
-
-        var uniforms = program.uniforms;
-        uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
-
-        // fog
-        var sceneFogType = 0;
-        if (fog) {
-            uniforms.fogColor.setValue(fog.color.r, fog.color.g, fog.color.b);
-
-            if (fog.fogType === zen3d.FOG_TYPE.NORMAL) {
-                uniforms.fogNear.setValue(fog.near);
-                uniforms.fogFar.setValue(fog.far);
-
-                uniforms.fogType.setValue(1);
-                sceneFogType = 1;
-            } else if (fog.fogType === zen3d.FOG_TYPE.EXP2) {
-                uniforms.fogDensity.setValue(fog.density);
-                uniforms.fogType.setValue(2);
-                sceneFogType = 2;
-            }
-        } else {
-            uniforms.fogType.setValue(0);
-            sceneFogType = 0;
-        }
-
-        // render
-        var scale = [];
-
-        for (var i = 0, l = sprites.length; i < l; i++) {
-            var sprite = sprites[i].object;
-            var material = sprites[i].material;
-
-            uniforms.alphaTest.setValue(0);
-            uniforms.viewMatrix.setValue(camera.viewMatrix.elements);
-            uniforms.modelMatrix.setValue(sprite.worldMatrix.elements);
-
-            sprite.worldMatrix.decompose(spritePosition, spriteRotation, spriteScale);
-
-            scale[0] = spriteScale.x;
-            scale[1] = spriteScale.y;
-
-            var fogType = 0;
-
-            if (fog && material.fog) {
-                fogType = sceneFogType;
-            }
-
-            uniforms.fogType.setValue(fogType);
-
-            if (material.diffuseMap !== null) {
-                // TODO offset
-                // uniforms.uvOffset.setValue(uniforms.uvOffset, material.diffuseMap.offset.x, material.diffuseMap.offset.y);
-                // uniforms.uvScale.setValue(uniforms.uvScale, material.diffuseMap.repeat.x, material.diffuseMap.repeat.y);
-                uniforms.uvOffset.setValue(0, 0);
-                uniforms.uvScale.setValue(1, 1);
-            } else {
-                uniforms.uvOffset.setValue(0, 0);
-                uniforms.uvScale.setValue(1, 1);
-            }
-
-            uniforms.opacity.setValue(material.opacity);
-            uniforms.color.setValue(material.diffuse.r, material.diffuse.g, material.diffuse.b);
-
-            uniforms.rotation.setValue(material.rotation);
-            uniforms.scale.setValue(scale[0], scale[1]);
-
-            this.glCore.setStates(material);
-
-            var slot = this.glCore.allocTexUnit();
-            this.glCore.texture.setTexture2D(material.diffuseMap, slot);
-            uniforms.map.setValue(slot);
-
-            gl.drawElements(material.drawMode, 6, gl.UNSIGNED_SHORT, 0);
-
-            // reset used tex Unit
-            this.glCore._usedTextureUnits = 0;
-        }
-
-    }
-
-    /**
-     * TODO use renderPass instead 
-     */
-    Renderer.prototype.renderParticles = function(particles, camera) {
-        if (particles.length === 0) {
-            return;
-        }
-
-        var gl = this.gl;
-        var state = this.glCore.state;
-
-        for (var i = 0, l = particles.length; i < l; i++) {
-            var particle = particles[i].object;
-            var geometry = particles[i].geometry;
-            var material = particles[i].material;
-
-            var program = zen3d.getProgram(this.glCore, camera, material);
-            state.setProgram(program);
-
-            this.glCore.geometry.setGeometry(geometry);
-            this.glCore.setupVertexAttributes(program, geometry);
-
-            var uniforms = program.uniforms;
-            uniforms.uTime.setValue(particle.time);
-            uniforms.uScale.setValue(1);
-
-            uniforms.u_Projection.setValue(camera.projectionMatrix.elements);
-            uniforms.u_View.setValue(camera.viewMatrix.elements);
-            uniforms.u_Model.setValue(particle.worldMatrix.elements);
-
-            var slot = this.glCore.allocTexUnit();
-            this.glCore.texture.setTexture2D(particle.particleNoiseTex, slot);
-            uniforms.tNoise.setValue(slot);
-
-            var slot = this.glCore.allocTexUnit();
-            this.glCore.texture.setTexture2D(particle.particleSpriteTex, slot);
-            uniforms.tSprite.setValue(slot);
-
-            this.glCore.setStates(material);
-
-            gl.drawArrays(material.drawMode, 0, geometry.getAttribute("a_Position").count);
-
-            this.glCore._usedTextureUnits = 0;
-        }
     }
 
     zen3d.Renderer = Renderer;
@@ -6439,7 +6406,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     RenderCache.prototype.cacheScene = function(scene, camera) {
         this.camera = camera;
         this.fog = scene.fog;
-        this.clippingPlanes = camera.clippingPlanes;
+        this.clippingPlanes = scene.clippingPlanes;
         this.cacheObject(scene);
     }
 
@@ -6558,6 +6525,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
                 this.renderLists[RENDER_LAYER.SPRITE].push({
                     object: object,
+                    geometry: object.geometry,
                     material: object.material,
                     z: helpVector3.z
                 });
@@ -8571,6 +8539,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.inherit(Scene, zen3d.Object3D);
 
     /**
+     * TODO seperate this method updateMatrix/updateLight/updateRenderList
      * update scene matrix and cache it
      * @param {Camera} camera main camera for this scene
      */

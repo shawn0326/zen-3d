@@ -124,7 +124,7 @@
     RenderCache.prototype.cacheScene = function(scene, camera) {
         this.camera = camera;
         this.fog = scene.fog;
-        this.clippingPlanes = camera.clippingPlanes;
+        this.clippingPlanes = scene.clippingPlanes;
         this.cacheObject(scene);
     }
 
@@ -243,6 +243,7 @@
 
                 this.renderLists[RENDER_LAYER.SPRITE].push({
                     object: object,
+                    geometry: object.geometry,
                     material: object.material,
                     z: helpVector3.z
                 });

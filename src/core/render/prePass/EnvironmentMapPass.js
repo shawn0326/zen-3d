@@ -18,10 +18,16 @@
 
         this.renderTarget = new zen3d.RenderTargetCube(512, 512);
 		this.renderTexture = this.renderTarget.texture;
-		this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+        this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+        
+        this.shadowMapPass = new zen3d.ShadowMapPass();
+        this.forwardPass = new zen3d.ForwardPass();
+
+        this.shadowAutoUpdate = true;
+        this.shadowNeedsUpdate = false;
     }
 
-    EnvironmentMapPass.prototype.render = function(renderer, scene) {
+    EnvironmentMapPass.prototype.render = function(glCore, scene) {
         this.camera.position.copy(this.position);
 
         for(var i = 0; i < 6; i++) {
@@ -30,9 +36,24 @@
 
             this.camera.updateMatrix();
 
+            scene.update(this.camera);
+
+            if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
+                this.shadowMapPass.render(glCore, scene);
+    
+                this.shadowNeedsUpdate = false;
+            }
+
             this.renderTarget.activeCubeFace = i;
 
-            renderer.render(scene, this.camera, this.renderTarget);
+            glCore.texture.setRenderTarget(this.renderTarget);
+
+            glCore.state.clearColor(0, 0, 0, 0);
+            glCore.clear(true, true, true);
+
+            this.forwardPass.render(glCore, scene);
+
+            glCore.texture.updateRenderTargetMipmap(this.renderTarget);
         }
     }
 

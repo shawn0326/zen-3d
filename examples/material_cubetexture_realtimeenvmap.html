@@ -131,7 +131,7 @@
 
 				// render env map on six faces
 			    phong.envMap = null;
-			    environmentMapPrePass.render(renderer, scene);
+			    environmentMapPrePass.render(renderer.glCore, scene);
 			    phong.envMap = environmentMapPrePass.renderTexture;
 
 	            renderer.render(scene, camera);

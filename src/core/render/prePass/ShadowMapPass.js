@@ -6,10 +6,10 @@
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowMapPass.prototype.render = function(renderer, scene) {
+    ShadowMapPass.prototype.render = function(glCore, scene) {
         
-        var gl = renderer.glCore.gl;
-        var state = renderer.glCore.state;
+        var gl = glCore.gl;
+        var state = glCore.state;
 
         // force disable stencil
         var useStencil = state.states[gl.STENCIL_TEST];
@@ -37,10 +37,10 @@
                     shadow.update(light);
                 }
 
-                renderer.glCore.texture.setRenderTarget(shadowTarget);
+                glCore.texture.setRenderTarget(shadowTarget);
 
                 state.clearColor(1, 1, 1, 1);
-                renderer.glCore.clear(true, true);
+                glCore.clear(true, true);
 
                 if (renderList.length == 0) {
                     continue;
@@ -51,7 +51,7 @@
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                renderer.glCore.renderPass(renderList, camera, {
+                glCore.renderPass(renderList, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
