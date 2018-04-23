@@ -122,7 +122,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				renderer.resize(width, height);
+				renderer.backRenderTarget.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();

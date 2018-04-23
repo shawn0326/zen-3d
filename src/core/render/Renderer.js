@@ -1,50 +1,29 @@
 (function() {
-    var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
-
     /**
      * Renderer
      * @class
      */
-    var Renderer = function(view) {
+    var Renderer = function(view, options) {
 
-        // canvas
-        this.view = view;
-        // gl context
-        var gl = this.gl = view.getContext("webgl", {
+        this.backRenderTarget = new zen3d.RenderTargetBack(view);
+        
+        var gl = view.getContext("webgl", options || {
             antialias: true, // antialias
             alpha: false, // effect performance, default false
             // premultipliedAlpha: false, // effect performance, default false
             stencil: true
         });
-        // width and height, same with the canvas
-        var width = view.width;
-        var height = view.height;
-
-        this.autoClear = true;
-
         this.glCore = new zen3d.WebGLCore(gl);
+
+        this.autoClear = true;  
 
         this.performance = new zen3d.Performance();
 
         this.shadowMapPass = new zen3d.ShadowMapPass();
         this.forwardPass = new zen3d.ForwardPass();
 
-        // no texture & framebuffer in this render target
-        // just create this as a flag
-        this.backRenderTarget = new zen3d.RenderTargetBase(width, height);
-
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false;
-    }
-
-    /**
-     * resize
-     */
-    Renderer.prototype.resize = function(width, height) {
-        this.view.width = width;
-        this.view.height = height;
-
-        this.backRenderTarget.resize(width, height);
     }
 
     /**

@@ -1,5 +1,4 @@
 (function() {
-    var RENDER_LAYER = zen3d.RENDER_LAYER;
     var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
 
     var ForwardPass = function() {

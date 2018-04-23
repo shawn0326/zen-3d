@@ -63,6 +63,7 @@ var filesSrc = [
     "core/render/Renderer.js",
     "core/render/RenderCache.js",
     "core/render/RenderTargetBase.js",
+    "core/render/RenderTargetBack.js",
     "core/render/RenderTarget2D.js",
     "core/render/RenderTargetCube.js",
 
