@@ -1625,6 +1625,14 @@
         return target;
     }
 
+    Vector3.prototype.multiply = function ( v ) {
+		this.x *= v.x;
+		this.y *= v.y;
+        this.z *= v.z;
+
+		return this;
+	}
+
     /**
      * cross vectors
      **/
@@ -1970,6 +1978,15 @@
 
         return this;
     }
+
+    Vector4.prototype.multiply = function ( v ) {
+		this.x *= v.x;
+		this.y *= v.y;
+        this.z *= v.z;
+        this.w *= v.w;
+
+		return this;
+	}
 
     /**
      * multiplyScalar
@@ -4328,8 +4345,6 @@
                 state.currentRenderTarget = target;
             }
 
-            state.viewport(target.viewport.x, target.viewport.y, target.viewport.z, target.viewport.w);
-
             return;
         }
 
@@ -4349,8 +4364,6 @@
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
             }
         }
-
-        state.viewport(0, 0, target.width, target.height);
     }
 
     zen3d.WebGLTexture = WebGLTexture;
@@ -4795,6 +4808,7 @@
     var WEBGL_UNIFORM_TYPE = zen3d.WEBGL_UNIFORM_TYPE;
 
     var helpVector3 = new zen3d.Vector3();
+    var helpVector4 = new zen3d.Vector4();
 
     var defaultGetMaterial = function(renderable) {
         return renderable.material;
@@ -5096,14 +5110,24 @@
             var frontFaceCW = object.worldMatrix.determinant() < 0;
             this.setStates(material, frontFaceCW);
 
+            var viewport = helpVector4.set(
+                state.currentRenderTarget.width, 
+                state.currentRenderTarget.height,
+                state.currentRenderTarget.width, 
+                state.currentRenderTarget.height
+            ).multiply(camera.rect);
+
+            viewport.z -= viewport.x;
+            viewport.w -= viewport.y;
+
+            viewport.x = Math.floor(viewport.x);
+            viewport.y = Math.floor(viewport.y);
+            viewport.z = Math.floor(viewport.z);
+            viewport.w = Math.floor(viewport.w);
+
             if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
-                var curViewX, curViewY, curViewW, curViewH;
                 if(object.isScreenCanvas) {
-                    curViewX = state.currentViewport.x;
-                    curViewY = state.currentViewport.y;
-                    curViewW = state.currentViewport.z;
-                    curViewH = state.currentViewport.w;
-                    object.setRenderViewport(curViewX, curViewY, curViewW, curViewH);
+                    object.setRenderViewport(viewport.x, viewport.y, viewport.z, viewport.w);
                     state.viewport(object.viewport.x, object.viewport.y, object.viewport.z, object.viewport.w);
                 }
 
@@ -5119,11 +5143,9 @@
                     _offset += drawData.count * 6;
                     this._usedTextureUnits = 0;
                 }
-
-                if(object.isScreenCanvas) {
-                    state.viewport(curViewX, curViewY, curViewW, curViewH);
-                }
             } else {
+                state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
+
                 this.draw(geometry, material, group);
             }
 
@@ -6225,14 +6247,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.view.width = width;
         this.view.height = height;
 
-        this.setViewport(0, 0, width, height);
-    }
-
-    /**
-     * setViewport
-     */
-    Renderer.prototype.setViewport = function(x, y, width, height) {
-        this.backRenderTarget.viewport.set(x, y, width, height);
+        this.backRenderTarget.resize(width, height);
     }
 
     /**
@@ -6796,8 +6811,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.width = width;
         this.height = height;
 
-        this.viewport = new zen3d.Vector4(0, 0, width, height);
-
         this.depthBuffer = true;
         this.stencilBuffer = true;
     }
@@ -6814,8 +6827,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.width = width;
         this.height = height;
-
-        this.viewport.copy(0, 0, width, height);
     }
 
     RenderTargetBase.prototype.dispose = function() {
@@ -9063,7 +9074,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // gamma space or linear space
         this.gammaFactor = 2.0;
     	this.gammaInput = false;
-    	this.gammaOutput = false;
+        this.gammaOutput = false;
+        
+        // Where on the screen is the camera rendered in normalized coordinates.
+        this.rect = new zen3d.Vector4(0, 0, 1, 1);
     }
 
     zen3d.inherit(Camera, zen3d.Object3D);

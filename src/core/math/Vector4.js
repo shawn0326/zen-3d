@@ -57,6 +57,15 @@
         return this;
     }
 
+    Vector4.prototype.multiply = function ( v ) {
+		this.x *= v.x;
+		this.y *= v.y;
+        this.z *= v.z;
+        this.w *= v.w;
+
+		return this;
+	}
+
     /**
      * multiplyScalar
      */

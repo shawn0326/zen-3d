@@ -415,8 +415,6 @@
                 state.currentRenderTarget = target;
             }
 
-            state.viewport(target.viewport.x, target.viewport.y, target.viewport.z, target.viewport.w);
-
             return;
         }
 
@@ -436,8 +434,6 @@
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
             }
         }
-
-        state.viewport(0, 0, target.width, target.height);
     }
 
     zen3d.WebGLTexture = WebGLTexture;

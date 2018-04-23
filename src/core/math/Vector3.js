@@ -74,6 +74,14 @@
         return target;
     }
 
+    Vector3.prototype.multiply = function ( v ) {
+		this.x *= v.x;
+		this.y *= v.y;
+        this.z *= v.z;
+
+		return this;
+	}
+
     /**
      * cross vectors
      **/

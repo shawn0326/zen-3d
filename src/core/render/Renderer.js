@@ -1,6 +1,5 @@
 (function() {
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
-    
 
     /**
      * Renderer
@@ -45,14 +44,7 @@
         this.view.width = width;
         this.view.height = height;
 
-        this.setViewport(0, 0, width, height);
-    }
-
-    /**
-     * setViewport
-     */
-    Renderer.prototype.setViewport = function(x, y, width, height) {
-        this.backRenderTarget.viewport.set(x, y, width, height);
+        this.backRenderTarget.resize(width, height);
     }
 
     /**

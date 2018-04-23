@@ -63,18 +63,13 @@
         cameraR.position.add(camera.position);
         cameraR.updateMatrix();
 
-        var width = this.backRenderTarget.width / 2;
-        var height = this.backRenderTarget.height;
-
         // render Left view
-        this.setViewport(0, 0, width, height);
         RendererVR.superClass.render.call(this, scene, cameraL, renderTarget, forceClear);
 
         var autoClear = this.autoClear;
         this.autoClear = false;
 
         // render Right view
-        this.setViewport(width, 0, width, height);
         RendererVR.superClass.render.call(this, scene, cameraR, renderTarget, false);
 
         this.autoClear = autoClear;
@@ -92,6 +87,9 @@
 
         this.cameraL = new zen3d.Camera();
         this.cameraR = new zen3d.Camera();
+
+        this.cameraL.rect.set(0, 0, 0.5, 1);
+        this.cameraR.rect.set(0.5, 0, 1, 1);
 
         this.near = 1;
         this.far = 1000;

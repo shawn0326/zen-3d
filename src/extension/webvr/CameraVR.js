@@ -7,6 +7,9 @@
         this.cameraL = new zen3d.Camera();
         this.cameraR = new zen3d.Camera();
 
+        this.cameraL.rect.set(0, 0, 0.5, 1);
+        this.cameraR.rect.set(0.5, 0, 1, 1);
+
         this.near = 1;
         this.far = 1000;
     }

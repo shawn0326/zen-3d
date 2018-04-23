@@ -17,7 +17,10 @@
         // gamma space or linear space
         this.gammaFactor = 2.0;
     	this.gammaInput = false;
-    	this.gammaOutput = false;
+        this.gammaOutput = false;
+        
+        // Where on the screen is the camera rendered in normalized coordinates.
+        this.rect = new zen3d.Vector4(0, 0, 1, 1);
     }
 
     zen3d.inherit(Camera, zen3d.Object3D);

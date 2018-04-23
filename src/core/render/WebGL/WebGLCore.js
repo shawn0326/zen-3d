@@ -5,6 +5,7 @@
     var WEBGL_UNIFORM_TYPE = zen3d.WEBGL_UNIFORM_TYPE;
 
     var helpVector3 = new zen3d.Vector3();
+    var helpVector4 = new zen3d.Vector4();
 
     var defaultGetMaterial = function(renderable) {
         return renderable.material;
@@ -306,14 +307,24 @@
             var frontFaceCW = object.worldMatrix.determinant() < 0;
             this.setStates(material, frontFaceCW);
 
+            var viewport = helpVector4.set(
+                state.currentRenderTarget.width, 
+                state.currentRenderTarget.height,
+                state.currentRenderTarget.width, 
+                state.currentRenderTarget.height
+            ).multiply(camera.rect);
+
+            viewport.z -= viewport.x;
+            viewport.w -= viewport.y;
+
+            viewport.x = Math.floor(viewport.x);
+            viewport.y = Math.floor(viewport.y);
+            viewport.z = Math.floor(viewport.z);
+            viewport.w = Math.floor(viewport.w);
+
             if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
-                var curViewX, curViewY, curViewW, curViewH;
                 if(object.isScreenCanvas) {
-                    curViewX = state.currentViewport.x;
-                    curViewY = state.currentViewport.y;
-                    curViewW = state.currentViewport.z;
-                    curViewH = state.currentViewport.w;
-                    object.setRenderViewport(curViewX, curViewY, curViewW, curViewH);
+                    object.setRenderViewport(viewport.x, viewport.y, viewport.z, viewport.w);
                     state.viewport(object.viewport.x, object.viewport.y, object.viewport.z, object.viewport.w);
                 }
 
@@ -329,11 +340,9 @@
                     _offset += drawData.count * 6;
                     this._usedTextureUnits = 0;
                 }
-
-                if(object.isScreenCanvas) {
-                    state.viewport(curViewX, curViewY, curViewW, curViewH);
-                }
             } else {
+                state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
+
                 this.draw(geometry, material, group);
             }
 

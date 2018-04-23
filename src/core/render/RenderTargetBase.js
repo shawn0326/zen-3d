@@ -11,8 +11,6 @@
         this.width = width;
         this.height = height;
 
-        this.viewport = new zen3d.Vector4(0, 0, width, height);
-
         this.depthBuffer = true;
         this.stencilBuffer = true;
     }
@@ -29,8 +27,6 @@
 
         this.width = width;
         this.height = height;
-
-        this.viewport.copy(0, 0, width, height);
     }
 
     RenderTargetBase.prototype.dispose = function() {
