@@ -81,6 +81,7 @@
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
      * @param {Object} [config] ?
      * @param {Function} [config.getMaterial] Get renderable material.
+     * @param {Function} [config.ifRender] If render the renderable.
      * @param {RenderCache} [config.cache] render cache
      */
     WebGLCore.prototype.renderPass = function(renderList, camera, config) {
@@ -96,8 +97,12 @@
         var targetHeight = state.currentRenderTarget.height;
 
         for (var i = 0, l = renderList.length; i < l; i++) {
-
             var renderItem = renderList[i];
+
+            if(config.ifRender && !config.ifRender(renderItem)) {
+                continue;
+            }
+            
             var object = renderItem.object;
             var material = getMaterial.call(this, renderItem);
             var geometry = renderItem.geometry;

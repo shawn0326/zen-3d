@@ -80,8 +80,6 @@
         }
         this.renderLists = renderLists;
 
-        this.shadowObjects = new Array();
-
         // lights
         this.lights = {
             ambient: new Float32Array([0, 0, 0, 1]),
@@ -172,15 +170,6 @@
                                 group: group
                             });
 
-                            if (object.castShadow) {
-                                this.shadowObjects.push({
-                                    object: object,
-                                    geometry: object.geometry,
-                                    material: groupMaterial,
-                                    z: helpVector3.z,
-                                    group: group
-                                });
-                            }
                         }
                     }
                 } else {
@@ -190,15 +179,6 @@
                         material: object.material,
                         z: helpVector3.z
                     });
-
-                    if (object.castShadow) {
-                        this.shadowObjects.push({
-                            object: object,
-                            geometry: object.geometry,
-                            material: object.material,
-                            z: helpVector3.z
-                        });
-                    }
                 }
 
                 break;
@@ -483,8 +463,6 @@
         for(var layer in renderLists) {
             renderLists[layer].length = 0;
         }
-
-        this.shadowObjects.length = 0;
 
         var lights = this.lights;
         for(var i = 0; i < 3; i++) {

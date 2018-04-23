@@ -4884,6 +4884,7 @@
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
      * @param {Object} [config] ?
      * @param {Function} [config.getMaterial] Get renderable material.
+     * @param {Function} [config.ifRender] If render the renderable.
      * @param {RenderCache} [config.cache] render cache
      */
     WebGLCore.prototype.renderPass = function(renderList, camera, config) {
@@ -4899,8 +4900,12 @@
         var targetHeight = state.currentRenderTarget.height;
 
         for (var i = 0, l = renderList.length; i < l; i++) {
-
             var renderItem = renderList[i];
+
+            if(config.ifRender && !config.ifRender(renderItem)) {
+                continue;
+            }
+            
             var object = renderItem.object;
             var material = getMaterial.call(this, renderItem);
             var geometry = renderItem.geometry;
@@ -6101,6 +6106,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.EnvironmentMapPass = EnvironmentMapPass;
 })();
 (function() {
+    var RENDER_LAYER = zen3d.RENDER_LAYER;
+    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
+
     var ShadowMapPass = function() {
         this.depthMaterial = new zen3d.DepthMaterial();
         this.depthMaterial.packToRGBA = true;
@@ -6128,7 +6136,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var shadowTarget = shadow.renderTarget;
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
-            var renderList = scene.cache.shadowObjects;
+            var renderLists = scene.cache.renderLists;
 
             for (var j = 0; j < faces; j++) {
 
@@ -6144,20 +6152,20 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 state.clearColor(1, 1, 1, 1);
                 glCore.clear(true, true);
 
-                if (renderList.length == 0) {
-                    continue;
-                }
-
                 var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
                 material.uniforms = material.uniforms || {};
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                glCore.renderPass(renderList, camera, {
+                // ignore transparent objects
+                glCore.renderPass(renderLists[RENDER_LAYER.DEFAULT], camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
                         return material;
+                    },
+                    ifRender: function(renderable) {
+                        return renderable.object.castShadow;
                     }
                 });
 
@@ -6176,7 +6184,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.ShadowMapPass = ShadowMapPass;
 })();
 (function() {
-    var RENDER_LAYER = zen3d.RENDER_LAYER;
     var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
 
     var ForwardPass = function() {

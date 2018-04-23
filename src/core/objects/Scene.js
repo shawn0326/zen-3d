@@ -20,7 +20,7 @@
     zen3d.inherit(Scene, zen3d.Object3D);
 
     /**
-     * TODO seperate this method updateMatrix/updateLight/updateRenderList
+     * TODO seperate this method updateMatrix/updateContext/updateRenderList
      * update scene matrix and cache it
      * @param {Camera} camera main camera for this scene
      */
