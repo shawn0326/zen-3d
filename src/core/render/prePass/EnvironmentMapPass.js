@@ -27,11 +27,11 @@
         this.shadowNeedsUpdate = false;
     }
 
-    EnvironmentMapPass.prototype.render = function(glCore, scene, camera) {
+    EnvironmentMapPass.prototype.render = function(glCore, scene) {
         this.camera.position.copy(this.position);
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(glCore, scene, this.camera);
+            this.shadowMapPass.render(glCore, scene);
 
             this.shadowNeedsUpdate = false;
         }

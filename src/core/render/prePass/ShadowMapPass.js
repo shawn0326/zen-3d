@@ -9,7 +9,7 @@
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowMapPass.prototype.render = function(glCore, scene, camera) {
+    ShadowMapPass.prototype.render = function(glCore, scene) {
         
         var gl = glCore.gl;
         var state = glCore.state;

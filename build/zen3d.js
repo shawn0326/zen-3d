@@ -6073,11 +6073,11 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.shadowNeedsUpdate = false;
     }
 
-    EnvironmentMapPass.prototype.render = function(glCore, scene, camera) {
+    EnvironmentMapPass.prototype.render = function(glCore, scene) {
         this.camera.position.copy(this.position);
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(glCore, scene, this.camera);
+            this.shadowMapPass.render(glCore, scene);
 
             this.shadowNeedsUpdate = false;
         }
@@ -6114,7 +6114,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowMapPass.prototype.render = function(glCore, scene, camera) {
+    ShadowMapPass.prototype.render = function(glCore, scene) {
         
         var gl = glCore.gl;
         var state = glCore.state;
@@ -6219,6 +6219,48 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.ForwardPass = ForwardPass;
 })();
 (function() {
+    function cloneUniforms(uniforms_src) {
+        var uniforms_dst = {};
+
+        for(var name in uniforms_src) {
+            var uniform_src = uniforms_src[name];
+            // TODO zen3d object clone
+            if ( Array.isArray( uniform_src ) ) {
+                uniforms_dst[name] = uniform_src.slice();
+            } else {
+                uniforms_dst[name] = uniform_src;
+            }
+        }
+
+        return uniforms_dst;
+    }
+
+    var ShaderPostPass = function(shader) {
+        var scene = new zen3d.Scene();
+
+        var camera = this.camera = new zen3d.Camera();
+        camera.position.set(0, 1, 0);
+        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
+        camera.setOrtho(-1, 1, -1, 1, 0.1, 2);
+        scene.add(camera);
+
+        var geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
+        this.uniforms = cloneUniforms(shader.uniforms);
+        var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
+        var plane = new zen3d.Mesh(geometry, material);
+        scene.add(plane);
+
+        scene.updateMatrix();
+        this.renderList = scene.updateRenderList(camera);
+    }
+
+    ShaderPostPass.prototype.render = function(glCore) {
+        glCore.renderPass(this.renderList.opaque, this.camera);
+    }
+
+    zen3d.ShaderPostPass = ShaderPostPass;
+})();
+(function() {
     /**
      * Renderer
      * @class
@@ -6235,7 +6277,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         });
         this.glCore = new zen3d.WebGLCore(gl);
 
-        this.autoClear = true;  
+        this.autoClear = true;
 
         this.performance = new zen3d.Performance();
 
@@ -6265,7 +6307,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(this.glCore, scene, camera);
+            this.shadowMapPass.render(this.glCore, scene);
 
             this.shadowNeedsUpdate = false;
         }
@@ -8482,27 +8524,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.clippingPlanes = []; // Planes array
 
-        // this.cache = new zen3d.RenderCache();
-
         this._renderLists = {};
 
         this.lights = new zen3d.LightCache();
     }
 
     zen3d.inherit(Scene, zen3d.Object3D);
-
-    /**
-     * TODO seperate this method updateMatrix/updateContext/updateRenderList
-     * update scene matrix and cache it
-     * @param {Camera} camera main camera for this scene
-     */
-    Scene.prototype.update = function(camera) {
-        this.updateMatrix();
-
-        this.cache.clear();
-        this.cache.cacheScene(this, camera);
-        this.cache.sort();
-    }
 
     Scene.prototype.updateRenderList = function(camera) {
         var id = camera.uuid;

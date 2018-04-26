@@ -45,7 +45,7 @@
         performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(this.glCore, scene, camera);
+            this.shadowMapPass.render(this.glCore, scene);
 
             this.shadowNeedsUpdate = false;
         }

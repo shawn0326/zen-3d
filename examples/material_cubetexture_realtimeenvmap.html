@@ -110,7 +110,7 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 	        scene.add(camera);
 
-			var environmentMapPrePass = new zen3d.EnvironmentMapPass();
+			var environmentMapPass = new zen3d.EnvironmentMapPass();
 
 	        function loop(count) {
 
@@ -133,8 +133,8 @@
 				phong.envMap = null;
 				scene.updateMatrix(); // call update matrix
 				scene.updateLights(); // call update lights
-			    environmentMapPrePass.render(renderer.glCore, scene, camera);
-			    phong.envMap = environmentMapPrePass.renderTexture;
+			    environmentMapPass.render(renderer.glCore, scene);
+			    phong.envMap = environmentMapPass.renderTexture;
 
 				renderer.matrixAutoUpdate = false; // close auto update
         		renderer.lightsAutoupdate = false; // close auto update
