@@ -56,8 +56,7 @@
         camera.setLookAt(lookTarget, ups[face]);
 
         // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
+        camera.updateMatrix();
 
         // update projection
         camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);

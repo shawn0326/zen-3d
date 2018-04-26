@@ -47,8 +47,7 @@
         camera.setLookAt(lookTarget, this._up);
 
         // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
+        camera.updateMatrix();
 
         // update projection
         // TODO distance should be custom?

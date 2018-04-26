@@ -58,7 +58,7 @@
     }
 
     Geometry.prototype.computeBoundingBox = function() {
-        var position = this.attributes["a_Position"];
+        var position = this.attributes["a_Position"] || this.attributes["position"];
         if(position.isInterleavedBufferAttribute) {
             var data = position.data;
             this.boundingBox.setFromArray(data.array, data.stride);
@@ -68,7 +68,7 @@
     }
 
     Geometry.prototype.computeBoundingSphere = function() {
-        var position = this.attributes["a_Position"];
+        var position = this.attributes["a_Position"] || this.attributes["position"];
         if(position.isInterleavedBufferAttribute) {
             var data = position.data;
             this.boundingSphere.setFromArray(data.array, data.stride);

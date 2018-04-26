@@ -4823,7 +4823,7 @@
             }
 
             for(var i = 0; i < planes.length; i++) {
-                plane.copy(planes[i]).applyMatrix4(camera.viewMatrix);
+                plane.copy(planes[i]);//.applyMatrix4(camera.viewMatrix);
                 planesData[i * 4 + 0] = plane.normal.x;
                 planesData[i * 4 + 1] = plane.normal.y;
                 planesData[i * 4 + 2] = plane.normal.z;
@@ -5588,7 +5588,7 @@ begin_frag: "vec4 outColor = vec4(u_Color, u_Opacity);",
 begin_vert: "vec3 transformed = vec3(a_Position);\n#if defined(USE_NORMAL) || defined(USE_ENV_MAP)\n    vec3 objectNormal = vec3(a_Normal);\n#endif",
 bsdfs: "\nvec4 BRDF_Diffuse_Lambert(vec4 diffuseColor) {\n    return RECIPROCAL_PI * diffuseColor;\n}\nvec4 F_Schlick( const in vec4 specularColor, const in float dotLH ) {\n\tfloat fresnel = pow( 1.0 - dotLH, 5.0 );\n\treturn ( 1.0 - specularColor ) * fresnel + specularColor;\n}\nfloat D_BlinnPhong( const in float shininess, const in float dotNH ) {\n\treturn RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * pow( dotNH, shininess );\n}\nfloat G_BlinnPhong_Implicit( ) {\n\treturn 0.25;\n}\nvec4 BRDF_Specular_BlinnPhong(vec4 specularColor, vec3 N, vec3 L, vec3 V, float shininess) {\n    vec3 H = normalize(L + V);\n    float dotNH = saturate(dot(N, H));\n    float dotLH = saturate(dot(L, H));\n    vec4 F = F_Schlick(specularColor, dotLH);\n    float G = G_BlinnPhong_Implicit( );\n    float D = D_BlinnPhong(shininess, dotNH);\n    return F * G * D;\n}\nfloat D_GGX( const in float alpha, const in float dotNH ) {\n\tfloat a2 = pow2( alpha );\n\tfloat denom = pow2( dotNH ) * ( a2 - 1.0 ) + 1.0;\n\treturn RECIPROCAL_PI * a2 / pow2( denom );\n}\nfloat G_GGX_Smith( const in float alpha, const in float dotNL, const in float dotNV ) {\n\tfloat a2 = pow2( alpha );\n\tfloat gl = dotNL + sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNL ) );\n\tfloat gv = dotNV + sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNV ) );\n\treturn 1.0 / ( gl * gv );\n}\nfloat G_GGX_SmithCorrelated( const in float alpha, const in float dotNL, const in float dotNV ) {\n\tfloat a2 = pow2( alpha );\n\tfloat gv = dotNL * sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNV ) );\n\tfloat gl = dotNV * sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNL ) );\n\treturn 0.5 / max( gv + gl, EPSILON );\n}\nvec4 BRDF_Specular_GGX(vec4 specularColor, vec3 N, vec3 L, vec3 V, float roughness) {\n\tfloat alpha = pow2( roughness );\n\tvec3 H = normalize(L + V);\n\tfloat dotNL = saturate( dot(N, L) );\n\tfloat dotNV = saturate( dot(N, V) );\n\tfloat dotNH = saturate( dot(N, H) );\n\tfloat dotLH = saturate( dot(L, H) );\n\tvec4 F = F_Schlick( specularColor, dotLH );\n\tfloat G = G_GGX_SmithCorrelated( alpha, dotNL, dotNV );\n\tfloat D = D_GGX( alpha, dotNH );\n\treturn F * G * D;\n}\nvec4 BRDF_Specular_GGX_Environment( const in vec3 N, const in vec3 V, const in vec4 specularColor, const in float roughness ) {\n\tfloat dotNV = saturate( dot( N, V ) );\n\tconst vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );\n\tconst vec4 c1 = vec4( 1, 0.0425, 1.04, - 0.04 );\n\tvec4 r = roughness * c0 + c1;\n\tfloat a004 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;\n\tvec2 AB = vec2( -1.04, 1.04 ) * a004 + r.zw;\n\treturn specularColor * AB.x + AB.y;\n}\nfloat GGXRoughnessToBlinnExponent( const in float ggxRoughness ) {\n\treturn ( 2.0 / pow2( ggxRoughness + 0.0001 ) - 2.0 );\n}\nfloat BlinnExponentToGGXRoughness( const in float blinnExponent ) {\n\treturn sqrt( 2.0 / ( blinnExponent + 2.0 ) );\n}",
 bumpMap_pars_frag: "#ifdef USE_BUMPMAP\n\tuniform sampler2D bumpMap;\n\tuniform float bumpScale;\n\tvec2 dHdxy_fwd(vec2 uv) {\n\t\tvec2 dSTdx = dFdx( uv );\n\t\tvec2 dSTdy = dFdy( uv );\n\t\tfloat Hll = bumpScale * texture2D( bumpMap, uv ).x;\n\t\tfloat dBx = bumpScale * texture2D( bumpMap, uv + dSTdx ).x - Hll;\n\t\tfloat dBy = bumpScale * texture2D( bumpMap, uv + dSTdy ).x - Hll;\n\t\treturn vec2( dBx, dBy );\n\t}\n\tvec3 perturbNormalArb( vec3 surf_pos, vec3 surf_norm, vec2 dHdxy) {\n\t\tvec3 vSigmaX = dFdx( surf_pos );\n\t\tvec3 vSigmaY = dFdy( surf_pos );\n\t\tvec3 vN = surf_norm;\n\t\tvec3 R1 = cross( vSigmaY, vN );\n\t\tvec3 R2 = cross( vN, vSigmaX );\n\t\tfloat fDet = dot( vSigmaX, R1 );\n\t\tvec3 vGrad = sign( fDet ) * ( dHdxy.x * R1 + dHdxy.y * R2 );\n\t\treturn normalize( abs( fDet ) * surf_norm - vGrad );\n\t}\n#endif\n",
-clippingPlanes_frag: "#ifdef NUM_CLIPPING_PLANES\n    vec4 plane;\n    for ( int i = 0; i < NUM_CLIPPING_PLANES; i ++ ) {\n        plane = clippingPlanes[ i ];\n        if ( dot( -v_ViewModelPos, plane.xyz ) > plane.w ) discard;\n    }\n#endif",
+clippingPlanes_frag: "#ifdef NUM_CLIPPING_PLANES\n    vec4 plane;\n    for ( int i = 0; i < NUM_CLIPPING_PLANES; i ++ ) {\n        plane = clippingPlanes[ i ];\n        if ( dot( -v_modelPos, plane.xyz ) > plane.w ) discard;\n    }\n#endif",
 clippingPlanes_pars_frag: "#ifdef NUM_CLIPPING_PLANES\n    uniform vec4 clippingPlanes[ NUM_CLIPPING_PLANES ];\n#endif",
 color_frag: "#ifdef USE_VCOLOR\n    outColor *= v_Color;\n#endif",
 color_pars_frag: "#ifdef USE_VCOLOR\n    varying vec4 v_Color;\n#endif",
@@ -5604,20 +5604,20 @@ emissiveMap_pars_frag: "#ifdef USE_EMISSIVEMAP\n\tuniform sampler2D emissiveMap;
 encodings_frag: "gl_FragColor = linearToOutputTexel( gl_FragColor );",
 encodings_pars_frag: "\nvec4 LinearToLinear( in vec4 value ) {\n\treturn value;\n}\nvec4 GammaToLinear( in vec4 value, in float gammaFactor ) {\n\treturn vec4( pow( value.xyz, vec3( gammaFactor ) ), value.w );\n}\nvec4 LinearToGamma( in vec4 value, in float gammaFactor ) {\n\treturn vec4( pow( value.xyz, vec3( 1.0 / gammaFactor ) ), value.w );\n}\nvec4 sRGBToLinear( in vec4 value ) {\n\treturn vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.w );\n}\nvec4 LinearTosRGB( in vec4 value ) {\n\treturn vec4( mix( pow( value.rgb, vec3( 0.41666 ) ) * 1.055 - vec3( 0.055 ), value.rgb * 12.92, vec3( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.w );\n}\nvec4 RGBEToLinear( in vec4 value ) {\n\treturn vec4( value.rgb * exp2( value.a * 255.0 - 128.0 ), 1.0 );\n}\nvec4 LinearToRGBE( in vec4 value ) {\n\tfloat maxComponent = max( max( value.r, value.g ), value.b );\n\tfloat fExp = clamp( ceil( log2( maxComponent ) ), -128.0, 127.0 );\n\treturn vec4( value.rgb / exp2( fExp ), ( fExp + 128.0 ) / 255.0 );\n}\nvec4 RGBMToLinear( in vec4 value, in float maxRange ) {\n\treturn vec4( value.xyz * value.w * maxRange, 1.0 );\n}\nvec4 LinearToRGBM( in vec4 value, in float maxRange ) {\n\tfloat maxRGB = max( value.x, max( value.g, value.b ) );\n\tfloat M      = clamp( maxRGB / maxRange, 0.0, 1.0 );\n\tM            = ceil( M * 255.0 ) / 255.0;\n\treturn vec4( value.rgb / ( M * maxRange ), M );\n}\nvec4 RGBDToLinear( in vec4 value, in float maxRange ) {\n\treturn vec4( value.rgb * ( ( maxRange / 255.0 ) / value.a ), 1.0 );\n}\nvec4 LinearToRGBD( in vec4 value, in float maxRange ) {\n\tfloat maxRGB = max( value.x, max( value.g, value.b ) );\n\tfloat D      = max( maxRange / maxRGB, 1.0 );\n\tD            = min( floor( D ) / 255.0, 1.0 );\n\treturn vec4( value.rgb * ( D * ( 255.0 / maxRange ) ), D );\n}\nconst mat3 cLogLuvM = mat3( 0.2209, 0.3390, 0.4184, 0.1138, 0.6780, 0.7319, 0.0102, 0.1130, 0.2969 );\nvec4 LinearToLogLuv( in vec4 value )  {\n\tvec3 Xp_Y_XYZp = value.rgb * cLogLuvM;\n\tXp_Y_XYZp = max(Xp_Y_XYZp, vec3(1e-6, 1e-6, 1e-6));\n\tvec4 vResult;\n\tvResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;\n\tfloat Le = 2.0 * log2(Xp_Y_XYZp.y) + 127.0;\n\tvResult.w = fract(Le);\n\tvResult.z = (Le - (floor(vResult.w*255.0))/255.0)/255.0;\n\treturn vResult;\n}\nconst mat3 cLogLuvInverseM = mat3( 6.0014, -2.7008, -1.7996, -1.3320, 3.1029, -5.7721, 0.3008, -1.0882, 5.6268 );\nvec4 LogLuvToLinear( in vec4 value ) {\n\tfloat Le = value.z * 255.0 + value.w;\n\tvec3 Xp_Y_XYZp;\n\tXp_Y_XYZp.y = exp2((Le - 127.0) / 2.0);\n\tXp_Y_XYZp.z = Xp_Y_XYZp.y / value.y;\n\tXp_Y_XYZp.x = value.x * Xp_Y_XYZp.z;\n\tvec3 vRGB = Xp_Y_XYZp.rgb * cLogLuvInverseM;\n\treturn vec4( max(vRGB, 0.0), 1.0 );\n}\n",
 end_frag: "gl_FragColor = outColor;",
-envMap_frag: "#ifdef USE_ENV_MAP\n    vec3 envDir;\n    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)\n        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);\n    #else\n        envDir = v_EnvPos;\n    #endif\n    vec4 envColor = textureCube(envMap, envDir);\n    envColor = envMapTexelToLinear( envColor );\n    #ifdef ENVMAP_BLENDING_MULTIPLY\n\t\toutColor = mix(outColor, envColor * outColor, u_EnvMap_Intensity);\n\t#elif defined( ENVMAP_BLENDING_MIX )\n\t\toutColor = mix(outColor, envColor, u_EnvMap_Intensity);\n\t#elif defined( ENVMAP_BLENDING_ADD )\n\t\toutColor += envColor * u_EnvMap_Intensity;\n\t#endif\n#endif",
+envMap_frag: "#ifdef USE_ENV_MAP\n    vec3 envDir;\n    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)\n        envDir = reflect(normalize(v_worldPos - u_CameraPosition), N);\n    #else\n        envDir = v_EnvPos;\n    #endif\n    vec4 envColor = textureCube(envMap, envDir);\n    envColor = envMapTexelToLinear( envColor );\n    #ifdef ENVMAP_BLENDING_MULTIPLY\n\t\toutColor = mix(outColor, envColor * outColor, u_EnvMap_Intensity);\n\t#elif defined( ENVMAP_BLENDING_MIX )\n\t\toutColor = mix(outColor, envColor, u_EnvMap_Intensity);\n\t#elif defined( ENVMAP_BLENDING_ADD )\n\t\toutColor += envColor * u_EnvMap_Intensity;\n\t#endif\n#endif",
 envMap_pars_frag: "#ifdef USE_ENV_MAP\n    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)\n        varying vec3 v_worldPos;\n    #else\n        varying vec3 v_EnvPos;\n    #endif\n    uniform samplerCube envMap;\n    uniform float u_EnvMap_Intensity;\n#endif",
 envMap_pars_vert: "#ifdef USE_ENV_MAP\n    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)\n        varying vec3 v_worldPos;\n    #else\n        varying vec3 v_EnvPos;\n    #endif\n#endif",
 envMap_vert: "#ifdef USE_ENV_MAP\n    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)\n        v_worldPos = (u_Model * vec4(transformed, 1.0)).xyz;\n    #else\n        v_EnvPos = reflect(normalize((u_Model * vec4(transformed, 1.0)).xyz - u_CameraPosition), (transpose(inverse(u_Model)) * vec4(objectNormal, 1.0)).xyz);\n    #endif\n#endif",
 fog_frag: "#ifdef USE_FOG\n    float depth = gl_FragCoord.z / gl_FragCoord.w;\n    #ifdef USE_EXP2_FOG\n        float fogFactor = whiteCompliment( exp2( - u_FogDensity * u_FogDensity * depth * depth * LOG2 ) );\n    #else\n        float fogFactor = smoothstep( u_FogNear, u_FogFar, depth );\n    #endif\n    gl_FragColor.rgb = mix( gl_FragColor.rgb, u_FogColor, fogFactor );\n#endif",
 fog_pars_frag: "#ifdef USE_FOG\n    uniform vec3 u_FogColor;\n    #ifdef USE_EXP2_FOG\n        uniform float u_FogDensity;\n    #else\n        uniform float u_FogNear;\n        uniform float u_FogFar;\n    #endif\n#endif",
 inverse: "mat4 inverse(mat4 m) {\n    float\n    a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3],\n    a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3],\n    a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3],\n    a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3],\n    b00 = a00 * a11 - a01 * a10,\n    b01 = a00 * a12 - a02 * a10,\n    b02 = a00 * a13 - a03 * a10,\n    b03 = a01 * a12 - a02 * a11,\n    b04 = a01 * a13 - a03 * a11,\n    b05 = a02 * a13 - a03 * a12,\n    b06 = a20 * a31 - a21 * a30,\n    b07 = a20 * a32 - a22 * a30,\n    b08 = a20 * a33 - a23 * a30,\n    b09 = a21 * a32 - a22 * a31,\n    b10 = a21 * a33 - a23 * a31,\n    b11 = a22 * a33 - a23 * a32,\n    det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n    return mat4(\n        a11 * b11 - a12 * b10 + a13 * b09,\n        a02 * b10 - a01 * b11 - a03 * b09,\n        a31 * b05 - a32 * b04 + a33 * b03,\n        a22 * b04 - a21 * b05 - a23 * b03,\n        a12 * b08 - a10 * b11 - a13 * b07,\n        a00 * b11 - a02 * b08 + a03 * b07,\n        a32 * b02 - a30 * b05 - a33 * b01,\n        a20 * b05 - a22 * b02 + a23 * b01,\n        a10 * b10 - a11 * b08 + a13 * b06,\n        a01 * b08 - a00 * b10 - a03 * b06,\n        a30 * b04 - a31 * b02 + a33 * b00,\n        a21 * b02 - a20 * b04 - a23 * b00,\n        a11 * b07 - a10 * b09 - a12 * b06,\n        a00 * b09 - a01 * b07 + a02 * b06,\n        a31 * b01 - a30 * b03 - a32 * b00,\n        a20 * b03 - a21 * b01 + a22 * b00) / det;\n}",
-light_frag: "#ifdef USE_LIGHT\n    vec4 light;\n    vec3 L;\n    vec4 totalReflect = vec4(0., 0., 0., 0.);    vec4 indirectIrradiance = vec4(0., 0., 0., 0.);    vec4 indirectRadiance = vec4(0., 0., 0., 0.);\n    #ifdef USE_PBR\n        vec4 diffuseColor = outColor.xyzw * (1.0 - metalnessFactor);\n        vec4 specularColor = mix(vec4(0.04), outColor.xyzw, metalnessFactor);\n        float roughness = clamp(roughnessFactor, 0.04, 1.0);\n    #else\n        vec4 diffuseColor = outColor.xyzw;\n        #ifdef USE_PHONG\n            vec4 specularColor = u_SpecularColor;\n            float shininess = u_Specular;\n        #endif\n    #endif\n    #ifdef USE_AMBIENT_LIGHT\n        #ifdef USE_PBR\n            indirectIrradiance += PI * diffuseColor * u_AmbientLightColor;\n        #else\n            indirectIrradiance += diffuseColor * u_AmbientLightColor;\n        #endif\n    #endif\n    #ifdef USE_PBR\n        #ifdef USE_ENV_MAP\n    \t\tvec3 envDir;\n    \t    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)\n    \t        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);\n    \t    #else\n    \t        envDir = v_EnvPos;\n    \t    #endif\n            indirectIrradiance += getLightProbeIndirectIrradiance(8, envDir);\n            indirectRadiance += getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir);\n    \t#endif\n    #endif\n    #if (defined(USE_PHONG) || defined(USE_PBR))\n        vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);\n    #endif\n    #ifdef USE_DIRECT_LIGHT\n    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {\n        L = -u_Directional[i].direction;\n        light = u_Directional[i].color * u_Directional[i].intensity;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_SHADOW\n            irradiance *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;\n        #endif\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    for(int i = 0; i < USE_POINT_LIGHT; i++) {\n        L = u_Point[i].position - v_ViewModelPos;\n        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);\n        light = u_Point[i].color * u_Point[i].intensity * dist;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        #ifdef USE_SHADOW\n            vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;\n            irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize, u_Point[i].shadowCameraNear, u_Point[i].shadowCameraFar ) : 1.0;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_SPOT_LIGHT\n    for(int i = 0; i < USE_SPOT_LIGHT; i++) {\n        L = u_Spot[i].position - v_ViewModelPos;\n        float lightDistance = length(L);\n        L = normalize(L);\n        float angleCos = dot( L, -normalize(u_Spot[i].direction) );\n        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {\n            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );\n            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);\n            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;\n            float dotNL = saturate( dot(N, L) );\n            vec4 irradiance = light * dotNL;\n            #ifdef USE_PBR\n                irradiance *= PI;\n            #endif\n            #ifdef USE_SHADOW\n                irradiance *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;\n            #endif\n            vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n            #ifdef USE_PHONG\n                reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n            #endif\n            #ifdef USE_PBR\n                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n            #endif\n            totalReflect += reflectLight;\n        }\n    }\n    #endif\n    vec4 indirectDiffuse = indirectIrradiance * BRDF_Diffuse_Lambert(diffuseColor);\n    vec4 indirectSpecular = vec4(0., 0., 0., 0.);\n    #if defined( USE_ENV_MAP ) && defined( USE_PBR )\n        indirectSpecular += indirectRadiance * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength;\n    #endif\n    #ifdef USE_AOMAP\n    \tfloat ambientOcclusion = ( texture2D( aoMap, v_Uv2 ).r - 1.0 ) * aoMapIntensity + 1.0;\n    \tindirectDiffuse *= ambientOcclusion;\n    \t#if defined( USE_ENV_MAP ) && defined( USE_PBR )\n    \t\tfloat dotNV = saturate( dot( N, V ) );\n    \t\tindirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, GGXRoughnessToBlinnExponent(roughness) );\n    \t#endif\n    #endif\n    outColor.xyz = totalReflect.xyz + indirectDiffuse.xyz + indirectSpecular.xyz;\n#endif",
+light_frag: "#ifdef USE_LIGHT\n    vec4 light;\n    vec3 L;\n    vec4 totalReflect = vec4(0., 0., 0., 0.);    vec4 indirectIrradiance = vec4(0., 0., 0., 0.);    vec4 indirectRadiance = vec4(0., 0., 0., 0.);\n    #ifdef USE_PBR\n        vec4 diffuseColor = outColor.xyzw * (1.0 - metalnessFactor);\n        vec4 specularColor = mix(vec4(0.04), outColor.xyzw, metalnessFactor);\n        float roughness = clamp(roughnessFactor, 0.04, 1.0);\n    #else\n        vec4 diffuseColor = outColor.xyzw;\n        #ifdef USE_PHONG\n            vec4 specularColor = u_SpecularColor;\n            float shininess = u_Specular;\n        #endif\n    #endif\n    #ifdef USE_AMBIENT_LIGHT\n        #ifdef USE_PBR\n            indirectIrradiance += PI * diffuseColor * u_AmbientLightColor;\n        #else\n            indirectIrradiance += diffuseColor * u_AmbientLightColor;\n        #endif\n    #endif\n    #ifdef USE_PBR\n        #ifdef USE_ENV_MAP\n    \t\tvec3 envDir;\n    \t    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)\n    \t        envDir = reflect(normalize(v_worldPos - u_CameraPosition), N);\n    \t    #else\n    \t        envDir = v_EnvPos;\n    \t    #endif\n            indirectIrradiance += getLightProbeIndirectIrradiance(8, envDir);\n            indirectRadiance += getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir);\n    \t#endif\n    #endif\n    #if (defined(USE_PHONG) || defined(USE_PBR))\n        vec3 V = normalize( u_CameraPosition - v_modelPos );\n    #endif\n    #ifdef USE_DIRECT_LIGHT\n    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {\n        L = -u_Directional[i].direction;\n        light = u_Directional[i].color * u_Directional[i].intensity;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_SHADOW\n            irradiance *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;\n        #endif\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_POINT_LIGHT\n    for(int i = 0; i < USE_POINT_LIGHT; i++) {\n        L = u_Point[i].position - v_modelPos;\n        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);\n        light = u_Point[i].color * u_Point[i].intensity * dist;\n        L = normalize(L);\n        float dotNL = saturate( dot(N, L) );\n        vec4 irradiance = light * dotNL;\n        #ifdef USE_PBR\n            irradiance *= PI;\n        #endif\n        #ifdef USE_SHADOW\n            vec3 worldV = v_modelPos - u_Point[i].position;\n            irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize, u_Point[i].shadowCameraNear, u_Point[i].shadowCameraFar ) : 1.0;\n        #endif\n        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n        #ifdef USE_PHONG\n            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n        #endif\n        #ifdef USE_PBR\n            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n        #endif\n        totalReflect += reflectLight;\n    }\n    #endif\n    #ifdef USE_SPOT_LIGHT\n    for(int i = 0; i < USE_SPOT_LIGHT; i++) {\n        L = u_Spot[i].position - v_modelPos;\n        float lightDistance = length(L);\n        L = normalize(L);\n        float angleCos = dot( L, -normalize(u_Spot[i].direction) );\n        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {\n            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );\n            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);\n            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;\n            float dotNL = saturate( dot(N, L) );\n            vec4 irradiance = light * dotNL;\n            #ifdef USE_PBR\n                irradiance *= PI;\n            #endif\n            #ifdef USE_SHADOW\n                irradiance *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;\n            #endif\n            vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);\n            #ifdef USE_PHONG\n                reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;\n            #endif\n            #ifdef USE_PBR\n                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;\n            #endif\n            totalReflect += reflectLight;\n        }\n    }\n    #endif\n    vec4 indirectDiffuse = indirectIrradiance * BRDF_Diffuse_Lambert(diffuseColor);\n    vec4 indirectSpecular = vec4(0., 0., 0., 0.);\n    #if defined( USE_ENV_MAP ) && defined( USE_PBR )\n        indirectSpecular += indirectRadiance * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength;\n    #endif\n    #ifdef USE_AOMAP\n    \tfloat ambientOcclusion = ( texture2D( aoMap, v_Uv2 ).r - 1.0 ) * aoMapIntensity + 1.0;\n    \tindirectDiffuse *= ambientOcclusion;\n    \t#if defined( USE_ENV_MAP ) && defined( USE_PBR )\n    \t\tfloat dotNV = saturate( dot( N, V ) );\n    \t\tindirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, GGXRoughnessToBlinnExponent(roughness) );\n    \t#endif\n    #endif\n    outColor.xyz = totalReflect.xyz + indirectDiffuse.xyz + indirectSpecular.xyz;\n#endif",
 light_pars_frag: "#ifdef USE_AMBIENT_LIGHT\n    #include <ambientlight_pars_frag>\n#endif\n#ifdef USE_DIRECT_LIGHT\n    #include <directlight_pars_frag>\n#endif\n#ifdef USE_POINT_LIGHT\n    #include <pointlight_pars_frag>\n#endif\n#ifdef USE_SPOT_LIGHT\n    #include <spotlight_pars_frag>\n#endif\n#if defined(USE_PBR) && defined(USE_ENV_MAP)\n    vec4 getLightProbeIndirectIrradiance(const in int maxMIPLevel, const in vec3 envDir) {\n    \t#ifdef TEXTURE_LOD_EXT\n    \t\tvec4 envMapColor = textureCubeLodEXT( envMap, envDir, float( maxMIPLevel ) );\n    \t#else\n    \t\tvec4 envMapColor = textureCube( envMap, envDir, float( maxMIPLevel ) );\n    \t#endif\n        envMapColor = envMapTexelToLinear( envMapColor );\n        return PI * envMapColor * u_EnvMap_Intensity;\n    }\n    float getSpecularMIPLevel( const in float blinnShininessExponent, const in int maxMIPLevel ) {\n    \tfloat maxMIPLevelScalar = float( maxMIPLevel );\n    \tfloat desiredMIPLevel = maxMIPLevelScalar - 0.79248 - 0.5 * log2( pow2( blinnShininessExponent ) + 1.0 );\n    \treturn clamp( desiredMIPLevel, 0.0, maxMIPLevelScalar );\n    }\n    vec4 getLightProbeIndirectRadiance(const in float blinnShininessExponent, const in int maxMIPLevel, const in vec3 envDir) {\n        float specularMIPLevel = getSpecularMIPLevel( blinnShininessExponent, maxMIPLevel );\n        #ifdef TEXTURE_LOD_EXT\n    \t\tvec4 envMapColor = textureCubeLodEXT( envMap, envDir, specularMIPLevel );\n    \t#else\n    \t\tvec4 envMapColor = textureCube( envMap, envDir, specularMIPLevel );\n    \t#endif\n        envMapColor = envMapTexelToLinear( envMapColor );\n        return envMapColor * u_EnvMap_Intensity;\n    }\n    float computeSpecularOcclusion( const in float dotNV, const in float ambientOcclusion, const in float roughness ) {\n    \treturn saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );\n    }\n#endif",
 normalMap_pars_frag: "#include <tbn>\n#include <tsn>\nuniform sampler2D normalMap;",
-normal_frag: "#ifdef USE_NORMAL\n    #ifdef DOUBLE_SIDED\n    \tfloat flipNormal = ( float( gl_FrontFacing ) * 2.0 - 1.0 );\n    #else\n    \tfloat flipNormal = 1.0;\n    #endif\n    #ifdef FLAT_SHADED\n    \tvec3 fdx = vec3( dFdx( v_ViewModelPos.x ), dFdx( v_ViewModelPos.y ), dFdx( v_ViewModelPos.z ) );\n    \tvec3 fdy = vec3( dFdy( v_ViewModelPos.x ), dFdy( v_ViewModelPos.y ), dFdy( v_ViewModelPos.z ) );\n    \tvec3 N = normalize( cross( fdx, fdy ) );\n    #else\n        vec3 N = normalize(v_Normal) * flipNormal;\n    #endif\n    #ifdef USE_NORMAL_MAP\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\n        mat3 tspace = tsn(N, -v_ViewModelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\n    #elif defined(USE_BUMPMAP)\n        N = perturbNormalArb(-v_ViewModelPos, N, dHdxy_fwd(v_Uv));\n    #endif\n#endif",
+normal_frag: "#ifdef USE_NORMAL\n    #ifdef DOUBLE_SIDED\n    \tfloat flipNormal = ( float( gl_FrontFacing ) * 2.0 - 1.0 );\n    #else\n    \tfloat flipNormal = 1.0;\n    #endif\n    #ifdef FLAT_SHADED\n    \tvec3 fdx = vec3( dFdx( v_modelPos.x ), dFdx( v_modelPos.y ), dFdx( v_modelPos.z ) );\n    \tvec3 fdy = vec3( dFdy( v_modelPos.x ), dFdy( v_modelPos.y ), dFdy( v_modelPos.z ) );\n    \tvec3 N = normalize( cross( fdx, fdy ) );\n    #else\n        vec3 N = normalize(v_Normal) * flipNormal;\n    #endif\n    #ifdef USE_NORMAL_MAP\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\n        mat3 tspace = tsn(N, -v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\n    #elif defined(USE_BUMPMAP)\n        N = perturbNormalArb(-v_modelPos, N, dHdxy_fwd(v_Uv));\n    #endif\n#endif",
 normal_pars_frag: "#ifdef USE_NORMAL\n    varying vec3 v_Normal;\n#endif",
 normal_pars_vert: "#ifdef USE_NORMAL\n    varying vec3 v_Normal;\n#endif",
-normal_vert: "#ifdef USE_NORMAL\n    v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(objectNormal, 1.0)).xyz;\n    #ifdef FLIP_SIDED\n    \tv_Normal = - v_Normal;\n    #endif\n#endif",
+normal_vert: "#ifdef USE_NORMAL\n    v_Normal = (transpose(inverse(u_Model)) * vec4(objectNormal, 1.0)).xyz;\n    #ifdef FLIP_SIDED\n    \tv_Normal = - v_Normal;\n    #endif\n#endif",
 packing: "const float PackUpscale = 256. / 255.;const float UnpackDownscale = 255. / 256.;\nconst vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256.,  256. );\nconst vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );\nconst float ShiftRight8 = 1. / 256.;\nvec4 packDepthToRGBA( const in float v ) {\n    vec4 r = vec4( fract( v * PackFactors ), v );\n    r.yzw -= r.xyz * ShiftRight8;    return r * PackUpscale;\n}\nfloat unpackRGBAToDepth( const in vec4 v ) {\n    return dot( v, UnpackFactors );\n}",
 pointlight_pars_frag: "struct PointLight\n{\n    vec3 position;\n    vec4 color;\n    float intensity;\n    float distance;\n    float decay;\n    int shadow;\n    float shadowBias;\n    float shadowRadius;\n    vec2 shadowMapSize;\n    float shadowCameraNear;\n    float shadowCameraFar;\n};\nuniform PointLight u_Point[USE_POINT_LIGHT];",
 premultipliedAlpha_frag: "#ifdef USE_PREMULTIPLIED_ALPHA\n    gl_FragColor.rgb = gl_FragColor.rgb * gl_FragColor.a;\n#endif",
@@ -5637,9 +5637,9 @@ tsn: "mat3 tsn(vec3 N, vec3 V, vec2 uv) {\n    vec3 q0 = dFdx( V.xyz );\n    vec
 uv_pars_frag: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    varying vec2 v_Uv;\n#endif\n#ifdef USE_AOMAP\n    varying vec2 v_Uv2;\n#endif",
 uv_pars_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    attribute vec2 a_Uv;\n    varying vec2 v_Uv;\n#endif\n#ifdef USE_AOMAP\n    attribute vec2 a_Uv2;\n    varying vec2 v_Uv2;\n#endif\n",
 uv_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    v_Uv = a_Uv;\n#endif\n#ifdef USE_AOMAP\n    v_Uv2 = a_Uv2;\n#endif",
-viewModelPos_pars_frag: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || defined(NUM_CLIPPING_PLANES) \n    varying vec3 v_ViewModelPos;\n#endif",
-viewModelPos_pars_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR)|| defined(NUM_CLIPPING_PLANES)\n    varying vec3 v_ViewModelPos;\n#endif",
-viewModelPos_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || defined(NUM_CLIPPING_PLANES)\n    v_ViewModelPos = (u_View * u_Model * vec4(transformed, 1.0)).xyz;\n#endif",
+viewModelPos_pars_frag: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || defined(NUM_CLIPPING_PLANES) \n    varying vec3 v_modelPos;\n#endif",
+viewModelPos_pars_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR)|| defined(NUM_CLIPPING_PLANES)\n    varying vec3 v_modelPos;\n#endif",
+viewModelPos_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || defined(NUM_CLIPPING_PLANES)\n    v_modelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n#endif",
 }
 })();
 (function(){
@@ -6073,22 +6073,20 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.shadowNeedsUpdate = false;
     }
 
-    EnvironmentMapPass.prototype.render = function(glCore, scene) {
+    EnvironmentMapPass.prototype.render = function(glCore, scene, camera) {
         this.camera.position.copy(this.position);
+
+        if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
+            this.shadowMapPass.render(glCore, scene, this.camera);
+
+            this.shadowNeedsUpdate = false;
+        }
 
         for(var i = 0; i < 6; i++) {
             this.lookTarget.set(this.targets[i].x + this.camera.position.x, this.targets[i].y + this.camera.position.y, this.targets[i].z + this.camera.position.z);
             this.camera.setLookAt(this.lookTarget, this.ups[i]);
 
             this.camera.updateMatrix();
-
-            scene.update(this.camera);
-
-            if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-                this.shadowMapPass.render(glCore, scene);
-    
-                this.shadowNeedsUpdate = false;
-            }
 
             this.renderTarget.activeCubeFace = i;
 
@@ -6097,7 +6095,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             glCore.state.clearColor(0, 0, 0, 0);
             glCore.clear(true, true, true);
 
-            this.forwardPass.render(glCore, scene);
+            this.forwardPass.render(glCore, scene, this.camera);
 
             glCore.texture.updateRenderTargetMipmap(this.renderTarget);
         }
@@ -6116,7 +6114,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowMapPass.prototype.render = function(glCore, scene) {
+    ShadowMapPass.prototype.render = function(glCore, scene, camera) {
         
         var gl = glCore.gl;
         var state = glCore.state;
@@ -6127,7 +6125,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             state.disable(gl.STENCIL_TEST);
         }
 
-        var lights = scene.cache.lights.shadows;
+        var lights = scene.lights.shadows;
         for (var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
@@ -6136,7 +6134,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             var shadowTarget = shadow.renderTarget;
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
-            var renderLists = scene.cache.renderLists;
 
             for (var j = 0; j < faces; j++) {
 
@@ -6146,6 +6143,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 } else {
                     shadow.update(light);
                 }
+
+                var renderList = scene.updateRenderList(camera);
 
                 glCore.texture.setRenderTarget(shadowTarget);
 
@@ -6157,8 +6156,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                // ignore transparent objects
-                glCore.renderPass(renderLists[RENDER_LAYER.DEFAULT], camera, {
+                glCore.renderPass(renderList.opaque, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
@@ -6168,6 +6166,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                         return renderable.object.castShadow;
                     }
                 });
+
+                // ignore transparent objects?
 
             }
 
@@ -6190,19 +6190,30 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         
     }
 
-    ForwardPass.prototype.render = function(glCore, scene) {
-        var camera = scene.cache.camera;
+    ForwardPass.prototype.render = function(glCore, scene, camera) {
+        var renderList = scene.updateRenderList(camera);
 
-        var renderLists = scene.cache.renderLists;
-        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
-            var layer = LAYER_RENDER_LIST[i];
-            glCore.renderPass(renderLists[layer], camera, {
-                getMaterial: function(renderable) {
-                    return scene.overrideMaterial || renderable.material;
-                },
-                cache: scene.cache
-            });
-        }
+        glCore.renderPass(renderList.opaque, camera, {
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            },
+            cache: scene
+        });
+
+        glCore.renderPass(renderList.transparent, camera, {
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            },
+            cache: scene
+        });
+
+        // remove UI render from this pass
+        glCore.renderPass(renderList.ui, camera, {
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            },
+            cache: scene
+        });
     }
 
     zen3d.ForwardPass = ForwardPass;
@@ -6233,6 +6244,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false;
+
+        this.matrixAutoUpdate = true;
+        this.lightsAutoupdate = true;
     }
 
     /**
@@ -6245,12 +6259,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         performance.startCounter("render", 60);
 
-        scene.update(camera); // update scene
+        this.matrixAutoUpdate && scene.updateMatrix();
+        this.lightsAutoupdate && scene.updateLights();
 
         performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(this.glCore, scene);
+            this.shadowMapPass.render(this.glCore, scene, camera);
 
             this.shadowNeedsUpdate = false;
         }
@@ -6268,7 +6283,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
         performance.startCounter("renderList", 60);
-        this.forwardPass.render(this.glCore, scene);
+        this.forwardPass.render(this.glCore, scene, camera);
         performance.endCounter("renderList");
 
         if (!!renderTarget.texture) {
@@ -6281,18 +6296,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.Renderer = Renderer;
 })();
 (function() {
-    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
-    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
-    var RENDER_LAYER = zen3d.RENDER_LAYER;
-    var LAYER_RENDER_LIST = zen3d.LAYER_RENDER_LIST;
-
-    var sortFrontToBack = function(a, b) {
-        return a.z - b.z;
-    }
-
-    var sortBackToFront = function(a, b) {
-        return b.z - a.z;
-    }
 
     var lightCaches = {};
 
@@ -6349,439 +6352,358 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         return cache;
     }
 
-    /**
-     * Render Cache
-     * use this class to cache and organize objects
-     */
-    var RenderCache = function() {
-
-        // render list
-        var renderLists = {};
-        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
-            renderLists[LAYER_RENDER_LIST[i]] = new Array();
-        }
-        this.renderLists = renderLists;
-
-        this.shadowObjects = new Array();
-
-        // lights
-        this.lights = {
-            ambient: new Float32Array([0, 0, 0, 1]),
-            directional: [],
-            directionalShadowMap: [],
-            directionalShadowMatrix: [],
-            point: [],
-            pointShadowMap: [],
-            pointShadowMatrix: [],
-            spot: [],
-            spotShadowMap: [],
-            spotShadowMatrix: [],
-            shadows: [],
-            ambientsNum: 0,
-            directsNum: 0,
-            pointsNum: 0,
-            spotsNum: 0,
-            shadowsNum: 0,
-            totalNum: 0
-        };
-
-        // camera
-        this.camera = null;
-
-        // fog
-        this.fog = null;
-
-        // clippingPlanes
-        this.clippingPlanes = null;
+    var LightCache = function() {
+        this.ambient = new Float32Array([0, 0, 0, 1]);
+        this.directional = [];
+        this.directionalShadowMap = [];
+        this.directionalShadowMatrix = [];
+        this.point = [];
+        this.pointShadowMap = [];
+        this.pointShadowMatrix = [];
+        this.spot = [];
+        this.spotShadowMap = [];
+        this.spotShadowMatrix = [];
+        this.shadows = [];
+        this.ambientsNum = 0;
+        this.directsNum = 0;
+        this.pointsNum = 0;
+        this.spotsNum = 0;
+        this.shadowsNum = 0;
+        this.totalNum = 0;
     }
+
+    LightCache.prototype.startCount = function () {
+        for(var i = 0; i < 3; i++) {
+            this.ambient[i] = 0;
+        }
+        this.shadows.length = 0;
+        this.ambientsNum = 0;
+        this.directsNum = 0;
+        this.pointsNum = 0;
+        this.spotsNum = 0;
+        this.shadowsNum = 0;
+        this.totalNum = 0;
+    };
+
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+
+    LightCache.prototype.add = function (object) {
+        if (object.lightType == LIGHT_TYPE.AMBIENT) {
+            this._doAddAmbientLight(object);
+        } else if (object.lightType == LIGHT_TYPE.DIRECT) {
+            this._doAddDirectLight(object);
+        } else if (object.lightType == LIGHT_TYPE.POINT) {
+            this._doAddPointLight(object);
+        } else if (object.lightType == LIGHT_TYPE.SPOT) {
+            this._doAddSpotLight(object);
+        }
+
+        if (object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
+            this.shadows.push(object);
+            this.shadowsNum++;
+        }
+
+        this.totalNum++;
+    };
+
+    LightCache.prototype.endCount = function () {
+        // do nothing
+    };
+
+    LightCache.prototype._doAddAmbientLight = function (object) {
+        var intensity = object.intensity;
+        var color = object.color;
+
+        this.ambient[0] += color.r * intensity;
+        this.ambient[1] += color.g * intensity;
+        this.ambient[2] += color.b * intensity;
+
+        this.ambientsNum++;
+    };
 
     var helpVector3 = new zen3d.Vector3();
-    var helpFrustum = new zen3d.Frustum();
-    var helpMatrix = new zen3d.Matrix4();
-    var helpSphere = new zen3d.Sphere();
 
-    /**
-     * cache scene
-     */
-    RenderCache.prototype.cacheScene = function(scene, camera) {
-        this.camera = camera;
-        this.fog = scene.fog;
-        this.clippingPlanes = scene.clippingPlanes;
-        this.cacheObject(scene);
-    }
+    LightCache.prototype._doAddDirectLight = function (object) {
+        var intensity = object.intensity;
+        var color = object.color;
 
-    RenderCache.prototype.cacheObject = function(object) {
-        var camera = this.camera;
+        var cache = getLightCache(object);
 
-        // cache all type of objects
-        switch (object.type) {
-            case OBJECT_TYPE.POINT:
-            case OBJECT_TYPE.LINE:
-            case OBJECT_TYPE.LINE_LOOP:
-            case OBJECT_TYPE.LINE_SEGMENTS:
-            case OBJECT_TYPE.MESH:
-            case OBJECT_TYPE.SKINNED_MESH:
+        cache.color[0] = color.r * intensity;
+        cache.color[1] = color.g * intensity;
+        cache.color[2] = color.b * intensity;
 
-                // frustum test
-                if(object.frustumCulled) {
-                    helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
-        			helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
-        			helpFrustum.setFromMatrix(helpMatrix);
-                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
-                    if(!frustumTest) {
-                        break;
-                    }
-                }
+        var direction = helpVector3;
+        object.getWorldDirection(direction);
+        //direction.transformDirection(camera.viewMatrix);
 
-                helpVector3.setFromMatrixPosition(object.worldMatrix);
-                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+        cache.direction[0] = direction.x;
+        cache.direction[1] = direction.y;
+        cache.direction[2] = direction.z;
 
-                var material = object.material;
-
-                if(Array.isArray(material)){
-                    var groups = object.geometry.groups;
-
-                    for(var i = 0; i < groups.length; i++) {
-                        var group = groups[i];
-                        var groupMaterial = material[group.materialIndex];
-                        if(groupMaterial) {
-
-                            this.renderLists[groupMaterial.transparent ? RENDER_LAYER.TRANSPARENT : RENDER_LAYER.DEFAULT].push({
-                                object: object,
-                                geometry: object.geometry,
-                                material: groupMaterial,
-                                z: helpVector3.z,
-                                group: group
-                            });
-
-                            if (object.castShadow) {
-                                this.shadowObjects.push({
-                                    object: object,
-                                    geometry: object.geometry,
-                                    material: groupMaterial,
-                                    z: helpVector3.z,
-                                    group: group
-                                });
-                            }
-                        }
-                    }
-                } else {
-                    this.renderLists[material.transparent ? RENDER_LAYER.TRANSPARENT : RENDER_LAYER.DEFAULT].push({
-                        object: object,
-                        geometry: object.geometry,
-                        material: object.material,
-                        z: helpVector3.z
-                    });
-
-                    if (object.castShadow) {
-                        this.shadowObjects.push({
-                            object: object,
-                            geometry: object.geometry,
-                            material: object.material,
-                            z: helpVector3.z
-                        });
-                    }
-                }
-
-                break;
-            case OBJECT_TYPE.CANVAS2D:
-                // frustum test
-                if(object.frustumCulled) {
-                    helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
-                    helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
-                    helpFrustum.setFromMatrix(helpMatrix);
-                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
-                    if(!frustumTest) {
-                        break;
-                    }
-                }
-
-                helpVector3.setFromMatrixPosition(object.worldMatrix);
-                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
-
-                this.renderLists[RENDER_LAYER.CANVAS2D].push({
-                    object: object,
-                    geometry: object.geometry,
-                    material: object.material,
-                    z: helpVector3.z
-                });
-                break;
-            case OBJECT_TYPE.SPRITE:
-                // frustum test
-                if(object.frustumCulled) {
-                    helpSphere.center.set(0, 0, 0);
-                    helpSphere.radius = 0.7071067811865476;
-                    helpSphere.applyMatrix4(object.worldMatrix);
-                    helpMatrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
-                    helpFrustum.setFromMatrix(helpMatrix);
-                    var frustumTest = helpFrustum.intersectsSphere(helpSphere);
-                    if(!frustumTest) {
-                        break;
-                    }
-                }
-
-                helpVector3.setFromMatrixPosition(object.worldMatrix);
-                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
-
-                this.renderLists[RENDER_LAYER.SPRITE].push({
-                    object: object,
-                    geometry: object.geometry,
-                    material: object.material,
-                    z: helpVector3.z
-                });
-
-                // no shadow
-                break;
-            case OBJECT_TYPE.PARTICLE:
-
-                helpVector3.setFromMatrixPosition(object.worldMatrix);
-                helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
-
-                this.renderLists[RENDER_LAYER.PARTICLE].push({
-                    object: object,
-                    geometry: object.geometry,
-                    material: object.material,
-                    z: helpVector3.z
-                });
-                break;
-            case OBJECT_TYPE.LIGHT:
-                var lights = this.lights;
-                if (object.lightType == LIGHT_TYPE.AMBIENT) {
-                    var intensity = object.intensity;
-                    var color = object.color;
-
-                    lights.ambient[0] += color.r * intensity;
-                    lights.ambient[1] += color.g * intensity;
-                    lights.ambient[2] += color.b * intensity;
-
-                    lights.ambientsNum++;
-                } else if (object.lightType == LIGHT_TYPE.DIRECT) {
-                    var intensity = object.intensity;
-                    var color = object.color;
-
-                    var cache = getLightCache(object);
-
-                    cache.color[0] = color.r * intensity;
-                    cache.color[1] = color.g * intensity;
-                    cache.color[2] = color.b * intensity;
-
-                    var direction = helpVector3;
-                    object.getWorldDirection(direction);
-                    direction.transformDirection(camera.viewMatrix);
-
-                    cache.direction[0] = direction.x;
-                    cache.direction[1] = direction.y;
-                    cache.direction[2] = direction.z;
-
-                    if(object.castShadow) {
-                        cache.shadow = true;
-                        cache.shadowBias = object.shadow.bias;
-                        cache.shadowRadius = object.shadow.radius;
-                        cache.shadowMapSize[0] = object.shadow.mapSize.x;
-                        cache.shadowMapSize[1] = object.shadow.mapSize.y;
-                    } else {
-                        cache.shadow = false;
-                    }
-
-                    if(object.castShadow) {
-
-                        // resize typed array
-                        var needSize = (lights.directsNum + 1) * 16;
-                        if(lights.directionalShadowMatrix.length < needSize) {
-                            var old = lights.directionalShadowMatrix;
-                            lights.directionalShadowMatrix = new Float32Array(needSize);
-                            lights.directionalShadowMatrix.set(old);
-                        }
-
-                        lights.directionalShadowMatrix.set(object.shadow.matrix.elements, lights.directsNum * 16);
-                        lights.directionalShadowMap[lights.directsNum] = object.shadow.map;
-                    }
-
-                    lights.directional[lights.directsNum] = cache;
-
-                    lights.directsNum++;
-                } else if (object.lightType == LIGHT_TYPE.POINT) {
-                    var intensity = object.intensity;
-                    var color = object.color;
-                    var distance = object.distance;
-                    var decay = object.decay;
-
-                    var cache = getLightCache(object);
-
-                    cache.color[0] = color.r * intensity;
-                    cache.color[1] = color.g * intensity;
-                    cache.color[2] = color.b * intensity;
-
-                    cache.distance = distance;
-                    cache.decay = decay;
-
-                    var position = helpVector3.setFromMatrixPosition(object.worldMatrix).applyMatrix4(camera.viewMatrix);
-
-                    cache.position[0] = position.x;
-                    cache.position[1] = position.y;
-                    cache.position[2] = position.z;
-
-                    if(object.castShadow) {
-                        cache.shadow = true;
-                        cache.shadowBias = object.shadow.bias;
-                        cache.shadowRadius = object.shadow.radius;
-                        cache.shadowMapSize[0] = object.shadow.mapSize.x;
-                        cache.shadowMapSize[1] = object.shadow.mapSize.y;
-                        cache.shadowCameraNear = object.shadow.cameraNear;
-                        cache.shadowCameraFar = object.shadow.cameraFar;
-                    } else {
-                        cache.shadow = false;
-                    }
-
-                    if(object.castShadow) {
-
-                        // resize typed array
-                        var needSize = (lights.pointsNum + 1) * 16;
-                        if(lights.pointShadowMatrix.length < needSize) {
-                            var old = lights.pointShadowMatrix;
-                            lights.pointShadowMatrix = new Float32Array(needSize);
-                            lights.pointShadowMatrix.set(old);
-                        }
-
-                        lights.pointShadowMatrix.set(object.shadow.matrix.elements, lights.pointsNum * 16);
-                        lights.pointShadowMap[lights.pointsNum] = object.shadow.map;
-                    }
-
-                    lights.point[lights.pointsNum] = cache;
-
-                    lights.pointsNum++;
-                } else if (object.lightType == LIGHT_TYPE.SPOT) {
-                    var intensity = object.intensity;
-                    var color = object.color;
-                    var distance = object.distance;
-                    var decay = object.decay;
-
-                    var cache = getLightCache(object);
-
-                    cache.color[0] = color.r * intensity;
-                    cache.color[1] = color.g * intensity;
-                    cache.color[2] = color.b * intensity;
-
-                    cache.distance = distance;
-                    cache.decay = decay;
-
-                    var position = helpVector3.setFromMatrixPosition(object.worldMatrix).applyMatrix4(camera.viewMatrix);
-
-                    cache.position[0] = position.x;
-                    cache.position[1] = position.y;
-                    cache.position[2] = position.z;
-
-                    var direction = helpVector3;
-                    object.getWorldDirection(helpVector3);
-                    helpVector3.transformDirection(camera.viewMatrix);
-
-                    cache.direction[0] = direction.x;
-                    cache.direction[1] = direction.y;
-                    cache.direction[2] = direction.z;
-
-                    var coneCos = Math.cos(object.angle);
-                    var penumbraCos = Math.cos(object.angle * (1 - object.penumbra));
-
-                    cache.coneCos = coneCos;
-                    cache.penumbraCos = penumbraCos;
-
-                    if(object.castShadow) {
-                        cache.shadow = true;
-                        cache.shadowBias = object.shadow.bias;
-                        cache.shadowRadius = object.shadow.radius;
-                        cache.shadowMapSize[0] = object.shadow.mapSize.x;
-                        cache.shadowMapSize[1] = object.shadow.mapSize.y;
-                    } else {
-                        cache.shadow = false;
-                    }
-
-                    if(object.castShadow) {
-
-                        // resize typed array
-                        var needSize = (lights.spotsNum + 1) * 16;
-                        if(lights.spotShadowMatrix.length < needSize) {
-                            var old = lights.spotShadowMatrix;
-                            lights.spotShadowMatrix = new Float32Array(needSize);
-                            lights.spotShadowMatrix.set(old);
-                        }
-
-                        lights.spotShadowMatrix.set(object.shadow.matrix.elements, lights.spotsNum * 16);
-                        lights.spotShadowMap[lights.spotsNum] = object.shadow.map;
-                    }
-
-                    lights.spot[lights.spotsNum] = cache;
-
-                    lights.spotsNum++;
-                }
-
-                if (object.castShadow && object.lightType !== LIGHT_TYPE.AMBIENT) {
-                    lights.shadows.push(object);
-                    lights.shadowsNum++;
-                }
-
-                lights.totalNum++;
-                break;
-            case OBJECT_TYPE.CAMERA:
-                // do nothing
-                // main camera will set by hand
-                // camera put to object tree just for update position
-                break;
-            case OBJECT_TYPE.SCENE:
-                // do nothing
-                break;
-            case OBJECT_TYPE.GROUP:
-                // do nothing
-                break;
-            default:
-                console.log("undefined object type")
+        if(object.castShadow) {
+            cache.shadow = true;
+            cache.shadowBias = object.shadow.bias;
+            cache.shadowRadius = object.shadow.radius;
+            cache.shadowMapSize[0] = object.shadow.mapSize.x;
+            cache.shadowMapSize[1] = object.shadow.mapSize.y;
+        } else {
+            cache.shadow = false;
         }
 
-        // handle children by recursion
-        if(OBJECT_TYPE.CANVAS2D !== object.type) {
-            var children = object.children;
-            for (var i = 0, l = children.length; i < l; i++) {
-                this.cacheObject(children[i]);
+        if(object.castShadow) {
+
+            // resize typed array
+            var needSize = (this.directsNum + 1) * 16;
+            if(this.directionalShadowMatrix.length < needSize) {
+                var old = this.directionalShadowMatrix;
+                this.directionalShadowMatrix = new Float32Array(needSize);
+                this.directionalShadowMatrix.set(old);
+            }
+
+            this.directionalShadowMatrix.set(object.shadow.matrix.elements, this.directsNum * 16);
+            this.directionalShadowMap[this.directsNum] = object.shadow.map;
+        }
+
+        this.directional[this.directsNum] = cache;
+
+        this.directsNum++;
+    };
+
+    LightCache.prototype._doAddPointLight = function (object) {
+        var intensity = object.intensity;
+        var color = object.color;
+        var distance = object.distance;
+        var decay = object.decay;
+
+        var cache = getLightCache(object);
+
+        cache.color[0] = color.r * intensity;
+        cache.color[1] = color.g * intensity;
+        cache.color[2] = color.b * intensity;
+
+        cache.distance = distance;
+        cache.decay = decay;
+
+        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+
+        cache.position[0] = position.x;
+        cache.position[1] = position.y;
+        cache.position[2] = position.z;
+
+        if(object.castShadow) {
+            cache.shadow = true;
+            cache.shadowBias = object.shadow.bias;
+            cache.shadowRadius = object.shadow.radius;
+            cache.shadowMapSize[0] = object.shadow.mapSize.x;
+            cache.shadowMapSize[1] = object.shadow.mapSize.y;
+            cache.shadowCameraNear = object.shadow.cameraNear;
+            cache.shadowCameraFar = object.shadow.cameraFar;
+        } else {
+            cache.shadow = false;
+        }
+
+        if(object.castShadow) {
+
+            // resize typed array
+            var needSize = (this.pointsNum + 1) * 16;
+            if(this.pointShadowMatrix.length < needSize) {
+                var old = this.pointShadowMatrix;
+                this.pointShadowMatrix = new Float32Array(needSize);
+                this.pointShadowMatrix.set(old);
+            }
+
+            this.pointShadowMatrix.set(object.shadow.matrix.elements, this.pointsNum * 16);
+            this.pointShadowMap[this.pointsNum] = object.shadow.map;
+        }
+
+        this.point[this.pointsNum] = cache;
+
+        this.pointsNum++;
+    };
+
+    LightCache.prototype._doAddSpotLight = function (object) {
+        var intensity = object.intensity;
+        var color = object.color;
+        var distance = object.distance;
+        var decay = object.decay;
+
+        var cache = getLightCache(object);
+
+        cache.color[0] = color.r * intensity;
+        cache.color[1] = color.g * intensity;
+        cache.color[2] = color.b * intensity;
+
+        cache.distance = distance;
+        cache.decay = decay;
+
+        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+
+        cache.position[0] = position.x;
+        cache.position[1] = position.y;
+        cache.position[2] = position.z;
+
+        var direction = helpVector3;
+        object.getWorldDirection(helpVector3);
+        // helpVector3.transformDirection(camera.viewMatrix);
+
+        cache.direction[0] = direction.x;
+        cache.direction[1] = direction.y;
+        cache.direction[2] = direction.z;
+
+        var coneCos = Math.cos(object.angle);
+        var penumbraCos = Math.cos(object.angle * (1 - object.penumbra));
+
+        cache.coneCos = coneCos;
+        cache.penumbraCos = penumbraCos;
+
+        if(object.castShadow) {
+            cache.shadow = true;
+            cache.shadowBias = object.shadow.bias;
+            cache.shadowRadius = object.shadow.radius;
+            cache.shadowMapSize[0] = object.shadow.mapSize.x;
+            cache.shadowMapSize[1] = object.shadow.mapSize.y;
+        } else {
+            cache.shadow = false;
+        }
+
+        if(object.castShadow) {
+
+            // resize typed array
+            var needSize = (this.spotsNum + 1) * 16;
+            if(this.spotShadowMatrix.length < needSize) {
+                var old = this.spotShadowMatrix;
+                this.spotShadowMatrix = new Float32Array(needSize);
+                this.spotShadowMatrix.set(old);
+            }
+
+            this.spotShadowMatrix.set(object.shadow.matrix.elements, this.spotsNum * 16);
+            this.spotShadowMap[this.spotsNum] = object.shadow.map;
+        }
+
+        this.spot[this.spotsNum] = cache;
+
+        this.spotsNum++;
+    };
+
+    zen3d.LightCache = LightCache;
+})();
+(function() {
+
+    var sortFrontToBack = function(a, b) {
+        return a.z - b.z;
+    }
+
+    var sortBackToFront = function(a, b) {
+        return b.z - a.z;
+    }
+
+    var RenderList = function() {
+        this.opaque = [];
+        this.transparent = [];
+        this.ui = [];
+
+        this._opaqueCount = 0;
+        this._transparentCount = 0;
+        this._uiCount = 0;
+    }
+
+    RenderList.prototype.startCount = function () {
+        this._opaqueCount = 0;
+        this._transparentCount = 0;
+        this._uiCount = 0;
+    };
+
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+
+    var helpVector3 = new zen3d.Vector3();
+    var helpSphere = new zen3d.Sphere();
+    
+    RenderList.prototype.add = function (object, camera) {
+
+        // frustum test
+        if(object.frustumCulled && camera.frustumCulled) {
+            helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
+            var frustumTest = camera.frustum.intersectsSphere(helpSphere);
+            if(!frustumTest) {
+                return;
             }
         }
-    }
 
-    /**
-     * sort render list
-     */
-    RenderCache.prototype.sort = function() {
-        var renderLists = this.renderLists;
-        renderLists[RENDER_LAYER.DEFAULT].sort(sortFrontToBack); // need sort?
-        renderLists[RENDER_LAYER.TRANSPARENT].sort(sortBackToFront);
-        renderLists[RENDER_LAYER.SPRITE].sort(sortBackToFront);
-        renderLists[RENDER_LAYER.PARTICLE].sort(sortBackToFront);
+        // calculate z
+        helpVector3.setFromMatrixPosition(object.worldMatrix);
+        helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+        if(OBJECT_TYPE.CANVAS2D === object.type) { // for ui
+
+            var renderable = {
+                object: object,
+                geometry: object.geometry,
+                material: object.material,
+                z: helpVector3.z
+            };
+
+            this.ui[this._uiCount++] = renderable;
+
+            return;
+        }
+
+        if(Array.isArray(object.material)){
+            var groups = object.geometry.groups;
+
+            for(var i = 0; i < groups.length; i++) {
+                var group = groups[i];
+                var groupMaterial = object.material[group.materialIndex];
+                if(groupMaterial) {
+
+                    var renderable = {
+                        object: object,
+                        geometry: object.geometry,
+                        material: groupMaterial,
+                        z: helpVector3.z,
+                        group: group
+                    };
+
+                    if(groupMaterial.transparent) {
+                        this.transparent[this._transparentCount++] = renderable;
+                    } else {
+                        this.opaque[this._opaqueCount++] = renderable;
+                    }
+
+                }
+            }
+        } else {
+
+            var renderable = {
+                object: object,
+                geometry: object.geometry,
+                material: object.material,
+                z: helpVector3.z
+            };
+
+            if(object.material.transparent) {
+                this.transparent[this._transparentCount++] = renderable;
+            } else {
+                this.opaque[this._opaqueCount++] = renderable;
+            }
+
+        }
+
+    };
+    
+    RenderList.prototype.endCount = function () {
+        this.transparent.length = this._transparentCount;
+        this.opaque.length = this._opaqueCount;
+        this.ui.length = this._uiCount;
+    };
+
+    RenderList.prototype.sort = function() {
+        this.opaque.sort(sortFrontToBack); // need sort?
+        this.transparent.sort(sortBackToFront);
         // TODO canvas2d object should render in order?
     }
 
-    /**
-     * clear
-     */
-    RenderCache.prototype.clear = function() {
-        var renderLists = this.renderLists;
-        for(var layer in renderLists) {
-            renderLists[layer].length = 0;
-        }
-
-        this.shadowObjects.length = 0;
-
-        var lights = this.lights;
-        for(var i = 0; i < 3; i++) {
-            lights.ambient[i] = 0;
-        }
-        lights.shadows.length = 0;
-        lights.ambientsNum = 0;
-        lights.directsNum = 0;
-        lights.pointsNum = 0;
-        lights.spotsNum = 0;
-        lights.shadowsNum = 0;
-        lights.totalNum = 0;
-    }
-
-    zen3d.RenderCache = RenderCache;
+    zen3d.RenderList = RenderList;
 })();
 (function() {
     /**
@@ -7014,7 +6936,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     Geometry.prototype.computeBoundingBox = function() {
-        var position = this.attributes["a_Position"];
+        var position = this.attributes["a_Position"] || this.attributes["position"];
         if(position.isInterleavedBufferAttribute) {
             var data = position.data;
             this.boundingBox.setFromArray(data.array, data.stride);
@@ -7024,7 +6946,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     Geometry.prototype.computeBoundingSphere = function() {
-        var position = this.attributes["a_Position"];
+        var position = this.attributes["a_Position"] || this.attributes["position"];
         if(position.isInterleavedBufferAttribute) {
             var data = position.data;
             this.boundingSphere.setFromArray(data.array, data.stride);
@@ -8560,13 +8482,17 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.clippingPlanes = []; // Planes array
 
-        this.cache = new zen3d.RenderCache();
+        // this.cache = new zen3d.RenderCache();
+
+        this._renderLists = {};
+
+        this.lights = new zen3d.LightCache();
     }
 
     zen3d.inherit(Scene, zen3d.Object3D);
 
     /**
-     * TODO seperate this method updateMatrix/updateLight/updateRenderList
+     * TODO seperate this method updateMatrix/updateContext/updateRenderList
      * update scene matrix and cache it
      * @param {Camera} camera main camera for this scene
      */
@@ -8576,6 +8502,80 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.cache.clear();
         this.cache.cacheScene(this, camera);
         this.cache.sort();
+    }
+
+    Scene.prototype.updateRenderList = function(camera) {
+        var id = camera.uuid;
+
+        if(!this._renderLists[id]) {
+            this._renderLists[id] = new zen3d.RenderList();
+        }
+
+        var renderList = this._renderLists[id];
+
+        renderList.startCount();
+
+        this._doUpdateRenderList(this, camera, renderList);
+
+        renderList.endCount();
+
+        renderList.sort();
+
+        return renderList;
+    }
+
+    Scene.prototype.getRenderList = function(camera) {
+        return this._renderLists[camera.uuid];
+    }
+
+    Scene.prototype.updateLights= function() {
+        var lights = this.lights;
+
+        this.lights.startCount();
+
+        this._doUpdateLights(this);
+
+        this.lights.endCount();
+
+        return this.lights;
+    }
+
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+
+    Scene.prototype._doUpdateRenderList = function(object, camera, renderList) {
+
+        if (!!object.geometry && !!object.material) { // renderable
+            renderList.add(object, camera);
+        }
+
+        // skip ui children
+        if(OBJECT_TYPE.CANVAS2D === object.type) {
+            return;
+        }
+
+        // handle children by recursion
+        var children = object.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            this._doUpdateRenderList(children[i], camera, renderList);
+        }
+    }
+
+    Scene.prototype._doUpdateLights = function(object) {
+
+        if (OBJECT_TYPE.LIGHT === object.type) { // light
+            this.lights.add(object);
+        }
+
+        // skip ui children
+        if(OBJECT_TYPE.CANVAS2D === object.type) {
+            return;
+        }
+
+        // handle children by recursion
+        var children = object.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            this._doUpdateLights(children[i]);
+        }
     }
 
     zen3d.Scene = Scene;
@@ -8826,6 +8826,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     var DirectionalLightShadow = function() {
         DirectionalLightShadow.superClass.constructor.call(this);
 
+        // direct light is just a direction
+        // we would not do camera frustum cull, because this light could be any where
+        this.camera.frustumCulled = false;
+
         this.renderTarget = new zen3d.RenderTarget2D(this.mapSize.x, this.mapSize.y);
 
         var map = this.renderTarget.texture;
@@ -8870,8 +8874,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         camera.setLookAt(lookTarget, this._up);
 
         // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
+        camera.updateMatrix();
 
         // update projection
         var halfWindowSize = this.windowSize / 2;
@@ -8956,8 +8959,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         camera.setLookAt(lookTarget, this._up);
 
         // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
+        camera.updateMatrix();
 
         // update projection
         // TODO distance should be custom?
@@ -9043,8 +9045,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         camera.setLookAt(lookTarget, ups[face]);
 
         // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
+        camera.updateMatrix();
 
         // update projection
         camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);
@@ -9087,6 +9088,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // projection matrix
         this.projectionMatrix = new zen3d.Matrix4();
 
+        // camera frustum
+        this.frustum = new zen3d.Frustum();
+
         // gamma space or linear space
         this.gammaFactor = 2.0;
     	this.gammaInput = false;
@@ -9094,6 +9098,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         
         // Where on the screen is the camera rendered in normalized coordinates.
         this.rect = new zen3d.Vector4(0, 0, 1, 1);
+
+        // frustum test
+        this.frustumCulled = true;
     }
 
     zen3d.inherit(Camera, zen3d.Object3D);
@@ -9170,10 +9177,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         };
     }();
 
+    var helpMatrix = new zen3d.Matrix4();
+
     Camera.prototype.updateMatrix = function() {
         Camera.superClass.updateMatrix.call(this);
 
         this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
+
+        helpMatrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+        this.frustum.setFromMatrix(helpMatrix); // update frustum
     }
 
     Camera.prototype.copy = function ( source, recursive ) {
@@ -9418,6 +9430,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         0, 1, 2,
         0, 2, 3
     ]);
+    sharedGeometry.computeBoundingBox();
+    sharedGeometry.computeBoundingSphere();
 
     /**
      * Sprite
@@ -9494,7 +9508,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.type = zen3d.OBJECT_TYPE.PARTICLE;
 
-		this.material = new zen3d.ParticleMaterial();
+        this.material = new zen3d.ParticleMaterial();
+        
+        this.frustumCulled = false;
     }
 
     zen3d.inherit(ParticleContainer, zen3d.Object3D);

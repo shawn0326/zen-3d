@@ -14,22 +14,85 @@
 
         this.clippingPlanes = []; // Planes array
 
-        this.cache = new zen3d.RenderCache();
+        this._renderLists = {};
+
+        this.lights = new zen3d.LightCache();
     }
 
     zen3d.inherit(Scene, zen3d.Object3D);
 
-    /**
-     * TODO seperate this method updateMatrix/updateContext/updateRenderList
-     * update scene matrix and cache it
-     * @param {Camera} camera main camera for this scene
-     */
-    Scene.prototype.update = function(camera) {
-        this.updateMatrix();
+    Scene.prototype.updateRenderList = function(camera) {
+        var id = camera.uuid;
 
-        this.cache.clear();
-        this.cache.cacheScene(this, camera);
-        this.cache.sort();
+        if(!this._renderLists[id]) {
+            this._renderLists[id] = new zen3d.RenderList();
+        }
+
+        var renderList = this._renderLists[id];
+
+        renderList.startCount();
+
+        this._doUpdateRenderList(this, camera, renderList);
+
+        renderList.endCount();
+
+        renderList.sort();
+
+        return renderList;
+    }
+
+    Scene.prototype.getRenderList = function(camera) {
+        return this._renderLists[camera.uuid];
+    }
+
+    Scene.prototype.updateLights= function() {
+        var lights = this.lights;
+
+        this.lights.startCount();
+
+        this._doUpdateLights(this);
+
+        this.lights.endCount();
+
+        return this.lights;
+    }
+
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+
+    Scene.prototype._doUpdateRenderList = function(object, camera, renderList) {
+
+        if (!!object.geometry && !!object.material) { // renderable
+            renderList.add(object, camera);
+        }
+
+        // skip ui children
+        if(OBJECT_TYPE.CANVAS2D === object.type) {
+            return;
+        }
+
+        // handle children by recursion
+        var children = object.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            this._doUpdateRenderList(children[i], camera, renderList);
+        }
+    }
+
+    Scene.prototype._doUpdateLights = function(object) {
+
+        if (OBJECT_TYPE.LIGHT === object.type) { // light
+            this.lights.add(object);
+        }
+
+        // skip ui children
+        if(OBJECT_TYPE.CANVAS2D === object.type) {
+            return;
+        }
+
+        // handle children by recursion
+        var children = object.children;
+        for (var i = 0, l = children.length; i < l; i++) {
+            this._doUpdateLights(children[i]);
+        }
     }
 
     zen3d.Scene = Scene;

@@ -5,19 +5,30 @@
         
     }
 
-    ForwardPass.prototype.render = function(glCore, scene) {
-        var camera = scene.cache.camera;
+    ForwardPass.prototype.render = function(glCore, scene, camera) {
+        var renderList = scene.updateRenderList(camera);
 
-        var renderLists = scene.cache.renderLists;
-        for(var i = 0; i < LAYER_RENDER_LIST.length; i++) {
-            var layer = LAYER_RENDER_LIST[i];
-            glCore.renderPass(renderLists[layer], camera, {
-                getMaterial: function(renderable) {
-                    return scene.overrideMaterial || renderable.material;
-                },
-                cache: scene.cache
-            });
-        }
+        glCore.renderPass(renderList.opaque, camera, {
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            },
+            cache: scene
+        });
+
+        glCore.renderPass(renderList.transparent, camera, {
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            },
+            cache: scene
+        });
+
+        // remove UI render from this pass
+        glCore.renderPass(renderList.ui, camera, {
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            },
+            cache: scene
+        });
     }
 
     zen3d.ForwardPass = ForwardPass;

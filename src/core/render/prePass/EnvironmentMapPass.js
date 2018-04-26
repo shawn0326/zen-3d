@@ -27,22 +27,20 @@
         this.shadowNeedsUpdate = false;
     }
 
-    EnvironmentMapPass.prototype.render = function(glCore, scene) {
+    EnvironmentMapPass.prototype.render = function(glCore, scene, camera) {
         this.camera.position.copy(this.position);
+
+        if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
+            this.shadowMapPass.render(glCore, scene, this.camera);
+
+            this.shadowNeedsUpdate = false;
+        }
 
         for(var i = 0; i < 6; i++) {
             this.lookTarget.set(this.targets[i].x + this.camera.position.x, this.targets[i].y + this.camera.position.y, this.targets[i].z + this.camera.position.z);
             this.camera.setLookAt(this.lookTarget, this.ups[i]);
 
             this.camera.updateMatrix();
-
-            scene.update(this.camera);
-
-            if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-                this.shadowMapPass.render(glCore, scene);
-    
-                this.shadowNeedsUpdate = false;
-            }
 
             this.renderTarget.activeCubeFace = i;
 
@@ -51,7 +49,7 @@
             glCore.state.clearColor(0, 0, 0, 0);
             glCore.clear(true, true, true);
 
-            this.forwardPass.render(glCore, scene);
+            this.forwardPass.render(glCore, scene, this.camera);
 
             glCore.texture.updateRenderTargetMipmap(this.renderTarget);
         }

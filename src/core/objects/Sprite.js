@@ -15,6 +15,8 @@
         0, 1, 2,
         0, 2, 3
     ]);
+    sharedGeometry.computeBoundingBox();
+    sharedGeometry.computeBoundingSphere();
 
     /**
      * Sprite

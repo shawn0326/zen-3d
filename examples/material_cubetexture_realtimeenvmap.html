@@ -130,10 +130,14 @@
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				// render env map on six faces
-			    phong.envMap = null;
-			    environmentMapPrePass.render(renderer.glCore, scene);
+				phong.envMap = null;
+				scene.updateMatrix(); // call update matrix
+				scene.updateLights(); // call update lights
+			    environmentMapPrePass.render(renderer.glCore, scene, camera);
 			    phong.envMap = environmentMapPrePass.renderTexture;
 
+				renderer.matrixAutoUpdate = false; // close auto update
+        		renderer.lightsAutoupdate = false; // close auto update
 	            renderer.render(scene, camera);
 	        }
 

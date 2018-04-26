@@ -2,7 +2,7 @@
 
     vec3 envDir;
     #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)
-        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);
+        envDir = reflect(normalize(v_worldPos - u_CameraPosition), N);
     #else
         envDir = v_EnvPos;
     #endif

@@ -14,6 +14,9 @@
         // projection matrix
         this.projectionMatrix = new zen3d.Matrix4();
 
+        // camera frustum
+        this.frustum = new zen3d.Frustum();
+
         // gamma space or linear space
         this.gammaFactor = 2.0;
     	this.gammaInput = false;
@@ -21,6 +24,9 @@
         
         // Where on the screen is the camera rendered in normalized coordinates.
         this.rect = new zen3d.Vector4(0, 0, 1, 1);
+
+        // frustum test
+        this.frustumCulled = true;
     }
 
     zen3d.inherit(Camera, zen3d.Object3D);
@@ -97,10 +103,15 @@
         };
     }();
 
+    var helpMatrix = new zen3d.Matrix4();
+
     Camera.prototype.updateMatrix = function() {
         Camera.superClass.updateMatrix.call(this);
 
         this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
+
+        helpMatrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+        this.frustum.setFromMatrix(helpMatrix); // update frustum
     }
 
     Camera.prototype.copy = function ( source, recursive ) {

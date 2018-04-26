@@ -32,7 +32,7 @@
         #ifdef USE_ENV_MAP
     		vec3 envDir;
     	    #if defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP)
-    	        envDir = reflect(normalize(v_worldPos - u_CameraPosition), (vec4(N, 1.0) * u_View).xyz);
+    	        envDir = reflect(normalize(v_worldPos - u_CameraPosition), N);
     	    #else
     	        envDir = v_EnvPos;
     	    #endif
@@ -42,7 +42,7 @@
     #endif
 
     #if (defined(USE_PHONG) || defined(USE_PBR))
-        vec3 V = normalize( (u_View * vec4(u_CameraPosition, 1.)).xyz - v_ViewModelPos);
+        vec3 V = normalize( u_CameraPosition - v_modelPos );
     #endif
 
     #ifdef USE_DIRECT_LIGHT
@@ -78,7 +78,7 @@
 
     #ifdef USE_POINT_LIGHT
     for(int i = 0; i < USE_POINT_LIGHT; i++) {
-        L = u_Point[i].position - v_ViewModelPos;
+        L = u_Point[i].position - v_modelPos;
         float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);
         light = u_Point[i].color * u_Point[i].intensity * dist;
         L = normalize(L);
@@ -91,7 +91,7 @@
         #endif
 
         #ifdef USE_SHADOW
-            vec3 worldV = (vec4(v_ViewModelPos, 1.) * u_View - vec4(u_Point[i].position, 1.) * u_View).xyz;
+            vec3 worldV = v_modelPos - u_Point[i].position;
             irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize, u_Point[i].shadowCameraNear, u_Point[i].shadowCameraFar ) : 1.0;
         #endif
 
@@ -111,7 +111,7 @@
 
     #ifdef USE_SPOT_LIGHT
     for(int i = 0; i < USE_SPOT_LIGHT; i++) {
-        L = u_Spot[i].position - v_ViewModelPos;
+        L = u_Spot[i].position - v_modelPos;
         float lightDistance = length(L);
         L = normalize(L);
         float angleCos = dot( L, -normalize(u_Spot[i].direction) );

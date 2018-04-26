@@ -20,7 +20,7 @@
             }
 
             for(var i = 0; i < planes.length; i++) {
-                plane.copy(planes[i]).applyMatrix4(camera.viewMatrix);
+                plane.copy(planes[i]);//.applyMatrix4(camera.viewMatrix);
                 planesData[i * 4 + 0] = plane.normal.x;
                 planesData[i * 4 + 1] = plane.normal.y;
                 planesData[i * 4 + 2] = plane.normal.z;

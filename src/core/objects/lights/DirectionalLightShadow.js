@@ -6,6 +6,10 @@
     var DirectionalLightShadow = function() {
         DirectionalLightShadow.superClass.constructor.call(this);
 
+        // direct light is just a direction
+        // we would not do camera frustum cull, because this light could be any where
+        this.camera.frustumCulled = false;
+
         this.renderTarget = new zen3d.RenderTarget2D(this.mapSize.x, this.mapSize.y);
 
         var map = this.renderTarget.texture;
@@ -50,8 +54,7 @@
         camera.setLookAt(lookTarget, this._up);
 
         // update view matrix
-        camera.updateMatrix(); // just copy matrix to world matrix
-        camera.viewMatrix.getInverse(camera.worldMatrix);
+        camera.updateMatrix();
 
         // update projection
         var halfWindowSize = this.windowSize / 2;

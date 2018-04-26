@@ -15,7 +15,7 @@
         });
         this.glCore = new zen3d.WebGLCore(gl);
 
-        this.autoClear = true;  
+        this.autoClear = true;
 
         this.performance = new zen3d.Performance();
 
@@ -24,6 +24,9 @@
 
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false;
+
+        this.matrixAutoUpdate = true;
+        this.lightsAutoupdate = true;
     }
 
     /**
@@ -36,12 +39,13 @@
 
         performance.startCounter("render", 60);
 
-        scene.update(camera); // update scene
+        this.matrixAutoUpdate && scene.updateMatrix();
+        this.lightsAutoupdate && scene.updateLights();
 
         performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(this.glCore, scene);
+            this.shadowMapPass.render(this.glCore, scene, camera);
 
             this.shadowNeedsUpdate = false;
         }
@@ -59,7 +63,7 @@
         }
 
         performance.startCounter("renderList", 60);
-        this.forwardPass.render(this.glCore, scene);
+        this.forwardPass.render(this.glCore, scene, camera);
         performance.endCounter("renderList");
 
         if (!!renderTarget.texture) {

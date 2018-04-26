@@ -9,7 +9,7 @@
         this.distanceMaterial = new zen3d.DistanceMaterial();
     }
 
-    ShadowMapPass.prototype.render = function(glCore, scene) {
+    ShadowMapPass.prototype.render = function(glCore, scene, camera) {
         
         var gl = glCore.gl;
         var state = glCore.state;
@@ -20,7 +20,7 @@
             state.disable(gl.STENCIL_TEST);
         }
 
-        var lights = scene.cache.lights.shadows;
+        var lights = scene.lights.shadows;
         for (var i = 0; i < lights.length; i++) {
             var light = lights[i];
 
@@ -29,7 +29,6 @@
             var shadowTarget = shadow.renderTarget;
             var isPointLight = light.lightType == zen3d.LIGHT_TYPE.POINT ? true : false;
             var faces = isPointLight ? 6 : 1;
-            var renderLists = scene.cache.renderLists;
 
             for (var j = 0; j < faces; j++) {
 
@@ -39,6 +38,8 @@
                 } else {
                     shadow.update(light);
                 }
+
+                var renderList = scene.updateRenderList(camera);
 
                 glCore.texture.setRenderTarget(shadowTarget);
 
@@ -50,8 +51,7 @@
                 material.uniforms["nearDistance"] = shadow.cameraNear;
                 material.uniforms["farDistance"] = shadow.cameraFar;
 
-                // ignore transparent objects
-                glCore.renderPass(renderLists[RENDER_LAYER.DEFAULT], camera, {
+                glCore.renderPass(renderList.opaque, camera, {
                     getMaterial: function(renderable) {
                         // copy draw side
                         material.side = renderable.material.side;
@@ -61,6 +61,8 @@
                         return renderable.object.castShadow;
                     }
                 });
+
+                // ignore transparent objects?
 
             }
 
