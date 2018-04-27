@@ -59,7 +59,6 @@ var filesSrc = [
     "core/render/shader/Program.js",
     "core/render/prePass/EnvironmentMapPass.js",
     "core/render/prePass/ShadowMapPass.js",
-    "core/render/prePass/ForwardPass.js",
     "core/render/postPass/ShaderPostPass.js",
     "core/render/Renderer.js",
     "core/render/LightCache.js",

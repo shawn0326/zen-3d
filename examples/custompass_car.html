@@ -111,7 +111,6 @@
 			var glCore = new zen3d.WebGLCore(gl);
 
 			var shadowMapPass = new zen3d.ShadowMapPass();
-			var forwardPass = new zen3d.ForwardPass();
 			var colorAdjustPass = new zen3d.ShaderPostPass(zen3d.ColorAdjustShader);
 			colorAdjustPass.uniforms["tDiffuse"] = tempRenderTarget1.texture;
 			colorAdjustPass.uniforms["brightness"] = 0.01;
@@ -152,7 +151,7 @@
 				glCore.state.clearColor(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
-				forwardPass.render(glCore, scene, camera);
+				glCore.render(scene, camera);
 
 				glCore.texture.setRenderTarget(tempRenderTarget2);
 

@@ -81,8 +81,8 @@
             this.glCore.clear(true, true, true);
         }
 
-        this.forwardPass.render(this.glCore, scene, cameraL);
-        this.forwardPass.render(this.glCore, scene, cameraR);
+        this.glCore.render(scene, cameraL, true);
+        this.glCore.render(scene, cameraR, true);
 
         if (!!renderTarget.texture) {
             this.glCore.texture.updateRenderTargetMipmap(renderTarget);

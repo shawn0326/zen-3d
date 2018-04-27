@@ -76,13 +76,46 @@
     }
 
     /**
+     * Render opaque and transparent objects
+     * @param {zen3d.Scene} scene 
+     * @param {zen3d.Camera} camera 
+     * @param {boolean} renderUI? default is false.
+     */
+    WebGLCore.prototype.render = function(scene, camera, renderUI) {
+        var renderList = scene.updateRenderList(camera);
+
+        this.renderPass(renderList.opaque, camera, {
+            scene: scene,
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            }
+        });
+
+        this.renderPass(renderList.transparent, camera, {
+            scene: scene,
+            getMaterial: function(renderable) {
+                return scene.overrideMaterial || renderable.material;
+            }
+        });
+
+        if(!!renderUI) {
+            this.renderPass(renderList.ui, camera, {
+                scene: scene,
+                getMaterial: function(renderable) {
+                    return scene.overrideMaterial || renderable.material;
+                }
+            });
+        }
+    }
+
+    /**
      * Render a single renderable list in camera in sequence
      * @param {Array} list List of all renderables.
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
-     * @param {Object} [config] ?
-     * @param {Function} [config.getMaterial] Get renderable material.
-     * @param {Function} [config.ifRender] If render the renderable.
-     * @param {RenderCache} [config.cache] render cache
+     * @param {Object} [config]?
+     * @param {Function} [config.getMaterial]? Get renderable material.
+     * @param {Function} [config.ifRender]? If render the renderable.
+     * @param {zen3d.Scene} [config.scene]? Rendering scene, have some rendering context.
      */
     WebGLCore.prototype.renderPass = function(renderList, camera, config) {
         config = config || {};
@@ -91,7 +124,7 @@
         var state = this.state;
 
         var getMaterial = config.getMaterial || defaultGetMaterial;
-        var cache = config.cache || {};
+        var scene = config.scene || {};
         
         var targetWidth = state.currentRenderTarget.width;
         var targetHeight = state.currentRenderTarget.height;
@@ -108,7 +141,7 @@
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 
-            var program = zen3d.getProgram(this, camera, material, object, cache);
+            var program = zen3d.getProgram(this, camera, material, object, scene);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -241,17 +274,17 @@
                         uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
                         break;
                     case "u_FogColor":
-                        var color = cache.fog.color;
+                        var color = scene.fog.color;
                         uniform.setValue(color.r, color.g, color.b);
                         break;
                     case "u_FogDensity":
-                        uniform.setValue(cache.fog.density);
+                        uniform.setValue(scene.fog.density);
                         break;
                     case "u_FogNear":
-                        uniform.setValue(cache.fog.near);
+                        uniform.setValue(scene.fog.near);
                         break;
                     case "u_FogFar":
-                        uniform.setValue(cache.fog.far);
+                        uniform.setValue(scene.fog.far);
                         break;
                     case "u_PointSize":
                         uniform.setValue(material.size);
@@ -270,7 +303,7 @@
                         uniform.setValue(material.scale);
                         break;
                     case "clippingPlanes[0]":
-                        var planesData = getClippingPlanesData(cache.clippingPlanes || [], camera);
+                        var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
                         gl.uniform4fv(uniform.location, planesData);
                         break;
                     default:
@@ -298,15 +331,15 @@
             }
 
             if(object.type === zen3d.OBJECT_TYPE.SPRITE) {
-                this.uploadSpriteUniform(uniforms, object, camera, cache.fog);
+                this.uploadSpriteUniform(uniforms, object, camera, scene.fog);
             }
             
             if(object.type === zen3d.OBJECT_TYPE.PARTICLE) {
                 this.uploadParticlesUniform(uniforms, object, camera);
             }
 
-            if (material.acceptLight && cache.lights) {
-                this.uploadLights(uniforms, cache.lights, object.receiveShadow, camera);
+            if (material.acceptLight && scene.lights) {
+                this.uploadLights(uniforms, scene.lights, object.receiveShadow, camera);
             }
 
             var frontFaceCW = object.worldMatrix.determinant() < 0;

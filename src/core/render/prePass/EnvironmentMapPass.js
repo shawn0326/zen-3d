@@ -21,7 +21,6 @@
         this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
         
         this.shadowMapPass = new zen3d.ShadowMapPass();
-        this.forwardPass = new zen3d.ForwardPass();
 
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false;
@@ -49,7 +48,7 @@
             glCore.state.clearColor(0, 0, 0, 0);
             glCore.clear(true, true, true);
 
-            this.forwardPass.render(glCore, scene, this.camera);
+            glCore.render(scene, this.camera);
 
             glCore.texture.updateRenderTargetMipmap(this.renderTarget);
         }

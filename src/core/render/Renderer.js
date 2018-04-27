@@ -20,7 +20,6 @@
         this.performance = new zen3d.Performance();
 
         this.shadowMapPass = new zen3d.ShadowMapPass();
-        this.forwardPass = new zen3d.ForwardPass();
 
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false;
@@ -63,7 +62,7 @@
         }
 
         performance.startCounter("renderList", 60);
-        this.forwardPass.render(this.glCore, scene, camera);
+        this.glCore.render(scene, camera, true);
         performance.endCounter("renderList");
 
         if (!!renderTarget.texture) {
