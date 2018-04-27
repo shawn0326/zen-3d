@@ -63,16 +63,30 @@
         cameraR.position.add(camera.position);
         cameraR.updateMatrix();
 
-        // render Left view
-        RendererVR.superClass.render.call(this, scene, cameraL, renderTarget, forceClear);
+        this.matrixAutoUpdate && scene.updateMatrix();
+        this.lightsAutoupdate && scene.updateLights();
 
-        var autoClear = this.autoClear;
-        this.autoClear = false;
+        if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
+            this.shadowMapPass.render(this.glCore, scene);
+            this.shadowNeedsUpdate = false;
+        }
 
-        // render Right view
-        RendererVR.superClass.render.call(this, scene, cameraR, renderTarget, false);
+        if (renderTarget === undefined) {
+            renderTarget = this.backRenderTarget;
+        }
+        this.glCore.texture.setRenderTarget(renderTarget);
 
-        this.autoClear = autoClear;
+        if (this.autoClear || forceClear) {
+            this.glCore.state.clearColor(0, 0, 0, 0);
+            this.glCore.clear(true, true, true);
+        }
+
+        this.forwardPass.render(this.glCore, scene, cameraL);
+        this.forwardPass.render(this.glCore, scene, cameraR);
+
+        if (!!renderTarget.texture) {
+            this.glCore.texture.updateRenderTargetMipmap(renderTarget);
+        }
 
         vrDisplay.submitFrame();
     }

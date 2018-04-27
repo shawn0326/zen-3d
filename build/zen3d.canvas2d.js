@@ -348,6 +348,8 @@
         this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
 
         this.depthWrite = false;
+
+        this.transparent = true;
     }
 
     zen3d.inherit(Canvas2DMaterial, zen3d.Material);
