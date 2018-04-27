@@ -1018,6 +1018,9 @@
 
         }
 
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+
     }
 
     /**
@@ -1247,7 +1250,7 @@
 
             var metallicRoughness = materialDef.pbrMetallicRoughness;
 
-            materialParams.color = new zen3d.Color3(1.0, 1.0, 1.0);
+            materialParams.diffuse = new zen3d.Color3(1.0, 1.0, 1.0);
             materialParams.opacity = 1.0;
 
             if (Array.isArray(metallicRoughness.baseColorFactor)) {
@@ -1295,10 +1298,12 @@
         if (alphaMode === ALPHA_MODES.BLEND) {
 
             materialParams.transparent = true;
+            materialParams.depthWrite = false;
 
         } else {
 
             materialParams.transparent = false;
+            materialParams.depthWrite = true;
 
             if (alphaMode === ALPHA_MODES.MASK) {
 
