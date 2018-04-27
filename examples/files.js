@@ -82,6 +82,9 @@ var files = {
 	"postprocessing": [
 		"postprocessing_film"
 	],
+	"custompass": [
+		"custompass_car"
+	],
 	"webgl": [
 		"webgl_clippingplanes"
 	]

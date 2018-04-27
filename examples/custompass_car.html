@@ -21,8 +21,10 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 	<script src="./js/shaders/CopyShader.js"></script>
-	<script src="./js/shaders/FilmShader.js"></script>
+	<script src="./js/shaders/ColorAdjustShader.js"></script>
+	<script src="./js/shaders/FXAAShader.js"></script>
 </head>
 <body>
 
@@ -85,7 +87,7 @@
 
 			var camera = new zen3d.Camera();
 			camera.gammaInput = true;
-			camera.gammaOutput = true;
+			camera.gammaOutput = false;
 	        camera.position.set(0, 4, 10);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
@@ -110,10 +112,25 @@
 
 			var shadowMapPass = new zen3d.ShadowMapPass();
 			var forwardPass = new zen3d.ForwardPass();
-			var filmPass = new zen3d.ShaderPostPass(zen3d.FilmShader);
-			filmPass.uniforms["tDiffuse"] = tempRenderTarget1.texture;
-			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
-			copyPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+			var colorAdjustPass = new zen3d.ShaderPostPass(zen3d.ColorAdjustShader);
+			colorAdjustPass.uniforms["tDiffuse"] = tempRenderTarget1.texture;
+			colorAdjustPass.uniforms["brightness"] = 0.01;
+			colorAdjustPass.uniforms["contrast"] = 1.01;
+			colorAdjustPass.uniforms["exposure"] = 0.6;
+			colorAdjustPass.uniforms["gamma"] = 0.5;
+			colorAdjustPass.uniforms["saturation"] =  1.6;
+			var fxaaPass = new zen3d.ShaderPostPass(zen3d.FXAAShader);
+			fxaaPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+			fxaaPass.uniforms["resolution"] = [1 / width, 1 / height];
+
+			// gui
+			var gui = new dat.GUI();
+			gui.add(colorAdjustPass.uniforms, "brightness").min(0).max(0.5).step(0.01);
+			gui.add(colorAdjustPass.uniforms, "contrast").min(1).max(1.5).step(0.01);
+			gui.add(colorAdjustPass.uniforms, "exposure").min(0).max(1).step(0.1);
+			gui.add(colorAdjustPass.uniforms, "gamma").min(0).max(1).step(0.1);
+			gui.add(colorAdjustPass.uniforms, "saturation").min(-1).max(5);
+			gui.close();
 
 	        function loop(count) {
 
@@ -122,12 +139,7 @@
 				// rotate camera
 				camera.position.x = 10 * Math.sin(count / 1000 * .5);
 				camera.position.z = 10 * Math.cos(count / 1000 * .5);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));	
-				
-				filmPass.uniforms.time += 30 / 1000 * 0.5;
-				if(filmPass.uniforms.time > 1) {
-					filmPass.uniforms.time = 0;
-				}
+				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				// do render pass
 				scene.updateMatrix();
@@ -147,14 +159,14 @@
 				glCore.state.clearColor(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
-				filmPass.render(glCore);
+				colorAdjustPass.render(glCore);
 
 				glCore.texture.setRenderTarget(backRenderTarget);
 
 				glCore.state.clearColor(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				
-				copyPass.render(glCore);
+				fxaaPass.render(glCore);
 	        }
 
 	        loop(0);
