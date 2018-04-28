@@ -19,6 +19,7 @@
         var scene = new zen3d.Scene();
 
         var camera = this.camera = new zen3d.Camera();
+        camera.frustumCulled = false;
         camera.position.set(0, 1, 0);
         camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
         camera.setOrtho(-1, 1, -1, 1, 0.1, 2);
@@ -28,8 +29,10 @@
         this.uniforms = cloneUniforms(shader.uniforms);
         var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
         var plane = new zen3d.Mesh(geometry, material);
+        plane.frustumCulled = false;
         scene.add(plane);
 
+        // static scene
         scene.updateMatrix();
         this.renderList = scene.updateRenderList(camera);
     }

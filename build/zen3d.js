@@ -6078,7 +6078,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.getProgram = getProgram;
 })();
 (function() {
-    var EnvironmentMapPass = function() {
+    var EnvironmentMapPass = function(renderTarget) {
         this.camera = new zen3d.Camera();
 
         this.targets = [
@@ -6095,24 +6095,13 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.position = new zen3d.Vector3();
         this.lookTarget = new zen3d.Vector3();
 
-        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
+        this.renderTarget = renderTarget || new zen3d.RenderTargetCube(512, 512);
 		this.renderTexture = this.renderTarget.texture;
         this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
-        
-        this.shadowMapPass = new zen3d.ShadowMapPass();
-
-        this.shadowAutoUpdate = true;
-        this.shadowNeedsUpdate = false;
     }
 
     EnvironmentMapPass.prototype.render = function(glCore, scene) {
         this.camera.position.copy(this.position);
-
-        if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(glCore, scene);
-
-            this.shadowNeedsUpdate = false;
-        }
 
         for(var i = 0; i < 6; i++) {
             this.lookTarget.set(this.targets[i].x + this.camera.position.x, this.targets[i].y + this.camera.position.y, this.targets[i].z + this.camera.position.z);
@@ -6236,6 +6225,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var scene = new zen3d.Scene();
 
         var camera = this.camera = new zen3d.Camera();
+        camera.frustumCulled = false;
         camera.position.set(0, 1, 0);
         camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
         camera.setOrtho(-1, 1, -1, 1, 0.1, 2);
@@ -6245,8 +6235,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.uniforms = cloneUniforms(shader.uniforms);
         var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
         var plane = new zen3d.Mesh(geometry, material);
+        plane.frustumCulled = false;
         scene.add(plane);
 
+        // static scene
         scene.updateMatrix();
         this.renderList = scene.updateRenderList(camera);
     }

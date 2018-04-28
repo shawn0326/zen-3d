@@ -1,5 +1,5 @@
 (function() {
-    var EnvironmentMapPass = function() {
+    var EnvironmentMapPass = function(renderTarget) {
         this.camera = new zen3d.Camera();
 
         this.targets = [
@@ -16,24 +16,13 @@
         this.position = new zen3d.Vector3();
         this.lookTarget = new zen3d.Vector3();
 
-        this.renderTarget = new zen3d.RenderTargetCube(512, 512);
+        this.renderTarget = renderTarget || new zen3d.RenderTargetCube(512, 512);
 		this.renderTexture = this.renderTarget.texture;
         this.renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
-        
-        this.shadowMapPass = new zen3d.ShadowMapPass();
-
-        this.shadowAutoUpdate = true;
-        this.shadowNeedsUpdate = false;
     }
 
     EnvironmentMapPass.prototype.render = function(glCore, scene) {
         this.camera.position.copy(this.position);
-
-        if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(glCore, scene);
-
-            this.shadowNeedsUpdate = false;
-        }
 
         for(var i = 0; i < 6; i++) {
             this.lookTarget.set(this.targets[i].x + this.camera.position.x, this.targets[i].y + this.camera.position.y, this.targets[i].z + this.camera.position.z);
