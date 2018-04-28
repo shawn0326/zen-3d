@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - postprocessing custom</title>
+	<title>zen3d - custom pass custom</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -24,12 +24,13 @@
 	<script src="./files/dat.gui.min.js"></script>
 	<script src="./js/shaders/CopyShader.js"></script>
 	<script src="./js/shaders/ColorAdjustShader.js"></script>
+	<script src="./js/shaders/FilmShader.js"></script>
 	<script src="./js/shaders/FXAAShader.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - postprocessing custom
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass custom
     </div>
 
 	<script>
@@ -118,8 +119,10 @@
 			colorAdjustPass.uniforms["exposure"] = 0.6;
 			colorAdjustPass.uniforms["gamma"] = 0.5;
 			colorAdjustPass.uniforms["saturation"] =  1.6;
+			var filmPass = new zen3d.ShaderPostPass(zen3d.FilmShader);
+			filmPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
 			var fxaaPass = new zen3d.ShaderPostPass(zen3d.FXAAShader);
-			fxaaPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+			fxaaPass.uniforms["tDiffuse"] = tempRenderTarget1.texture;
 			fxaaPass.uniforms["resolution"] = [1 / width, 1 / height];
 
 			// gui
@@ -129,7 +132,6 @@
 			gui.add(colorAdjustPass.uniforms, "exposure").min(0).max(1).step(0.1);
 			gui.add(colorAdjustPass.uniforms, "gamma").min(0).max(1).step(0.1);
 			gui.add(colorAdjustPass.uniforms, "saturation").min(-1).max(5);
-			gui.close();
 
 	        function loop(count) {
 
@@ -139,6 +141,11 @@
 				camera.position.x = 10 * Math.sin(count / 1000 * .5);
 				camera.position.z = 10 * Math.cos(count / 1000 * .5);
 				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				filmPass.uniforms.time += 30 / 1000 * 0.5;
+				if(filmPass.uniforms.time > 1) {
+					filmPass.uniforms.time = 0;
+				}
 
 				// do render pass
 				scene.updateMatrix();
@@ -159,6 +166,13 @@
             	glCore.clear(true, true, true);
 
 				colorAdjustPass.render(glCore);
+
+				glCore.texture.setRenderTarget(tempRenderTarget1);
+
+				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+
+				filmPass.render(glCore);
 
 				glCore.texture.setRenderTarget(backRenderTarget);
 

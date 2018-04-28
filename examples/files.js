@@ -79,11 +79,9 @@ var files = {
 		"animation_keyframe_animation",
 		"animation_monster",
 	],
-	"postprocessing": [
-		"postprocessing_film"
-	],
 	"custompass": [
-		"custompass_car"
+		"custompass_car",
+		"custompass_gbuffer"
 	],
 	"webgl": [
 		"webgl_clippingplanes"
