@@ -12,6 +12,8 @@
 
         this.fragmentShader = fragmentShader || "";
 
+        this.defines = {};
+
         // uniforms should match fragment shader
         this.uniforms = uniforms || {};
     }

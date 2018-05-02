@@ -5,10 +5,15 @@
     /**
      * generate program code
      */
-    function generateProgramCode(props) {
+    function generateProgramCode(props, material) {
         var code = "";
         for (var key in props) {
             code += props[key] + "_";
+        }
+        if(material.defines !== undefined) {
+            for (var name in material.defines) {
+                code += name + "_" + material.defines[ name ] + "_";
+			}
         }
         return code;
     }
@@ -81,10 +86,28 @@
 
     }
 
+    function generateDefines( defines ) {
+
+    	var chunks = [];
+
+    	for ( var name in defines ) {
+
+    		var value = defines[ name ];
+
+    		if ( value === false ) continue;
+
+    		chunks.push( '#define ' + name + ' ' + value );
+
+    	}
+
+    	return chunks.join( '\n' );
+
+    }
+
     /**
      * create program
      */
-    function createProgram(gl, props, vertexCode, fragmentCode) {
+    function createProgram(gl, props, defines) {
         // vertexCode & fragmentCode
         var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || props.vertexShader || zen3d.ShaderLib.basic_vert;
         var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || props.fragmentShader || zen3d.ShaderLib.basic_frag;
@@ -93,7 +116,8 @@
 
         // create defines
         var vshader_define = [
-            ''
+            '',
+            defines
         ],
         fshader_define = [
             '#define PI 3.14159265359',
@@ -102,7 +126,8 @@
             '#define LOG2 1.442695',
             '#define RECIPROCAL_PI 0.31830988618',
             '#define saturate(a) clamp( a, 0.0, 1.0 )',
-            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )'
+            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
+            defines
         ];
         switch (props.materialType) {
             case MATERIAL_TYPE.CUBE:
@@ -355,14 +380,18 @@
                 break;
         }
 
-        var code = generateProgramCode(props);
+        var code = generateProgramCode(props, material);
         var map = programMap;
         var program;
 
         if (map[code]) {
             program = map[code];
         } else {
-            program = createProgram(gl, props);
+            var customDefines = "";
+            if(material.defines !== undefined) {
+                customDefines = generateDefines(material.defines);
+            }
+            program = createProgram(gl, props, customDefines);
 
             map[code] = program;
         }

@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - custom pass gbuffer</title>
+	<title>zen3d - custom pass ssao</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -23,11 +23,14 @@
 	<script src="../build/zen3d.js"></script>
 	<script src="../build/zen3d.input.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="js/pass/SSAOPass.js"></script>
+	<script src="js/shaders/SSAOShader.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass gbuffer
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass ssao
     </div>
 
 	<script>
@@ -119,28 +122,22 @@
 				{}
 			);
 
-			var depthMaterial = new zen3d.DepthMaterial();
-			// depthMaterial.packToRGBA = true;
+			var ssaoPass = new zen3d.SSAOPass();
+			ssaoPass.setNoiseSize(512);
+			// ssaoPass.material.defines["ALCHEMY"] = 1;
+			ssaoPass.uniforms["intensity"] = 1;
+			ssaoPass.uniforms["power"] = 1;
+			ssaoPass.uniforms["bias"] = 0.0001;
+			ssaoPass.uniforms["radius"] = 0.2;
 
-			var distanceMaterial = new zen3d.DistanceMaterial();
-			// depthMaterial.packToRGBA = false;
 
-			// gui
-			var params = {type: "BEAUTY"};
-			var gui = new dat.GUI();
-			gui.add(params, "type", ["BEAUTY", "DEPTH", "NORMAL"]).onChange(function(val) {
-				switch(val) {
-					case "BEAUTY":
-						scene.overrideMaterial = null;
-						break;
-					case "DEPTH":
-						scene.overrideMaterial = depthMaterial;
-						break;
-					case "NORMAL":
-						scene.overrideMaterial = normalDepthMaterial;
-						break;
-				}
-			});
+			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        	tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+			var projection = new zen3d.Matrix4();
+			var projectionInv = new zen3d.Matrix4();
+			var viewInverseTranspose = new zen3d.Matrix4();
 
 	        function loop(count) {
 
@@ -156,12 +153,31 @@
 
 				shadowMapPass.render(glCore, scene);
 
-				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.texture.setRenderTarget(tempRenderTarget);
 
-				glCore.state.clearColor(0.2, 0.2, 0.2, 1);
+				glCore.state.clearColor(0, 0, 0, 1.0);
             	glCore.clear(true, true, true);
 
+				scene.overrideMaterial = normalDepthMaterial;
 				glCore.render(scene, camera);
+
+				glCore.texture.setRenderTarget(backRenderTarget);
+
+				glCore.state.clearColor(1, 1, 1, 1);
+            	glCore.clear(true, true, true);
+
+				ssaoPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
+				ssaoPass.uniforms["normalDepthTexSize"] = [width, height];
+
+				projection.copy(camera.projectionMatrix);
+				projectionInv.copy(camera.projectionMatrix).getInverse(projectionInv);
+				viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
+
+				ssaoPass.uniforms["projection"] = projection.elements;
+				ssaoPass.uniforms["projectionInv"] = projectionInv.elements;
+				ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+
+				ssaoPass.render(glCore);
 
 	        }
 

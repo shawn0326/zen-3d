@@ -43,7 +43,7 @@ zen3d.ColorAdjustShader = {
 		"uniform float exposure;",
 		"uniform float gamma;",
         "uniform float saturation;",
-        
+
         "uniform sampler2D tDiffuse;",
 
 		"varying vec2 v_Uv;",
