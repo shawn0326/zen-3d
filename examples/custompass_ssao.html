@@ -63,7 +63,15 @@
 	        lambert.diffuse.setHex(0xffffff);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
-	        scene.add(plane);
+			scene.add(plane);
+			
+			var cube_geometry = new zen3d.CubeGeometry(20, 20, 20);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.diffuse.setHex(0xffffff);
+	        var cube = new zen3d.Mesh(cube_geometry, lambert);
+			cube.position.x = 20;
+			cube.position.z = 20;
+	        scene.add(cube);
 
 			var ambientLight = new zen3d.AmbientLight();
 			ambientLight.color.setHex(0xffffff);
@@ -90,7 +98,7 @@
 			camera.gammaOutput = true;
 	        camera.position.set(0, 80, 100);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
 			// add a hover controller
@@ -126,10 +134,10 @@
 			ssaoPass.setNoiseSize(512);
 			// ssaoPass.material.defines["ALCHEMY"] = 1;
 			ssaoPass.uniforms["intensity"] = 1;
-			ssaoPass.uniforms["power"] = 1;
-			ssaoPass.uniforms["bias"] = 0.0001;
-			ssaoPass.uniforms["radius"] = 0.2;
-
+			ssaoPass.uniforms["power"] = 2;
+			ssaoPass.uniforms["bias"] = 0.001;
+			ssaoPass.uniforms["radius"] = 0.02;
+			console.log(ssaoPass.uniforms["kernel[0]"]);
 
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
@@ -167,15 +175,17 @@
             	glCore.clear(true, true, true);
 
 				ssaoPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
-				ssaoPass.uniforms["normalDepthTexSize"] = [width, height];
+				ssaoPass.uniforms["normalDepthTexSize"][0] = width;
+				ssaoPass.uniforms["normalDepthTexSize"][1] = height;
 
 				projection.copy(camera.projectionMatrix);
 				projectionInv.copy(camera.projectionMatrix).getInverse(projectionInv);
-				viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
+				// viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
+				viewInverseTranspose.copy(camera.worldMatrix).transpose();
 
-				ssaoPass.uniforms["projection"] = projection.elements;
-				ssaoPass.uniforms["projectionInv"] = projectionInv.elements;
-				ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+				ssaoPass.uniforms["projection"].set(projection.elements, 0);
+				ssaoPass.uniforms["projectionInv"].set(projectionInv.elements, 0);
+				ssaoPass.uniforms["viewInverseTranspose"].set(viewInverseTranspose.elements, 0);
 
 				ssaoPass.render(glCore);
 
@@ -187,7 +197,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
 				backRenderTarget.resize(width, height);
 			}
