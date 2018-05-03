@@ -46,32 +46,19 @@
 
 			var scene = new zen3d.Scene();
 
-			var monkey = "resources/models/assimp/monkey/monkey.json";
-
-			var loader = new zen3d.AssimpJsonLoader();
-			loader.load(monkey, function(object) {
-				var monkey = object.getObjectByName("Suzanne").children[0];
-				monkey.castShadow = true;
-				monkey.receiveShadow = true;
-				object.scale.set(10, 10, 10);
-				object.position.y = 2;
-				scene.add(object);
-			});
-
-			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
-			scene.add(plane);
-			
-			var cube_geometry = new zen3d.CubeGeometry(20, 20, 20);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-	        var cube = new zen3d.Mesh(cube_geometry, lambert);
-			cube.position.x = 20;
-			cube.position.z = 20;
-	        scene.add(cube);
+			for(var i = 0; i < 200; i++) {
+				var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
+				var lambert = new zen3d.LambertMaterial();
+		        lambert.diffuse.setHex(0xffffff);
+		        var cube = new zen3d.Mesh(cube_geometry, lambert);
+				cube.position.x = Math.random() * 200 - 100;
+				cube.position.y = Math.random() * 200 - 100;
+				cube.position.z = Math.random() * 200 - 100;
+				cube.quaternion.x = Math.random();
+				cube.quaternion.y = Math.random();
+				cube.quaternion.z = Math.random();
+		        scene.add(cube);
+			}
 
 			var ambientLight = new zen3d.AmbientLight();
 			ambientLight.color.setHex(0xffffff);
@@ -83,27 +70,19 @@
 	        directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
 	        directionalLight.color.setHex(0xffffff);
 	        directionalLight.position.set(-30, 10, 0);
-			directionalLight.shadow.windowSize = 100;
-			directionalLight.shadow.bias = -0.04;
-			directionalLight.shadow.radius = 1;
-			directionalLight.shadow.cameraFar = 200;
 			scene.add(directionalLight);
-
-			plane.receiveShadow = true;
-			directionalLight.castShadow = true;
-			directionalLight.shadow.mapSize.set(1024, 1024);
 
 			var camera = new zen3d.Camera();
 			camera.gammaInput = false;
 			camera.gammaOutput = true;
 	        camera.position.set(0, 80, 100);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
 	        scene.add(camera);
 
 			// add a hover controller
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 120;
+			controller.distance = 200;
 			controller.panAngle = 25;
 			controller.tiltAngle = 25;
 			var mouse = new zen3d.Mouse(canvas);
@@ -122,8 +101,6 @@
 			});
 			var glCore = new zen3d.WebGLCore(gl);
 
-			var shadowMapPass = new zen3d.ShadowMapPass();
-
 			var normalDepthMaterial = new zen3d.ShaderMaterial(
 				zen3d.ShaderLib.normaldepth_vert,
 				zen3d.ShaderLib.normaldepth_frag,
@@ -136,8 +113,7 @@
 			ssaoPass.uniforms["intensity"] = 1;
 			ssaoPass.uniforms["power"] = 2;
 			ssaoPass.uniforms["bias"] = 0.001;
-			ssaoPass.uniforms["radius"] = 0.02;
-			console.log(ssaoPass.uniforms["kernel[0]"]);
+			ssaoPass.uniforms["radius"] = 0.2;
 
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
@@ -158,8 +134,6 @@
 				// do render pass
 				scene.updateMatrix();
 				scene.updateLights();
-
-				shadowMapPass.render(glCore, scene);
 
 				glCore.texture.setRenderTarget(tempRenderTarget);
 
