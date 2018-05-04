@@ -46,14 +46,14 @@
 
 			var scene = new zen3d.Scene();
 
-			for(var i = 0; i < 200; i++) {
-				var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
+			for(var i = 0; i < 100; i++) {
+				var cube_geometry = new zen3d.CubeGeometry(5, 5, 5);
 				var lambert = new zen3d.LambertMaterial();
-		        lambert.diffuse.setHex(0xffffff);
+		        lambert.diffuse.setHex(0xffff00);
 		        var cube = new zen3d.Mesh(cube_geometry, lambert);
-				cube.position.x = Math.random() * 200 - 100;
-				cube.position.y = Math.random() * 200 - 100;
-				cube.position.z = Math.random() * 200 - 100;
+				cube.position.x = Math.random() * 50 - 25;
+				cube.position.y = Math.random() * 50 - 25;
+				cube.position.z = Math.random() * 50 - 25;
 				cube.quaternion.x = Math.random();
 				cube.quaternion.y = Math.random();
 				cube.quaternion.z = Math.random();
@@ -77,12 +77,12 @@
 			camera.gammaOutput = true;
 	        camera.position.set(0, 80, 100);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
 			// add a hover controller
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 200;
+			controller.distance = 100;
 			controller.panAngle = 25;
 			controller.tiltAngle = 25;
 			var mouse = new zen3d.Mouse(canvas);
@@ -109,19 +109,29 @@
 
 			var ssaoPass = new zen3d.SSAOPass();
 			ssaoPass.setNoiseSize(512);
+			ssaoPass.setKernelSize(12);
 			// ssaoPass.material.defines["ALCHEMY"] = 1;
+			var radius = 8;
 			ssaoPass.uniforms["intensity"] = 1;
-			ssaoPass.uniforms["power"] = 2;
-			ssaoPass.uniforms["bias"] = 0.001;
-			ssaoPass.uniforms["radius"] = 0.2;
+			ssaoPass.uniforms["power"] = 1;
+			ssaoPass.uniforms["bias"] = radius / 50;
+			ssaoPass.uniforms["radius"] = radius;
 
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        	tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.generateMipmaps = false;
+			tempRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT; // depth need float
 
 			var projection = new zen3d.Matrix4();
 			var projectionInv = new zen3d.Matrix4();
 			var viewInverseTranspose = new zen3d.Matrix4();
+
+			ssaoPass.uniforms["projection"] = projection.elements;
+			ssaoPass.uniforms["projectionInv"] = projectionInv.elements;
+			ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+
+			ssaoPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
 
 	        function loop(count) {
 
@@ -135,9 +145,10 @@
 				scene.updateMatrix();
 				scene.updateLights();
 
+				// glCore.texture.setRenderTarget(backRenderTarget);
 				glCore.texture.setRenderTarget(tempRenderTarget);
 
-				glCore.state.clearColor(0, 0, 0, 1.0);
+				glCore.state.clearColor(0, 0, 0, 1);
             	glCore.clear(true, true, true);
 
 				scene.overrideMaterial = normalDepthMaterial;
@@ -146,20 +157,15 @@
 				glCore.texture.setRenderTarget(backRenderTarget);
 
 				glCore.state.clearColor(1, 1, 1, 1);
-            	glCore.clear(true, true, true);
+				glCore.clear(true, true, true);
 
-				ssaoPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
 				ssaoPass.uniforms["normalDepthTexSize"][0] = width;
 				ssaoPass.uniforms["normalDepthTexSize"][1] = height;
 
 				projection.copy(camera.projectionMatrix);
-				projectionInv.copy(camera.projectionMatrix).getInverse(projectionInv);
+				projectionInv.copy(camera.projectionMatrix).inverse();
 				// viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
 				viewInverseTranspose.copy(camera.worldMatrix).transpose();
-
-				ssaoPass.uniforms["projection"].set(projection.elements, 0);
-				ssaoPass.uniforms["projectionInv"].set(projectionInv.elements, 0);
-				ssaoPass.uniforms["viewInverseTranspose"].set(viewInverseTranspose.elements, 0);
 
 				ssaoPass.render(glCore);
 

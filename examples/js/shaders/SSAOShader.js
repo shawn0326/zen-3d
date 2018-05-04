@@ -9,7 +9,7 @@ zen3d.SSAOShader = {
         'projectionInv': new Float32Array(16),
         'viewInverseTranspose': new Float32Array(16),
         'kernel[0]': null,
-		'radius': 0.02,
+		'radius': 0.2,
 		'power': 1,
 		'bias': 0.0001,
 		'intensity': 1
@@ -75,16 +75,19 @@ zen3d.SSAOShader = {
 			"float occlusion = 0.0;",
 
 			"for (int i = 0; i < KERNEL_SIZE; i++) {",
-				"vec3 samplePos = kernelBasis * kernel[i];",
+				"vec3 samplePos = kernel[i];",
+				"samplePos = kernelBasis * samplePos;",
 				"samplePos = samplePos * radius + originPos;",
 
 				"vec4 texCoord = projection * vec4(samplePos, 1.0);",
 				"texCoord.xy /= texCoord.w;",
+				"texCoord.xy = texCoord.xy * 0.5 + 0.5;",
 
-				"float sampleDepth = getDepth(texCoord.xy * 0.5 + 0.5);",
+				"float sampleDepth = getDepth(texCoord.xy);",
 				"float z = sampleDepth * 2.0 - 1.0;",
 
 				"#ifdef ALCHEMY",
+					// todo not work
 			        "vec4 projectedPos = vec4(texCoord.xy * 2.0 - 1.0, z, 1.0);",
 			        "vec4 p4 = projectionInv * projectedPos;",
 			        "p4.xyz /= p4.w;",
@@ -100,14 +103,20 @@ zen3d.SSAOShader = {
 			        "occlusion += f * f * f * max(vn / (0.01 + vv), 0.0);",
 				"#else",
 					// just for perspective camera
-					"z = projection[3][2] / (z * projection[2][3] - projection[2][2]);",
+					"if (projection[3][3] == 0.0) {",
+						"z = projection[3][2] / (z * projection[2][3] - projection[2][2]);",
+					"} else {",
+						"z = (z - projection[3][2]) / projection[2][2];",
+					"}",
 
+					"float factor = step(samplePos.z, z - bias);",
 					"float rangeCheck = smoothstep(0.0, 1.0, radius / abs(originPos.z - z));",
-					"occlusion += rangeCheck * step(samplePos.z, z - bias);",
+					"occlusion += rangeCheck * factor;",
 
 				"#endif",
 			"}",
 			"occlusion = 1.0 - occlusion / float(KERNEL_SIZE);",
+			// "occlusion = 1.0 - clamp((occlusion / float(KERNEL_SIZE) - 0.6) * 2.5, 0.0, 1.0);",
 			"return pow(occlusion, power);",
 		"}",
 
