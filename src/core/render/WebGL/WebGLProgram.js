@@ -1,5 +1,19 @@
 (function() {
 
+    function addLineNumbers( string ) {
+
+    	var lines = string.split( '\n' );
+
+    	for ( var i = 0; i < lines.length; i ++ ) {
+
+    		lines[ i ] = ( i + 1 ) + ': ' + lines[ i ];
+
+    	}
+
+    	return lines.join( '\n' );
+
+    }
+
     /**
      * create a shader
      **/
@@ -13,8 +27,7 @@
         // if compile failed, log error
         var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
         if (!compiled) {
-            console.log("shader not compiled!")
-            console.log(gl.getShaderInfoLog(shader))
+            console.warn("shader not compiled!", gl.getShaderInfoLog(shader), addLineNumbers(source));
         }
 
         return shader;
@@ -34,8 +47,7 @@
         // if link failed, log error
         var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
         if(!linked) {
-            console.log("program not linked!")
-            console.log(gl.getProgramInfoLog(program))
+            console.warn("program not linked!", gl.getProgramInfoLog(program));
         }
 
         return program;
@@ -84,7 +96,7 @@
     var WebGLProgram = function(gl, vshader, fshader) {
 
         this.uuid = zen3d.generateUUID();
-        
+
         // vertex shader source
         this.vshaderSource = vshader;
 

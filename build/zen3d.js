@@ -4685,6 +4685,20 @@
 })();
 (function() {
 
+    function addLineNumbers( string ) {
+
+    	var lines = string.split( '\n' );
+
+    	for ( var i = 0; i < lines.length; i ++ ) {
+
+    		lines[ i ] = ( i + 1 ) + ': ' + lines[ i ];
+
+    	}
+
+    	return lines.join( '\n' );
+
+    }
+
     /**
      * create a shader
      **/
@@ -4698,8 +4712,7 @@
         // if compile failed, log error
         var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
         if (!compiled) {
-            console.log("shader not compiled!")
-            console.log(gl.getShaderInfoLog(shader))
+            console.warn("shader not compiled!", gl.getShaderInfoLog(shader), addLineNumbers(source));
         }
 
         return shader;
@@ -4719,8 +4732,7 @@
         // if link failed, log error
         var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
         if(!linked) {
-            console.log("program not linked!")
-            console.log(gl.getProgramInfoLog(program))
+            console.warn("program not linked!", gl.getProgramInfoLog(program));
         }
 
         return program;
@@ -4839,7 +4851,7 @@
      */
     var WebGLCore = function(gl) {
         this.gl = gl;
-
+        
         var properties = new zen3d.WebGLProperties();
         this.properties = properties;
 
@@ -4880,8 +4892,8 @@
 
     /**
      * Render opaque and transparent objects
-     * @param {zen3d.Scene} scene
-     * @param {zen3d.Camera} camera
+     * @param {zen3d.Scene} scene 
+     * @param {zen3d.Camera} camera 
      * @param {boolean} renderUI? default is false.
      */
     WebGLCore.prototype.render = function(scene, camera, renderUI) {
@@ -4928,7 +4940,7 @@
 
         var getMaterial = config.getMaterial || defaultGetMaterial;
         var scene = config.scene || {};
-
+        
         var targetWidth = state.currentRenderTarget.width;
         var targetHeight = state.currentRenderTarget.height;
 
@@ -4938,7 +4950,7 @@
             if(config.ifRender && !config.ifRender(renderItem)) {
                 continue;
             }
-
+            
             var object = renderItem.object;
             var material = getMaterial.call(this, renderItem);
             var geometry = renderItem.geometry;
@@ -5136,7 +5148,7 @@
             if(object.type === zen3d.OBJECT_TYPE.SPRITE) {
                 this.uploadSpriteUniform(uniforms, object, camera, scene.fog);
             }
-
+            
             if(object.type === zen3d.OBJECT_TYPE.PARTICLE) {
                 this.uploadParticlesUniform(uniforms, object, camera);
             }
@@ -5149,9 +5161,9 @@
             this.setStates(material, frontFaceCW);
 
             var viewport = helpVector4.set(
-                state.currentRenderTarget.width,
+                state.currentRenderTarget.width, 
                 state.currentRenderTarget.height,
-                state.currentRenderTarget.width,
+                state.currentRenderTarget.width, 
                 state.currentRenderTarget.height
             ).multiply(camera.rect);
 
@@ -5557,7 +5569,7 @@
     }
 
     /**
-     * @private
+     * @private 
      */
     WebGLCore.prototype.setupVertexAttributes = function(program, geometry) {
         var gl = this.gl;
@@ -6167,7 +6179,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     ShadowMapPass.prototype.render = function(glCore, scene) {
-
+        
         var gl = glCore.gl;
         var state = glCore.state;
 
@@ -6265,6 +6277,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
         this.uniforms = cloneUniforms(shader.uniforms);
         var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
+        Object.assign( material.defines, shader.defines ); // copy defines
         var plane = new zen3d.Mesh(geometry, material);
         plane.frustumCulled = false;
         scene.add(plane);
@@ -6288,7 +6301,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     var Renderer = function(view, options) {
 
         this.backRenderTarget = new zen3d.RenderTargetBack(view);
-
+        
         var gl = view.getContext("webgl", options || {
             antialias: true, // antialias
             alpha: false, // effect performance, default false
@@ -6323,7 +6336,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.matrixAutoUpdate && scene.updateMatrix();
         this.lightsAutoupdate && scene.updateLights();
 
-        performance.startCounter("renderShadow", 60);
+        performance.startCounter("renderShadow", 60);   
 
         if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
             this.shadowMapPass.render(this.glCore, scene);
@@ -6679,7 +6692,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     var helpVector3 = new zen3d.Vector3();
     var helpSphere = new zen3d.Sphere();
-
+    
     RenderList.prototype.add = function (object, camera) {
 
         // frustum test
@@ -6751,7 +6764,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
 
     };
-
+    
     RenderList.prototype.endCount = function () {
         this.transparent.length = this._transparentCount;
         this.opaque.length = this._opaqueCount;
@@ -8748,7 +8761,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         DirectionalLight.superClass.copy.call(this, source);
 
         this.shadow.copy(source.shadow);
-
+        
         return this;
     }
 
@@ -9143,7 +9156,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.gammaFactor = 2.0;
     	this.gammaInput = false;
         this.gammaOutput = false;
-
+        
         // Where on the screen is the camera rendered in normalized coordinates.
         this.rect = new zen3d.Vector4(0, 0, 1, 1);
 
@@ -9557,7 +9570,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.type = zen3d.OBJECT_TYPE.PARTICLE;
 
         this.material = new zen3d.ParticleMaterial();
-
+        
         this.frustumCulled = false;
     }
 
@@ -9902,7 +9915,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 (function() {
 
     var range = {key1: 0, value1: 0, key2: 0, value2: 0};
-
+    
     /**
      * VectorKeyframeTrack
      * used for vector property track

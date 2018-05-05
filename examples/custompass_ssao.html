@@ -26,6 +26,8 @@
 
 	<script src="js/pass/SSAOPass.js"></script>
 	<script src="js/shaders/SSAOShader.js"></script>
+
+	<script src="js/shaders/SSAOBlurShader.js"></script>
 </head>
 <body>
 
@@ -109,7 +111,7 @@
 
 			var ssaoPass = new zen3d.SSAOPass();
 			ssaoPass.setNoiseSize(512);
-			ssaoPass.setKernelSize(12);
+			ssaoPass.setKernelSize(24);
 			// ssaoPass.material.defines["ALCHEMY"] = 1;
 			var radius = 8;
 			ssaoPass.uniforms["intensity"] = 1;
@@ -123,6 +125,16 @@
 			tempRenderTarget.texture.generateMipmaps = false;
 			tempRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT; // depth need float
 
+			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget2.texture.generateMipmaps = false;
+
+			var tempRenderTarget3 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget3.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget3.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget3.texture.generateMipmaps = false;
+
 			var projection = new zen3d.Matrix4();
 			var projectionInv = new zen3d.Matrix4();
 			var viewInverseTranspose = new zen3d.Matrix4();
@@ -132,6 +144,24 @@
 			ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
 			ssaoPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
+			ssaoPass.uniforms["normalDepthTexSize"][0] = width;
+			ssaoPass.uniforms["normalDepthTexSize"][1] = height;
+
+			var ssaoBlurPass = new zen3d.ShaderPostPass(zen3d.SSAOBlurShader);
+			ssaoBlurPass.uniforms["projection"] = projection.elements;
+			ssaoBlurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+
+			ssaoBlurPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
+			ssaoBlurPass.uniforms["textureSize"][0] = width;
+			ssaoBlurPass.uniforms["textureSize"][1] = height;
+
+			ssaoBlurPass.uniforms["blurSize"] = 1;
+			ssaoBlurPass.uniforms["depthRange"] = 0.05;
+
+			// ssaoBlurPass.material.defines["NORMALTEX_ENABLED"] = 0;
+			// ssaoBlurPass.material.defines["DEPTHTEX_ENABLED"] = 0;
+
+			var beauty = false;
 
 	        function loop(count) {
 
@@ -154,13 +184,10 @@
 				scene.overrideMaterial = normalDepthMaterial;
 				glCore.render(scene, camera);
 
-				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.texture.setRenderTarget(tempRenderTarget2);
 
 				glCore.state.clearColor(1, 1, 1, 1);
 				glCore.clear(true, true, true);
-
-				ssaoPass.uniforms["normalDepthTexSize"][0] = width;
-				ssaoPass.uniforms["normalDepthTexSize"][1] = height;
 
 				projection.copy(camera.projectionMatrix);
 				projectionInv.copy(camera.projectionMatrix).inverse();
@@ -169,6 +196,27 @@
 
 				ssaoPass.render(glCore);
 
+				glCore.texture.setRenderTarget(tempRenderTarget3);
+
+				glCore.state.clearColor(0, 0, 0, 0);
+            	glCore.clear(true, true, true);
+
+				ssaoBlurPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+				ssaoBlurPass.uniforms["direction"] = 0;
+				ssaoBlurPass.render(glCore);
+
+				glCore.texture.setRenderTarget(backRenderTarget);
+
+				glCore.state.clearColor(0, 0, 0, 0);
+            	glCore.clear(true, true, true);
+
+				if(beauty) {
+					// TODO show beauty
+				}
+
+				ssaoBlurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
+				ssaoBlurPass.uniforms["direction"] = 1;
+				ssaoBlurPass.render(glCore);
 	        }
 
 	        loop(0);
@@ -180,6 +228,16 @@
 				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
 				backRenderTarget.resize(width, height);
+
+				tempRenderTarget.resize(width, height);
+				tempRenderTarget2.resize(width, height);
+				tempRenderTarget3.resize(width, height);
+
+				ssaoPass.uniforms["normalDepthTexSize"][0] = width;
+				ssaoPass.uniforms["normalDepthTexSize"][1] = height;
+
+				ssaoBlurPass.uniforms["textureSize"][0] = width;
+				ssaoBlurPass.uniforms["textureSize"][1] = height;
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();

@@ -32,6 +32,7 @@
         var geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
         this.uniforms = cloneUniforms(shader.uniforms);
         var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
+        Object.assign( material.defines, shader.defines ); // copy defines
         var plane = new zen3d.Mesh(geometry, material);
         scene.add(plane);
     }
