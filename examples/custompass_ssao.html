@@ -118,8 +118,8 @@
 			ssaoPass.uniforms["radius"] = radius;
 
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.generateMipmaps = false;
 			tempRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT; // depth need float
 
