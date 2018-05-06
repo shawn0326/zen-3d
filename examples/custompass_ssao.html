@@ -50,9 +50,9 @@
 
 			for(var i = 0; i < 100; i++) {
 				var cube_geometry = new zen3d.CubeGeometry(5, 5, 5);
-				var lambert = new zen3d.LambertMaterial();
-		        lambert.diffuse.setHex(0xffff00);
-		        var cube = new zen3d.Mesh(cube_geometry, lambert);
+				var phong = new zen3d.PhongMaterial();
+				phong.diffuse.setHSL( Math.random(), 1.0, 0.3 );
+		        var cube = new zen3d.Mesh(cube_geometry, phong);
 				cube.position.x = Math.random() * 50 - 25;
 				cube.position.y = Math.random() * 50 - 25;
 				cube.position.z = Math.random() * 50 - 25;
@@ -64,7 +64,7 @@
 
 			var ambientLight = new zen3d.AmbientLight();
 			ambientLight.color.setHex(0xffffff);
-			ambientLight.intensity = 0.5;
+			ambientLight.intensity = 1;
 	        scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight();
@@ -110,8 +110,8 @@
 			);
 
 			var ssaoPass = new zen3d.SSAOPass();
-			ssaoPass.setNoiseSize(512);
-			ssaoPass.setKernelSize(24);
+			ssaoPass.setNoiseSize(256);
+			ssaoPass.setKernelSize(32);
 			// ssaoPass.material.defines["ALCHEMY"] = 1;
 			var radius = 8;
 			ssaoPass.uniforms["intensity"] = 1;
@@ -148,6 +148,9 @@
 			ssaoPass.uniforms["normalDepthTexSize"][1] = height;
 
 			var ssaoBlurPass = new zen3d.ShaderPostPass(zen3d.SSAOBlurShader);
+			ssaoBlurPass.material.blending = zen3d.BLEND_TYPE.CUSTOM;
+			ssaoBlurPass.material.blendSrc = zen3d.BLEND_FACTOR.ZERO;
+			ssaoBlurPass.material.blendDst = zen3d.BLEND_FACTOR.SRC_COLOR;
 			ssaoBlurPass.uniforms["projection"] = projection.elements;
 			ssaoBlurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
@@ -155,13 +158,44 @@
 			ssaoBlurPass.uniforms["textureSize"][0] = width;
 			ssaoBlurPass.uniforms["textureSize"][1] = height;
 
-			ssaoBlurPass.uniforms["blurSize"] = 1;
-			ssaoBlurPass.uniforms["depthRange"] = 0.05;
+			ssaoBlurPass.uniforms["blurSize"] = 2;
+			ssaoBlurPass.uniforms["depthRange"] = 0.2;
 
 			// ssaoBlurPass.material.defines["NORMALTEX_ENABLED"] = 0;
 			// ssaoBlurPass.material.defines["DEPTHTEX_ENABLED"] = 0;
 
-			var beauty = false;
+			var beauty = true;
+			var ssao = true;
+
+			// gui
+			var params = {type: "BEAUTY + SSAO", kernelSize: 32};
+			var gui = new dat.GUI();
+			gui.add(params, "type", ["BEAUTY + SSAO", "BEAUTY", "SSAO"]).onChange(function(val) {
+				switch(val) {
+					case "BEAUTY + SSAO":
+						beauty = true;
+						ssao = true;
+						break;
+					case "BEAUTY":
+						beauty = true;
+						ssao = false;
+						break;
+					case "SSAO":
+						beauty = false;
+						ssao = true;
+						break;
+				}
+			});
+			gui.add(params, "kernelSize", [16, 32, 64, 128, 256]).onChange(function(val) {
+				ssaoPass.setKernelSize(val);
+			});
+			gui.add(ssaoPass.uniforms, "intensity").min(0).max(2).step(0.1);
+			gui.add(ssaoPass.uniforms, "power").min(0).max(5).step(1);
+			gui.add(ssaoPass.uniforms, "radius").min(0).max(10);
+			gui.add(ssaoPass.uniforms, "bias").min(0).max(5);
+
+			gui.add(ssaoBlurPass.uniforms, "blurSize").min(0).max(2);
+			gui.add(ssaoBlurPass.uniforms, "depthRange").min(0).max(1);
 
 	        function loop(count) {
 
@@ -207,16 +241,26 @@
 
 				glCore.texture.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0, 0, 0, 0);
-            	glCore.clear(true, true, true);
-
+				glCore.state.clearColor(0.5, 0.5, 0.5, 1);
+				glCore.clear(true, true, true);
+				
 				if(beauty) {
-					// TODO show beauty
+					scene.overrideMaterial = null;
+					glCore.render(scene, camera);
+
+					ssaoBlurPass.material.transparent = true;
 				}
 
-				ssaoBlurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
-				ssaoBlurPass.uniforms["direction"] = 1;
-				ssaoBlurPass.render(glCore);
+				if(ssao) {
+					ssaoBlurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
+					ssaoBlurPass.uniforms["direction"] = 1;
+					ssaoBlurPass.render(glCore);
+				}
+
+				if(beauty) {
+					ssaoBlurPass.material.transparent = false;
+				}
+
 	        }
 
 	        loop(0);

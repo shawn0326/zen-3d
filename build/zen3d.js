@@ -223,10 +223,40 @@
     var BLEND_TYPE = {
         NONE: "none",
         NORMAL: "normal",
-        ADD: "add"
+        ADD: "add",
+        CUSTOM: "custom"
     };
 
     zen3d.BLEND_TYPE = BLEND_TYPE;
+
+    /**
+     * BLEND_EQUATION
+     */
+    var BLEND_EQUATION = {
+        ADD: 0x8006,
+        SUBTRACT: 0x800A,
+        REVERSE_SUBTRACT: 0x800B
+    };
+
+    zen3d.BLEND_EQUATION = BLEND_EQUATION;
+
+    /**
+     * BLEND_FACTOR
+     */
+    var BLEND_FACTOR = {
+        ZERO: 0,
+        ONE: 1,
+        SRC_COLOR: 0x0300,
+        ONE_MINUS_SRC_COLOR: 0x0301,
+        SRC_ALPHA: 0x0302,
+        ONE_MINUS_SRC_ALPHA: 0x0303,
+        DST_ALPHA: 0x0304,
+        ONE_MINUS_DST_ALPHA: 0x0305,
+        DST_COLOR: 0x0306,
+        ONE_MINUS_DST_COLOR: 0x0307
+    };
+
+    zen3d.BLEND_FACTOR = BLEND_FACTOR;
 
     /**
      * CULL_FACE_TYPE
@@ -3598,6 +3628,7 @@
     var BLEND_TYPE = zen3d.BLEND_TYPE;
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
 
+
     function createTexture(gl, type, target, count) {
         var data = new Uint8Array(4); // 4 is required to match default unpack alignment of 4.
         var texture = gl.createTexture();
@@ -3620,6 +3651,14 @@
         this.states = {};
 
         this.currentBlending = null;
+
+        this.currentBlendEquation = null;
+        this.currentBlendSrc = null;
+        this.currentBlendDst = null;
+        this.currentBlendEquationAlpha = null;
+        this.currentBlendSrcAlpha = null;
+        this.currentBlendDstAlpha = null;
+            
         this.currentPremultipliedAlpha = null;
 
         this.currentCullFace = null;
@@ -3662,7 +3701,7 @@
         this.currentRenderTarget = null;
     }
 
-    WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
+    WebGLState.prototype.setBlend = function(blend, blendEquation, blendSrc, blendDst, blendEquationAlpha, blendSrcAlpha, blendDstAlpha, premultipliedAlpha) {
         var gl = this.gl;
 
         if (blend !== BLEND_TYPE.NONE) {
@@ -3671,31 +3710,65 @@
             this.disable(gl.BLEND);
         }
 
-        if (blend !== this.currentBlending || premultipliedAlpha !== this.currentPremultipliedAlpha) {
+        if(blend !== BLEND_TYPE.CUSTOM) {
+            if (blend !== this.currentBlending || premultipliedAlpha !== this.currentPremultipliedAlpha) {
 
-            if (blend === BLEND_TYPE.NORMAL) {
-                if (premultipliedAlpha) {
-                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-                    gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-                } else {
-                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-                    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                if (blend === BLEND_TYPE.NORMAL) {
+                    if (premultipliedAlpha) {
+                        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                        gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                    } else {
+                        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                    }
                 }
+    
+                if (blend === BLEND_TYPE.ADD) {
+                    if (premultipliedAlpha) {
+                        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                        gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
+                    } else {
+                        gl.blendEquation(gl.FUNC_ADD);
+                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                    }
+                }
+     
             }
 
-            if (blend === BLEND_TYPE.ADD) {
-                if (premultipliedAlpha) {
-                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-                    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
-                } else {
-                    gl.blendEquation(gl.FUNC_ADD);
-                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-                }
-            }
+            this.currentBlendEquation = null;
+            this.currentBlendSrc = null;
+            this.currentBlendDst = null;
+            this.currentBlendEquationAlpha = null;
+            this.currentBlendSrcAlpha = null;
+            this.currentBlendDstAlpha = null;
+        } else {
+            blendEquationAlpha = blendEquationAlpha || blendEquation;
+			blendSrcAlpha = blendSrcAlpha || blendSrc;
+            blendDstAlpha = blendDstAlpha || blendDst;
+            
+            if ( blendEquation !== this.currentBlendEquation || blendEquationAlpha !== this.currentBlendEquationAlpha ) {
 
-            this.currentBlending = blend;
-            this.currentPremultipliedAlpha = premultipliedAlpha;
+				gl.blendEquationSeparate( blendEquation, blendEquationAlpha );
+
+				this.currentBlendEquation = blendEquation;
+				this.currentBlendEquationAlpha = blendEquationAlpha;
+
+			}
+
+			if ( blendSrc !== this.currentBlendSrc || blendDst !== this.currentBlendDst || blendSrcAlpha !== this.currentBlendSrcAlpha || blendDstAlpha !== this.currentBlendDstAlpha ) {
+
+				gl.blendFuncSeparate( blendSrc, blendDst, blendSrcAlpha, blendDstAlpha );
+
+				this.currentBlendSrc = blendSrc;
+				this.currentBlendDst = blendDst;
+				this.currentBlendSrcAlpha = blendSrcAlpha;
+				this.currentBlendDstAlpha = blendDstAlpha;
+
+			}
         }
+
+        this.currentBlending = blend;
+        this.currentPremultipliedAlpha = premultipliedAlpha;
     }
 
     WebGLState.prototype.setFlipSided = function(flipSided) {
@@ -5123,7 +5196,7 @@
                         break;
                     default:
                         // upload custom uniforms
-                        if(material.uniforms && material.uniforms[key]) {
+                        if(material.uniforms && material.uniforms[key] !== undefined) {
                             if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D) {
                                 var slot = this.allocTexUnit();
                                 this.texture.setTexture2D(material.uniforms[key], slot);
@@ -5215,7 +5288,7 @@
 
         // set blend
         if (material.transparent) {
-            state.setBlend(material.blending, material.premultipliedAlpha);
+            state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
         } else {
             state.setBlend(BLEND_TYPE.NONE);
         }
@@ -7849,6 +7922,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.TextureData = TextureData;
 })();
 (function() {
+    var BLEND_EQUATION = zen3d.BLEND_EQUATION;
+    var BLEND_FACTOR = zen3d.BLEND_FACTOR;
+
     /**
      * base material class
      * @class
@@ -7861,6 +7937,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.opacity = 1;
 
         this.transparent = false;
+
+        //blending
+        this.blending = zen3d.BLEND_TYPE.NORMAL;
+
+        this.blendSrc = BLEND_FACTOR.SRC_ALPHA;
+        this.blendDst = BLEND_FACTOR.ONE_MINUS_SRC_ALPHA;
+        this.blendEquation = BLEND_EQUATION.ADD;
+        this.blendSrcAlpha = null;
+        this.blendDstAlpha = null;
+        this.blendEquationAlpha = null;
 
         this.premultipliedAlpha = false;
 
@@ -7891,9 +7977,6 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.emissive = new zen3d.Color3(0x000000);
         this.emissiveMap = null;
         this.emissiveIntensity = 1;
-
-        //blending
-        this.blending = zen3d.BLEND_TYPE.NORMAL;
 
         // depth test
         this.depthTest = true;

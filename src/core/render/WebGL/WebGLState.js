@@ -2,6 +2,7 @@
     var BLEND_TYPE = zen3d.BLEND_TYPE;
     var CULL_FACE_TYPE = zen3d.CULL_FACE_TYPE;
 
+
     function createTexture(gl, type, target, count) {
         var data = new Uint8Array(4); // 4 is required to match default unpack alignment of 4.
         var texture = gl.createTexture();
@@ -24,6 +25,14 @@
         this.states = {};
 
         this.currentBlending = null;
+
+        this.currentBlendEquation = null;
+        this.currentBlendSrc = null;
+        this.currentBlendDst = null;
+        this.currentBlendEquationAlpha = null;
+        this.currentBlendSrcAlpha = null;
+        this.currentBlendDstAlpha = null;
+            
         this.currentPremultipliedAlpha = null;
 
         this.currentCullFace = null;
@@ -66,7 +75,7 @@
         this.currentRenderTarget = null;
     }
 
-    WebGLState.prototype.setBlend = function(blend, premultipliedAlpha) {
+    WebGLState.prototype.setBlend = function(blend, blendEquation, blendSrc, blendDst, blendEquationAlpha, blendSrcAlpha, blendDstAlpha, premultipliedAlpha) {
         var gl = this.gl;
 
         if (blend !== BLEND_TYPE.NONE) {
@@ -75,31 +84,65 @@
             this.disable(gl.BLEND);
         }
 
-        if (blend !== this.currentBlending || premultipliedAlpha !== this.currentPremultipliedAlpha) {
+        if(blend !== BLEND_TYPE.CUSTOM) {
+            if (blend !== this.currentBlending || premultipliedAlpha !== this.currentPremultipliedAlpha) {
 
-            if (blend === BLEND_TYPE.NORMAL) {
-                if (premultipliedAlpha) {
-                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-                    gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-                } else {
-                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-                    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                if (blend === BLEND_TYPE.NORMAL) {
+                    if (premultipliedAlpha) {
+                        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                        gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                    } else {
+                        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                    }
                 }
+    
+                if (blend === BLEND_TYPE.ADD) {
+                    if (premultipliedAlpha) {
+                        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+                        gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
+                    } else {
+                        gl.blendEquation(gl.FUNC_ADD);
+                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                    }
+                }
+     
             }
 
-            if (blend === BLEND_TYPE.ADD) {
-                if (premultipliedAlpha) {
-                    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-                    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);
-                } else {
-                    gl.blendEquation(gl.FUNC_ADD);
-                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-                }
-            }
+            this.currentBlendEquation = null;
+            this.currentBlendSrc = null;
+            this.currentBlendDst = null;
+            this.currentBlendEquationAlpha = null;
+            this.currentBlendSrcAlpha = null;
+            this.currentBlendDstAlpha = null;
+        } else {
+            blendEquationAlpha = blendEquationAlpha || blendEquation;
+			blendSrcAlpha = blendSrcAlpha || blendSrc;
+            blendDstAlpha = blendDstAlpha || blendDst;
+            
+            if ( blendEquation !== this.currentBlendEquation || blendEquationAlpha !== this.currentBlendEquationAlpha ) {
 
-            this.currentBlending = blend;
-            this.currentPremultipliedAlpha = premultipliedAlpha;
+				gl.blendEquationSeparate( blendEquation, blendEquationAlpha );
+
+				this.currentBlendEquation = blendEquation;
+				this.currentBlendEquationAlpha = blendEquationAlpha;
+
+			}
+
+			if ( blendSrc !== this.currentBlendSrc || blendDst !== this.currentBlendDst || blendSrcAlpha !== this.currentBlendSrcAlpha || blendDstAlpha !== this.currentBlendDstAlpha ) {
+
+				gl.blendFuncSeparate( blendSrc, blendDst, blendSrcAlpha, blendDstAlpha );
+
+				this.currentBlendSrc = blendSrc;
+				this.currentBlendDst = blendDst;
+				this.currentBlendSrcAlpha = blendSrcAlpha;
+				this.currentBlendDstAlpha = blendDstAlpha;
+
+			}
         }
+
+        this.currentBlending = blend;
+        this.currentPremultipliedAlpha = premultipliedAlpha;
     }
 
     WebGLState.prototype.setFlipSided = function(flipSided) {

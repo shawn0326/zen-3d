@@ -308,7 +308,7 @@
                         break;
                     default:
                         // upload custom uniforms
-                        if(material.uniforms && material.uniforms[key]) {
+                        if(material.uniforms && material.uniforms[key] !== undefined) {
                             if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D) {
                                 var slot = this.allocTexUnit();
                                 this.texture.setTexture2D(material.uniforms[key], slot);
@@ -400,7 +400,7 @@
 
         // set blend
         if (material.transparent) {
-            state.setBlend(material.blending, material.premultipliedAlpha);
+            state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
         } else {
             state.setBlend(BLEND_TYPE.NONE);
         }

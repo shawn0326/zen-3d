@@ -1,4 +1,7 @@
 (function() {
+    var BLEND_EQUATION = zen3d.BLEND_EQUATION;
+    var BLEND_FACTOR = zen3d.BLEND_FACTOR;
+
     /**
      * base material class
      * @class
@@ -11,6 +14,16 @@
         this.opacity = 1;
 
         this.transparent = false;
+
+        //blending
+        this.blending = zen3d.BLEND_TYPE.NORMAL;
+
+        this.blendSrc = BLEND_FACTOR.SRC_ALPHA;
+        this.blendDst = BLEND_FACTOR.ONE_MINUS_SRC_ALPHA;
+        this.blendEquation = BLEND_EQUATION.ADD;
+        this.blendSrcAlpha = null;
+        this.blendDstAlpha = null;
+        this.blendEquationAlpha = null;
 
         this.premultipliedAlpha = false;
 
@@ -41,9 +54,6 @@
         this.emissive = new zen3d.Color3(0x000000);
         this.emissiveMap = null;
         this.emissiveIntensity = 1;
-
-        //blending
-        this.blending = zen3d.BLEND_TYPE.NORMAL;
 
         // depth test
         this.depthTest = true;
