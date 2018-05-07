@@ -282,6 +282,21 @@
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
             }
 
+            var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+            if(status !== gl.FRAMEBUFFER_COMPLETE) {
+                if(status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+                } else if(status === gl.FRAMEBUFFER_UNSUPPORTED) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_UNSUPPORTED");
+                } else {
+                    console.warn("framebuffer not complete.");
+                }
+            }
+
             return;
         }
 
