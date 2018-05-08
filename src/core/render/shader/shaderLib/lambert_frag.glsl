@@ -22,6 +22,7 @@ void main() {
     #include <begin_frag>
     #include <color_frag>
     #include <diffuseMap_frag>
+    #include <alphaTest_frag>
     #include <normal_frag>
     #include <light_frag>
     #include <envMap_frag>

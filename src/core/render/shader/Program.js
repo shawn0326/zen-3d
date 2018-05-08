@@ -236,6 +236,8 @@
             case MATERIAL_TYPE.LINE_DASHED:
                 fshader_define.push(props.fog ? '#define USE_FOG' : '');
                 fshader_define.push(props.fogExp2 ? '#define USE_EXP2_FOG' : '');
+
+                fshader_define.push(props.alphaTest ? ('#define ALPHATEST ' + props.alphaTest) : '');
                 break;
             default:
                 break;
@@ -369,6 +371,8 @@
                 props.useSkinning = useSkinning;
                 props.bonesNum = maxBones;
                 props.useVertexTexture = useVertexTexture;
+
+                props.alphaTest = material.alphaTest;
                 break;
             case MATERIAL_TYPE.SHADER:
                 props.vertexShader = material.vertexShader;

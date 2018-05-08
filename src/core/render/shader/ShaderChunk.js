@@ -1,5 +1,6 @@
 (function(){
 zen3d.ShaderChunk = {
+alphaTest_frag: "#ifdef ALPHATEST\n\tif ( outColor.a < ALPHATEST ) discard;\n#endif",
 ambientlight_pars_frag: "uniform vec4 u_AmbientLightColor;",
 aoMap_pars_frag: "#ifdef USE_AOMAP\n\tuniform sampler2D aoMap;\n\tuniform float aoMapIntensity;\n#endif",
 begin_frag: "vec4 outColor = vec4(u_Color, u_Opacity);",

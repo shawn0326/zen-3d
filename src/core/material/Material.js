@@ -59,6 +59,9 @@
         this.depthTest = true;
         this.depthWrite = true;
 
+        // alpha test
+        this.alphaTest = 0;
+
         // draw side
         this.side = zen3d.DRAW_SIDE.FRONT;
 
@@ -97,6 +100,7 @@
         this.blending = source.blending;
         this.depthTest = source.depthTest;
         this.depthWrite = source.depthWrite;
+        this.alphaTest = source.alphaTest;
         this.side = source.side;
         this.shading = source.shading;
         this.acceptLight = source.acceptLight;
