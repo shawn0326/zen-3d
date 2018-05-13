@@ -21,6 +21,8 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/shaders/SkyBoxShader.js"></script>
+	<script src="./js/objects/SkyBox.js"></script>
 </head>
 <body>
 
@@ -43,22 +45,19 @@
 
 	        var scene = new zen3d.Scene();
 
-			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000);
-			var sky_material = new zen3d.CubeMaterial();
 			var cube_texture = zen3d.TextureCube.fromSrc([
-			    "resources/mp_cloud9/cloud9_rt.tga",
+				"resources/mp_cloud9/cloud9_rt.tga",
 			    "resources/mp_cloud9/cloud9_lf.tga",
 				"resources/mp_cloud9/cloud9_up.tga",
 				"resources/mp_cloud9/cloud9_dn.tga",
 			    "resources/mp_cloud9/cloud9_bk.tga",
 			    "resources/mp_cloud9/cloud9_ft.tga"
 			]);
-			sky_material.cubeMap = cube_texture;
-			var sky_box = new zen3d.Mesh(sky_geom, sky_material);
-			scene.add(sky_box);
+			var sky_box = new zen3d.SkyBox(cube_texture);
 
 	        var camera = new zen3d.Camera();
-	        camera.setPerspective(80 / 180 * Math.PI, width / height, 1, 10000);
+			camera.setPerspective(80 / 180 * Math.PI, width / height, 1, 10000);
+			camera.add(sky_box);
 	        scene.add(camera);
 
 	        function loop(count) {

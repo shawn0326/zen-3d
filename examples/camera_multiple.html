@@ -21,6 +21,8 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/shaders/SkyBoxShader.js"></script>
+	<script src="./js/objects/SkyBox.js"></script>
 </head>
 <body>
 
@@ -82,19 +84,15 @@
 
 			var sceneMini = new zen3d.Scene();
 
-			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
-			var sky_material = new zen3d.CubeMaterial();
 			var cube_texture = zen3d.TextureCube.fromSrc([
-			    "resources/skybox/right.jpg",
+				"resources/skybox/right.jpg",
 			    "resources/skybox/left.jpg",
 			    "resources/skybox/up.jpg",
 			    "resources/skybox/down.jpg",
 			    "resources/skybox/back.jpg",
 			    "resources/skybox/front.jpg"
 			]);
-			sky_material.cubeMap = cube_texture;
-			var sky_box = new zen3d.Mesh(sky_geom, sky_material);
-			sceneMini.add(sky_box);
+			var sky_box = new zen3d.SkyBox(cube_texture);
 
 			var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 	        var phong = new zen3d.PhongMaterial();
@@ -114,6 +112,7 @@
 	        cameraMini.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 			cameraMini.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 			cameraMini.rect.set(0, 0, 0.25, 0.25);
+			cameraMini.add(sky_box);
 	        sceneMini.add(cameraMini);
 
 			// input

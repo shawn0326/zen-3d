@@ -10,7 +10,7 @@ zen3d.SkyBoxShader = {
         "#include <common_vert>",
         "varying vec3 v_ModelPos;",
         "void main() {",
-            "v_ModelPos = (u_Model * vec4(a_Position, 1.0)).xyz;",
+            "v_ModelPos = (u_Model * vec4(a_Position, 0.0)).xyz;",
             "gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);",
             "gl_Position.z = gl_Position.w;", // set z to camera.far
         "}"

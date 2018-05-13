@@ -22,6 +22,8 @@
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="../build/zen3d.input.js"></script>
+	<script src="./js/shaders/SkyBoxShader.js"></script>
+	<script src="./js/objects/SkyBox.js"></script>
 </head>
 <body>
 
@@ -55,19 +57,14 @@
 			texture = null;
 
 			var cube_texture = zen3d.TextureCube.fromSrc([
-			    "resources/pisa/px.png",
+				"resources/pisa/px.png",
 			    "resources/pisa/nx.png",
 			    "resources/pisa/py.png",
 			    "resources/pisa/ny.png",
 			    "resources/pisa/pz.png",
 			    "resources/pisa/nz.png"
 			]);
-
-			var sky_geom = new zen3d.CubeGeometry(5000, 5000, 5000, false);
-			var sky_material = new zen3d.CubeMaterial();
-			sky_material.cubeMap = cube_texture;
-			var sky_box = new zen3d.Mesh(sky_geom, sky_material);
-			scene.add(sky_box);
+			var sky_box = new zen3d.SkyBox(cube_texture);
 
 			var cubeWidth = 400;
 			var numberOfSphersPerSide = 5;
@@ -136,10 +133,12 @@
 			var camera = new zen3d.Camera();
 			camera.gammaInput = true;
 			camera.gammaOutput = true;
+			camera.position.set(1000, 1000, 1000);
 	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
-	        scene.add(camera);
-
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+			camera.add(sky_box);
+			scene.add(camera);
+			
 			// add a hover controller
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
 			controller.distance = 1300;
@@ -173,7 +172,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
 
 				renderer.backRenderTarget.resize(useDevicePixelRatio ? width * devicePixelRatio : width, useDevicePixelRatio ? height * devicePixelRatio : height);
 				canvas.style.width = width + "px";
