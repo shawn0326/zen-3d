@@ -27,6 +27,7 @@ var files = {
 		"material_cubetexture_realtimeenvmap",
 		"material_transparent",
 		"material_shadermaterial",
+		"material_shader_sky",
 		"material_flatshading",
 		"material_vertexcolors",
 		"material_earth"

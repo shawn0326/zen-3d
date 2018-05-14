@@ -148,6 +148,24 @@
 	}
     zen3d.nextPowerOfTwo = nextPowerOfTwo;
 
+    var cloneUniforms = function(uniforms_src) {
+        var uniforms_dst = {};
+
+        for(var name in uniforms_src) {
+            var uniform_src = uniforms_src[name];
+            // TODO zen3d object clone
+            if ( Array.isArray( uniform_src ) ) {
+                uniforms_dst[name] = uniform_src.slice();
+            } else {
+                uniforms_dst[name] = uniform_src;
+            }
+        }
+
+        return uniforms_dst;
+    }
+
+    zen3d.cloneUniforms = cloneUniforms;
+
 })(window);
 
 (function() {
