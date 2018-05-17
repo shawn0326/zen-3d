@@ -65,6 +65,8 @@
         var ext = getExtension(gl, "OES_standard_derivatives");
         // GL_OES_standard_derivatives
         var ext = getExtension(gl, "GL_OES_standard_derivatives");
+        // WEBGL_depth_texture
+        var ext = getExtension(gl, "WEBGL_depth_texture");
     }
 
     zen3d.WebGLCapabilities = WebGLCapabilities;

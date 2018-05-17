@@ -337,11 +337,18 @@
      * WEBGL_PIXEL_TYPE
      */
     var WEBGL_PIXEL_TYPE = {
+        BYTE: 0x1400,
         UNSIGNED_BYTE: 0x1401,
+        SHORT: 0x1402,
+        UNSIGNED_SHORT: 0x1403,
+        INT: 0x1404,
+        UNSIGNED_INT: 0x1405,
+        FLOAT: 0x1406,
+        HALF_FLOAT: 0x140B,
+        UNSIGNED_INT_24_8: 0x84FA,
         UNSIGNED_SHORT_4_4_4_4:	0x8033,
         UNSIGNED_SHORT_5_5_5_1: 0x8034,
-        UNSIGNED_SHORT_5_6_5: 0x8363,
-        FLOAT: 0x1406
+        UNSIGNED_SHORT_5_6_5: 0x8363
     }
 
     zen3d.WEBGL_PIXEL_TYPE = WEBGL_PIXEL_TYPE;
@@ -3690,6 +3697,8 @@
         var ext = getExtension(gl, "OES_standard_derivatives");
         // GL_OES_standard_derivatives
         var ext = getExtension(gl, "GL_OES_standard_derivatives");
+        // WEBGL_depth_texture
+        var ext = getExtension(gl, "WEBGL_depth_texture");
     }
 
     zen3d.WebGLCapabilities = WebGLCapabilities;
@@ -4338,21 +4347,52 @@
             state.bindTexture(gl.TEXTURE_2D, null);
 
             if (renderTarget.depthBuffer) {
-                renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
 
-                var renderbuffer = renderTargetProperties.__webglDepthbuffer;
+                // setup depth texture
+                if(renderTarget.depthTexture) {
+                    var depthTextureProperties = this.properties.get(renderTarget.depthTexture);
 
-                gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+                    depthTextureProperties.__webglTexture = gl.createTexture();
+                    state.bindTexture(gl.TEXTURE_2D, depthTextureProperties.__webglTexture);
+                    this.setTextureParameters(renderTarget.depthTexture, isTargetPowerOfTwo);
 
-                if (renderTarget.stencilBuffer) {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    pixelFormat = renderTarget.depthTexture.pixelFormat;
+                    pixelType = renderTarget.depthTexture.pixelType;
+                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, renderTarget.width, renderTarget.height, 0, pixelFormat, pixelType, null);
+
+                    if ( pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT || pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT ) {
+
+                        gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
+            
+                    } else if ( pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8 ) {
+            
+                        gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
+            
+                    } else {
+            
+                        throw new Error( 'Unknown depthTexture format' );
+            
+                    }
+
+                    state.bindTexture(gl.TEXTURE_2D, null);
                 } else {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-                }
+                    renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
 
-                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                    var renderbuffer = renderTargetProperties.__webglDepthbuffer;
+
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+
+                    if (renderTarget.stencilBuffer) {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    } else {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    }
+
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                }
+                
             }
 
             var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
@@ -7020,6 +7060,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         RenderTarget2D.superClass.constructor.call(this, width, height);
 
         this.texture = new zen3d.Texture2D();
+
+        this.depthTexture = null;
     }
 
     zen3d.inherit(RenderTarget2D, zen3d.RenderTargetBase);
@@ -8011,6 +8053,31 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     TextureData.prototype.isDataTexture = true;
 
     zen3d.TextureData = TextureData;
+})();
+(function() {
+    var TextureDepth = function(width, height) {
+        TextureDepth.superClass.constructor.call(this);
+
+        this.image = {width: width, height: height};
+
+        // DEPTH_ATTACHMENT set to unsigned_short or unsigned_int
+        // DEPTH_STENCIL_ATTACHMENT set to UNSIGNED_INT_24_8
+        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT;
+
+        // don't change
+        this.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;   
+
+        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+
+        this.generateMipmaps = false;
+    }
+
+    zen3d.inherit(TextureDepth, zen3d.Texture2D);
+
+    TextureDepth.prototype.isDepthTexture = true;
+
+    zen3d.TextureDepth = TextureDepth;
 })();
 (function() {
     var BLEND_EQUATION = zen3d.BLEND_EQUATION;

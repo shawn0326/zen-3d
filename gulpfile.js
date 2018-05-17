@@ -83,6 +83,7 @@ var filesSrc = [
     "core/texture/Texture2D.js",
     "core/texture/TextureCube.js",
     "core/texture/TextureData.js",
+    "core/texture/TextureDepth.js",
 
     // material
     "core/material/Material.js",

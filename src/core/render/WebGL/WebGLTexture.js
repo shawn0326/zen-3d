@@ -265,21 +265,52 @@
             state.bindTexture(gl.TEXTURE_2D, null);
 
             if (renderTarget.depthBuffer) {
-                renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
 
-                var renderbuffer = renderTargetProperties.__webglDepthbuffer;
+                // setup depth texture
+                if(renderTarget.depthTexture) {
+                    var depthTextureProperties = this.properties.get(renderTarget.depthTexture);
 
-                gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+                    depthTextureProperties.__webglTexture = gl.createTexture();
+                    state.bindTexture(gl.TEXTURE_2D, depthTextureProperties.__webglTexture);
+                    this.setTextureParameters(renderTarget.depthTexture, isTargetPowerOfTwo);
 
-                if (renderTarget.stencilBuffer) {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    pixelFormat = renderTarget.depthTexture.pixelFormat;
+                    pixelType = renderTarget.depthTexture.pixelType;
+                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, renderTarget.width, renderTarget.height, 0, pixelFormat, pixelType, null);
+
+                    if ( pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT || pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT ) {
+
+                        gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
+            
+                    } else if ( pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8 ) {
+            
+                        gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
+            
+                    } else {
+            
+                        throw new Error( 'Unknown depthTexture format' );
+            
+                    }
+
+                    state.bindTexture(gl.TEXTURE_2D, null);
                 } else {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-                }
+                    renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
 
-                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                    var renderbuffer = renderTargetProperties.__webglDepthbuffer;
+
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+
+                    if (renderTarget.stencilBuffer) {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    } else {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    }
+
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                }
+                
             }
 
             var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
