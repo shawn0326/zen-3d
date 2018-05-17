@@ -76,7 +76,7 @@
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 0, 1000);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(75 / 180 * Math.PI, width / height, 1, 2000);
 	        scene.add(camera);
 
@@ -89,7 +89,7 @@
 				// rotate camera
 				camera.position.x = 100 * Math.sin(count / 1000 * .5);
 				camera.position.z = 100 * Math.cos(count / 1000 * .5);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				// for(var i = 0; i < linesArray.length; i++) {
 				// 	linesArray[i].euler.y = time * ( i < 4 ? i + 1 : - ( i + 1 ) );

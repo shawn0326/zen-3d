@@ -71,7 +71,7 @@
 			camera.gammaInput = true;
 			camera.gammaOutput = true;
 			camera.position.set(0, 20, 200);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 			camera.add(sky_box);
 	        scene.add(camera);
@@ -83,7 +83,7 @@
 				// rotate camera
 				camera.position.x = 200 * Math.sin(count / 1000 * .5);
 				camera.position.z = 200 * Math.cos(count / 1000 * .5);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 	            renderer.render(scene, camera);
 	        }

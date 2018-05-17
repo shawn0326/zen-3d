@@ -34,27 +34,16 @@
     /**
      * set view by look at, this func will set quaternion of this camera
      */
-    Camera.prototype.setLookAt = function(target, up) {
-        var eye = this.position;
+    Camera.prototype.lookAt = function() {
+        var m = new zen3d.Matrix4();
 
-        var zaxis = new zen3d.Vector3();
-        eye.subtract(target, zaxis); // right-hand coordinates system
-        zaxis.normalize();
+        return function lookAt(target, up) {
 
-        var xaxis = new zen3d.Vector3();
-        xaxis.crossVectors(up, zaxis);
-        xaxis.normalize();
+            m.lookAtRH(this.position, target, up);
+            this.quaternion.setFromRotationMatrix(m);
 
-        var yaxis = new zen3d.Vector3();
-        yaxis.crossVectors(zaxis, xaxis);
-
-        this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
-            xaxis.x, yaxis.x, zaxis.x, 0,
-            xaxis.y, yaxis.y, zaxis.y, 0,
-            xaxis.z, yaxis.z, zaxis.z, 0,
-            0, 0, 0, 1
-        ));
-    }
+        };
+    }();
 
     /**
      * set orthographic projection matrix

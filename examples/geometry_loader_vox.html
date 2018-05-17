@@ -84,7 +84,7 @@
 			camera.gammaInput = true;
 			camera.gammaOutput = true;
 	        camera.position.set(0, 4, 10);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 2000);
 	        scene.add(camera);
 

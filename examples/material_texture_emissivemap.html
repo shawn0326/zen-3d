@@ -80,7 +80,7 @@
 
 	        var camera = new zen3d.Camera();
 			camera.position.set(0, 100, 80);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 	        scene.add(camera);
 
@@ -100,7 +100,7 @@
 				// rotate camera
 				camera.position.x = 80 * Math.sin(count / 1000 * .4);
 				camera.position.z = 80 * Math.cos(count / 1000 * .4);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	            renderer.render(scene, camera);
 	        }
 

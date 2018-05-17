@@ -89,9 +89,9 @@
 	        scene.add(ambientLight);
 
 			var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
 			directionalLight.color.setHex(0xffffff);
 			directionalLight.position.set(-20, 20, 0);
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			scene.add(directionalLight);
 
 			var lightball_geometry = new zen3d.SphereGeometry(2, 20, 20);
@@ -106,7 +106,7 @@
 			camera.gammaInput = true;
 			camera.gammaOutput = true;
 			camera.position.set(0, 20, 100);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 	        scene.add(camera);
 
@@ -127,7 +127,7 @@
 				// rotate camera
 				camera.position.x = 100 * Math.sin(count / 1000 * .5);
 				camera.position.z = 100 * Math.cos(count / 1000 * .5);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				// render env map on six faces
 				phong.envMap = null;

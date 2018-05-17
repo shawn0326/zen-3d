@@ -119,7 +119,7 @@
 
         var camera = this.camera = new zen3d.Camera();
         camera.position.set(0, 1, 0);
-        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
+        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
         camera.setOrtho(-1, 1, -1, 1, 0.1, 2);
         scene.add(camera);
 

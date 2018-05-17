@@ -158,7 +158,7 @@
 			camera.gammaOutput = true;
 			camera.gammaFactor = 1.7;
 	        camera.position.set(0, 0, 20);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 1000);
 	        scene.add(camera);
 
@@ -169,7 +169,7 @@
 				// rotate camera
 				// camera.position.x = 60 * Math.sin(count / 1000 * .5);
 				// camera.position.z = 60 * Math.cos(count / 1000 * .5);
-				// camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				// camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 				earth.euler.set(0, count / 1000 * .10, 0);
 				cloud1.euler.set(0, count / 1000 * .14, 0);
 				cloud2.euler.set(0, count / 1000 * .18, Math.PI);

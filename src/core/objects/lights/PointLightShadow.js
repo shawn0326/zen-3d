@@ -53,7 +53,7 @@
         // set camera position and lookAt(rotation)
         camera.position.setFromMatrixPosition(light.worldMatrix);
         lookTarget.set(targets[face].x + camera.position.x, targets[face].y + camera.position.y, targets[face].z + camera.position.z);
-        camera.setLookAt(lookTarget, ups[face]);
+        camera.lookAt(lookTarget, ups[face]);
 
         // update view matrix
         camera.updateMatrix();

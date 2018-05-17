@@ -26,7 +26,7 @@
 
         for(var i = 0; i < 6; i++) {
             this.lookTarget.set(this.targets[i].x + this.camera.position.x, this.targets[i].y + this.camera.position.y, this.targets[i].z + this.camera.position.z);
-            this.camera.setLookAt(this.lookTarget, this.ups[i]);
+            this.camera.lookAt(this.lookTarget, this.ups[i]);
 
             this.camera.updateMatrix();
 

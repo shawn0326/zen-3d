@@ -44,7 +44,7 @@
         light.getWorldDirection(this._lookTarget);
         camera.position.setFromMatrixPosition(light.worldMatrix);
         lookTarget.set(lookTarget.x + camera.position.x, lookTarget.y + camera.position.y, lookTarget.z + camera.position.z);
-        camera.setLookAt(lookTarget, this._up);
+        camera.lookAt(lookTarget, this._up);
 
         // update view matrix
         camera.updateMatrix();

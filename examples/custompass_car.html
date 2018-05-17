@@ -90,7 +90,7 @@
 			camera.gammaInput = true;
 			camera.gammaOutput = false;
 	        camera.position.set(0, 4, 10);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
@@ -140,7 +140,7 @@
 				// rotate camera
 				camera.position.x = 10 * Math.sin(count / 1000 * .5);
 				camera.position.z = 10 * Math.cos(count / 1000 * .5);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				filmPass.uniforms.time += 30 / 1000 * 0.5;
 				if(filmPass.uniforms.time > 1) {

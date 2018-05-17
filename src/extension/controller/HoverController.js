@@ -61,7 +61,7 @@
         var camera = this.camera;
         var target = this.lookAtPoint;
         camera.position.set(distanceX + target.x, distanceY + target.y, distanceZ + target.z);
-        camera.setLookAt(target, this.up);
+        camera.lookAt(target, this.up);
     }
 
     HoverController.prototype._updateMouse = function() {

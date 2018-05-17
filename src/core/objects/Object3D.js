@@ -162,27 +162,18 @@
     /**
      * set view by look at, this func will set quaternion of this camera
      */
-    Object3D.prototype.setLookAt = function(target, up) {
-        var eye = this.position;
+    Object3D.prototype.lookAt = function() {
 
-        var zaxis = new zen3d.Vector3();
-        target.subtract(eye, zaxis); // right-hand coordinates system
-        zaxis.normalize();
+        var m = new zen3d.Matrix4();
 
-        var xaxis = new zen3d.Vector3();
-        xaxis.crossVectors(up, zaxis);
-        xaxis.normalize();
+        return function lookAt(target, up) {
 
-        var yaxis = new zen3d.Vector3();
-        yaxis.crossVectors(zaxis, xaxis);
+            m.lookAtRH(target, this.position, up);
+            this.quaternion.setFromRotationMatrix(m);
 
-        this.quaternion.setFromRotationMatrix(zen3d.helpMatrix.set(
-            xaxis.x, yaxis.x, zaxis.x, 0,
-            xaxis.y, yaxis.y, zaxis.y, 0,
-            xaxis.z, yaxis.z, zaxis.z, 0,
-            0, 0, 0, 1
-        ));
-    }
+        };
+
+    }();
 
     /**
      * raycast

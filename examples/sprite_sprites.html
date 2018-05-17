@@ -78,7 +78,7 @@
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 0, 10);
-	        camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(75 / 180 * Math.PI, width / height, 1, 2000);
 	        scene.add(camera);
 
@@ -91,7 +91,7 @@
 				// rotate camera
 				camera.position.x = 10 * Math.sin(count / 8000);
 				camera.position.z = 10 * Math.cos(count / 8000);
-				camera.setLookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				for(var i = 0; i < sprites.length; i++) {
 					sprites[i].material.rotation = count / 1000 * 2;
