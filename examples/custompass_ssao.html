@@ -46,6 +46,8 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
+			var useDepthTexture = !zen3d.isMobile;
+
 			var scene = new zen3d.Scene();
 
 			for(var i = 0; i < 100; i++) {
@@ -109,6 +111,9 @@
 				{}
 			);
 
+			var depthMaterial = new zen3d.DepthMaterial();
+			depthMaterial.packToRGBA = true;
+
 			var ssaoPass = new zen3d.SSAOPass();
 			ssaoPass.setNoiseSize(256);
 			ssaoPass.setKernelSize(32);
@@ -119,11 +124,18 @@
 			ssaoPass.uniforms["bias"] = radius / 50;
 			ssaoPass.uniforms["radius"] = radius;
 
+			var tempRenderTarget0 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget0.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget0.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget0.texture.generateMipmaps = false;
+
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.generateMipmaps = false;
-			tempRenderTarget.depthTexture = new zen3d.TextureDepth();
+			if(useDepthTexture) {
+				tempRenderTarget.depthTexture = new zen3d.TextureDepth();
+			}
 
 			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
@@ -144,7 +156,7 @@
 			ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
 			ssaoPass.uniforms["normalTex"] = tempRenderTarget.texture;
-			ssaoPass.uniforms["depthTex"] = tempRenderTarget.depthTexture;
+			ssaoPass.uniforms["depthTex"] = useDepthTexture ? tempRenderTarget.depthTexture : tempRenderTarget0.texture;
 			ssaoPass.uniforms["texSize"][0] = width;
 			ssaoPass.uniforms["texSize"][1] = height;
 
@@ -156,7 +168,7 @@
 			ssaoBlurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
 			ssaoBlurPass.uniforms["normalTex"] = tempRenderTarget.texture;
-			ssaoBlurPass.uniforms["depthTex"] = tempRenderTarget.depthTexture;
+			ssaoBlurPass.uniforms["depthTex"] = useDepthTexture ? tempRenderTarget.depthTexture : tempRenderTarget0.texture;
 			ssaoBlurPass.uniforms["textureSize"][0] = width;
 			ssaoBlurPass.uniforms["textureSize"][1] = height;
 
@@ -165,6 +177,8 @@
 
 			// ssaoBlurPass.material.defines["NORMALTEX_ENABLED"] = 0;
 			// ssaoBlurPass.material.defines["DEPTHTEX_ENABLED"] = 0;
+			ssaoPass.material.defines["DEPTH_PACKING"] = useDepthTexture ? 0 : 1;
+			ssaoBlurPass.material.defines["DEPTH_PACKING"] = useDepthTexture ? 0 : 1;
 
 			var beauty = true;
 			var ssao = true;
@@ -212,6 +226,16 @@
 				scene.updateLights();
 
 				// glCore.texture.setRenderTarget(backRenderTarget);
+				if(!useDepthTexture) {
+					glCore.texture.setRenderTarget(tempRenderTarget0);
+
+					glCore.state.clearColor(1, 1, 1, 1);
+					glCore.clear(true, true, true);
+
+					scene.overrideMaterial = depthMaterial;
+					glCore.render(scene, camera);
+				}
+
 				glCore.texture.setRenderTarget(tempRenderTarget);
 
 				glCore.state.clearColor(0, 0, 0, 1);

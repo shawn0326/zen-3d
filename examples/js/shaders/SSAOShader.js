@@ -1,5 +1,9 @@
 zen3d.SSAOShader = {
 
+	defines: {
+		'DEPTH_PACKING': 0
+	},
+
     uniforms: {
 		'normalTex': null,
 		'depthTex': null,
@@ -36,6 +40,8 @@ zen3d.SSAOShader = {
     ].join( "\n" ),
 
     fragmentShader: [
+		"#include <packing>",
+
         "varying vec2 v_Uv;",
 
 		"uniform sampler2D normalTex;",
@@ -64,8 +70,12 @@ zen3d.SSAOShader = {
 
 		"uniform float intensity;",
 
-        "float getDepth( const in vec2 screenPosition ) {",
-			"return texture2D( depthTex, screenPosition ).r;",
+		"float getDepth( const in vec2 screenPosition ) {",
+			"#if DEPTH_PACKING == 1",
+				"return unpackRGBAToDepth( texture2D( depthTex, screenPosition ) );",
+			"#else",
+				"return texture2D( depthTex, screenPosition ).r;",
+			"#endif",
 		"}",
 
         "vec3 getViewNormal( const in vec2 screenPosition ) {",

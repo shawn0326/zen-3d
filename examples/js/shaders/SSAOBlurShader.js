@@ -2,7 +2,8 @@ zen3d.SSAOBlurShader = {
 
     defines: {
         "NORMALTEX_ENABLED": 1,
-        "DEPTHTEX_ENABLED": 1
+		"DEPTHTEX_ENABLED": 1,
+		'DEPTH_PACKING': 0
     },
 
     uniforms: {
@@ -38,6 +39,7 @@ zen3d.SSAOBlurShader = {
 	].join( "\n" ),
 
 	fragmentShader: [
+		"#include <packing>",
 
 		"varying vec2 v_Uv;",
 
@@ -61,7 +63,11 @@ zen3d.SSAOBlurShader = {
         "uniform float depthRange;",
 
         "float getDepth( const in vec2 screenPosition ) {",
-            "return texture2D( depthTex, screenPosition ).r;",
+			"#if DEPTH_PACKING == 1",
+				"return unpackRGBAToDepth( texture2D( depthTex, screenPosition ) );",
+			"#else",
+				"return texture2D( depthTex, screenPosition ).r;",
+			"#endif",
         "}",
 
         "vec3 getViewNormal( const in vec2 screenPosition ) {",
