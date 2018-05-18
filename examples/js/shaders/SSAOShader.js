@@ -1,8 +1,9 @@
 zen3d.SSAOShader = {
 
     uniforms: {
-        'normalDepthTex': null,
-        'normalDepthTexSize': [512, 512],
+		'normalTex': null,
+		'depthTex': null,
+        'texSize': [512, 512],
         'noiseTex': null,
         'noiseTexSize': [4, 4],
         'projection': new Float32Array(16),
@@ -37,9 +38,11 @@ zen3d.SSAOShader = {
     fragmentShader: [
         "varying vec2 v_Uv;",
 
-        "uniform sampler2D normalDepthTex;",
+		"uniform sampler2D normalTex;",
+		
+		"uniform sampler2D depthTex;",
 
-        "uniform vec2 normalDepthTexSize;",
+        "uniform vec2 texSize;",
 
         "uniform sampler2D noiseTex;",
 
@@ -62,11 +65,11 @@ zen3d.SSAOShader = {
 		"uniform float intensity;",
 
         "float getDepth( const in vec2 screenPosition ) {",
-			"return texture2D( normalDepthTex, screenPosition ).w;",
+			"return texture2D( depthTex, screenPosition ).r;",
 		"}",
 
         "vec3 getViewNormal( const in vec2 screenPosition ) {",
-            "vec3 normal = texture2D( normalDepthTex, screenPosition ).xyz * 2.0 - 1.0;",
+            "vec3 normal = texture2D( normalTex, screenPosition ).xyz * 2.0 - 1.0;",
             // Convert to view space
 			"return (viewInverseTranspose * vec4(normal, 0.0)).xyz;",
 		"}",
@@ -129,7 +132,7 @@ zen3d.SSAOShader = {
 
 			"vec3 N = getViewNormal( v_Uv );",
 
-			"vec2 noiseTexCoord = normalDepthTexSize / vec2(noiseTexSize) * v_Uv;",
+			"vec2 noiseTexCoord = texSize / vec2(noiseTexSize) * v_Uv;",
 			"vec3 rvec = texture2D(noiseTex, noiseTexCoord).rgb * 2.0 - 1.0;",
 
 			// Tangent

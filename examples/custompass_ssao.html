@@ -64,7 +64,7 @@
 
 			var ambientLight = new zen3d.AmbientLight();
 			ambientLight.color.setHex(0xffffff);
-			ambientLight.intensity = 1;
+			ambientLight.intensity = 1.5;
 	        scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight();
@@ -123,7 +123,7 @@
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.generateMipmaps = false;
-			tempRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT; // depth need float
+			tempRenderTarget.depthTexture = new zen3d.TextureDepth();
 
 			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
@@ -143,9 +143,10 @@
 			ssaoPass.uniforms["projectionInv"] = projectionInv.elements;
 			ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
-			ssaoPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
-			ssaoPass.uniforms["normalDepthTexSize"][0] = width;
-			ssaoPass.uniforms["normalDepthTexSize"][1] = height;
+			ssaoPass.uniforms["normalTex"] = tempRenderTarget.texture;
+			ssaoPass.uniforms["depthTex"] = tempRenderTarget.depthTexture;
+			ssaoPass.uniforms["texSize"][0] = width;
+			ssaoPass.uniforms["texSize"][1] = height;
 
 			var ssaoBlurPass = new zen3d.ShaderPostPass(zen3d.SSAOBlurShader);
 			ssaoBlurPass.material.blending = zen3d.BLEND_TYPE.CUSTOM;
@@ -154,7 +155,8 @@
 			ssaoBlurPass.uniforms["projection"] = projection.elements;
 			ssaoBlurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
-			ssaoBlurPass.uniforms["normalDepthTex"] = tempRenderTarget.texture;
+			ssaoBlurPass.uniforms["normalTex"] = tempRenderTarget.texture;
+			ssaoBlurPass.uniforms["depthTex"] = tempRenderTarget.depthTexture;
 			ssaoBlurPass.uniforms["textureSize"][0] = width;
 			ssaoBlurPass.uniforms["textureSize"][1] = height;
 
@@ -277,8 +279,8 @@
 				tempRenderTarget2.resize(width, height);
 				tempRenderTarget3.resize(width, height);
 
-				ssaoPass.uniforms["normalDepthTexSize"][0] = width;
-				ssaoPass.uniforms["normalDepthTexSize"][1] = height;
+				ssaoPass.uniforms["texSize"][0] = width;
+				ssaoPass.uniforms["texSize"][1] = height;
 
 				ssaoBlurPass.uniforms["textureSize"][0] = width;
 				ssaoBlurPass.uniforms["textureSize"][1] = height;
