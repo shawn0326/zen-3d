@@ -81,7 +81,7 @@
 			camera.gammaOutput = true;
 	        camera.position.set(0, 80, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 200);
 	        scene.add(camera);
 
 			// add a hover controller
@@ -269,7 +269,7 @@
 
 				glCore.state.clearColor(0.5, 0.5, 0.5, 1);
 				glCore.clear(true, true, true);
-				
+
 				if(beauty) {
 					scene.overrideMaterial = null;
 					glCore.render(scene, camera);
@@ -295,7 +295,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 200);
 
 				backRenderTarget.resize(width, height);
 
