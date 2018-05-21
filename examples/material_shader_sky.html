@@ -25,6 +25,7 @@
 	<script src="../build/zen3d.input.js"></script>
 	<script src="./js/shaders/SkyShader.js"></script>
 	<script src="./js/objects/Sky.js"></script>
+	<script src="./js/objects/GridHelper.js"></script>
 </head>
 <body>
 
@@ -46,13 +47,10 @@
 	        var renderer = new zen3d.Renderer(canvas);
 
 			var scene = new zen3d.Scene();
-			
-			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var plane_material = new zen3d.LineLoopMaterial();
-	        plane_material.diffuse.setHex(0x85a4d7);
-	        var plane = new zen3d.Mesh(plane_geometry, plane_material);
-	        plane.position.y = -10;
-			scene.add(plane);
+
+			var grid = new zen3d.GridHelper(100, 10, 0x85a4d7, 0xffffff);
+			grid.position.y = -10;
+			scene.add(grid);
 			
 			var sunSphere = new zen3d.Mesh(
 				new zen3d.SphereGeometry( 20000, 16, 8 ),

@@ -97,6 +97,19 @@
 		this.b = array[ offset + 2 ];
 
 		return this;
+    }
+    
+    Color3.prototype.toArray = function ( array, offset ) {
+
+		if ( array === undefined ) array = [];
+		if ( offset === undefined ) offset = 0;
+
+		array[ offset ] = this.r;
+		array[ offset + 1 ] = this.g;
+		array[ offset + 2 ] = this.b;
+
+		return array;
+
 	}
 
     zen3d.Color3 = Color3;

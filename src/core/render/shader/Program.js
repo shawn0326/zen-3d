@@ -190,14 +190,12 @@
             case MATERIAL_TYPE.BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
-                vshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
-
+                
                 vshader_define.push(props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '');
                 vshader_define.push(props.useAOMap ? '#define USE_AOMAP' : '');
 
                 fshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 fshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
-                fshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
                 if(props.useEnvMap) {
                     var define = "";
                     switch (props.envMapCombine) {
@@ -220,6 +218,7 @@
             case MATERIAL_TYPE.LINE_LOOP:
                 fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
                 fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
+                vshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
 
                 fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
                 fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
@@ -227,6 +226,8 @@
                 fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
 
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
+
+                fshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
             case MATERIAL_TYPE.DEPTH:
                 fshader_define.push(props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '');
             case MATERIAL_TYPE.DISTANCE:

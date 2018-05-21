@@ -3087,6 +3087,19 @@
 		this.b = array[ offset + 2 ];
 
 		return this;
+    }
+    
+    Color3.prototype.toArray = function ( array, offset ) {
+
+		if ( array === undefined ) array = [];
+		if ( offset === undefined ) offset = 0;
+
+		array[ offset ] = this.r;
+		array[ offset + 1 ] = this.g;
+		array[ offset + 2 ] = this.b;
+
+		return array;
+
 	}
 
     zen3d.Color3 = Color3;
@@ -6109,14 +6122,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             case MATERIAL_TYPE.BASIC:
                 vshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 vshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
-                vshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
-
+                
                 vshader_define.push(props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '');
                 vshader_define.push(props.useAOMap ? '#define USE_AOMAP' : '');
 
                 fshader_define.push(props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '');
                 fshader_define.push(props.useEnvMap ? '#define USE_ENV_MAP' : '');
-                fshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
                 if(props.useEnvMap) {
                     var define = "";
                     switch (props.envMapCombine) {
@@ -6139,6 +6150,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             case MATERIAL_TYPE.LINE_LOOP:
                 fshader_define.push(zen3d.ShaderChunk["encodings_pars_frag"]);
                 fshader_define.push('#define GAMMA_FACTOR ' + props.gammaFactor);
+                vshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
 
                 fshader_define.push(getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding));
                 fshader_define.push(getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding));
@@ -6146,6 +6158,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
                 fshader_define.push(getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding));
 
                 fshader_define.push(props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '');
+
+                fshader_define.push(props.useVertexColors ? '#define USE_VCOLOR' : '');
             case MATERIAL_TYPE.DEPTH:
                 fshader_define.push(props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '');
             case MATERIAL_TYPE.DISTANCE:
