@@ -32,7 +32,7 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass ssao |
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass ssao
     </div>
 
 	<script>
@@ -81,7 +81,7 @@
 			camera.gammaOutput = true;
 	        camera.position.set(0, 80, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 2000);
 	        scene.add(camera);
 
 			// add a hover controller
@@ -297,7 +297,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+				camera.setPerspective(60 / 180 * Math.PI, width / height, 10, 2000);
 
 				backRenderTarget.resize(width, height);
 
