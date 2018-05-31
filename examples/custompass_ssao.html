@@ -46,7 +46,7 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
-			var useDepthTexture = true; // so we can use packaged depth
+			var useDepthTexture = false; // so we can use packaged depth
 
 			var scene = new zen3d.Scene();
 
@@ -166,6 +166,8 @@
 			ssaoBlurPass.material.blending = zen3d.BLEND_TYPE.CUSTOM;
 			ssaoBlurPass.material.blendSrc = zen3d.BLEND_FACTOR.ZERO;
 			ssaoBlurPass.material.blendDst = zen3d.BLEND_FACTOR.SRC_COLOR;
+			ssaoBlurPass.material.depthWrite = false;
+			ssaoBlurPass.material.depthTest = false;
 			ssaoBlurPass.uniforms["projection"] = projection.elements;
 			ssaoBlurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
