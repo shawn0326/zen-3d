@@ -32,7 +32,7 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass ssao
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass ssao |
     </div>
 
 	<script>
@@ -46,18 +46,18 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
-			var useDepthTexture = !zen3d.isMobile;
+			var useDepthTexture = false; // so we can use packaged depth
 
 			var scene = new zen3d.Scene();
 
 			for(var i = 0; i < 100; i++) {
-				var cube_geometry = new zen3d.CubeGeometry(5, 5, 5);
+				var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
 				var phong = new zen3d.PhongMaterial();
 				phong.diffuse.setHSL( Math.random(), 1.0, 0.3 );
 		        var cube = new zen3d.Mesh(cube_geometry, phong);
-				cube.position.x = Math.random() * 50 - 25;
-				cube.position.y = Math.random() * 50 - 25;
-				cube.position.z = Math.random() * 50 - 25;
+				cube.position.x = Math.random() * 100 - 50;
+				cube.position.y = Math.random() * 100 - 50;
+				cube.position.z = Math.random() * 100 - 50;
 				cube.quaternion.x = Math.random();
 				cube.quaternion.y = Math.random();
 				cube.quaternion.z = Math.random();
@@ -81,12 +81,12 @@
 			camera.gammaOutput = true;
 	        camera.position.set(0, 80, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 200);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
 			// add a hover controller
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 100;
+			controller.distance = 300;
 			controller.panAngle = 25;
 			controller.tiltAngle = 25;
 			var mouse = new zen3d.Mouse(canvas);
@@ -118,15 +118,15 @@
 			ssaoPass.setNoiseSize(256);
 			ssaoPass.setKernelSize(32);
 			// ssaoPass.material.defines["ALCHEMY"] = 1;
-			var radius = 8;
+			var radius = 10;
 			ssaoPass.uniforms["intensity"] = 1;
 			ssaoPass.uniforms["power"] = 1;
 			ssaoPass.uniforms["bias"] = radius / 50;
 			ssaoPass.uniforms["radius"] = radius;
 
 			var tempRenderTarget0 = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget0.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget0.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget0.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget0.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 			tempRenderTarget0.texture.generateMipmaps = false;
 
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
@@ -135,6 +135,8 @@
 			tempRenderTarget.texture.generateMipmaps = false;
 			if(useDepthTexture) {
 				tempRenderTarget.depthTexture = new zen3d.TextureDepth();
+				tempRenderTarget.depthTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+				tempRenderTarget.depthTexture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 			}
 
 			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
@@ -207,7 +209,7 @@
 			});
 			gui.add(ssaoPass.uniforms, "intensity").min(0).max(2).step(0.1);
 			gui.add(ssaoPass.uniforms, "power").min(0).max(5).step(1);
-			gui.add(ssaoPass.uniforms, "radius").min(0).max(10);
+			gui.add(ssaoPass.uniforms, "radius").min(0).max(20);
 			gui.add(ssaoPass.uniforms, "bias").min(0).max(5);
 
 			gui.add(ssaoBlurPass.uniforms, "blurSize").min(0).max(2);
@@ -295,7 +297,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 200);
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
 				backRenderTarget.resize(width, height);
 
