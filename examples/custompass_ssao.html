@@ -46,7 +46,7 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
-			var useDepthTexture = false; // so we can use packaged depth
+			var useDepthTexture = true; // so we can use packaged depth
 
 			var scene = new zen3d.Scene();
 
@@ -81,12 +81,12 @@
 			camera.gammaOutput = true;
 	        camera.position.set(0, 80, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 2000);
+	        camera.setPerspective(60 / 180 * Math.PI, width / height, 10, 2000);
 	        scene.add(camera);
 
 			// add a hover controller
 			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 300;
+			controller.distance = 200;
 			controller.panAngle = 25;
 			controller.tiltAngle = 25;
 			var mouse = new zen3d.Mouse(canvas);
@@ -186,7 +186,7 @@
 			var ssao = true;
 
 			// gui
-			var params = {type: "BEAUTY + SSAO", kernelSize: 32};
+			var params = {type: "BEAUTY + SSAO", kernelSize: 32, near: 10, far: 2000};
 			var gui = new dat.GUI();
 			gui.add(params, "type", ["BEAUTY + SSAO", "BEAUTY", "SSAO"]).onChange(function(val) {
 				switch(val) {
@@ -214,6 +214,13 @@
 
 			gui.add(ssaoBlurPass.uniforms, "blurSize").min(0).max(2);
 			gui.add(ssaoBlurPass.uniforms, "depthRange").min(0).max(1);
+
+			gui.add(params, "near").min(10).max(500).onChange(function() {
+				camera.setPerspective(60 / 180 * Math.PI, width / height, params.near, params.far);
+			});
+			gui.add(params, "far").min(100).max(2000).onChange(function() {
+				camera.setPerspective(60 / 180 * Math.PI, width / height, params.near, params.far);
+			});
 
 	        function loop(count) {
 
