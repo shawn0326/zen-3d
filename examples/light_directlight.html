@@ -22,6 +22,8 @@
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="./js/Clock.js"></script>
 </head>
 <body>
 
@@ -105,13 +107,17 @@
 			});
 			gui.close();
 
+			var clock = new zen3d.Clock();
+
 	        function loop(count) {
 
-	            requestAnimationFrame(loop);
+				requestAnimationFrame(loop);
+				
+				var elapsedTime = clock.getElapsedTime();
 
 				// rotate camera
-				camera.position.x = 100 * Math.sin(count / 1000 * .5);
-				camera.position.z = 100 * Math.cos(count / 1000 * .5);
+				camera.position.x = 100 * Math.sin(elapsedTime * .5);
+				camera.position.z = 100 * Math.cos(elapsedTime * .5);
 				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				renderer.render(scene, camera);
