@@ -22,6 +22,9 @@
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="../build/zen3d.input.js"></script>
+
+	<script src="./js/objects/DirectionalLightHelper.js"></script>
+	<script src="./js/objects/PointLightHelper.js"></script>
 </head>
 <body>
 
@@ -59,12 +62,6 @@
 				renderer.shadowNeedsUpdate = true;
 			});
 
-	        // var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-	        // var phong = new zen3d.PhongMaterial();
-	        // phong.diffuse.setHex(0xffffff);
-	        // var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			// scene.add(sphere);
-
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
@@ -78,14 +75,10 @@
 	        pointLight.position.set(20, 10, -20);
 			pointLight.shadow.bias = -0.003;
 			pointLight.shadow.cameraFar = 200;
-	        scene.add(pointLight);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0x00ff00);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(20, 10, -20);
-	        scene.add(lightBall);
+			scene.add(pointLight);
+			
+			var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
+			pointLight.add(pointLightHelper);
 
 			var pointLight2 = new zen3d.PointLight();
 	        pointLight2.color.setHex(0xff0000);
@@ -93,14 +86,10 @@
 	        pointLight2.position.set(20, 10, 20);
 			pointLight2.shadow.bias = -0.003;
 			pointLight2.shadow.cameraFar = 200;
-	        scene.add(pointLight2);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xff0000);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(20, 10, 20);
-	        scene.add(lightBall);
+			scene.add(pointLight2);
+			
+			var pointLightHelper2 = new zen3d.PointLightHelper(pointLight2, 2);
+			pointLight2.add(pointLightHelper2);
 
 			var directionalLight = new zen3d.DirectionalLight();
 			directionalLight.intensity = 0.8;
@@ -111,14 +100,10 @@
 			directionalLight.shadow.bias = -0.04;
 			directionalLight.shadow.radius = 1;
 			directionalLight.shadow.cameraFar = 200;
-	        scene.add(directionalLight);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-30, 10, 0);
-	        scene.add(lightBall);
+			scene.add(directionalLight);
+			
+			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
+			directionalLight.add(directionalLightHelper);
 
 			var camera = new zen3d.Camera();
 			camera.gammaInput = true;
@@ -152,6 +137,10 @@
 				controller.update();
 				mouse.update();
 				touch.update();
+
+				pointLightHelper.update();
+				pointLightHelper2.update();
+				directionalLightHelper.update();
 
 				renderer.render(scene, camera);
 	        }
