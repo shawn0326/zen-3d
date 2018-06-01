@@ -24,6 +24,7 @@
 	<script src="./files/dat.gui.min.js"></script>
 
 	<script src="./js/Clock.js"></script>
+	<script src="./js/objects/DirectionalLightHelper.js"></script>
 </head>
 <body>
 
@@ -65,18 +66,14 @@
 
 	        var directionalLight = new zen3d.DirectionalLight();
 	        directionalLight.color.setHex(0xffffff);
-			directionalLight.position.set(-40, 40, 0);
+			directionalLight.position.set(-30, 30, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.shadow.windowSize = 100;
 			directionalLight.shadow.bias = -0.003;
-	        scene.add(directionalLight);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
+			scene.add(directionalLight);
+			
+			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
+			directionalLight.add(directionalLightHelper);
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 80, 100);
@@ -116,9 +113,11 @@
 				var elapsedTime = clock.getElapsedTime();
 
 				// rotate camera
-				camera.position.x = 100 * Math.sin(elapsedTime * .5);
-				camera.position.z = 100 * Math.cos(elapsedTime * .5);
+				camera.position.x = 100 * Math.sin(elapsedTime * .3);
+				camera.position.z = 100 * Math.cos(elapsedTime * .3);
 				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				directionalLightHelper.update();
 
 				renderer.render(scene, camera);
 	        }

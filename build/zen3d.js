@@ -1849,17 +1849,17 @@
         var ele = this.elements;
 
         ele[0] = rele[0] * scale.x;
-        ele[1] = rele[1] * scale.y;
-        ele[2] = rele[2] * scale.z;
+        ele[1] = rele[1] * scale.x;
+        ele[2] = rele[2] * scale.x;
         ele[3] = 0;
 
-        ele[4] = rele[4] * scale.x;
+        ele[4] = rele[4] * scale.y;
         ele[5] = rele[5] * scale.y;
-        ele[6] = rele[6] * scale.z;
+        ele[6] = rele[6] * scale.y;
         ele[7] = 0;
 
-        ele[8] = rele[8] * scale.x;
-        ele[9] = rele[9] * scale.y;
+        ele[8] = rele[8] * scale.z;
+        ele[9] = rele[9] * scale.z;
         ele[10] = rele[10] * scale.z;
         ele[11] = 0;
 
@@ -2526,19 +2526,19 @@
 
         var xy2 = 2.0 * this._x * this._y, xz2 = 2.0 * this._x * this._z, xw2 = 2.0 * this._x * this._w;
         var yz2 = 2.0 * this._y * this._z, yw2 = 2.0 * this._y * this._w, zw2 = 2.0 * this._z * this._w;
-        var xx = this._x * this._x, yy = this._y * this._y, zz = this._z * this._z, ww = this._w * this._w;
+        var xx2 = this._x * this._x * 2.0, yy2 = this._y * this._y * 2.0, zz2 = this._z * this._z * 2.0;
 
-        ele[0] = xx - yy - zz + ww;
+        ele[0] = 1 - yy2 - zz2;
         ele[4] = xy2 - zw2;
         ele[8] = xz2 + yw2;
         ele[12] = 0;
         ele[1] = xy2 + zw2;
-        ele[5] = -xx + yy - zz + ww;
+        ele[5] = -xx2 + 1 - zz2;
         ele[9] = yz2 - xw2;
         ele[13] = 0;
         ele[2] = xz2 - yw2;
         ele[6] = yz2 + xw2;
-        ele[10] = -xx - yy + zz + ww;
+        ele[10] = -xx2 - yy2 + 1;
         ele[14] = 0;
         ele[3] = 0.0;
         ele[7] = 0.0;
@@ -8745,7 +8745,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }();
 
     /**
-     * set view by look at, this func will set quaternion of this camera
+     * set view by look at, this func will set quaternion of this object
      */
     Object3D.prototype.lookAt = function() {
 

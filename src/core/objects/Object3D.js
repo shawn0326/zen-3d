@@ -160,7 +160,7 @@
     }();
 
     /**
-     * set view by look at, this func will set quaternion of this camera
+     * set view by look at, this func will set quaternion of this object
      */
     Object3D.prototype.lookAt = function() {
 

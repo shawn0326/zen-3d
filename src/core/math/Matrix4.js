@@ -264,17 +264,17 @@
         var ele = this.elements;
 
         ele[0] = rele[0] * scale.x;
-        ele[1] = rele[1] * scale.y;
-        ele[2] = rele[2] * scale.z;
+        ele[1] = rele[1] * scale.x;
+        ele[2] = rele[2] * scale.x;
         ele[3] = 0;
 
-        ele[4] = rele[4] * scale.x;
+        ele[4] = rele[4] * scale.y;
         ele[5] = rele[5] * scale.y;
-        ele[6] = rele[6] * scale.z;
+        ele[6] = rele[6] * scale.y;
         ele[7] = 0;
 
-        ele[8] = rele[8] * scale.x;
-        ele[9] = rele[9] * scale.y;
+        ele[8] = rele[8] * scale.z;
+        ele[9] = rele[9] * scale.z;
         ele[10] = rele[10] * scale.z;
         ele[11] = 0;
 
