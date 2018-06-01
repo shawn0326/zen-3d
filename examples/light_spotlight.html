@@ -22,6 +22,9 @@
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="./js/Clock.js"></script>
+	<script src="./js/objects/SpotLightHelper.js"></script>
 </head>
 <body>
 
@@ -69,14 +72,17 @@
 			spotLight.penumbra = 0.2;
 			spotLight.distance = 400;
 			spotLight.shadow.bias = -0.003;
-	        scene.add(spotLight);
+			scene.add(spotLight);
+			
+			var spotLightHelper = new zen3d.SpotLightHelper(spotLight);
+			spotLight.add(spotLightHelper);
 
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
+			// var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
+			// var basic = new zen3d.BasicMaterial();
+	        // basic.diffuse.setHex(0xffffff);
+	        // var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        // lightBall.position.set(-40, 40, 0);
+	        // scene.add(lightBall);
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 80, 100);
@@ -111,14 +117,20 @@
 			});
 			gui.close();
 
+			var clock = new zen3d.Clock();
+
 	        function loop(count) {
 
-	            requestAnimationFrame(loop);
+				requestAnimationFrame(loop);
+				
+				var elapsedTime = clock.getElapsedTime();
 
 				// rotate camera
-				camera.position.x = 100 * Math.sin(count / 1000 * .5);
-				camera.position.z = 100 * Math.cos(count / 1000 * .5);
+				camera.position.x = 100 * Math.sin(elapsedTime * .3);
+				camera.position.z = 100 * Math.cos(elapsedTime * .3);
 				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				spotLightHelper.update();
 
 	            renderer.render(scene, camera);
 	        }
