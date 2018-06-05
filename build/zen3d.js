@@ -2548,6 +2548,12 @@
         return target;
     }
 
+    Quaternion.prototype.dot = function ( v ) {
+
+		return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
+
+	}
+
     /**
      * set quaternion from axis angle
      **/
@@ -13409,6 +13415,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.bindTouch = undefined;
         this._lastTouchX, this._lastTouchY, this._fingerTwo = false, this._lastDistance;
+
+        this._lastPosition = new zen3d.Vector3();
+        this._lastQuaternion = new zen3d.Quaternion();
     }
 
     Object.defineProperties(HoverController.prototype, {
@@ -13432,6 +13441,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     });
 
+    var EPS = 0.000001;
+
     HoverController.prototype.update = function() {
         this.bindMouse && this._updateMouse();
         this.bindTouch && this._updateTouch();
@@ -13444,6 +13455,16 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var target = this.lookAtPoint;
         camera.position.set(distanceX + target.x, distanceY + target.y, distanceZ + target.z);
         camera.lookAt(target, this.up);
+
+        if(
+            this._lastPosition.distanceToSquared(camera.position) > EPS ||
+            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
+        ) {
+            this._lastPosition.copy(camera.position);
+            this._lastQuaternion.copy(camera.quaternion);
+            return true;
+        }
+        return false;
     }
 
     HoverController.prototype._updateMouse = function() {
@@ -13530,11 +13551,28 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.bindKeyboard = undefined;
         this.bindMouse = undefined;
         this._lastMouseX, this._lastMouseY, this._mouseDown = false;
+
+        this._lastPosition = new zen3d.Vector3();
+        this._lastQuaternion = new zen3d.Quaternion();
     }
+
+    var EPS = 0.000001;
 
     FreeController.prototype.update = function() {
         this.bindKeyboard && this.keyboardUpdate();
         this.bindMouse && this.mouseUpdate();
+
+        var camera = this.camera;
+
+        if(
+            this._lastPosition.distanceToSquared(camera.position) > EPS ||
+            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
+        ) {
+            this._lastPosition.copy(camera.position);
+            this._lastQuaternion.copy(camera.quaternion);
+            return true;
+        }
+        return false;
     }
 
     var forward = new zen3d.Vector3();

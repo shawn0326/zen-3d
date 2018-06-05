@@ -21,6 +21,21 @@
     }
     
     TemporalSuperSampling.prototype = Object.assign(TemporalSuperSampling.prototype, {
+
+        /**
+         * Jitter camera projectionMatrix
+         * @param {zen3d.Camera} camera
+         * @param {number} width screen width
+         * @param {number} height screen height
+         * @param {number[]} offset jitter offset [x, y]
+         */
+        jitterProjection: function(camera, width, height, offset) {
+            var translationMat = new zen3d.Matrix4();
+            translationMat.array[12] = (offset[0] * 2.0 - 1.0) / width;
+            translationMat.array[13] = (offset[1] * 2.0 - 1.0) / height;
+
+            camera.projectionMatrix.multiply(translationMat);
+        },
     
         /**
          * @param {zen3d.GLCore} glCore

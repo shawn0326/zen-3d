@@ -27,6 +27,9 @@
 
         this.bindTouch = undefined;
         this._lastTouchX, this._lastTouchY, this._fingerTwo = false, this._lastDistance;
+
+        this._lastPosition = new zen3d.Vector3();
+        this._lastQuaternion = new zen3d.Quaternion();
     }
 
     Object.defineProperties(HoverController.prototype, {
@@ -50,6 +53,8 @@
         }
     });
 
+    var EPS = 0.000001;
+
     HoverController.prototype.update = function() {
         this.bindMouse && this._updateMouse();
         this.bindTouch && this._updateTouch();
@@ -62,6 +67,16 @@
         var target = this.lookAtPoint;
         camera.position.set(distanceX + target.x, distanceY + target.y, distanceZ + target.z);
         camera.lookAt(target, this.up);
+
+        if(
+            this._lastPosition.distanceToSquared(camera.position) > EPS ||
+            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
+        ) {
+            this._lastPosition.copy(camera.position);
+            this._lastQuaternion.copy(camera.quaternion);
+            return true;
+        }
+        return false;
     }
 
     HoverController.prototype._updateMouse = function() {

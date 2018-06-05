@@ -94,22 +94,6 @@
 })();
 (function() {
 
-    function cloneUniforms(uniforms_src) {
-        var uniforms_dst = {};
-
-        for(var name in uniforms_src) {
-            var uniform_src = uniforms_src[name];
-            // TODO zen3d object clone
-            if ( Array.isArray( uniform_src ) ) {
-                uniforms_dst[name] = uniform_src.slice();
-            } else {
-                uniforms_dst[name] = uniform_src;
-            }
-        }
-
-        return uniforms_dst;
-    }
-
     var ShaderPass = function(shader, textureID) {
         ShaderPass.superClass.constructor.call(this);
 
@@ -124,8 +108,9 @@
         scene.add(camera);
 
         var geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
-        this.uniforms = cloneUniforms(shader.uniforms);
+        this.uniforms = zen3d.cloneUniforms(shader.uniforms);
         var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
+        Object.assign( material.defines, shader.defines ); // copy defines
         var plane = new zen3d.Mesh(geometry, material);
         scene.add(plane);
     }

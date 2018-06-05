@@ -413,6 +413,12 @@
         return target;
     }
 
+    Quaternion.prototype.dot = function ( v ) {
+
+		return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
+
+	}
+
     /**
      * set quaternion from axis angle
      **/

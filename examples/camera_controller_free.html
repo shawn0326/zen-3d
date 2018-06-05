@@ -96,9 +96,13 @@
 
 	            requestAnimationFrame(loop);
 
-				controller.update();
+				var change = controller.update();
 				keyboard.update();
 				mouse.update();
+
+				if(change) {
+					console.info("camera changing");
+				}
 
 	            renderer.render(scene, camera);
 	        }

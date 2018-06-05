@@ -10,11 +10,28 @@
         this.bindKeyboard = undefined;
         this.bindMouse = undefined;
         this._lastMouseX, this._lastMouseY, this._mouseDown = false;
+
+        this._lastPosition = new zen3d.Vector3();
+        this._lastQuaternion = new zen3d.Quaternion();
     }
+
+    var EPS = 0.000001;
 
     FreeController.prototype.update = function() {
         this.bindKeyboard && this.keyboardUpdate();
         this.bindMouse && this.mouseUpdate();
+
+        var camera = this.camera;
+
+        if(
+            this._lastPosition.distanceToSquared(camera.position) > EPS ||
+            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
+        ) {
+            this._lastPosition.copy(camera.position);
+            this._lastQuaternion.copy(camera.quaternion);
+            return true;
+        }
+        return false;
     }
 
     var forward = new zen3d.Vector3();
