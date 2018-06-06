@@ -6237,7 +6237,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         var material = material || object.material;
 
         // get render context from cache
-        var lights = cache ? cache.lights : null;
+        var lights = (cache && material.acceptLight) ? cache.lights : null;
         var fog = cache ? cache.fog : null;
         var clippingPlanes = cache ? cache.clippingPlanes : null;
 
@@ -6509,10 +6509,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // static scene
         scene.updateMatrix();
         this.renderList = scene.updateRenderList(camera);
+
+        this.renderConfig = {};
     }
 
     ShaderPostPass.prototype.render = function(glCore) {
-        glCore.renderPass(this.renderList.opaque, this.camera);
+        glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
     }
 
     zen3d.ShaderPostPass = ShaderPostPass;
@@ -7983,6 +7985,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             texture.pixelFormat = isJPEG ? zen3d.WEBGL_PIXEL_FORMAT.RGB : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
             texture.image = image;
             texture.version++;
+
+            texture.dispatchEvent({type: 'onload'});
         });
 
         return texture;
@@ -8046,6 +8050,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         function loaded() {
             texture.pixelFormat = isJPEG ? zen3d.WEBGL_PIXEL_FORMAT.RGB : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
             texture.version++;
+            texture.dispatchEvent({type: 'onload'});
         }
 
         return texture;

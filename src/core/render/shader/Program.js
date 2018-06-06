@@ -299,7 +299,7 @@
         var material = material || object.material;
 
         // get render context from cache
-        var lights = cache ? cache.lights : null;
+        var lights = (cache && material.acceptLight) ? cache.lights : null;
         var fog = cache ? cache.fog : null;
         var clippingPlanes = cache ? cache.clippingPlanes : null;
 

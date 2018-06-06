@@ -54,6 +54,7 @@
         function loaded() {
             texture.pixelFormat = isJPEG ? zen3d.WEBGL_PIXEL_FORMAT.RGB : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
             texture.version++;
+            texture.dispatchEvent({type: 'onload'});
         }
 
         return texture;

@@ -36,10 +36,12 @@
         // static scene
         scene.updateMatrix();
         this.renderList = scene.updateRenderList(camera);
+
+        this.renderConfig = {};
     }
 
     ShaderPostPass.prototype.render = function(glCore) {
-        glCore.renderPass(this.renderList.opaque, this.camera);
+        glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
     }
 
     zen3d.ShaderPostPass = ShaderPostPass;

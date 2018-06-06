@@ -1,6 +1,6 @@
 (function() {
     
-    var TemporalSuperSampling = function() {
+    var SuperSampling = function(width, height) {
         var prevFrame = new zen3d.RenderTarget2D(width, height);
         prevFrame.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
         prevFrame.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
@@ -20,7 +20,12 @@
         this._blendPass.material.depthTest = false;
     }
     
-    TemporalSuperSampling.prototype = Object.assign(TemporalSuperSampling.prototype, {
+    SuperSampling.prototype = Object.assign(SuperSampling.prototype, {
+
+        resize(width, height) {
+            this._prevFrame.resize(width, height);
+            this._output.resize(width, height);
+        },
 
         /**
          * Jitter camera projectionMatrix
@@ -31,10 +36,10 @@
          */
         jitterProjection: function(camera, width, height, offset) {
             var translationMat = new zen3d.Matrix4();
-            translationMat.array[12] = (offset[0] * 2.0 - 1.0) / width;
-            translationMat.array[13] = (offset[1] * 2.0 - 1.0) / height;
+            translationMat.elements[12] = (offset[0] * 2.0 - 1.0) / width;
+            translationMat.elements[13] = (offset[1] * 2.0 - 1.0) / height;
 
-            camera.projectionMatrix.multiply(translationMat);
+            camera.projectionMatrix.premultiply(translationMat);
         },
     
         /**
@@ -74,5 +79,5 @@
     
     });
 
-    zen3d.TemporalSuperSampling = TemporalSuperSampling;
+    zen3d.SuperSampling = SuperSampling;
 })();
