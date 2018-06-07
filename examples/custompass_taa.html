@@ -107,26 +107,6 @@
 
 			var oldProjectionMatrix = new zen3d.Matrix4();
 
-			function halton(index, base) {
-				var result = 0;
-				var f = 1 / base;
-				var i = index;
-				while (i > 0) {
-					result = result + f * (i % base);
-					i = Math.floor(i / base);
-					f = f / base;
-				}
-				return result;
-			}
-
-			var haltonSequence = [];
-
-			for (var i = 0; i < 30; i++) {
-				haltonSequence.push([
-					halton(i, 2), halton(i, 3)
-				]);
-			}
-
 			var frame = 0;
 			var accumulating = true;
 			var accumulated = false;
@@ -142,62 +122,41 @@
 				touch.update();
 
 				if(change || sceneChange) {
-					frame = 0;
-					accumulating = false;
-					accumulated = false;
+					superSampling.start();
 					sceneChange = false;
+				}
+
+				var tex;
+
+				if(!superSampling.finished()) {
+					// do render pass
+					scene.updateMatrix();
+					scene.updateLights();
+
+					shadowMapPass.render(glCore, scene);
+
+					glCore.texture.setRenderTarget(tempRenderTarget);
+
+					glCore.state.clearColor(0.3, 0.3, 0.3, 1);
+					glCore.clear(true, true, true);
+
+					oldProjectionMatrix.copy(camera.projectionMatrix);
+					superSampling.jitterProjection(camera, width, height);
+
+					glCore.render(scene, camera);
+
+					camera.projectionMatrix.copy(oldProjectionMatrix);
+
+					tex = superSampling.sample(glCore, tempRenderTarget.texture);
 				} else {
-					accumulating = true;
+					tex = superSampling.output();
 				}
 
-				// spotLightHelper.update();
-
-				if(!accumulated) {
-
-					if(frame == haltonSequence.length) {
-						accumulated = true;
-					} else {
-						// do render pass
-						scene.updateMatrix();
-						scene.updateLights();
-
-						shadowMapPass.render(glCore, scene);
-
-						glCore.texture.setRenderTarget(tempRenderTarget);
-
-						glCore.state.clearColor(0, 0, 0, 0);
-						glCore.clear(true, true, true);
-
-						if(accumulating) {
-							oldProjectionMatrix.copy(camera.projectionMatrix);
-							superSampling.jitterProjection(camera, width, height, haltonSequence[frame]);
-						}
-
-						glCore.render(scene, camera);
-
-						if(accumulating) {
-							camera.projectionMatrix.copy(oldProjectionMatrix);
-						}
-					}
-					
-				}
-
-				if(accumulating) {
-					var tex;
-					if(accumulated) {
-						tex = superSampling.output();
-					} else {
-						tex = superSampling.sample(glCore, tempRenderTarget.texture, frame == 0);
-						frame++;
-					}
-					copyPass.uniforms["tDiffuse"] = tex;
-				} else {
-					copyPass.uniforms["tDiffuse"] = tempRenderTarget.texture;
-				}
+				copyPass.uniforms["tDiffuse"] = tex;
 
 				glCore.texture.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0.3, 0.3, 0.3, 1);
+				glCore.state.clearColor(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				
 				copyPass.material.transparent = true;

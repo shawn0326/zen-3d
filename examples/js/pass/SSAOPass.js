@@ -48,6 +48,8 @@
         return result;
     }
 
+    var halton = zen3d.halton;
+
     // 生成采样偏移数组
     // size为采样次数
     // offset 为偏移值，传入不同的偏移可以生成不同的分布数
