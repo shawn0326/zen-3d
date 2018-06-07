@@ -82,8 +82,14 @@
      * @param {zen3d.Camera} camera 
      * @param {boolean} renderUI? default is false.
      */
-    WebGLCore.prototype.render = function(scene, camera, renderUI) {
-        var renderList = scene.updateRenderList(camera);
+    WebGLCore.prototype.render = function(scene, camera, renderUI, updateRenderList) {
+        updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
+        var renderList;
+        if(updateRenderList) {
+            renderList = scene.updateRenderList(camera);
+        } else {
+            renderList = scene.getRenderList(camera);
+        }
 
         this.renderPass(renderList.opaque, camera, {
             scene: scene,
