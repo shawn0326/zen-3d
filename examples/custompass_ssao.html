@@ -27,7 +27,7 @@
 	<script src="js/pass/SSAOPass.js"></script>
 	<script src="js/shaders/SSAOShader.js"></script>
 
-	<script src="js/shaders/SSAOBlurShader.js"></script>
+	<script src="js/shaders/BlurShader.js"></script>
 </head>
 <body>
 
@@ -164,27 +164,27 @@
 			ssaoPass.uniforms["texSize"][0] = width;
 			ssaoPass.uniforms["texSize"][1] = height;
 
-			var ssaoBlurPass = new zen3d.ShaderPostPass(zen3d.SSAOBlurShader);
-			ssaoBlurPass.material.blending = zen3d.BLEND_TYPE.CUSTOM;
-			ssaoBlurPass.material.blendSrc = zen3d.BLEND_FACTOR.ZERO;
-			ssaoBlurPass.material.blendDst = zen3d.BLEND_FACTOR.SRC_COLOR;
-			ssaoBlurPass.material.depthWrite = false;
-			ssaoBlurPass.material.depthTest = false;
-			ssaoBlurPass.uniforms["projection"] = projection.elements;
-			ssaoBlurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+			var blurPass = new zen3d.ShaderPostPass(zen3d.BlurShader);
+			blurPass.material.blending = zen3d.BLEND_TYPE.CUSTOM;
+			blurPass.material.blendSrc = zen3d.BLEND_FACTOR.ZERO;
+			blurPass.material.blendDst = zen3d.BLEND_FACTOR.SRC_COLOR;
+			blurPass.material.depthWrite = false;
+			blurPass.material.depthTest = false;
+			blurPass.uniforms["projection"] = projection.elements;
+			blurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
 
-			ssaoBlurPass.uniforms["normalTex"] = tempRenderTarget.texture;
-			ssaoBlurPass.uniforms["depthTex"] = useDepthTexture ? tempRenderTarget.depthTexture : tempRenderTarget0.texture;
-			ssaoBlurPass.uniforms["textureSize"][0] = width;
-			ssaoBlurPass.uniforms["textureSize"][1] = height;
+			blurPass.uniforms["normalTex"] = tempRenderTarget.texture;
+			blurPass.uniforms["depthTex"] = useDepthTexture ? tempRenderTarget.depthTexture : tempRenderTarget0.texture;
+			blurPass.uniforms["textureSize"][0] = width;
+			blurPass.uniforms["textureSize"][1] = height;
 
-			ssaoBlurPass.uniforms["blurSize"] = 2;
-			ssaoBlurPass.uniforms["depthRange"] = 0.2;
+			blurPass.uniforms["blurSize"] = 2;
+			blurPass.uniforms["depthRange"] = 0.2;
 
-			// ssaoBlurPass.material.defines["NORMALTEX_ENABLED"] = 0;
-			// ssaoBlurPass.material.defines["DEPTHTEX_ENABLED"] = 0;
+			blurPass.material.defines["NORMALTEX_ENABLED"] = 1;
+			blurPass.material.defines["DEPTHTEX_ENABLED"] = 1;
 			ssaoPass.material.defines["DEPTH_PACKING"] = useDepthTexture ? 0 : 1;
-			ssaoBlurPass.material.defines["DEPTH_PACKING"] = useDepthTexture ? 0 : 1;
+			blurPass.material.defines["DEPTH_PACKING"] = useDepthTexture ? 0 : 1;
 
 			var beauty = true;
 			var ssao = true;
@@ -216,8 +216,8 @@
 			gui.add(ssaoPass.uniforms, "radius").min(0).max(20);
 			gui.add(ssaoPass.uniforms, "bias").min(0).max(5);
 
-			gui.add(ssaoBlurPass.uniforms, "blurSize").min(0).max(2);
-			gui.add(ssaoBlurPass.uniforms, "depthRange").min(0).max(1);
+			gui.add(blurPass.uniforms, "blurSize").min(0).max(2);
+			gui.add(blurPass.uniforms, "depthRange").min(0).max(1);
 
 	        function loop(count) {
 
@@ -267,9 +267,9 @@
 				glCore.state.clearColor(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
-				ssaoBlurPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
-				ssaoBlurPass.uniforms["direction"] = 0;
-				ssaoBlurPass.render(glCore);
+				blurPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+				blurPass.uniforms["direction"] = 0;
+				blurPass.render(glCore);
 
 				glCore.texture.setRenderTarget(backRenderTarget);
 
@@ -280,17 +280,17 @@
 					scene.overrideMaterial = null;
 					glCore.render(scene, camera);
 
-					ssaoBlurPass.material.transparent = true;
+					blurPass.material.transparent = true;
 				}
 
 				if(ssao) {
-					ssaoBlurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
-					ssaoBlurPass.uniforms["direction"] = 1;
-					ssaoBlurPass.render(glCore);
+					blurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
+					blurPass.uniforms["direction"] = 1;
+					blurPass.render(glCore);
 				}
 
 				if(beauty) {
-					ssaoBlurPass.material.transparent = false;
+					blurPass.material.transparent = false;
 				}
 
 	        }
@@ -312,8 +312,8 @@
 				ssaoPass.uniforms["texSize"][0] = width;
 				ssaoPass.uniforms["texSize"][1] = height;
 
-				ssaoBlurPass.uniforms["textureSize"][0] = width;
-				ssaoBlurPass.uniforms["textureSize"][1] = height;
+				blurPass.uniforms["textureSize"][0] = width;
+				blurPass.uniforms["textureSize"][1] = height;
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();

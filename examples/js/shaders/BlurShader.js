@@ -1,16 +1,18 @@
-zen3d.SSAOBlurShader = {
+zen3d.BlurShader = {
 
     defines: {
-        "NORMALTEX_ENABLED": 1,
-		"DEPTHTEX_ENABLED": 1,
-		'DEPTH_PACKING': 0
-    },
-
+        "NORMALTEX_ENABLED": 0,
+		"DEPTHTEX_ENABLED": 0,
+		'DEPTH_PACKING': 0,
+		'KERNEL_SIZE_INT': 5,
+		'KERNEL_SIZE_FLOAT': 5,
+	},
     uniforms: {
 		'tDiffuse': null,
 		'textureSize': [512, 512],
 		'direction': 0, // 0 horizontal, 1 vertical
 		'blurSize': 1,
+		'kernel[0]': [0.122581, 0.233062, 0.288713, 0.233062, 0.122581],
 		'normalTex': null,
 		'depthTex': null,
 		'projection': new Float32Array(16),
@@ -39,8 +41,6 @@ zen3d.SSAOBlurShader = {
 	].join( "\n" ),
 
 	fragmentShader: [
-		"#include <packing>",
-
 		"varying vec2 v_Uv;",
 
         "uniform sampler2D tDiffuse;",
@@ -52,43 +52,46 @@ zen3d.SSAOBlurShader = {
 
 		"uniform float blurSize;",
 
-		"uniform sampler2D depthTex;",
+		"uniform float kernel[KERNEL_SIZE_INT];",
 		
-		"uniform sampler2D normalTex;",
+		"#if NORMALTEX_ENABLED == 1",
+			"uniform sampler2D normalTex;",
+			"uniform mat4 viewInverseTranspose;",
+			"vec3 getViewNormal( const in vec2 screenPosition ) {",
+				"vec3 normal = texture2D( normalTex, screenPosition ).xyz * 2.0 - 1.0;",
+				// Convert to view space
+				"return (viewInverseTranspose * vec4(normal, 0.0)).xyz;",
+			"}",
+		"#endif",
 
-        "uniform mat4 projection;",
-
-        "uniform mat4 viewInverseTranspose;",
-
-        "uniform float depthRange;",
-
-        "float getDepth( const in vec2 screenPosition ) {",
+		"#if DEPTHTEX_ENABLED == 1",
 			"#if DEPTH_PACKING == 1",
-				"return unpackRGBAToDepth( texture2D( depthTex, screenPosition ) );",
-			"#else",
-				"return texture2D( depthTex, screenPosition ).r;",
+				"#include <packing>",
 			"#endif",
-        "}",
-
-        "vec3 getViewNormal( const in vec2 screenPosition ) {",
-            "vec3 normal = texture2D( normalTex, screenPosition ).xyz * 2.0 - 1.0;",
-            // Convert to view space
-			"return (viewInverseTranspose * vec4(normal, 0.0)).xyz;",
-		"}",
-
-        "float getLinearDepth(vec2 coord) {",
-            "float depth = getDepth(coord) * 2.0 - 1.0;",
-            "return projection[3][2] / (depth * projection[2][3] - projection[2][2]);",
-        "}",
+			"uniform sampler2D depthTex;",
+			"uniform mat4 projection;",
+			"uniform float depthRange;",
+			"float getDepth( const in vec2 screenPosition ) {",
+				"#if DEPTH_PACKING == 1",
+					"return unpackRGBAToDepth( texture2D( depthTex, screenPosition ) );",
+				"#else",
+					"return texture2D( depthTex, screenPosition ).r;",
+				"#endif",
+			"}",
+			"float getLinearDepth(vec2 coord) {",
+				"float depth = getDepth(coord) * 2.0 - 1.0;",
+				"return projection[3][2] / (depth * projection[2][3] - projection[2][2]);",
+			"}",
+		"#endif",
 
 		"void main() {",
 
-			"float kernel[5];",
-			"kernel[0] = 0.122581;",
-			"kernel[1] = 0.233062;",
-			"kernel[2] = 0.288713;",
-			"kernel[3] = 0.233062;",
-			"kernel[4] = 0.122581;",
+			// "float kernel[5];",
+			// "kernel[0] = 0.122581;",
+			// "kernel[1] = 0.233062;",
+			// "kernel[2] = 0.288713;",
+			// "kernel[3] = 0.233062;",
+			// "kernel[4] = 0.122581;",
 
 			"vec2 off = vec2(0.0);",
 			"if (direction == 0) {",
@@ -107,8 +110,8 @@ zen3d.SSAOBlurShader = {
 				"float centerDepth = getLinearDepth(v_Uv);",
 			"#endif",
 
-			"for (int i = 0; i < 5; i++) {",
-				"vec2 coord = clamp(v_Uv + vec2(float(i) - 2.0) * off, vec2(0.0), vec2(1.0));",
+			"for (int i = 0; i < KERNEL_SIZE_INT; i++) {",
+				"vec2 coord = clamp(v_Uv + vec2(float(i) - (KERNEL_SIZE_FLOAT - 1.) / 2.) * off, vec2(0.0), vec2(1.0));",
 				"float w = kernel[i];",
 
 				"#if NORMALTEX_ENABLED == 1",

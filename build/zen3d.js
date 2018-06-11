@@ -4764,8 +4764,14 @@
 
         switch (type) {
             case WEBGL_UNIFORM_TYPE.FLOAT:
-                this.setValue = this.set = function(value) {
-                    gl.uniform1f(location, value);
+                if(this.size > 1) {
+                    this.setValue = this.set = function(value) {
+                        gl.uniform1fv(location, value);
+                    }
+                } else {
+                    this.setValue = this.set = function(value) {
+                        gl.uniform1f(location, value);
+                    }
                 }
                 break;
             case WEBGL_UNIFORM_TYPE.SAMPLER_2D:

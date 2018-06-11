@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - custom pass gbuffer</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="../build/zen3d.input.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="./js/shaders/BlurShader.js"></script>
+	<script src="./js/shaders/CopyShader.js"></script>
+	<script src="./js/shaders/LuminosityHighPassShader.js"></script>
+
+	<script src="./js/pass/BlurPass.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass gbuffer
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+			var scene = new zen3d.Scene();
+
+			var monkey = "resources/models/assimp/monkey/monkey.json";
+
+			var loader = new zen3d.AssimpJsonLoader();
+			loader.load(monkey, function(object) {
+				var monkey = object.getObjectByName("Suzanne").children[0];
+				monkey.castShadow = true;
+				monkey.receiveShadow = true;
+				object.scale.set(10, 10, 10);
+				object.position.y = 2;
+				scene.add(object);
+			});
+
+			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.diffuse.setHex(0xffffff);
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        plane.position.y = -10;
+	        scene.add(plane);
+
+			var ambientLight = new zen3d.AmbientLight();
+			ambientLight.color.setHex(0xffffff);
+			ambientLight.intensity = 0.5;
+	        scene.add(ambientLight);
+
+	        var directionalLight = new zen3d.DirectionalLight();
+			directionalLight.intensity = 0.8;
+	        directionalLight.color.setHex(0xffffff);
+			directionalLight.position.set(-30, 30, 0);
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			directionalLight.shadow.windowSize = 100;
+			directionalLight.shadow.bias = -0.04;
+			directionalLight.shadow.radius = 1;
+			directionalLight.shadow.cameraFar = 200;
+			scene.add(directionalLight);
+
+			plane.receiveShadow = true;
+			directionalLight.castShadow = true;
+			directionalLight.shadow.mapSize.set(1024, 1024);
+
+			var camera = new zen3d.Camera();
+			camera.gammaInput = false;
+			camera.gammaOutput = true;
+	        camera.position.set(0, 80, 100);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+	        scene.add(camera);
+
+			// add a hover controller
+			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
+			controller.distance = 120;
+			controller.panAngle = 25;
+			controller.tiltAngle = 25;
+			var mouse = new zen3d.Mouse(canvas);
+			var touch = new zen3d.Touch(canvas);
+			controller.bindMouse = mouse;
+			controller.bindTouch = touch;
+
+			// custom pass
+			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+			var gl = canvas.getContext("webgl", {
+				antialias: true, // antialias
+				alpha: false, // effect performance, default false
+				// premultipliedAlpha: false, // effect performance, default false
+				stencil: true
+			});
+			var glCore = new zen3d.WebGLCore(gl);
+
+			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.generateMipmaps = false;
+
+			var tempRenderTarget1 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget1.generateMipmaps = false;
+
+			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget2.generateMipmaps = false;
+
+			var shadowMapPass = new zen3d.ShadowMapPass();
+
+			var highLightPass = new zen3d.ShaderPostPass(zen3d.LuminosityHighPassShader);
+			highLightPass.uniforms.luminosityThreshold = 0.6;
+			highLightPass.uniforms.tDiffuse = tempRenderTarget.texture;
+
+			var blurPassX = new zen3d.BlurPass(zen3d.BlurShader);
+			blurPassX.uniforms.tDiffuse = tempRenderTarget1.texture;
+			blurPassX.uniforms.textureSize = [width, height];
+			blurPassX.uniforms.blurSize = 3;
+			blurPassX.uniforms.direction = 0;
+			blurPassX.setKernelSize(13);
+
+			var blurPassY = new zen3d.BlurPass(zen3d.BlurShader);
+			blurPassY.uniforms.tDiffuse = tempRenderTarget2.texture;
+			blurPassY.uniforms.textureSize = [width, height];
+			blurPassY.uniforms.blurSize = 3;
+			blurPassY.uniforms.direction = 1;
+			blurPassY.setKernelSize(13);
+
+			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
+
+			// gui
+			var bloomParams = {enable: true, intensity: 0.8, kernelSize: 13};
+			var gui = new dat.GUI();
+			gui.add(bloomParams, "enable");
+			gui.add(highLightPass.uniforms, "luminosityThreshold").min(0).max(1);
+			gui.add(blurPassX.uniforms, "blurSize").min(0).max(10);
+			gui.add(blurPassY.uniforms, "blurSize").min(0).max(10);
+			gui.add(bloomParams, "intensity").min(0).max(2);
+			gui.add(bloomParams, "kernelSize", [5, 9, 13]).onChange(function(val) {
+				console.log(val)
+				blurPassX.setKernelSize(val);
+				blurPassY.setKernelSize(val);
+			});
+
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+
+				controller.update();
+				mouse.update();
+				touch.update();
+
+				// do render pass
+				scene.updateMatrix();
+				scene.updateLights();
+
+				shadowMapPass.render(glCore, scene);
+
+				glCore.texture.setRenderTarget(tempRenderTarget);
+				glCore.state.clearColor(0, 0, 0, 0);
+            	glCore.clear(true, true, true);
+				glCore.render(scene, camera);
+
+				glCore.texture.setRenderTarget(tempRenderTarget1);
+				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+				highLightPass.render(glCore);
+
+				glCore.texture.setRenderTarget(tempRenderTarget2);
+				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+				blurPassX.render(glCore);
+
+				glCore.texture.setRenderTarget(tempRenderTarget1);
+				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+				blurPassY.render(glCore);
+
+				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+				copyPass.material.transparent = false;
+				copyPass.uniforms.tDiffuse = tempRenderTarget.texture;
+				copyPass.uniforms.opacity = 1;
+				copyPass.render(glCore);
+
+				if(bloomParams.enable) {
+					glCore.texture.setRenderTarget(backRenderTarget);
+					// glCore.state.clearColor(0, 0, 0, 0);
+					// glCore.clear(true, true, true);
+					copyPass.material.transparent = true;
+					copyPass.material.blending = zen3d.BLEND_TYPE.ADD;
+					copyPass.uniforms.tDiffuse = tempRenderTarget1.texture;
+					copyPass.uniforms.opacity = bloomParams.intensity;
+					copyPass.render(glCore);
+				}
+
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+
+				backRenderTarget.resize(width, height);
+				tempRenderTarget.resize(width, height);
+				tempRenderTarget1.resize(width, height);
+
+				blurPassX.uniforms.textureSize = [width, height];
+				blurPassY.uniforms.textureSize = [width, height];
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

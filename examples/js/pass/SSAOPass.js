@@ -32,22 +32,6 @@
         return texture;
     }
 
-    // Generate halton sequence
-    // https://en.wikipedia.org/wiki/Halton_sequence
-    // halton数列，用来产生0-1的均匀分布的一组数据
-    // index 为采样位置，base为基数（任意质数）
-    function halton(index, base) {
-        var result = 0;
-        var f = 1 / base;
-        var i = index;
-        while (i > 0) {
-            result = result + f * (i % base);
-            i = Math.floor(i / base);
-            f = f / base;
-        }
-        return result;
-    }
-
     var halton = zen3d.halton;
 
     // 生成采样偏移数组
