@@ -38,6 +38,8 @@
     
     SuperSampling.prototype = Object.assign(SuperSampling.prototype, {
 
+        constructor: SuperSampling,
+
         resize: function(width, height) {
             this._prevFrame.resize(width, height);
             this._output.resize(width, height);
@@ -49,6 +51,10 @@
 
         finished: function() {
             return this._frame >= this._samplingSize;
+        },
+
+        frame: function() {
+            return this._frame;
         },
 
         /**

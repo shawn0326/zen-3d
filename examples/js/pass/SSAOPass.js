@@ -59,15 +59,24 @@
     var SSAOPass = function() {
         SSAOPass.superClass.constructor.call(this, zen3d.SSAOShader);
 
+        this._kernels = {};
+
         this.setNoiseSize(4);
         this.setKernelSize(12); // 12
     }
 
     zen3d.inherit(SSAOPass, zen3d.ShaderPostPass);
 
-    SSAOPass.prototype.setKernelSize = function(size) {
-       this.material.defines["KERNEL_SIZE"] = size;
-       this.material.uniforms["kernel[0]"] = generateKernel(size, undefined, true);
+    SSAOPass.prototype.setKernelSize = function(size, offset) {
+        offset = (offset !== undefined) ? offset : 0;
+
+        var code = size + "_" + offset;
+        if(!this._kernels[code]) {
+            this._kernels[code] = generateKernel(size, offset * size, true);
+        }
+
+        this.material.defines["KERNEL_SIZE"] = size;
+        this.material.uniforms["kernel[0]"] = this._kernels[code];
     }
 
     SSAOPass.prototype.setNoiseSize = function(size) {
