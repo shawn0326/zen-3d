@@ -4,8 +4,8 @@ zen3d.BlurShader = {
         "NORMALTEX_ENABLED": 0,
 		"DEPTHTEX_ENABLED": 0,
 		'DEPTH_PACKING': 0,
-		'KERNEL_SIZE_INT': 5,
-		'KERNEL_SIZE_FLOAT': 5,
+		'KERNEL_SIZE_INT': '5',
+		'KERNEL_SIZE_FLOAT': '5.0',
 	},
     uniforms: {
 		'tDiffuse': null,
