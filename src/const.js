@@ -277,9 +277,9 @@
     zen3d.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
 
     var ENVMAP_COMBINE_TYPE = {
-        MULTIPLY: "multiply",
-        MIX: "mix",
-        ADD: "add"
+        MULTIPLY: "ENVMAP_BLENDING_MULTIPLY",
+        MIX: "ENVMAP_BLENDING_MIX",
+        ADD: "ENVMAP_BLENDING_ADD"
     }
 
     zen3d.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
