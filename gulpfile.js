@@ -37,6 +37,7 @@ var filesSrc = [
     "core/math/Ray.js",
     "core/math/Triangle.js",
     "core/math/Curve.js",
+    "core/math/Spherical.js",
 
     // event
     "core/EventDispatcher.js",
