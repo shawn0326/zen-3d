@@ -1581,6 +1581,19 @@
         return this;
     }
 
+    Matrix3.prototype.setUvTransform = function ( tx, ty, sx, sy, rotation, cx, cy ) {
+
+		var c = Math.cos( rotation );
+		var s = Math.sin( rotation );
+
+		this.set(
+			sx * c, sx * s, - sx * ( c * cx + s * cy ) + cx + tx,
+			- sy * s, sy * c, - sy * ( - s * cx + c * cy ) + cy + ty,
+			0, 0, 1
+		);
+
+	}
+
     Matrix3.prototype.setFromMatrix4 = function ( m ) {
 
 		var me = m.elements;
@@ -4222,6 +4235,7 @@
 
             var isPowerOfTwoImage = isPowerOfTwo(image);
 
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, isPowerOfTwoImage);
 
             var mipmap, mipmaps = texture.mipmaps,
@@ -4292,6 +4306,7 @@
             var image = images[0];
             var isPowerOfTwoImage = isPowerOfTwo(image);
 
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, isPowerOfTwoImage);
 
             var pixelFormat = texture.pixelFormat,
@@ -5367,6 +5382,18 @@
                         var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
                         gl.uniform4fv(uniform.location, planesData);
                         break;
+                    case "uvTransform":
+                        var uvScaleMap;
+                        uvScaleMap = material.diffuseMap || 
+                            material.specularMap || material.normalMap || material.bumpMap ||
+                            material.roughnessMap || material.metalnessMap || material.emissiveMap;
+                        if(uvScaleMap) {
+                            if(uvScaleMap.matrixAutoUpdate) {
+                                uvScaleMap.updateMatrix();
+                            }
+                            uniform.setValue(uvScaleMap.matrix.elements);
+                        }
+                        break;
                     default:
                         // upload custom uniforms
                         if(material.uniforms && material.uniforms[key] !== undefined) {
@@ -5927,8 +5954,8 @@ tbn: "mat3 tbn(vec3 N, vec3 p, vec2 uv) {\n    vec3 dp1 = dFdx(p.xyz);\n    vec3
 transpose: "mat4 transpose(mat4 inMatrix) {\n    vec4 i0 = inMatrix[0];\n    vec4 i1 = inMatrix[1];\n    vec4 i2 = inMatrix[2];\n    vec4 i3 = inMatrix[3];\n    mat4 outMatrix = mat4(\n        vec4(i0.x, i1.x, i2.x, i3.x),\n        vec4(i0.y, i1.y, i2.y, i3.y),\n        vec4(i0.z, i1.z, i2.z, i3.z),\n        vec4(i0.w, i1.w, i2.w, i3.w)\n    );\n    return outMatrix;\n}",
 tsn: "mat3 tsn(vec3 N, vec3 V, vec2 uv) {\n    vec3 q0 = dFdx( V.xyz );\n    vec3 q1 = dFdy( V.xyz );\n    vec2 st0 = dFdx( uv.st );\n    vec2 st1 = dFdy( uv.st );\n    vec3 S = normalize( q0 * st1.t - q1 * st0.t );\n    vec3 T = normalize( -q0 * st1.s + q1 * st0.s );\n    mat3 tsn = mat3( S, T, N );\n    return tsn;\n}",
 uv_pars_frag: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    varying vec2 v_Uv;\n#endif\n#ifdef USE_AOMAP\n    varying vec2 v_Uv2;\n#endif",
-uv_pars_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    attribute vec2 a_Uv;\n    varying vec2 v_Uv;\n#endif\n#ifdef USE_AOMAP\n    attribute vec2 a_Uv2;\n    varying vec2 v_Uv2;\n#endif\n",
-uv_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    v_Uv = a_Uv;\n#endif\n#ifdef USE_AOMAP\n    v_Uv2 = a_Uv2;\n#endif",
+uv_pars_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    attribute vec2 a_Uv;\n    varying vec2 v_Uv;\n    uniform mat3 uvTransform;\n#endif\n#ifdef USE_AOMAP\n    attribute vec2 a_Uv2;\n    varying vec2 v_Uv2;\n#endif\n",
+uv_vert: "#if defined(USE_DIFFUSE_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP)\n    v_Uv = (uvTransform * vec3(a_Uv, 1)).xy;\n#endif\n#ifdef USE_AOMAP\n    v_Uv2 = a_Uv2;\n#endif",
 viewModelPos_pars_frag: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || defined(NUM_CLIPPING_PLANES) \n    varying vec3 v_modelPos;\n#endif",
 viewModelPos_pars_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR)|| defined(NUM_CLIPPING_PLANES)\n    varying vec3 v_modelPos;\n#endif",
 viewModelPos_vert: "#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || defined(NUM_CLIPPING_PLANES)\n    v_modelPos = (u_Model * vec4(transformed, 1.0)).xyz;\n#endif",
@@ -7920,6 +7947,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.encoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
 
+        this.flipY = true;
+
         this.version = 0;
     }
 
@@ -7945,9 +7974,23 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.image = null;
         this.mipmaps = [];
+
+        // uv transform
+        this.offset = new zen3d.Vector2();
+        this.repeat = new zen3d.Vector2(1, 1);
+        this.center = new zen3d.Vector2();
+        this.rotation = 0;
+
+        this.matrix = new zen3d.Matrix3();
+
+        this.matrixAutoUpdate = true;
     }
 
     zen3d.inherit(Texture2D, zen3d.TextureBase);
+
+    Texture2D.prototype.updateMatrix = function() {
+        this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
+    }
 
     Texture2D.fromImage = function(image) {
         var texture = new Texture2D();
@@ -7991,6 +8034,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.textureType = zen3d.WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
 
         this.images = [];
+
+        this.flipY = false;
     }
 
     zen3d.inherit(TextureCube, zen3d.TextureBase);
@@ -8057,6 +8102,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 
         this.generateMipmaps = false;
+
+        this.flipY = false;
     }
 
     zen3d.inherit(TextureData, zen3d.Texture2D);
@@ -8082,6 +8129,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 
         this.generateMipmaps = false;
+
+        this.flipY = false;
     }
 
     zen3d.inherit(TextureDepth, zen3d.Texture2D);
@@ -10741,7 +10790,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             // uv1
             if (texturecoords) {
                 g_v.push(texturecoords[i * 2 + 0]);
-                g_v.push(1 - texturecoords[i * 2 + 1]);
+                g_v.push(texturecoords[i * 2 + 1]);
             } else {
                 g_v.push(0);
                 g_v.push(0);
@@ -12997,13 +13046,15 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
             }
 
+            texture.flipY = false;
+
             // if ( textureDef.name !== undefined ) texture.name = textureDef.name;
 
             texture.pixelFormat = textureDef.format !== undefined ? WEBGL_TEXTURE_FORMATS[textureDef.format] : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
 
             if (textureDef.internalFormat !== undefined && texture.pixelFormat !== WEBGL_TEXTURE_FORMATS[textureDef.internalFormat]) {
 
-                console.warn('zen3d.GLTFLoader: Three.js does not support texture internalFormat which is different from texture format. ' +
+                console.warn('zen3d.GLTFLoader: zen3d.js does not support texture internalFormat which is different from texture format. ' +
                     'internalFormat will be forced to be the same value as format.');
 
             }

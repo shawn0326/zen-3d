@@ -313,6 +313,18 @@
                         var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
                         gl.uniform4fv(uniform.location, planesData);
                         break;
+                    case "uvTransform":
+                        var uvScaleMap;
+                        uvScaleMap = material.diffuseMap || 
+                            material.specularMap || material.normalMap || material.bumpMap ||
+                            material.roughnessMap || material.metalnessMap || material.emissiveMap;
+                        if(uvScaleMap) {
+                            if(uvScaleMap.matrixAutoUpdate) {
+                                uvScaleMap.updateMatrix();
+                            }
+                            uniform.setValue(uvScaleMap.matrix.elements);
+                        }
+                        break;
                     default:
                         // upload custom uniforms
                         if(material.uniforms && material.uniforms[key] !== undefined) {

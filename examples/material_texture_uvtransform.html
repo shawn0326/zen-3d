@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - mipmap</title>
+	<title>zen3d - uv transform</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -26,7 +26,7 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - mipmap
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - uv transform
     </div>
 
 	<script>
@@ -44,8 +44,9 @@
 
 	        var scene = new zen3d.Scene();
 
-			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			var texture = new zen3d.Texture2D.fromSrc("resources/UV_Grid_Sm.jpg");
 			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+			texture.wrapS = texture.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
 
 			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
 			var material = new zen3d.BasicMaterial();
@@ -54,42 +55,43 @@
 			scene.add(cube);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			// camera.gammaOutput = true;
 	        camera.position.set(0, 10, 30);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+			scene.add(camera);
+			
+			function updateUvTransform() {
+				texture.offset.set( API.offsetX, API.offsetY );
+				texture.repeat.set( API.repeatX, API.repeatY );
+				texture.center.set( API.centerX, API.centerY );
+				texture.rotation = API.rotation; // rotation is around [ 0.5, 0.5 ]
+			}
 
 			// gui
-			var params = {minFilter: "LINEAR"};
+			var API = {
+				offsetX: 0,
+				offsetY: 0,
+				repeatX: 1,
+				repeatY: 1,
+				rotation: 0, // positive is counter-clockwise
+				centerX: 0.5,
+				centerY: 0.5
+			};
 			var gui = new dat.GUI();
-			gui.add(params, "minFilter", ["LINEAR", "NEAREST", "LINEAR_MIPMAP_LINEAR", "NEAREST_MIPMAP_NEAREST"]).onChange(function(value) {
-				switch (value) {
-					case "LINEAR":
-						texture.generateMipMaps = false;
-						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-						break;
-					case "NEAREST":
-						texture.generateMipMaps = false;
-						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-						break;
-					case "LINEAR_MIPMAP_LINEAR":
-						texture.generateMipMaps = true;
-						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
-						break;
-					case "NEAREST_MIPMAP_NEAREST":
-						texture.generateMipMaps = true;
-						texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST_MIPMAP_NEAREST;
-						break;
-				}
-				texture.version++;
-			});
-			gui.close();
+			gui.add(API, "offsetX", 0.0, 1.0).name("offset.x").onChange(updateUvTransform);
+			gui.add(API, "offsetY", 0.0, 1.0).name("offset.y").onChange(updateUvTransform);
+			gui.add(API, "repeatX", 0.25, 2.0).name("repeat.x").onChange(updateUvTransform);
+			gui.add(API, "repeatY", 0.25, 2.0).name("repeat.y").onChange(updateUvTransform);
+			gui.add(API, "rotation", -2.0, 2.0, 0.1).name('rotation').onChange(updateUvTransform);
+			gui.add(API, "centerX", 0.0, 1.0).name("center.x").onChange(updateUvTransform);
+			gui.add(API, "centerY", 0.0, 1.0).name("center.y").onChange(updateUvTransform);
+			// gui.close();
+
+			updateUvTransform();
 
 	        function loop(count) {
 
-	            requestAnimationFrame(loop);
+				requestAnimationFrame(loop);
 
 				// rotate camera
 				camera.position.x = 30 * Math.sin(count / 1000 * .5);

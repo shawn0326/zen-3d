@@ -105,6 +105,7 @@
 
             var isPowerOfTwoImage = isPowerOfTwo(image);
 
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, isPowerOfTwoImage);
 
             var mipmap, mipmaps = texture.mipmaps,
@@ -175,6 +176,7 @@
             var image = images[0];
             var isPowerOfTwoImage = isPowerOfTwo(image);
 
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, isPowerOfTwoImage);
 
             var pixelFormat = texture.pixelFormat,

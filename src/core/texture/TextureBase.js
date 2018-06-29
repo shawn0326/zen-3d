@@ -28,6 +28,8 @@
 
         this.encoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
 
+        this.flipY = true;
+
         this.version = 0;
     }
 

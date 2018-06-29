@@ -9,6 +9,8 @@
         this.textureType = zen3d.WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
 
         this.images = [];
+
+        this.flipY = false;
     }
 
     zen3d.inherit(TextureCube, zen3d.TextureBase);

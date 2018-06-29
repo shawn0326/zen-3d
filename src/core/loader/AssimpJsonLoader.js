@@ -399,7 +399,7 @@
             // uv1
             if (texturecoords) {
                 g_v.push(texturecoords[i * 2 + 0]);
-                g_v.push(1 - texturecoords[i * 2 + 1]);
+                g_v.push(texturecoords[i * 2 + 1]);
             } else {
                 g_v.push(0);
                 g_v.push(0);

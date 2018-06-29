@@ -11,6 +11,8 @@
         this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 
         this.generateMipmaps = false;
+
+        this.flipY = false;
     }
 
     zen3d.inherit(TextureData, zen3d.Texture2D);
