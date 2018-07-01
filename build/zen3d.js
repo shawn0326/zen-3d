@@ -1226,6 +1226,19 @@
     }
 
     /**
+     * setFromSpherical
+     */
+    Vector3.prototype.setFromSpherical = function (s) {
+		var sinPhiRadius = Math.sin( s.phi ) * s.radius;
+
+		this.x = sinPhiRadius * Math.sin( s.theta );
+		this.y = Math.cos( s.phi ) * s.radius;
+		this.z = sinPhiRadius * Math.cos( s.theta );
+
+		return this;
+	}
+
+    /**
      * unproject
      */
     Vector3.prototype.unproject = function() {
@@ -3607,7 +3620,7 @@
     }
 
     zen3d.Spherical = Spherical;
-});
+})();
 (function() {
     /**
      * EventDispatcher Class

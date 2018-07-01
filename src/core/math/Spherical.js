@@ -64,4 +64,4 @@
     }
 
     zen3d.Spherical = Spherical;
-});
+})();
