@@ -13,7 +13,7 @@
     // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
     //
     //    Orbit - left mouse / touch: one-finger move
-    //    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
+    //    Dolly - middle mouse, or mousewheel / touch: two-finger spread or squish
     //    Pan - right mouse, or arrow keys / touch: two-finger move
 
     function OrbitControls(object, domElement) {
@@ -74,7 +74,7 @@
         this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
 
         // Mouse buttons
-        this.mouseButtons = { ORBIT: 0, ZOOM: 1, PAN: 2 };
+        this.mouseButtons = { ORBIT: 0, DOLLY: 1, PAN: 2 };
         
         // for reset
         this.target0 = this.target.clone();
@@ -322,6 +322,11 @@
 
             var offset = new zen3d.Vector3();
 
+            var project = new zen3d.Matrix4();
+            var projectInv = new zen3d.Matrix4();
+
+            var p = new zen3d.Vector3();
+
             return function pan( deltaX, deltaY ) {
 
                 var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
@@ -329,10 +334,17 @@
                 var position = scope.object.position;
 				offset.copy( position ).sub( scope.target );
                 var targetDistance = offset.getLength();
-                
-                // TODO calculate distance
-                var distance = 10;
 
+                project.copy(scope.object.projectionMatrix);
+                projectInv.getInverse(project);
+
+                var depth = p.set(0, 0, targetDistance).applyProjection(project).z;
+
+                // full-screen to world distance
+                var distance = p.set(0, -0.5, depth).applyProjection(projectInv).y;
+                distance *= 2;
+
+                // we use only clientHeight here so aspect ratio does not distort speed
                 panLeft( deltaX * distance / element.clientHeight, scope.object.matrix );
                 panUp( deltaY * distance / element.clientHeight, scope.object.matrix );
 
@@ -620,7 +632,7 @@
     
                     break;
     
-                case scope.mouseButtons.ZOOM:
+                case scope.mouseButtons.DOLLY:
     
                     if ( scope.enableDollying === false ) return;
     

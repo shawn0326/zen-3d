@@ -354,7 +354,13 @@
 
 		};
 
-	}();
+    }();
+    
+    Quaternion.prototype.multiply = function ( q ) {
+
+		return this.multiplyQuaternions( this, q );
+
+	}
 
     Quaternion.prototype.premultiply = function ( q ) {
 

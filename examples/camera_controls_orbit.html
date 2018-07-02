@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - cameras</title>
+	<title>zen3d - orbit controller</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -26,9 +26,7 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - cameras
-		<br/>
-		press 't' to toggle camera to perspective / orthographic
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - orbit controller
     </div>
 
 	<script>
@@ -50,14 +48,14 @@
 
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
-	        var sphere1 = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere1);
+	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
+			scene.add(sphere);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xf0f0f0);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
+	        plane.position.y = -5;
 	        scene.add(plane);
 
 	        var ambientLight = new zen3d.AmbientLight();
@@ -78,39 +76,26 @@
 	        scene.add(lightBall);
 
 	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 80, 100);
+	        camera.position.set(40, 80, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			// input
-			var isOthographic = true;
-
-			function toggle() {
-				isOthographic = !isOthographic;
-
-				if(isOthographic) {
-					camera.setOrtho(- width / 4 / 2, width / 4 / 2, - height / 4 / 2, height / 4 / 2, 20, 1000);
-				} else {
-					camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-				}
-			}
-
-			toggle();
-
-			document.onkeydown = function(e) {
-				if(e.keyCode == 84) { // 't'
-					toggle();
-				}
-			}
-			
 			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.autoRotate = true;
+			controller.enableDamping = true;
+			controller.dampingFactor = 0.2;
+			controller.rotateSpeed = 0.2;
+			controller.screenSpacePanning = true;
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
-				controller.update();
+				var change = controller.update();
+
+				if(change) {
+					console.info("camera changing");
+				}
 
 	            renderer.render(scene, camera);
 	        }
@@ -121,11 +106,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				if(isOthographic) {
-					camera.setOrtho(- width / 4 / 2, width / 4 / 2, - height / 4 / 2, height / 4 / 2, 20, 1000);
-				} else {
-					camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-				}
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
 				renderer.backRenderTarget.resize(width, height);
 			}
