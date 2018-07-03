@@ -22,7 +22,7 @@
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="../build/zen3d.vox.js"></script>
-	<script src="../build/zen3d.input.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
@@ -83,28 +83,18 @@
 			var camera = new zen3d.Camera();
 			camera.gammaInput = true;
 			camera.gammaOutput = true;
-	        camera.position.set(0, 4, 10);
+	        camera.position.set(40, 40, 80);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 2000);
 	        scene.add(camera);
 
-			// add a hover controller
-			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 120;
-			controller.panAngle = 25;
-			controller.tiltAngle = 25;
-			var mouse = new zen3d.Mouse(canvas);
-			var touch = new zen3d.Touch(canvas);
-			controller.bindMouse = mouse;
-			controller.bindTouch = touch;
+			var controller = new zen3d.OrbitControls(camera, canvas);
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
 				controller.update();
-				mouse.update();
-				touch.update();
 
 	            renderer.render(scene, camera);
 	        }

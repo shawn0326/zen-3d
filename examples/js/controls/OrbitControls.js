@@ -108,7 +108,7 @@
             scope.target.copy( scope.target0 );
             scope.object.position.copy( scope.position0 );
 
-            scope.update();
+            // scope.update();
     
             state = STATE.NONE;
     
@@ -189,7 +189,7 @@
 
                 if ( lastPosition.distanceToSquared( scope.object.position ) > EPS ||
                     8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS ) {
-    
+               
                     lastPosition.copy( scope.object.position );
                     lastQuaternion.copy( scope.object.quaternion );
     
@@ -410,7 +410,7 @@
     
             rotateStart.copy( rotateEnd );
     
-            scope.update();
+            // scope.update();
     
         }
 
@@ -434,7 +434,7 @@
     
             dollyStart.copy( dollyEnd );
     
-            scope.update();
+            // scope.update();
     
         }
 
@@ -450,7 +450,7 @@
     
             panStart.copy( panEnd );
     
-            scope.update();
+            // scope.update();
     
         }
 
@@ -474,7 +474,7 @@
     
             }
     
-            scope.update();
+            // scope.update();
     
         }
 
@@ -486,22 +486,22 @@
     
                 case scope.keys.UP:
                     pan( 0, scope.keyPanSpeed );
-                    scope.update();
+                    // scope.update();
                     break;
     
                 case scope.keys.BOTTOM:
                     pan( 0, - scope.keyPanSpeed );
-                    scope.update();
+                    // scope.update();
                     break;
     
                 case scope.keys.LEFT:
                     pan( scope.keyPanSpeed, 0 );
-                    scope.update();
+                    // scope.update();
                     break;
     
                 case scope.keys.RIGHT:
                     pan( - scope.keyPanSpeed, 0 );
-                    scope.update();
+                    // scope.update();
                     break;
     
             }
@@ -560,7 +560,7 @@
     
             rotateStart.copy( rotateEnd );
     
-            scope.update();
+            // scope.update();
     
         }
 
@@ -600,7 +600,7 @@
     
             }
     
-            scope.update();
+            // scope.update();
     
         }
 

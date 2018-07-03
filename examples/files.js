@@ -87,7 +87,8 @@ var files = {
 		"custompass_car",
 		"custompass_gbuffer",
 		"custompass_ssao",
-		"custompass_taa"
+		"custompass_taa",
+		"custompass_bloom"
 	],
 	"webgl": [
 		"webgl_clippingplanes"

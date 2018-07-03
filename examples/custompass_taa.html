@@ -24,8 +24,9 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="../build/zen3d.input.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="./js/controls/OrbitControls.js"></script>
 
 	<script src="./js/shaders/SkyBoxShader.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
@@ -80,17 +81,12 @@
 			var camera = new zen3d.Camera();
 			camera.gammaInput = true;
 			// camera.gammaOutput = true;
-	        camera.position.set(0, 10, 30);
+	        camera.position.set(10, 10, 30);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 35;
-			var mouse = new zen3d.Mouse(canvas);
-			var touch = new zen3d.Touch(canvas);
-			controller.bindMouse = mouse;
-			controller.bindTouch = touch;
+			var controller = new zen3d.OrbitControls(camera, canvas);
 
 			// custom pass
 
@@ -118,8 +114,6 @@
 				requestAnimationFrame(loop);
 
 				var change = controller.update();
-				mouse.update();
-				touch.update();
 
 				if(change || sceneChange) {
 					superSampling.start();
