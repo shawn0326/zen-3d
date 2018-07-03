@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - freecontroller</title>
+	<title>zen3d - free controller</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -21,16 +21,13 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="../build/zen3d.input.js"></script>
+	<script src="./js/controls/FreeControls.js"></script>
+	<script src="./js/Clock.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - freecontroller
-		<br/>
-		use "w,a,s,d,e,q" key to move camera.
-		<br/>
-		mouse drag to rotate camera
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - free controller
     </div>
 
 	<script>
@@ -85,23 +82,18 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			// add a free controller
-			var controller = new zen3d.FreeController(camera);
-			var keyboard = new zen3d.Keyboard(window);
-			var mouse = new zen3d.Mouse(canvas);
-			controller.bindKeyboard = keyboard;
-			controller.bindMouse = mouse;
+			var controller = new zen3d.FreeControls(camera, canvas);
+
+			var clock = new zen3d.Clock();
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
-				var change = controller.update();
-				keyboard.update();
-				mouse.update();
+				var change = controller.update(clock.getDelta());
 
 				if(change) {
-					console.info("camera changing");
+					console.info('camera change');
 				}
 
 	            renderer.render(scene, camera);

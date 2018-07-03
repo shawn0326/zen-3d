@@ -37,10 +37,9 @@ var files = {
 	"camera": [
 		"camera_cameras",
 		"camera_multiple",
-		"camera_controller_hover",
-		"camera_controller_free",
 		"camera_controls_orbit",
-		"camera_controls_fly"
+		"camera_controls_fly",
+		"camera_controls_free"
 	],
 	"scene": [
 		"scene_fog",

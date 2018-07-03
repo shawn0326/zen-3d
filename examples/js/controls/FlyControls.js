@@ -180,9 +180,10 @@
         var EPS = 0.000001;
 
         this.update = function ( delta ) {
+            delta = delta || 0.0166;
 
-            var moveMult = delta * this.movementSpeed;
-            var rotMult = delta * this.rollSpeed;
+            var moveMult = delta * this.movementSpeed / 0.0166;
+            var rotMult = delta * this.rollSpeed / 0.0166;
 
             tempVector.set(1, 0, 0).applyQuaternion(this.object.quaternion).multiplyScalar(this.moveVector.x * moveMult);
             this.object.position.add(tempVector);

@@ -78,8 +78,8 @@
 				centerY: 0.5
 			};
 			var gui = new dat.GUI();
-			gui.add(API, "offsetX", 0.0, 1.0).name("offset.x").onChange(updateUvTransform);
-			gui.add(API, "offsetY", 0.0, 1.0).name("offset.y").onChange(updateUvTransform);
+			gui.add(API, "offsetX", 0.0, 1.0, 0.01).name("offset.x").onChange(updateUvTransform);
+			gui.add(API, "offsetY", 0.0, 1.0, 0.01).name("offset.y").onChange(updateUvTransform);
 			gui.add(API, "repeatX", 0.25, 2.0).name("repeat.x").onChange(updateUvTransform);
 			gui.add(API, "repeatY", 0.25, 2.0).name("repeat.y").onChange(updateUvTransform);
 			gui.add(API, "rotation", -2.0, 2.0, 0.1).name('rotation').onChange(updateUvTransform);

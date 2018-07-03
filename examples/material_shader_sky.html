@@ -22,7 +22,7 @@
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
-	<script src="../build/zen3d.input.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/shaders/SkyShader.js"></script>
 	<script src="./js/objects/Sky.js"></script>
 	<script src="./js/objects/GridHelper.js"></script>
@@ -61,20 +61,14 @@
 
 			var sky = new zen3d.Sky();
 
-	        var camera = new zen3d.Camera();
+			var camera = new zen3d.Camera();
+			camera.position.set(0, 0, 100);
 			camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 2000000);
 			camera.add(sky);
 			scene.add(camera);
 
 			// add a hover controller
-			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 100;
-			controller.panAngle = 0;
-			controller.tiltAngle = 0;
-			var mouse = new zen3d.Mouse(canvas);
-			var touch = new zen3d.Touch(canvas);
-			controller.bindMouse = mouse;
-			controller.bindTouch = touch;
+			var controller = new zen3d.OrbitControls(camera, canvas);
 			
 			/// GUI
 
@@ -136,8 +130,6 @@
 	            requestAnimationFrame(loop);
 
 				controller.update();
-				mouse.update();
-				touch.update();
 
 	            renderer.render(scene, camera);
 	        }

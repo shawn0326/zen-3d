@@ -82,9 +82,6 @@
 	        scene.add(camera);
 
 			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.enableDamping = true;
-			controller.dampingFactor = 0.2;
-			controller.rotateSpeed = 0.2;
 			controller.screenSpacePanning = true;
 
 	        function loop(count) {

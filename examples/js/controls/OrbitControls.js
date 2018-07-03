@@ -44,7 +44,7 @@
 
         // Set to true to enable damping (inertia)
         // If damping is enabled, you must call controls.update() in your animation loop
-        this.enableDamping = false;
+        this.enableDamping = true;
         this.dampingFactor = 0.25;
 
         // This option enables dollying in and out.
@@ -54,7 +54,7 @@
 
         // Set to false to disable rotating
         this.enableRotate = true;
-        this.rotateSpeed = 1.0;
+        this.rotateSpeed = 0.25;
 
         // Set to false to disable panning
         this.enablePan = true;

@@ -21,7 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="../build/zen3d.input.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/shaders/SkyBoxShader.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
 </head>
@@ -133,21 +133,14 @@
 			var camera = new zen3d.Camera();
 			camera.gammaInput = true;
 			camera.gammaOutput = true;
-			camera.position.set(1000, 1000, 1000);
+			camera.position.set(1000, 900, 1000);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
 			camera.add(sky_box);
 			scene.add(camera);
 			
 			// add a hover controller
-			var controller = new zen3d.HoverController(camera, new zen3d.Vector3(0, 0, 0));
-			controller.distance = 1300;
-			controller.panAngle = 40;
-			controller.tiltAngle = 30;
-			var mouse = new zen3d.Mouse(canvas);
-			var touch = new zen3d.Touch(canvas);
-			controller.bindMouse = mouse;
-			controller.bindTouch = touch;
+			var controller = new zen3d.OrbitControls(camera, canvas);
 
 	        function loop(count) {
 
@@ -160,8 +153,6 @@
 				particleLight.position.z = Math.cos( timer * 3 ) * 300;
 
 				controller.update();
-				mouse.update();
-				touch.update();
 
 	            renderer.render(scene, camera);
 	        }
