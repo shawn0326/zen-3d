@@ -57,7 +57,8 @@ var files = {
 		"points_sprites"
 	],
 	"lines": [
-		"lines_lines"
+		"lines_lines",
+		"lines_dashedlines"
 	],
 	"canvas2d": [
 		"canvas2d_canvas2d"
