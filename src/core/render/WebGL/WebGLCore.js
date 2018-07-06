@@ -839,13 +839,13 @@
                 } else {
                     gl.enableVertexAttribArray(programAttribute.location);
 
-                    if(data && data.isInstancedBufferAttribute) {
+                    if(geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
                         if(!angleInstancedArraysExt) {
                             console.warn("ANGLE_instanced_arrays not supported");
                         }
-                        angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
                         if ( geometry.maxInstancedCount === undefined ) {
-                            geometry.maxInstancedCount = data.meshPerAttribute * data.count;
+                            geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count;
                         }
                     }
 

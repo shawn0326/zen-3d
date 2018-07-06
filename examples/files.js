@@ -92,6 +92,7 @@ var files = {
 		"custompass_bloom"
 	],
 	"webgl": [
-		"webgl_clippingplanes"
+		"webgl_clippingplanes",
+		"webgl_instanced_draw"
 	]
 };

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - instanced draw</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="./js/Clock.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - instanced draw
+	</div>
+	
+	<script id="vertexShader" type="x-shader/x-vertex">
+		attribute vec3 a_Position;
+		uniform mat4 u_Projection;
+        uniform mat4 u_View;
+		uniform mat4 u_Model;
+		
+		attribute vec3 instanceColor;
+		attribute vec3 instancePosition;
+		attribute vec4 instanceQuaternion;
+		attribute vec3 instanceScale;
+
+		varying vec3 vColor;
+
+		vec3 applyTRS( vec3 position, vec3 translation, vec4 quaternion, vec3 scale ) {
+			position *= scale;
+			position += 2.0 * cross( quaternion.xyz, cross( quaternion.xyz, position ) + quaternion.w * position );
+			return position + translation;
+		}
+
+		void main(){
+			vColor = instanceColor;
+			vec3 transformed = applyTRS( a_Position.xyz, instancePosition, instanceQuaternion, instanceScale );
+			gl_Position = u_Projection * u_View * u_Model * vec4( transformed, 1.0 );
+		}
+	</script>
+
+	<script id="fragmentShader" type="x-shader/x-fragment">
+		varying vec3 vColor;
+		void main() {
+			gl_FragColor = vec4( vColor, 1.0 );
+		}
+	</script>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+			var scene = new zen3d.Scene();
+			
+			var shaderMaterial = new zen3d.ShaderMaterial(
+				document.getElementById( 'vertexShader' ).textContent,
+				document.getElementById( 'fragmentShader' ).textContent,
+				{}
+			);
+
+	        var monkey = "resources/models/assimp/monkey/monkey.json";
+
+			var loader = new zen3d.AssimpJsonLoader();
+			loader.load(monkey, function(object) {
+				var monkey = object.getObjectByName("Suzanne").children[0];
+				var geometry = monkey.geometry;
+
+				var instancedGeometry = createInstancedGeoemtry(geometry);
+
+				monkey.geometry = instancedGeometry;
+				monkey.material = shaderMaterial;
+
+				object.scale.set(1, 1, 1);
+				scene.add(object);
+
+				renderer.shadowNeedsUpdate = true;
+			});
+
+	        var camera = new zen3d.Camera();
+	        camera.position.set(0, 0, 0);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 100);
+			scene.add(camera);
+			
+			function createInstancedGeoemtry(geometry) {
+
+				var instances = 1000;
+				var instanceColors = [];
+				var instancePositions = [];
+				var instanceQuaternions = [];
+				var instanceScales = [];
+
+				var object = new zen3d.Object3D();
+				var color = new zen3d.Color3();
+				for ( var i = 0; i < instances; i ++ ) {
+					var position = object.position;
+					var quaternion = object.quaternion;
+					var scale = object.scale;
+					position.set( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
+					quaternion.set( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
+					quaternion.normalize();
+					scale.set( 0.05, 0.05, 0.05 );
+					color.setHSL(Math.random(), 1, 0.6);
+					// instanced attribute data
+					instanceColors.push( color.r, color.g, color.b );
+					instancePositions.push( position.x, position.y, position.z );
+					instanceQuaternions.push( quaternion.x, quaternion.y, quaternion.z, quaternion.w );
+					instanceScales.push( scale.x, scale.y, scale.z );
+				}
+
+				var instancedGeometry = new zen3d.InstancedGeometry();
+				instancedGeometry.addAttribute("a_Position", geometry.getAttribute("a_Position"));
+				instancedGeometry.setIndex(geometry.index);
+				instancedGeometry.addAttribute( 'instanceColor', new zen3d.InstancedBufferAttribute( new Float32Array( instanceColors ), 3 ) );
+				instancedGeometry.addAttribute( 'instancePosition', new zen3d.InstancedBufferAttribute( new Float32Array( instancePositions ), 3 ) );
+				instancedGeometry.addAttribute( 'instanceQuaternion', new zen3d.InstancedBufferAttribute( new Float32Array( instanceQuaternions ), 4 ) );
+				instancedGeometry.addAttribute( 'instanceScale', new zen3d.InstancedBufferAttribute( new Float32Array( instanceScales ), 3 ) );
+
+				return instancedGeometry;
+
+			}
+
+			var clock = new zen3d.Clock();
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+				
+				var elapsedTime = clock.getElapsedTime();
+
+				// rotate camera
+				camera.position.x = 5 * Math.sin(elapsedTime * .3);
+				camera.position.z = 5 * Math.cos(elapsedTime * .3);
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
