@@ -3825,6 +3825,8 @@
 
         this.shaderTextureLOD = getExtension(gl, 'EXT_shader_texture_lod');
 
+        this.angleInstancedArraysExt = getExtension(gl, 'ANGLE_instanced_arrays');
+
         this.maxAnisotropy = (this.anisotropyExt !== null) ? gl.getParameter(this.anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
 
         // use dfdx and dfdy must enable OES_standard_derivatives
@@ -5619,10 +5621,24 @@
         drawStart = Math.max(drawStart, groupStart);
         drawCount = Math.min(drawCount, groupCount);
 
+        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
+
         if(useIndexBuffer) {
-            gl.drawElements(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+            if(geometry.isInstancedGeometry) {
+                if(geometry.maxInstancedCount > 0) {
+                    angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2, geometry.maxInstancedCount);
+                }
+            } else {
+                gl.drawElements(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+            }
         } else {
-            gl.drawArrays(material.drawMode, drawStart, drawCount);
+            if(geometry.isInstancedGeometry) {
+                if(geometry.maxInstancedCount > 0) {
+                    angleInstancedArraysExt.drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+                }
+            } else {
+                gl.drawArrays(material.drawMode, drawStart, drawCount);
+            }
         }
     }
 
@@ -5934,6 +5950,7 @@
         var gl = this.gl;
         var attributes = program.attributes;
         var properties = this.properties;
+        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
         for (var key in attributes) {
             var programAttribute = attributes[key];
             var geometryAttribute = geometry.getAttribute(key);
@@ -5962,13 +5979,35 @@
     				var stride = data.stride;
     				var offset = geometryAttribute.offset;
 
+                    gl.enableVertexAttribArray(programAttribute.location);
+
+                    if(data && data.isInstancedInterleavedBuffer) {
+                        if(!angleInstancedArraysExt) {
+                            console.warn("ANGLE_instanced_arrays not supported");
+                        }
+                        angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        if ( geometry.maxInstancedCount === undefined ) {
+                            geometry.maxInstancedCount = data.meshPerAttribute * data.count;
+                        }
+                    }
+
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                     gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, bytesPerElement * stride, bytesPerElement * offset);
-                    gl.enableVertexAttribArray(programAttribute.location);
                 } else {
+                    gl.enableVertexAttribArray(programAttribute.location);
+
+                    if(data && data.isInstancedBufferAttribute) {
+                        if(!angleInstancedArraysExt) {
+                            console.warn("ANGLE_instanced_arrays not supported");
+                        }
+                        angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        if ( geometry.maxInstancedCount === undefined ) {
+                            geometry.maxInstancedCount = data.meshPerAttribute * data.count;
+                        }
+                    }
+
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                     gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, 0, 0);
-                    gl.enableVertexAttribArray(programAttribute.location);
                 }
             } else {
                 console.warn("WebGLCore: geometry attribute " + key + " not found!");
@@ -7363,6 +7402,63 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.Geometry = Geometry;
 })();
 
+(function() {
+    function InstancedBufferAttribute(array, itemSize, meshPerAttribute) {
+
+        zen3d.BufferAttribute.call( this, array, itemSize );
+
+        this.meshPerAttribute = meshPerAttribute || 1;
+
+    }
+
+    InstancedBufferAttribute.prototype = Object.assign( Object.create( zen3d.BufferAttribute.prototype ), {
+
+        constructor: InstancedBufferAttribute,
+
+        isInstancedBufferAttribute: true
+    
+    });
+
+    zen3d.InstancedBufferAttribute = InstancedBufferAttribute;
+})();
+(function() {
+    function InstancedInterleavedBuffer(array, itemSize, meshPerAttribute) {
+
+        zen3d.InterleavedBuffer.call( this, array, itemSize );
+
+        this.meshPerAttribute = meshPerAttribute || 1;
+
+    }
+
+    InstancedInterleavedBuffer.prototype = Object.assign( Object.create( zen3d.InterleavedBuffer.prototype ), {
+
+        constructor: InstancedInterleavedBuffer,
+
+        isInstancedInterleavedBuffer: true
+    
+    });
+
+    zen3d.InstancedInterleavedBuffer = InstancedInterleavedBuffer;
+})();
+(function() {
+    function InstancedGeometry() {
+
+        zen3d.Geometry.call( this );
+
+        this.maxInstancedCount = undefined;
+
+    }
+
+    InstancedGeometry.prototype = Object.assign( Object.create( zen3d.Geometry.prototype ), {
+
+        constructor: InstancedGeometry,
+
+        isInstancedGeometry: true
+    
+    });
+
+    zen3d.InstancedGeometry = InstancedGeometry;
+})();
 (function() {
     /**
      * CubeGeometry data
