@@ -1,27 +1,39 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_SIDE= zen3d.DRAW_SIDE;
+    var Material = zen3d.Material;
+
     /**
      * CubeMaterial
      * @class
      */
-    var CubeMaterial = function() {
-        CubeMaterial.superClass.constructor.call(this);
+    function CubeMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.CUBE;
+        this.type = MATERIAL_TYPE.CUBE;
 
-        this.side = zen3d.DRAW_SIDE.BACK;
+        this.side = DRAW_SIDE.BACK;
 
         this.cubeMap = null;
     }
 
-    zen3d.inherit(CubeMaterial, zen3d.Material);
+    CubeMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    CubeMaterial.prototype.copy = function(source) {
-        CubeMaterial.superClass.copy.call(this, source);
+        constructor: CubeMaterial,
 
-        this.cubeMap = source.cubeMap;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.cubeMap = source.cubeMap;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.CubeMaterial = CubeMaterial;
+
 })();

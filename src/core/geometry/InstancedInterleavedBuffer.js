@@ -1,13 +1,17 @@
 (function() {
+
+    // imports
+    var InterleavedBuffer = zen3d.InterleavedBuffer;
+
     function InstancedInterleavedBuffer(array, itemSize, meshPerAttribute) {
 
-        zen3d.InterleavedBuffer.call( this, array, itemSize );
+        InterleavedBuffer.call( this, array, itemSize );
 
         this.meshPerAttribute = meshPerAttribute || 1;
 
     }
 
-    InstancedInterleavedBuffer.prototype = Object.assign( Object.create( zen3d.InterleavedBuffer.prototype ), {
+    InstancedInterleavedBuffer.prototype = Object.assign( Object.create( InterleavedBuffer.prototype ), {
 
         constructor: InstancedInterleavedBuffer,
 
@@ -15,5 +19,7 @@
     
     });
 
+    // exports
     zen3d.InstancedInterleavedBuffer = InstancedInterleavedBuffer;
+    
 })();

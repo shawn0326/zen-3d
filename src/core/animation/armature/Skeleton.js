@@ -1,4 +1,9 @@
 (function() {
+
+    // imports
+    var Object3D = zen3d.Object3D;
+    var Matrix4= zen3d.Matrix4;
+
     // extends from Object3D only for use the updateMatrix method
     // so all bones should be the children of skeleton
     // like this:
@@ -12,8 +17,9 @@
     //    |
     //    |-- Bone
     //    |-- Bone
-    var Skeleton = function(bones) {
-        Skeleton.superClass.constructor.call(this);
+    function Skeleton(bones) {
+
+        Object3D.call(this);
 
         this.type = "skeleton";
 
@@ -27,26 +33,39 @@
         // by that way, we can use more bones on phone
         this.boneTexture = undefined;
         this.boneTextureSize = 0;
+
     }
 
-    zen3d.inherit(Skeleton, zen3d.Object3D);
+    Skeleton.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    var offsetMatrix = new zen3d.Matrix4();
+        constructor: Skeleton,
 
-    Skeleton.prototype.updateBones = function() {
-        // the world matrix of bones, is based skeleton
-        this.updateMatrix();
+        updateBones: function() {
 
-        for(var i = 0; i < this.bones.length; i++) {
-            var bone = this.bones[i];
-            offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
-            offsetMatrix.toArray(this.boneMatrices, i * 16);
-        }
+            var offsetMatrix = new Matrix4();
 
-        if (this.boneTexture !== undefined) {
-			this.boneTexture.version++;
-		}
-    }
+            return function updateBones() {
 
+                // the world matrix of bones, is based skeleton
+                this.updateMatrix();
+
+                for(var i = 0; i < this.bones.length; i++) {
+                    var bone = this.bones[i];
+                    offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
+                    offsetMatrix.toArray(this.boneMatrices, i * 16);
+                }
+
+                if (this.boneTexture !== undefined) {
+                    this.boneTexture.version++;
+                }
+
+            }
+
+        }()
+
+    });
+
+    // exports
     zen3d.Skeleton = Skeleton;
+
 })();

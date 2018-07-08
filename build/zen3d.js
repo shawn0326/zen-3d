@@ -7275,8 +7275,12 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.RenderTargetCube = RenderTargetCube;
 })();
 (function() {
-    var BufferAttribute = function(array, size, normalized) {
-        this.uuid = zen3d.generateUUID();
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+
+    function BufferAttribute(array, size, normalized) {
+        this.uuid = generateUUID();
 
         this.array = array;
         this.size = size;
@@ -7289,16 +7293,26 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.version = 0;
     }
 
-    BufferAttribute.prototype.setArray = function(array) {
-        this.count = array !== undefined ? array.length / this.size : 0;
-		this.array = array;
-    }
+    BufferAttribute.prototype = Object.assign(BufferAttribute.prototype, {
 
+        setArray: function(array) {
+            this.count = array !== undefined ? array.length / this.size : 0;
+            this.array = array;
+        }
+
+    });
+
+    // exports
     zen3d.BufferAttribute = BufferAttribute;
+
 })();
 (function() {
-    var InterleavedBuffer = function(array, stride) {
-        this.uuid = zen3d.generateUUID();
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+
+    function InterleavedBuffer(array, stride) {
+        this.uuid = generateUUID();
 
         this.array = array;
         this.stride = stride;
@@ -7310,16 +7324,26 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.version = 0;
     }
 
-    InterleavedBuffer.prototype.setArray = function(array) {
-        this.count = array !== undefined ? array.length / this.stride : 0;
-        this.array = array;
-    }
+    InterleavedBuffer.prototype = Object.assign(InterleavedBuffer.prototype, {
 
+        setArray: function(array) {
+            this.count = array !== undefined ? array.length / this.stride : 0;
+            this.array = array;
+        }
+
+    });
+
+    // exports
     zen3d.InterleavedBuffer = InterleavedBuffer;
+
 })();
 (function() {
-    var InterleavedBufferAttribute = function(interleavedBuffer, size, offset, normalized) {
-        this.uuid = zen3d.generateUUID();
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+
+    function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized) {
+        this.uuid = generateUUID();
 
         this.data = interleavedBuffer;
         this.size = size;
@@ -7343,26 +7367,37 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     });
 
+    // exports
     zen3d.InterleavedBufferAttribute = InterleavedBufferAttribute;
+
 })();
 (function() {
+
+    // imports
+    var EventDispatcher = zen3d.EventDispatcher;
+    var generateUUID = zen3d.generateUUID;
+    var Box3 = zen3d.Box3;
+    var Sphere = zen3d.Sphere;
+    var WEBGL_BUFFER_USAGE = zen3d.WEBGL_BUFFER_USAGE;
+    var BufferAttribute = zen3d.BufferAttribute;
+
     /**
      * Geometry data
      * @class
      */
-    var Geometry = function() {
-        Geometry.superClass.constructor.call(this);
+    function Geometry() {
+        EventDispatcher.call(this);
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         this.attributes = {};
         this.index = null;
 
-        this.usageType = zen3d.WEBGL_BUFFER_USAGE.STATIC_DRAW;
+        this.usageType = WEBGL_BUFFER_USAGE.STATIC_DRAW;
 
-        this.boundingBox = new zen3d.Box3();
+        this.boundingBox = new Box3();
 
-        this.boundingSphere = new zen3d.Sphere();
+        this.boundingSphere = new Sphere();
 
         // if part dirty, update part of buffers
         this.dirtyRange = {enable: false, start: 0, count: 0};
@@ -7370,77 +7405,87 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.groups = [];
     }
 
-    zen3d.inherit(Geometry, zen3d.EventDispatcher);
+    Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
 
-    Geometry.prototype.addAttribute = function(name, attribute) {
-        this.attributes[name] = attribute;
-    }
+        constructor: Geometry,
 
-    Geometry.prototype.getAttribute = function(name) {
-        return this.attributes[name];
-    }
+        addAttribute: function(name, attribute) {
+            this.attributes[name] = attribute;
+        },
 
-    Geometry.prototype.removeAttribute = function(name) {
-        delete this.attributes[name];
-    }
+        getAttribute: function(name) {
+            return this.attributes[name];
+        },
 
-    Geometry.prototype.setIndex = function(index) {
-        if(Array.isArray(index)) {
-            this.index = new zen3d.BufferAttribute(new Uint16Array( index ), 1);
-        } else {
-            this.index = index;
+        removeAttribute: function(name) {
+            delete this.attributes[name];
+        },
+
+        setIndex: function(index) {
+            if(Array.isArray(index)) {
+                this.index = new BufferAttribute(new Uint16Array( index ), 1);
+            } else {
+                this.index = index;
+            }
+        },
+
+        addGroup: function(start, count, materialIndex) {
+            this.groups.push({
+                start: start,
+                count: count,
+                materialIndex: materialIndex !== undefined ? materialIndex : 0
+            });
+        },
+
+        clearGroups: function() {
+            this.groups = [];
+        },
+
+        computeBoundingBox: function() {
+            var position = this.attributes["a_Position"] || this.attributes["position"];
+            if(position.isInterleavedBufferAttribute) {
+                var data = position.data;
+                this.boundingBox.setFromArray(data.array, data.stride);
+            } else {
+                this.boundingBox.setFromArray(position.array, position.size);
+            }
+        },
+
+        computeBoundingSphere: function() {
+            var position = this.attributes["a_Position"] || this.attributes["position"];
+            if(position.isInterleavedBufferAttribute) {
+                var data = position.data;
+                this.boundingSphere.setFromArray(data.array, data.stride);
+            } else {
+                this.boundingSphere.setFromArray(position.array, position.size);
+            }
+        },
+
+        dispose: function() {
+            this.dispatchEvent({type: 'dispose'});
         }
-    }
 
-    Geometry.prototype.addGroup = function(start, count, materialIndex) {
-        this.groups.push({
-			start: start,
-			count: count,
-			materialIndex: materialIndex !== undefined ? materialIndex : 0
-		});
-    }
+    });
 
-    Geometry.prototype.clearGroups = function() {
-        this.groups = [];
-    }
-
-    Geometry.prototype.computeBoundingBox = function() {
-        var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
-            var data = position.data;
-            this.boundingBox.setFromArray(data.array, data.stride);
-        } else {
-            this.boundingBox.setFromArray(position.array, position.size);
-        }
-    }
-
-    Geometry.prototype.computeBoundingSphere = function() {
-        var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
-            var data = position.data;
-            this.boundingSphere.setFromArray(data.array, data.stride);
-        } else {
-            this.boundingSphere.setFromArray(position.array, position.size);
-        }
-    }
-
-    Geometry.prototype.dispose = function() {
-        this.dispatchEvent({type: 'dispose'});
-    }
-
+    // exports
     zen3d.Geometry = Geometry;
+
 })();
 
 (function() {
+    
+    // imports
+    var BufferAttribute = zen3d.BufferAttribute;
+
     function InstancedBufferAttribute(array, itemSize, meshPerAttribute) {
 
-        zen3d.BufferAttribute.call( this, array, itemSize );
+        BufferAttribute.call( this, array, itemSize );
 
         this.meshPerAttribute = meshPerAttribute || 1;
 
     }
 
-    InstancedBufferAttribute.prototype = Object.assign( Object.create( zen3d.BufferAttribute.prototype ), {
+    InstancedBufferAttribute.prototype = Object.assign( Object.create( BufferAttribute.prototype ), {
 
         constructor: InstancedBufferAttribute,
 
@@ -7448,18 +7493,24 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     
     });
 
+    // exports
     zen3d.InstancedBufferAttribute = InstancedBufferAttribute;
+
 })();
 (function() {
+
+    // imports
+    var InterleavedBuffer = zen3d.InterleavedBuffer;
+
     function InstancedInterleavedBuffer(array, itemSize, meshPerAttribute) {
 
-        zen3d.InterleavedBuffer.call( this, array, itemSize );
+        InterleavedBuffer.call( this, array, itemSize );
 
         this.meshPerAttribute = meshPerAttribute || 1;
 
     }
 
-    InstancedInterleavedBuffer.prototype = Object.assign( Object.create( zen3d.InterleavedBuffer.prototype ), {
+    InstancedInterleavedBuffer.prototype = Object.assign( Object.create( InterleavedBuffer.prototype ), {
 
         constructor: InstancedInterleavedBuffer,
 
@@ -7467,18 +7518,24 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     
     });
 
+    // exports
     zen3d.InstancedInterleavedBuffer = InstancedInterleavedBuffer;
+    
 })();
 (function() {
+
+    // imports
+    var Geometry = zen3d.Geometry;
+
     function InstancedGeometry() {
 
-        zen3d.Geometry.call( this );
+        Geometry.call( this );
 
         this.maxInstancedCount = undefined;
 
     }
 
-    InstancedGeometry.prototype = Object.assign( Object.create( zen3d.Geometry.prototype ), {
+    InstancedGeometry.prototype = Object.assign( Object.create( Geometry.prototype ), {
 
         constructor: InstancedGeometry,
 
@@ -7486,647 +7543,696 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     
     });
 
+    // exports
     zen3d.InstancedGeometry = InstancedGeometry;
+    
 })();
 (function() {
+	
+	// imports
+	var Geometry = zen3d.Geometry;
+	var BufferAttribute = zen3d.BufferAttribute;
+	var Vector3 = zen3d.Vector3;
+
     /**
      * CubeGeometry data
      * @class
      */
-    var CubeGeometry = function(width, height, depth, widthSegments, heightSegments, depthSegments) {
-        CubeGeometry.superClass.constructor.call(this);
+    function CubeGeometry(width, height, depth, widthSegments, heightSegments, depthSegments) {
+        Geometry.call(this);
 
         this.buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
-    }
+	}
+	
+	CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
-    zen3d.inherit(CubeGeometry, zen3d.Geometry);
+		constructor: CubeGeometry,
 
-    CubeGeometry.prototype.buildGeometry = function(width, height, depth, widthSegments, heightSegments, depthSegments) {
+		buildGeometry: function(width, height, depth, widthSegments, heightSegments, depthSegments) {
 
-        var scope = this;
+			var scope = this;
+	
+			width = width || 1;
+			height = height || 1;
+			depth = depth || 1;
+	
+			// segments
+	
+			widthSegments = Math.floor( widthSegments ) || 1;
+			heightSegments = Math.floor( heightSegments ) || 1;
+			depthSegments = Math.floor( depthSegments ) || 1;
+	
+			// buffers
+	
+			var indices = [];
+			var vertices = [];
+			var normals = [];
+			var uvs = [];
+	
+			// helper variables
+	
+			var numberOfVertices = 0;
+			var groupStart = 0;
+	
+			// build each side of the box geometry
+	
+			buildPlane( 'z', 'y', 'x', - 1, - 1, depth, height, width, depthSegments, heightSegments, 0 ); // px
+			buildPlane( 'z', 'y', 'x', 1, - 1, depth, height, - width, depthSegments, heightSegments, 1 ); // nx
+			buildPlane( 'x', 'z', 'y', 1, 1, width, depth, height, widthSegments, depthSegments, 2 ); // py
+			buildPlane( 'x', 'z', 'y', 1, - 1, width, depth, - height, widthSegments, depthSegments, 3 ); // ny
+			buildPlane( 'x', 'y', 'z', 1, - 1, width, height, depth, widthSegments, heightSegments, 4 ); // pz
+			buildPlane( 'x', 'y', 'z', - 1, - 1, width, height, - depth, widthSegments, heightSegments, 5 ); // nz
+	
+			// build geometry
+	
+			this.setIndex(indices);
+			this.addAttribute('a_Position', new BufferAttribute(new Float32Array(vertices), 3));
+			this.addAttribute('a_Normal', new BufferAttribute(new Float32Array(normals), 3));
+			this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
+	
+			function buildPlane( u, v, w, udir, vdir, width, height, depth, gridX, gridY, materialIndex ) {
+	
+				var segmentWidth = width / gridX;
+				var segmentHeight = height / gridY;
+	
+				var widthHalf = width / 2;
+				var heightHalf = height / 2;
+				var depthHalf = depth / 2;
+	
+				var gridX1 = gridX + 1;
+				var gridY1 = gridY + 1;
+	
+				var vertexCounter = 0;
+				var groupCount = 0;
+	
+				var ix, iy;
+	
+				var vector = new Vector3();
+	
+				// generate vertices, normals and uvs
+	
+				for ( iy = 0; iy < gridY1; iy ++ ) {
+	
+					var y = iy * segmentHeight - heightHalf;
+	
+					for ( ix = 0; ix < gridX1; ix ++ ) {
+	
+						var x = ix * segmentWidth - widthHalf;
+	
+						// set values to correct vector component
+	
+						vector[ u ] = x * udir;
+						vector[ v ] = y * vdir;
+						vector[ w ] = depthHalf;
+	
+						// now apply vector to vertex buffer
+	
+						vertices.push( vector.x, vector.y, vector.z );
+	
+						// set values to correct vector component
+	
+						vector[ u ] = 0;
+						vector[ v ] = 0;
+						vector[ w ] = depth > 0 ? 1 : - 1;
+	
+						// now apply vector to normal buffer
+	
+						normals.push( vector.x, vector.y, vector.z );
+	
+						// uvs
+	
+						uvs.push( ix / gridX );
+						uvs.push( 1 - ( iy / gridY ) );
+	
+						// counters
+	
+						vertexCounter += 1;
+	
+					}
+	
+				}
+	
+				// indices
+	
+				// 1. you need three indices to draw a single face
+				// 2. a single segment consists of two faces
+				// 3. so we need to generate six (2*3) indices per segment
+	
+				for ( iy = 0; iy < gridY; iy ++ ) {
+	
+					for ( ix = 0; ix < gridX; ix ++ ) {
+	
+						var a = numberOfVertices + ix + gridX1 * iy;
+						var b = numberOfVertices + ix + gridX1 * ( iy + 1 );
+						var c = numberOfVertices + ( ix + 1 ) + gridX1 * ( iy + 1 );
+						var d = numberOfVertices + ( ix + 1 ) + gridX1 * iy;
+	
+						// faces
+	
+						indices.push( a, b, d );
+						indices.push( b, c, d );
+	
+						// increase counter
+	
+						groupCount += 6;
+	
+					}
+	
+				}
+	
+				// add a group to the geometry. this will ensure multi material support
+	
+				scope.addGroup( groupStart, groupCount, materialIndex );
+	
+				// calculate new start value for groups
+	
+				groupStart += groupCount;
+	
+				// update total number of vertices
+	
+				numberOfVertices += vertexCounter;
+	
+			}
+	
+			this.computeBoundingBox();
+			this.computeBoundingSphere();
+		}
 
-        width = width || 1;
-        height = height || 1;
-        depth = depth || 1;
+	});
 
-        // segments
-
-        widthSegments = Math.floor( widthSegments ) || 1;
-        heightSegments = Math.floor( heightSegments ) || 1;
-        depthSegments = Math.floor( depthSegments ) || 1;
-
-        // buffers
-
-        var indices = [];
-        var vertices = [];
-        var normals = [];
-        var uvs = [];
-
-        // helper variables
-
-        var numberOfVertices = 0;
-        var groupStart = 0;
-
-        // build each side of the box geometry
-
-        buildPlane( 'z', 'y', 'x', - 1, - 1, depth, height, width, depthSegments, heightSegments, 0 ); // px
-        buildPlane( 'z', 'y', 'x', 1, - 1, depth, height, - width, depthSegments, heightSegments, 1 ); // nx
-        buildPlane( 'x', 'z', 'y', 1, 1, width, depth, height, widthSegments, depthSegments, 2 ); // py
-        buildPlane( 'x', 'z', 'y', 1, - 1, width, depth, - height, widthSegments, depthSegments, 3 ); // ny
-        buildPlane( 'x', 'y', 'z', 1, - 1, width, height, depth, widthSegments, heightSegments, 4 ); // pz
-        buildPlane( 'x', 'y', 'z', - 1, - 1, width, height, - depth, widthSegments, heightSegments, 5 ); // nz
-
-        // build geometry
-
-        this.setIndex(indices);
-        this.addAttribute('a_Position', new zen3d.BufferAttribute(new Float32Array(vertices), 3));
-        this.addAttribute('a_Normal', new zen3d.BufferAttribute(new Float32Array(normals), 3));
-        this.addAttribute('a_Uv', new zen3d.BufferAttribute(new Float32Array(uvs), 2));
-
-        function buildPlane( u, v, w, udir, vdir, width, height, depth, gridX, gridY, materialIndex ) {
-
-        	var segmentWidth = width / gridX;
-        	var segmentHeight = height / gridY;
-
-        	var widthHalf = width / 2;
-        	var heightHalf = height / 2;
-        	var depthHalf = depth / 2;
-
-        	var gridX1 = gridX + 1;
-        	var gridY1 = gridY + 1;
-
-        	var vertexCounter = 0;
-        	var groupCount = 0;
-
-        	var ix, iy;
-
-        	var vector = new zen3d.Vector3();
-
-        	// generate vertices, normals and uvs
-
-        	for ( iy = 0; iy < gridY1; iy ++ ) {
-
-        		var y = iy * segmentHeight - heightHalf;
-
-        		for ( ix = 0; ix < gridX1; ix ++ ) {
-
-        			var x = ix * segmentWidth - widthHalf;
-
-        			// set values to correct vector component
-
-        			vector[ u ] = x * udir;
-        			vector[ v ] = y * vdir;
-        			vector[ w ] = depthHalf;
-
-        			// now apply vector to vertex buffer
-
-        			vertices.push( vector.x, vector.y, vector.z );
-
-        			// set values to correct vector component
-
-        			vector[ u ] = 0;
-        			vector[ v ] = 0;
-        			vector[ w ] = depth > 0 ? 1 : - 1;
-
-        			// now apply vector to normal buffer
-
-        			normals.push( vector.x, vector.y, vector.z );
-
-        			// uvs
-
-        			uvs.push( ix / gridX );
-        			uvs.push( 1 - ( iy / gridY ) );
-
-        			// counters
-
-        			vertexCounter += 1;
-
-        		}
-
-        	}
-
-        	// indices
-
-        	// 1. you need three indices to draw a single face
-        	// 2. a single segment consists of two faces
-        	// 3. so we need to generate six (2*3) indices per segment
-
-        	for ( iy = 0; iy < gridY; iy ++ ) {
-
-        		for ( ix = 0; ix < gridX; ix ++ ) {
-
-        			var a = numberOfVertices + ix + gridX1 * iy;
-        			var b = numberOfVertices + ix + gridX1 * ( iy + 1 );
-        			var c = numberOfVertices + ( ix + 1 ) + gridX1 * ( iy + 1 );
-        			var d = numberOfVertices + ( ix + 1 ) + gridX1 * iy;
-
-        			// faces
-
-        			indices.push( a, b, d );
-        			indices.push( b, c, d );
-
-        			// increase counter
-
-        			groupCount += 6;
-
-        		}
-
-        	}
-
-        	// add a group to the geometry. this will ensure multi material support
-
-        	scope.addGroup( groupStart, groupCount, materialIndex );
-
-        	// calculate new start value for groups
-
-        	groupStart += groupCount;
-
-        	// update total number of vertices
-
-        	numberOfVertices += vertexCounter;
-
-        }
-
-        this.computeBoundingBox();
-        this.computeBoundingSphere();
-    }
-
-    zen3d.CubeGeometry = CubeGeometry;
+	// exports
+	zen3d.CubeGeometry = CubeGeometry;
+	
 })();
 
 (function() {
+
+	// imports
+	var Geometry = zen3d.Geometry;
+	var BufferAttribute = zen3d.BufferAttribute;
+
     /**
      * PlaneGeometry data
      * @class
      */
-    var PlaneGeometry = function(width, height, widthSegments, heightSegments) {
-        PlaneGeometry.superClass.constructor.call(this);
+    function PlaneGeometry(width, height, widthSegments, heightSegments) {
+        Geometry.call(this);
 
         this.buildGeometry(width, height, widthSegments, heightSegments);
-    }
+	}
+	
+	PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
-    zen3d.inherit(PlaneGeometry, zen3d.Geometry);
+		constructor: PlaneGeometry,
 
-    PlaneGeometry.prototype.buildGeometry = function(width, height, widthSegments, heightSegments) {
-        width = width || 1;
-    	height = height || 1;
+		buildGeometry: function(width, height, widthSegments, heightSegments) {
+			width = width || 1;
+			height = height || 1;
+	
+			var width_half = width / 2;
+			var height_half = height / 2;
+	
+			var gridX = Math.floor( widthSegments ) || 1;
+			var gridY = Math.floor( heightSegments ) || 1;
+	
+			var gridX1 = gridX + 1;
+			var gridY1 = gridY + 1;
+	
+			var segment_width = width / gridX;
+			var segment_height = height / gridY;
+	
+			var ix, iy;
+	
+			// buffers
+	
+			var indices = [];
+			var vertices = [];
+			var normals = [];
+			var uvs = [];
+	
+			// generate vertices, normals and uvs
+	
+			for ( iy = 0; iy < gridY1; iy ++ ) {
+	
+				var y = iy * segment_height - height_half;
+	
+				for ( ix = 0; ix < gridX1; ix ++ ) {
+	
+					var x = ix * segment_width - width_half;
+	
+					vertices.push( x, 0, y );
+	
+					normals.push( 0, 1, 0 );
+	
+					uvs.push( ix / gridX );
+					uvs.push( 1 - ( iy / gridY ) );
+	
+				}
+	
+			}
+	
+			// indices
+	
+			for ( iy = 0; iy < gridY; iy ++ ) {
+	
+				for ( ix = 0; ix < gridX; ix ++ ) {
+	
+					var a = ix + gridX1 * iy;
+					var b = ix + gridX1 * ( iy + 1 );
+					var c = ( ix + 1 ) + gridX1 * ( iy + 1 );
+					var d = ( ix + 1 ) + gridX1 * iy;
+	
+					// faces
+	
+					indices.push( a, b, d );
+					indices.push( b, c, d );
+	
+				}
+	
+			}
+	
+			// build geometry
+	
+			this.setIndex(indices);
+			this.addAttribute('a_Position', new BufferAttribute(new Float32Array(vertices), 3));
+			this.addAttribute('a_Normal', new BufferAttribute(new Float32Array(normals), 3));
+			this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
+	
+			this.computeBoundingBox();
+			this.computeBoundingSphere();
+		}
 
-    	var width_half = width / 2;
-    	var height_half = height / 2;
+	});
 
-    	var gridX = Math.floor( widthSegments ) || 1;
-    	var gridY = Math.floor( heightSegments ) || 1;
-
-    	var gridX1 = gridX + 1;
-    	var gridY1 = gridY + 1;
-
-    	var segment_width = width / gridX;
-    	var segment_height = height / gridY;
-
-    	var ix, iy;
-
-    	// buffers
-
-    	var indices = [];
-    	var vertices = [];
-    	var normals = [];
-    	var uvs = [];
-
-    	// generate vertices, normals and uvs
-
-    	for ( iy = 0; iy < gridY1; iy ++ ) {
-
-    		var y = iy * segment_height - height_half;
-
-    		for ( ix = 0; ix < gridX1; ix ++ ) {
-
-    			var x = ix * segment_width - width_half;
-
-    			vertices.push( x, 0, y );
-
-    			normals.push( 0, 1, 0 );
-
-    			uvs.push( ix / gridX );
-    			uvs.push( 1 - ( iy / gridY ) );
-
-    		}
-
-    	}
-
-    	// indices
-
-    	for ( iy = 0; iy < gridY; iy ++ ) {
-
-    		for ( ix = 0; ix < gridX; ix ++ ) {
-
-    			var a = ix + gridX1 * iy;
-    			var b = ix + gridX1 * ( iy + 1 );
-    			var c = ( ix + 1 ) + gridX1 * ( iy + 1 );
-    			var d = ( ix + 1 ) + gridX1 * iy;
-
-    			// faces
-
-    			indices.push( a, b, d );
-    			indices.push( b, c, d );
-
-    		}
-
-    	}
-
-    	// build geometry
-
-        this.setIndex(indices);
-        this.addAttribute('a_Position', new zen3d.BufferAttribute(new Float32Array(vertices), 3));
-        this.addAttribute('a_Normal', new zen3d.BufferAttribute(new Float32Array(normals), 3));
-        this.addAttribute('a_Uv', new zen3d.BufferAttribute(new Float32Array(uvs), 2));
-
-        this.computeBoundingBox();
-        this.computeBoundingSphere();
-    }
-
-    zen3d.PlaneGeometry = PlaneGeometry;
+	// exports
+	zen3d.PlaneGeometry = PlaneGeometry;
+	
 })();
 
 (function() {
+
+    // imports
+	var Geometry = zen3d.Geometry;
+    var BufferAttribute = zen3d.BufferAttribute;
+    var Vector3 = zen3d.Vector3;
+    
     /**
      * SphereGeometry data
      * @class
      */
-    var SphereGeometry = function(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
-        SphereGeometry.superClass.constructor.call(this);
+    function SphereGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
+        Geometry.call(this);
 
         this.buildGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength);
     }
 
-    zen3d.inherit(SphereGeometry, zen3d.Geometry);
+    SphereGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
-    SphereGeometry.prototype.buildGeometry = function(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
-        radius = radius || 1;
+        constructor: SphereGeometry,
 
-        widthSegments = Math.max(3, Math.floor(widthSegments) || 8);
-        heightSegments = Math.max(2, Math.floor(heightSegments) || 6);
-
-        phiStart = phiStart !== undefined ? phiStart : 0;
-        phiLength = phiLength !== undefined ? phiLength : Math.PI * 2;
-
-        thetaStart = thetaStart !== undefined ? thetaStart : 0;
-        thetaLength = thetaLength !== undefined ? thetaLength : Math.PI;
-
-        var thetaEnd = thetaStart + thetaLength;
-
-        var ix, iy;
-
-        var index = 0;
-        var grid = [];
-
-        var vertex = new zen3d.Vector3();
-        var normal = new zen3d.Vector3();
-
-        // buffers
-
-        var indices = [];
-        var vertices = [];
-        var normals = [];
-        var uvs = [];
-
-        // generate vertices, normals and uvs
-
-        for (iy = 0; iy <= heightSegments; iy++) {
-
-            var verticesRow = [];
-
-            var v = iy / heightSegments;
-
-            for (ix = 0; ix <= widthSegments; ix++) {
-
-                var u = ix / widthSegments;
-
-                // vertex
-
-                vertex.x = -radius * Math.cos(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
-                vertex.y = radius * Math.cos(thetaStart + v * thetaLength);
-                vertex.z = radius * Math.sin(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
-
-                vertices.push(vertex.x, vertex.y, vertex.z);
-
-                // normal
-
-                normal.set(vertex.x, vertex.y, vertex.z).normalize();
-                normals.push(normal.x, normal.y, normal.z);
-
-                // uv
-
-                uvs.push(u, 1 - v);
-
-                verticesRow.push(index++);
-
+        buildGeometry: function(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
+            radius = radius || 1;
+    
+            widthSegments = Math.max(3, Math.floor(widthSegments) || 8);
+            heightSegments = Math.max(2, Math.floor(heightSegments) || 6);
+    
+            phiStart = phiStart !== undefined ? phiStart : 0;
+            phiLength = phiLength !== undefined ? phiLength : Math.PI * 2;
+    
+            thetaStart = thetaStart !== undefined ? thetaStart : 0;
+            thetaLength = thetaLength !== undefined ? thetaLength : Math.PI;
+    
+            var thetaEnd = thetaStart + thetaLength;
+    
+            var ix, iy;
+    
+            var index = 0;
+            var grid = [];
+    
+            var vertex = new Vector3();
+            var normal = new Vector3();
+    
+            // buffers
+    
+            var indices = [];
+            var vertices = [];
+            var normals = [];
+            var uvs = [];
+    
+            // generate vertices, normals and uvs
+    
+            for (iy = 0; iy <= heightSegments; iy++) {
+    
+                var verticesRow = [];
+    
+                var v = iy / heightSegments;
+    
+                for (ix = 0; ix <= widthSegments; ix++) {
+    
+                    var u = ix / widthSegments;
+    
+                    // vertex
+    
+                    vertex.x = -radius * Math.cos(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
+                    vertex.y = radius * Math.cos(thetaStart + v * thetaLength);
+                    vertex.z = radius * Math.sin(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
+    
+                    vertices.push(vertex.x, vertex.y, vertex.z);
+    
+                    // normal
+    
+                    normal.set(vertex.x, vertex.y, vertex.z).normalize();
+                    normals.push(normal.x, normal.y, normal.z);
+    
+                    // uv
+    
+                    uvs.push(u, 1 - v);
+    
+                    verticesRow.push(index++);
+    
+                }
+    
+                grid.push(verticesRow);
+    
             }
-
-            grid.push(verticesRow);
-
-        }
-
-        // indices
-
-        for (iy = 0; iy < heightSegments; iy++) {
-
-            for (ix = 0; ix < widthSegments; ix++) {
-
-                var a = grid[iy][ix + 1];
-                var b = grid[iy][ix];
-                var c = grid[iy + 1][ix];
-                var d = grid[iy + 1][ix + 1];
-
-                if (iy !== 0 || thetaStart > 0) indices.push(a, b, d);
-                if (iy !== heightSegments - 1 || thetaEnd < Math.PI) indices.push(b, c, d);
-
+    
+            // indices
+    
+            for (iy = 0; iy < heightSegments; iy++) {
+    
+                for (ix = 0; ix < widthSegments; ix++) {
+    
+                    var a = grid[iy][ix + 1];
+                    var b = grid[iy][ix];
+                    var c = grid[iy + 1][ix];
+                    var d = grid[iy + 1][ix + 1];
+    
+                    if (iy !== 0 || thetaStart > 0) indices.push(a, b, d);
+                    if (iy !== heightSegments - 1 || thetaEnd < Math.PI) indices.push(b, c, d);
+    
+                }
+    
             }
-
+    
+            this.setIndex(indices);
+            this.addAttribute('a_Position', new BufferAttribute(new Float32Array(vertices), 3));
+            this.addAttribute('a_Normal', new BufferAttribute(new Float32Array(normals), 3));
+            this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
+    
+            this.computeBoundingBox();
+            this.computeBoundingSphere();
         }
+    });
 
-        this.setIndex(indices);
-        this.addAttribute('a_Position', new zen3d.BufferAttribute(new Float32Array(vertices), 3));
-        this.addAttribute('a_Normal', new zen3d.BufferAttribute(new Float32Array(normals), 3));
-        this.addAttribute('a_Uv', new zen3d.BufferAttribute(new Float32Array(uvs), 2));
-
-        this.computeBoundingBox();
-        this.computeBoundingSphere();
-    }
-
+    // exports
     zen3d.SphereGeometry = SphereGeometry;
+
 })();
 (function() {
+
+	// imports
+	var Geometry = zen3d.Geometry;
+	var BufferAttribute = zen3d.BufferAttribute;
+	var Vector2 = zen3d.Vector2;
+	var Vector3 = zen3d.Vector3;
+
     /**
      * CylinderGeometry data
      * same as CylinderGeometry of three.js
      * @class
      */
-    var CylinderGeometry = function(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
-        CylinderGeometry.superClass.constructor.call(this);
+    function CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
+        Geometry.call(this);
 
         this.buildGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
-    }
-
-    zen3d.inherit(CylinderGeometry, zen3d.Geometry);
-
-    CylinderGeometry.prototype.buildGeometry = function(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
-        var scope = this;
-
-    	radiusTop = radiusTop !== undefined ? radiusTop : 1;
-    	radiusBottom = radiusBottom !== undefined ? radiusBottom : 1;
-    	height = height || 1;
-
-    	radialSegments = Math.floor( radialSegments ) || 8;
-    	heightSegments = Math.floor( heightSegments ) || 1;
-
-    	openEnded = openEnded !== undefined ? openEnded : false;
-    	thetaStart = thetaStart !== undefined ? thetaStart : 0.0;
-    	thetaLength = thetaLength !== undefined ? thetaLength : Math.PI * 2;
-
-    	// buffers
-
-    	var indices = [];
-    	var vertices = [];
-    	var normals = [];
-    	var uvs = [];
-
-    	// helper variables
-
-    	var index = 0;
-    	var indexArray = [];
-    	var halfHeight = height / 2;
-    	var groupStart = 0;
-
-    	// generate geometry
-
-    	generateTorso();
-
-    	if ( openEnded === false ) {
-
-    		if ( radiusTop > 0 ) generateCap( true );
-    		if ( radiusBottom > 0 ) generateCap( false );
-
-    	}
-
-    	// build geometry
-
-        this.setIndex(indices);
-        this.addAttribute('a_Position', new zen3d.BufferAttribute(new Float32Array(vertices), 3));
-        this.addAttribute('a_Normal', new zen3d.BufferAttribute(new Float32Array(normals), 3));
-        this.addAttribute('a_Uv', new zen3d.BufferAttribute(new Float32Array(uvs), 2));
-
-    	function generateTorso() {
-
-    		var x, y;
-    		var normal = new zen3d.Vector3();
-    		var vertex = new zen3d.Vector3();
-
-    		var groupCount = 0;
-
-    		// this will be used to calculate the normal
-    		var slope = ( radiusBottom - radiusTop ) / height;
-
-    		// generate vertices, normals and uvs
-
-    		for ( y = 0; y <= heightSegments; y ++ ) {
-
-    			var indexRow = [];
-
-    			var v = y / heightSegments;
-
-    			// calculate the radius of the current row
-
-    			var radius = v * ( radiusBottom - radiusTop ) + radiusTop;
-
-    			for ( x = 0; x <= radialSegments; x ++ ) {
-
-    				var u = x / radialSegments;
-
-    				var theta = u * thetaLength + thetaStart;
-
-    				var sinTheta = Math.sin( theta );
-    				var cosTheta = Math.cos( theta );
-
-    				// vertex
-
-    				vertex.x = radius * sinTheta;
-    				vertex.y = - v * height + halfHeight;
-    				vertex.z = radius * cosTheta;
-    				vertices.push( vertex.x, vertex.y, vertex.z );
-
-    				// normal
-
-    				normal.set( sinTheta, slope, cosTheta ).normalize();
-    				normals.push( normal.x, normal.y, normal.z );
-
-    				// uv
-
-    				uvs.push( u, 1 - v );
-
-    				// save index of vertex in respective row
-
-    				indexRow.push( index ++ );
-
-    			}
-
-    			// now save vertices of the row in our index array
-
-    			indexArray.push( indexRow );
-
-    		}
-
-    		// generate indices
-
-    		for ( x = 0; x < radialSegments; x ++ ) {
-
-    			for ( y = 0; y < heightSegments; y ++ ) {
-
-    				// we use the index array to access the correct indices
-
-    				var a = indexArray[ y ][ x ];
-    				var b = indexArray[ y + 1 ][ x ];
-    				var c = indexArray[ y + 1 ][ x + 1 ];
-    				var d = indexArray[ y ][ x + 1 ];
-
-    				// faces
-
-    				indices.push( a, b, d );
-    				indices.push( b, c, d );
-
-    				// update group counter
-
-    				groupCount += 6;
-
-    			}
-
-    		}
-
-    		// add a group to the geometry. this will ensure multi material support
-
-    		scope.addGroup( groupStart, groupCount, 0 );
-
-    		// calculate new start value for groups
-
-    		groupStart += groupCount;
-
-    	}
-
-    	function generateCap( top ) {
-
-    		var x, centerIndexStart, centerIndexEnd;
-
-    		var uv = new zen3d.Vector2();
-    		var vertex = new zen3d.Vector3();
-
-    		var groupCount = 0;
-
-    		var radius = ( top === true ) ? radiusTop : radiusBottom;
-    		var sign = ( top === true ) ? 1 : - 1;
-
-    		// save the index of the first center vertex
-    		centerIndexStart = index;
-
-    		// first we generate the center vertex data of the cap.
-    		// because the geometry needs one set of uvs per face,
-    		// we must generate a center vertex per face/segment
-
-    		for ( x = 1; x <= radialSegments; x ++ ) {
-
-    			// vertex
-
-    			vertices.push( 0, halfHeight * sign, 0 );
-
-    			// normal
-
-    			normals.push( 0, sign, 0 );
-
-    			// uv
-
-    			uvs.push( 0.5, 0.5 );
-
-    			// increase index
-
-    			index ++;
-
-    		}
-
-    		// save the index of the last center vertex
-
-    		centerIndexEnd = index;
-
-    		// now we generate the surrounding vertices, normals and uvs
-
-    		for ( x = 0; x <= radialSegments; x ++ ) {
-
-    			var u = x / radialSegments;
-    			var theta = u * thetaLength + thetaStart;
-
-    			var cosTheta = Math.cos( theta );
-    			var sinTheta = Math.sin( theta );
-
-    			// vertex
-
-    			vertex.x = radius * sinTheta;
-    			vertex.y = halfHeight * sign;
-    			vertex.z = radius * cosTheta;
-    			vertices.push( vertex.x, vertex.y, vertex.z );
-
-    			// normal
-
-    			normals.push( 0, sign, 0 );
-
-    			// uv
-
-    			uv.x = ( cosTheta * 0.5 ) + 0.5;
-    			uv.y = ( sinTheta * 0.5 * sign ) + 0.5;
-    			uvs.push( uv.x, uv.y );
-
-    			// increase index
-
-    			index ++;
-
-    		}
-
-    		// generate indices
-
-    		for ( x = 0; x < radialSegments; x ++ ) {
-
-    			var c = centerIndexStart + x;
-    			var i = centerIndexEnd + x;
-
-    			if ( top === true ) {
-
-    				// face top
-
-    				indices.push( i, i + 1, c );
-
-    			} else {
-
-    				// face bottom
-
-    				indices.push( i + 1, i, c );
-
-    			}
-
-    			groupCount += 3;
-
-    		}
-
-    		// add a group to the geometry. this will ensure multi material support
-
-    		scope.addGroup( groupStart, groupCount, top === true ? 1 : 2 );
-
-    		// calculate new start value for groups
-
-    		groupStart += groupCount;
-
-    	}
-
-        this.computeBoundingBox();
-        this.computeBoundingSphere();
-    }
-
-    zen3d.CylinderGeometry = CylinderGeometry;
+	}
+	
+	CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
+
+		constructor: CylinderGeometry,
+
+		buildGeometry: function(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
+			var scope = this;
+	
+			radiusTop = radiusTop !== undefined ? radiusTop : 1;
+			radiusBottom = radiusBottom !== undefined ? radiusBottom : 1;
+			height = height || 1;
+	
+			radialSegments = Math.floor( radialSegments ) || 8;
+			heightSegments = Math.floor( heightSegments ) || 1;
+	
+			openEnded = openEnded !== undefined ? openEnded : false;
+			thetaStart = thetaStart !== undefined ? thetaStart : 0.0;
+			thetaLength = thetaLength !== undefined ? thetaLength : Math.PI * 2;
+	
+			// buffers
+	
+			var indices = [];
+			var vertices = [];
+			var normals = [];
+			var uvs = [];
+	
+			// helper variables
+	
+			var index = 0;
+			var indexArray = [];
+			var halfHeight = height / 2;
+			var groupStart = 0;
+	
+			// generate geometry
+	
+			generateTorso();
+	
+			if ( openEnded === false ) {
+	
+				if ( radiusTop > 0 ) generateCap( true );
+				if ( radiusBottom > 0 ) generateCap( false );
+	
+			}
+	
+			// build geometry
+	
+			this.setIndex(indices);
+			this.addAttribute('a_Position', new BufferAttribute(new Float32Array(vertices), 3));
+			this.addAttribute('a_Normal', new BufferAttribute(new Float32Array(normals), 3));
+			this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
+	
+			function generateTorso() {
+	
+				var x, y;
+				var normal = new Vector3();
+				var vertex = new Vector3();
+	
+				var groupCount = 0;
+	
+				// this will be used to calculate the normal
+				var slope = ( radiusBottom - radiusTop ) / height;
+	
+				// generate vertices, normals and uvs
+	
+				for ( y = 0; y <= heightSegments; y ++ ) {
+	
+					var indexRow = [];
+	
+					var v = y / heightSegments;
+	
+					// calculate the radius of the current row
+	
+					var radius = v * ( radiusBottom - radiusTop ) + radiusTop;
+	
+					for ( x = 0; x <= radialSegments; x ++ ) {
+	
+						var u = x / radialSegments;
+	
+						var theta = u * thetaLength + thetaStart;
+	
+						var sinTheta = Math.sin( theta );
+						var cosTheta = Math.cos( theta );
+	
+						// vertex
+	
+						vertex.x = radius * sinTheta;
+						vertex.y = - v * height + halfHeight;
+						vertex.z = radius * cosTheta;
+						vertices.push( vertex.x, vertex.y, vertex.z );
+	
+						// normal
+	
+						normal.set( sinTheta, slope, cosTheta ).normalize();
+						normals.push( normal.x, normal.y, normal.z );
+	
+						// uv
+	
+						uvs.push( u, 1 - v );
+	
+						// save index of vertex in respective row
+	
+						indexRow.push( index ++ );
+	
+					}
+	
+					// now save vertices of the row in our index array
+	
+					indexArray.push( indexRow );
+	
+				}
+	
+				// generate indices
+	
+				for ( x = 0; x < radialSegments; x ++ ) {
+	
+					for ( y = 0; y < heightSegments; y ++ ) {
+	
+						// we use the index array to access the correct indices
+	
+						var a = indexArray[ y ][ x ];
+						var b = indexArray[ y + 1 ][ x ];
+						var c = indexArray[ y + 1 ][ x + 1 ];
+						var d = indexArray[ y ][ x + 1 ];
+	
+						// faces
+	
+						indices.push( a, b, d );
+						indices.push( b, c, d );
+	
+						// update group counter
+	
+						groupCount += 6;
+	
+					}
+	
+				}
+	
+				// add a group to the geometry. this will ensure multi material support
+	
+				scope.addGroup( groupStart, groupCount, 0 );
+	
+				// calculate new start value for groups
+	
+				groupStart += groupCount;
+	
+			}
+	
+			function generateCap( top ) {
+	
+				var x, centerIndexStart, centerIndexEnd;
+	
+				var uv = new Vector2();
+				var vertex = new Vector3();
+	
+				var groupCount = 0;
+	
+				var radius = ( top === true ) ? radiusTop : radiusBottom;
+				var sign = ( top === true ) ? 1 : - 1;
+	
+				// save the index of the first center vertex
+				centerIndexStart = index;
+	
+				// first we generate the center vertex data of the cap.
+				// because the geometry needs one set of uvs per face,
+				// we must generate a center vertex per face/segment
+	
+				for ( x = 1; x <= radialSegments; x ++ ) {
+	
+					// vertex
+	
+					vertices.push( 0, halfHeight * sign, 0 );
+	
+					// normal
+	
+					normals.push( 0, sign, 0 );
+	
+					// uv
+	
+					uvs.push( 0.5, 0.5 );
+	
+					// increase index
+	
+					index ++;
+	
+				}
+	
+				// save the index of the last center vertex
+	
+				centerIndexEnd = index;
+	
+				// now we generate the surrounding vertices, normals and uvs
+	
+				for ( x = 0; x <= radialSegments; x ++ ) {
+	
+					var u = x / radialSegments;
+					var theta = u * thetaLength + thetaStart;
+	
+					var cosTheta = Math.cos( theta );
+					var sinTheta = Math.sin( theta );
+	
+					// vertex
+	
+					vertex.x = radius * sinTheta;
+					vertex.y = halfHeight * sign;
+					vertex.z = radius * cosTheta;
+					vertices.push( vertex.x, vertex.y, vertex.z );
+	
+					// normal
+	
+					normals.push( 0, sign, 0 );
+	
+					// uv
+	
+					uv.x = ( cosTheta * 0.5 ) + 0.5;
+					uv.y = ( sinTheta * 0.5 * sign ) + 0.5;
+					uvs.push( uv.x, uv.y );
+	
+					// increase index
+	
+					index ++;
+	
+				}
+	
+				// generate indices
+	
+				for ( x = 0; x < radialSegments; x ++ ) {
+	
+					var c = centerIndexStart + x;
+					var i = centerIndexEnd + x;
+	
+					if ( top === true ) {
+	
+						// face top
+	
+						indices.push( i, i + 1, c );
+	
+					} else {
+	
+						// face bottom
+	
+						indices.push( i + 1, i, c );
+	
+					}
+	
+					groupCount += 3;
+	
+				}
+	
+				// add a group to the geometry. this will ensure multi material support
+	
+				scope.addGroup( groupStart, groupCount, top === true ? 1 : 2 );
+	
+				// calculate new start value for groups
+	
+				groupStart += groupCount;
+	
+			}
+	
+			this.computeBoundingBox();
+			this.computeBoundingSphere();
+		}
+
+	});
+
+	// exports
+	zen3d.CylinderGeometry = CylinderGeometry;
+	
 })();
 (function() {
     /**
@@ -8351,14 +8457,22 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.TextureDepth = TextureDepth;
 })();
 (function() {
+
+    // imports
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
     var BLEND_EQUATION = zen3d.BLEND_EQUATION;
     var BLEND_FACTOR = zen3d.BLEND_FACTOR;
+    var ENVMAP_COMBINE_TYPE = zen3d.ENVMAP_COMBINE_TYPE;
+    var DRAW_SIDE = zen3d.DRAW_SIDE;
+    var SHADING_TYPE = zen3d.SHADING_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Color3 = zen3d.Color3;
 
     /**
      * base material class
      * @class
      */
-    var Material = function() {
+    function Material() {
 
         // material type
         this.type = "";
@@ -8368,7 +8482,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.transparent = false;
 
         //blending
-        this.blending = zen3d.BLEND_TYPE.NORMAL;
+        this.blending = BLEND_TYPE.NORMAL;
 
         this.blendSrc = BLEND_FACTOR.SRC_ALPHA;
         this.blendDst = BLEND_FACTOR.ONE_MINUS_SRC_ALPHA;
@@ -8383,7 +8497,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.vertexColors = false;
 
         // diffuse
-        this.diffuse = new zen3d.Color3(0xffffff);
+        this.diffuse = new Color3(0xffffff);
         this.diffuseMap = null;
 
         // normal
@@ -8400,10 +8514,10 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // env
         this.envMap = null;
         this.envMapIntensity = 1;
-        this.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.MULTIPLY;
+        this.envMapCombine = ENVMAP_COMBINE_TYPE.MULTIPLY;
 
         // emissive
-        this.emissive = new zen3d.Color3(0x000000);
+        this.emissive = new Color3(0x000000);
         this.emissiveMap = null;
         this.emissiveIntensity = 1;
 
@@ -8415,131 +8529,177 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.alphaTest = 0;
 
         // draw side
-        this.side = zen3d.DRAW_SIDE.FRONT;
+        this.side = DRAW_SIDE.FRONT;
 
         // shading type: SMOOTH_SHADING, FLAT_SHADING
-        this.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+        this.shading = SHADING_TYPE.SMOOTH_SHADING;
 
         // use light
         // if use light, renderer will try to upload light uniforms
         this.acceptLight = false;
 
         // draw mode
-        this.drawMode = zen3d.DRAW_MODE.TRIANGLES;
+        this.drawMode = DRAW_MODE.TRIANGLES;
+
     }
 
-    Material.prototype.clone = function () {
-		return new this.constructor().copy( this );
-	}
+    Material.prototype = Object.assign(Material.prototype, {
 
-    Material.prototype.copy = function(source) {
-        this.type = source.type;
-        this.opacity = source.opacity;
-        this.transparent = source.transparent;
-        this.premultipliedAlpha = source.premultipliedAlpha;
-        this.vertexColors = source.vertexColors;
-        this.diffuse.copy(source.diffuse);
-        this.diffuseMap = source.diffuseMap;
-        this.normalMap = source.normalMap;
-        this.bumpMap = source.bumpMap;
-	    this.bumpScale = source.bumpScale;
-        this.envMap = source.envMap;
-        this.envMapIntensity = source.envMapIntensity;
-        this.envMapCombine = source.envMapCombine;
-        this.emissive.copy(source.emissive);
-        this.emissiveMap = source.emissiveMap;
-        this.emissiveIntensity = source.emissiveIntensity;
-        this.blending = source.blending;
-        this.depthTest = source.depthTest;
-        this.depthWrite = source.depthWrite;
-        this.alphaTest = source.alphaTest;
-        this.side = source.side;
-        this.shading = source.shading;
-        this.acceptLight = source.acceptLight;
-        this.drawMode = source.drawMode;
+        copy: function(source) {
+            this.type = source.type;
+            this.opacity = source.opacity;
+            this.transparent = source.transparent;
+            this.premultipliedAlpha = source.premultipliedAlpha;
+            this.vertexColors = source.vertexColors;
+            this.diffuse.copy(source.diffuse);
+            this.diffuseMap = source.diffuseMap;
+            this.normalMap = source.normalMap;
+            this.bumpMap = source.bumpMap;
+            this.bumpScale = source.bumpScale;
+            this.envMap = source.envMap;
+            this.envMapIntensity = source.envMapIntensity;
+            this.envMapCombine = source.envMapCombine;
+            this.emissive.copy(source.emissive);
+            this.emissiveMap = source.emissiveMap;
+            this.emissiveIntensity = source.emissiveIntensity;
+            this.blending = source.blending;
+            this.depthTest = source.depthTest;
+            this.depthWrite = source.depthWrite;
+            this.alphaTest = source.alphaTest;
+            this.side = source.side;
+            this.shading = source.shading;
+            this.acceptLight = source.acceptLight;
+            this.drawMode = source.drawMode;
+    
+            return this;
+        },
 
-        return this;
-    }
+        clone: function() {
+            return new this.constructor().copy( this );
+        }
 
+    });
+
+    // exports
     zen3d.Material = Material;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * BasicMaterial
      * @class
      */
-    var BasicMaterial = function() {
-        BasicMaterial.superClass.constructor.call(this);
+    function BasicMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.BASIC;
+        this.type = MATERIAL_TYPE.BASIC;
     }
 
-    zen3d.inherit(BasicMaterial, zen3d.Material);
+    BasicMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+        constructor: BasicMaterial
+
+    });
+
+    // exports
     zen3d.BasicMaterial = BasicMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * LambertMaterial
      * @class
      */
-    var LambertMaterial = function() {
-        LambertMaterial.superClass.constructor.call(this);
+    function LambertMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.LAMBERT;
+        this.type = MATERIAL_TYPE.LAMBERT;
 
         this.acceptLight = true;
     }
 
-    zen3d.inherit(LambertMaterial, zen3d.Material);
+    LambertMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+        constructor: LambertMaterial
+
+    });
+
+    // exports
     zen3d.LambertMaterial = LambertMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+    var Color3 = zen3d.Color3;
+
     /**
      * PhongMaterial
      * @class
      */
-    var PhongMaterial = function() {
-        PhongMaterial.superClass.constructor.call(this);
+    function PhongMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.PHONG;
+        this.type = MATERIAL_TYPE.PHONG;
 
         // specular
         this.shininess = 30;
-        this.specular = new zen3d.Color3(0x666666);
+        this.specular = new Color3(0x666666);
         this.specularMap = null;
 
         this.acceptLight = true;
     }
 
-    zen3d.inherit(PhongMaterial, zen3d.Material);
+    PhongMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    PhongMaterial.prototype.copy = function(source) {
-        PhongMaterial.superClass.copy.call(this, source);
+        constructor: PhongMaterial,
 
-        this.shininess = source.shininess;
-        this.specular.copy(source.specular);
-        this.specularMap = source.specularMap;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.shininess = source.shininess;
+            this.specular.copy(source.specular);
+            this.specularMap = source.specularMap;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.PhongMaterial = PhongMaterial;
+    
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * PBRMaterial
      * @class
      */
-    var PBRMaterial = function() {
-        PBRMaterial.superClass.constructor.call(this);
+    function PBRMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.PBR;
+        this.type = MATERIAL_TYPE.PBR;
 
         this.roughness = 0.5;
 	    this.metalness = 0.5;
@@ -8550,146 +8710,206 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.acceptLight = true;
     }
 
-    zen3d.inherit(PBRMaterial, zen3d.Material);
+    PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    PBRMaterial.prototype.copy = function(source) {
-        PBRMaterial.superClass.copy.call(this, source);
+        constructor: PBRMaterial,
 
-        this.roughness = source.roughness;
-        this.metalness = source.metalness;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.roughness = source.roughness;
+            this.metalness = source.metalness;
+    
+            return this;
+        }
 
-        return this;
-    }
-
+    });
+    
+    // exports
     zen3d.PBRMaterial = PBRMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_SIDE= zen3d.DRAW_SIDE;
+    var Material = zen3d.Material;
+
     /**
      * CubeMaterial
      * @class
      */
-    var CubeMaterial = function() {
-        CubeMaterial.superClass.constructor.call(this);
+    function CubeMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.CUBE;
+        this.type = MATERIAL_TYPE.CUBE;
 
-        this.side = zen3d.DRAW_SIDE.BACK;
+        this.side = DRAW_SIDE.BACK;
 
         this.cubeMap = null;
     }
 
-    zen3d.inherit(CubeMaterial, zen3d.Material);
+    CubeMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    CubeMaterial.prototype.copy = function(source) {
-        CubeMaterial.superClass.copy.call(this, source);
+        constructor: CubeMaterial,
 
-        this.cubeMap = source.cubeMap;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.cubeMap = source.cubeMap;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.CubeMaterial = CubeMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Material = zen3d.Material;
+
     /**
      * PointsMaterial
      * @class
      */
-    var PointsMaterial = function() {
-        PointsMaterial.superClass.constructor.call(this);
+    function PointsMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.POINT;
+        this.type = MATERIAL_TYPE.POINT;
 
         this.size = 1;
 
         this.sizeAttenuation = true;
 
-        this.drawMode = zen3d.DRAW_MODE.POINTS;
+        this.drawMode = DRAW_MODE.POINTS;
     }
 
-    zen3d.inherit(PointsMaterial, zen3d.Material);
+    PointsMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    PointsMaterial.prototype.copy = function(source) {
-        PointsMaterial.superClass.copy.call(this, source);
+        constructor: PointsMaterial,
 
-        this.size = source.size;
-        this.sizeAttenuation = source.sizeAttenuation;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.size = source.size;
+            this.sizeAttenuation = source.sizeAttenuation;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.PointsMaterial = PointsMaterial;
+    
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Material = zen3d.Material;
+
     /**
      * LineMaterial
      * @class
      */
-    var LineMaterial = function() {
-        LineMaterial.superClass.constructor.call(this);
+    function LineMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.LINE;
+        this.type = MATERIAL_TYPE.LINE;
 
         // chrome bug on MacOS: gl.lineWidth no effect
         this.lineWidth = 1;
 
-        this.drawMode = zen3d.DRAW_MODE.LINES;
+        this.drawMode = DRAW_MODE.LINES;
     }
 
-    zen3d.inherit(LineMaterial, zen3d.Material);
+    LineMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    LineMaterial.prototype.copy = function(source) {
-        LineMaterial.superClass.copy.call(this, source);
+        constructor: LineMaterial,
 
-        this.lineWidth = source.lineWidth;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.lineWidth = source.lineWidth;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.LineMaterial = LineMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Material = zen3d.Material;
+
     /**
      * LineLoopMaterial
      * @class
      */
-    var LineLoopMaterial = function() {
-        LineLoopMaterial.superClass.constructor.call(this);
+    function LineLoopMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.LINE_LOOP;
+        this.type = MATERIAL_TYPE.LINE_LOOP;
 
         // chrome bug on MacOS: gl.lineWidth no effect
         this.lineWidth = 1;
 
-        this.drawMode = zen3d.DRAW_MODE.LINE_LOOP;
+        this.drawMode = DRAW_MODE.LINE_LOOP;
     }
 
-    zen3d.inherit(LineLoopMaterial, zen3d.Material);
+    LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    LineLoopMaterial.prototype.copy = function(source) {
-        LineLoopMaterial.superClass.copy.call(this, source);
+        constructor: LineLoopMaterial,
 
-        this.lineWidth = source.lineWidth;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.lineWidth = source.lineWidth;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.LineLoopMaterial = LineLoopMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Material = zen3d.Material;
+
     /**
      * LineDashedMaterial
      * @class
      */
-    var LineDashedMaterial = function() {
-        LineDashedMaterial.superClass.constructor.call(this);
+    function LineDashedMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.LINE_DASHED;
+        this.type = MATERIAL_TYPE.LINE_DASHED;
 
         // chrome bug on MacOS: gl.lineWidth no effect
         this.lineWidth = 1;
@@ -8698,63 +8918,85 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.dashSize = 3;
         this.gapSize = 1;
 
-        this.drawMode = zen3d.DRAW_MODE.LINE_STRIP;
+        this.drawMode = DRAW_MODE.LINE_STRIP;
     }
 
-    zen3d.inherit(LineDashedMaterial, zen3d.Material);
+    LineDashedMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    LineDashedMaterial.prototype.copy = function(source) {
-        LineDashedMaterial.superClass.copy.call(this, source);
+        constructor: LineDashedMaterial,
 
-        this.lineWidth = source.lineWidth;
-        this.scale = source.scale;
-        this.dashSize = source.dashSize;
-        this.gapSize = source.gapSize;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.lineWidth = source.lineWidth;
+            this.scale = source.scale;
+            this.dashSize = source.dashSize;
+            this.gapSize = source.gapSize;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.LineDashedMaterial = LineDashedMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * SpriteMaterial
      * @class
      */
     var SpriteMaterial = function() {
-        SpriteMaterial.superClass.constructor.call(this);
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.SPRITE;
+        this.type = MATERIAL_TYPE.SPRITE;
 
         this.rotation = 0;
 
     	this.fog = false;
     }
 
-    zen3d.inherit(SpriteMaterial, zen3d.Material);
+    SpriteMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    SpriteMaterial.prototype.copy = function(source) {
-        SpriteMaterial.superClass.copy.call(this, source);
+        constructor: SpriteMaterial,
 
-        this.rotation = source.rotation;
-        this.fog = source.fog;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.rotation = source.rotation;
+            this.fog = source.fog;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.SpriteMaterial = SpriteMaterial;
+    
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * ShaderMaterial
      * @class
      */
-    var ShaderMaterial = function(vertexShader, fragmentShader, uniforms) {
-        ShaderMaterial.superClass.constructor.call(this);
+    function ShaderMaterial(vertexShader, fragmentShader, uniforms) {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.SHADER;
+        this.type = MATERIAL_TYPE.SHADER;
 
         this.vertexShader = vertexShader || "";
 
@@ -8766,79 +9008,119 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.uniforms = uniforms || {};
     }
 
-    zen3d.inherit(ShaderMaterial, zen3d.Material);
+    ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    ShaderMaterial.prototype.copy = function(source) {
-        ShaderMaterial.superClass.copy.call(this, source);
+        constructor: ShaderMaterial,
 
-        this.vertexShader = source.vertexShader;
-        this.fragmentShader = source.fragmentShader;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.vertexShader = source.vertexShader;
+            this.fragmentShader = source.fragmentShader;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.ShaderMaterial = ShaderMaterial;
+
 })();
 
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * DepthMaterial
      * @class
      */
-    var DepthMaterial = function() {
-        DepthMaterial.superClass.constructor.call(this);
+    function DepthMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.DEPTH;
+        this.type = MATERIAL_TYPE.DEPTH;
 
-        this.blending = zen3d.BLEND_TYPE.NONE;
+        this.blending = BLEND_TYPE.NONE;
 
         this.packToRGBA = false;
     }
 
-    zen3d.inherit(DepthMaterial, zen3d.Material);
+    DepthMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+        constructor: DepthMaterial
+
+    });
+
+    // exports
     zen3d.DepthMaterial = DepthMaterial;
+
 })();
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * DistanceMaterial
      * @class
      */
-    var DistanceMaterial = function() {
-        DistanceMaterial.superClass.constructor.call(this);
+    function DistanceMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.DISTANCE;
+        this.type = MATERIAL_TYPE.DISTANCE;
 
-        this.blending = zen3d.BLEND_TYPE.NONE;
+        this.blending = BLEND_TYPE.NONE;
     }
 
-    zen3d.inherit(DistanceMaterial, zen3d.Material);
+    DistanceMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+
+        constructor: DistanceMaterial
+
+    });
 
     zen3d.DistanceMaterial = DistanceMaterial;
 })();
 (function() {
+
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Material = zen3d.Material;
+
     /**
      * ParticleMaterial
      * @class
      */
-    var ParticleMaterial = function() {
-        ParticleMaterial.superClass.constructor.call(this);
+    function ParticleMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.PARTICLE;
+        this.type = MATERIAL_TYPE.PARTICLE;
 
         this.transparent = true;
 
-        this.blending = zen3d.BLEND_TYPE.ADD;
+        this.blending = BLEND_TYPE.ADD;
 
         this.depthTest = true;
         this.depthWrite = false;
 
-        this.drawMode = zen3d.DRAW_MODE.POINTS;
+        this.drawMode = DRAW_MODE.POINTS;
     }
 
-    zen3d.inherit(ParticleMaterial, zen3d.Material);
+    ParticleMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+        constructor: ParticleMaterial
+
+    });
+    
+    // exports
     zen3d.ParticleMaterial = ParticleMaterial;
+
 })();
 (function() {
     /**
@@ -10191,24 +10473,39 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 	zen3d.ParticleContainer = ParticleContainer;
 })();
 (function() {
+
+    // imports
+    var Object3D = zen3d.Object3D;
+    var Matrix4= zen3d.Matrix4;
+
     // Bone acturely is a joint
     // the position means joint position
     // mesh transform is based this joint space
-    var Bone = function() {
-        Bone.superClass.constructor.call(this);
+    function Bone() {
+
+        Object3D.call(this);
 
         this.type = "bone";
 
         // the origin offset matrix
         // the inverse matrix of origin transform matrix
-        this.offsetMatrix = new zen3d.Matrix4();
+        this.offsetMatrix = new Matrix4();
+
     }
 
-    zen3d.inherit(Bone, zen3d.Object3D);
+    Bone.prototype = Object.create(Object3D.prototype);
+    Bone.prototype.constructor = Bone;
 
+    // exports
     zen3d.Bone = Bone;
+    
 })();
 (function() {
+
+    // imports
+    var Object3D = zen3d.Object3D;
+    var Matrix4= zen3d.Matrix4;
+
     // extends from Object3D only for use the updateMatrix method
     // so all bones should be the children of skeleton
     // like this:
@@ -10222,8 +10519,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     //    |
     //    |-- Bone
     //    |-- Bone
-    var Skeleton = function(bones) {
-        Skeleton.superClass.constructor.call(this);
+    function Skeleton(bones) {
+
+        Object3D.call(this);
 
         this.type = "skeleton";
 
@@ -10237,91 +10535,114 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // by that way, we can use more bones on phone
         this.boneTexture = undefined;
         this.boneTextureSize = 0;
+
     }
 
-    zen3d.inherit(Skeleton, zen3d.Object3D);
+    Skeleton.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    var offsetMatrix = new zen3d.Matrix4();
+        constructor: Skeleton,
 
-    Skeleton.prototype.updateBones = function() {
-        // the world matrix of bones, is based skeleton
-        this.updateMatrix();
+        updateBones: function() {
 
-        for(var i = 0; i < this.bones.length; i++) {
-            var bone = this.bones[i];
-            offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
-            offsetMatrix.toArray(this.boneMatrices, i * 16);
-        }
+            var offsetMatrix = new Matrix4();
 
-        if (this.boneTexture !== undefined) {
-			this.boneTexture.version++;
-		}
-    }
+            return function updateBones() {
 
+                // the world matrix of bones, is based skeleton
+                this.updateMatrix();
+
+                for(var i = 0; i < this.bones.length; i++) {
+                    var bone = this.bones[i];
+                    offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
+                    offsetMatrix.toArray(this.boneMatrices, i * 16);
+                }
+
+                if (this.boneTexture !== undefined) {
+                    this.boneTexture.version++;
+                }
+
+            }
+
+        }()
+
+    });
+
+    // exports
     zen3d.Skeleton = Skeleton;
+
 })();
 (function() {
-    var KeyframeData = function() {
+
+    function KeyframeData() {
         this._keys = [];
         this._values = [];
     }
 
-    KeyframeData.prototype.addFrame = function(key, value) {
-        this._keys.push(key);
-        this._values.push(value);
-    }
+    KeyframeData.prototype = Object.assign(KeyframeData.prototype, {
 
-    KeyframeData.prototype.removeFrame = function(key) {
-        var index = this.keys.indexOf(key);
-        if (index > -1) {
-            this._keys.splice(index, 1);
-            this._values.splice(index, 1);
-        }
-    }
+        addFrame: function(key, value) {
+            this._keys.push(key);
+            this._values.push(value);
+        },
 
-    KeyframeData.prototype.clearFrame = function() {
-        this._keys.length = 0;
-        this._values.length = 0;
-    }
-
-    KeyframeData.prototype.sortFrame = function() {
-        // TODO
-    }
-
-    // return a frame range between two key frames
-    // return type: {key1: 0, value1: 0, key2: 0, value2: 0}
-    KeyframeData.prototype.getRange = function(t, result) {
-        var lastIndex = this._getLastKeyIndex(t);
-
-        var key1 = this._keys[lastIndex];
-        var key2 = this._keys[lastIndex + 1];
-        var value1 = this._values[lastIndex];
-        var value2 = this._values[lastIndex + 1];
-
-        result = result || {key1: 0, value1: 0, key2: 0, value2: 0};
-
-        result.key1 = key1;
-        result.key2 = key2;
-        result.value1 = value1;
-        result.value2 = value2;
-
-        return result;
-    }
-
-    KeyframeData.prototype._getLastKeyIndex = function(t) {
-        var lastKeyIndex = 0;
-        var i, l = this._keys.length;
-        for(i = 0; i < l; i++) {
-            if(t >= this._keys[i]) {
-                lastKeyIndex = i;
+        removeFrame: function(key) {
+            var index = this.keys.indexOf(key);
+            if (index > -1) {
+                this._keys.splice(index, 1);
+                this._values.splice(index, 1);
             }
-        }
-        return lastKeyIndex;
-    }
+        },
 
+        clearFrame: function() {
+            this._keys.length = 0;
+            this._values.length = 0;
+        },
+
+        sortFrame: function() {
+            // TODO
+        },
+
+        // return a frame range between two key frames
+        // return type: {key1: 0, value1: 0, key2: 0, value2: 0}
+        getRange: function(t, result) {
+            var lastIndex = this._getLastKeyIndex(t);
+    
+            var key1 = this._keys[lastIndex];
+            var key2 = this._keys[lastIndex + 1];
+            var value1 = this._values[lastIndex];
+            var value2 = this._values[lastIndex + 1];
+    
+            result = result || {key1: 0, value1: 0, key2: 0, value2: 0};
+    
+            result.key1 = key1;
+            result.key2 = key2;
+            result.value1 = value1;
+            result.value2 = value2;
+    
+            return result;
+        },
+
+        _getLastKeyIndex: function(t) {
+            var lastKeyIndex = 0;
+            var i, l = this._keys.length;
+            for(i = 0; i < l; i++) {
+                if(t >= this._keys[i]) {
+                    lastKeyIndex = i;
+                }
+            }
+            return lastKeyIndex;
+        }
+
+    });
+
+    // exports
     zen3d.KeyframeData = KeyframeData;
+
 })();
 (function() {
+
+    // imports
+    var KeyframeData = zen3d.KeyframeData;
 
     var range = {key1: 0, value1: 0, key2: 0, value2: 0};
 
@@ -10329,38 +10650,62 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * KeyframeTrack
      * used for number property track
      */
-    var KeyframeTrack = function(target, propertyPath) {
+    function KeyframeTrack(target, propertyPath) {
 
         this.target = undefined;
         this.path = undefined;
 
         this.bind(target, propertyPath);
 
-        this.data = new zen3d.KeyframeData();
+        this.data = new KeyframeData();
 
         this._frame = 0;
 
         this.interpolant = true;
     }
 
-    KeyframeTrack.prototype.bind = function(target, propertyPath) {
-        propertyPath = propertyPath.split(".");
+    KeyframeTrack.prototype = Object.assign(KeyframeTrack.prototype, {
 
-        if (propertyPath.length > 1) {
-            var property = target[propertyPath[0]];
-
-
-            for (var index = 1; index < propertyPath.length - 1; index++) {
-                property = property[propertyPath[index]];
+        bind: function(target, propertyPath) {
+            propertyPath = propertyPath.split(".");
+    
+            if (propertyPath.length > 1) {
+                var property = target[propertyPath[0]];
+    
+    
+                for (var index = 1; index < propertyPath.length - 1; index++) {
+                    property = property[propertyPath[index]];
+                }
+    
+                this.path = propertyPath[propertyPath.length - 1];
+                this.target = property;
+            } else {
+                this.path = propertyPath[0];
+                this.target = target;
             }
+        },
 
-            this.path = propertyPath[propertyPath.length - 1];
-            this.target = property;
-        } else {
-            this.path = propertyPath[0];
-            this.target = target;
+        _updateValue: function(t) {
+            this.data.getRange(t, range);
+    
+            var key1 = range.key1;
+            var key2 = range.key2;
+            var value1 = range.value1;
+            var value2 = range.value2;
+    
+            if(this.interpolant) {
+                if(value1 !== undefined && value2 !== undefined) {
+                    var ratio = (t - key1) / (key2 - key1);
+                    this.target[this.path] = (value2 - value1) * ratio + value1;
+                } else {
+                    this.target[this.path] = value1;
+                }
+            } else {
+                this.target[this.path] = value1;
+            }
         }
-    }
+
+    });
 
     Object.defineProperties(KeyframeTrack.prototype, {
         frame: {
@@ -10375,29 +10720,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     });
 
-    KeyframeTrack.prototype._updateValue = function(t) {
-        this.data.getRange(t, range);
-
-        var key1 = range.key1;
-        var key2 = range.key2;
-        var value1 = range.value1;
-        var value2 = range.value2;
-
-        if(this.interpolant) {
-            if(value1 !== undefined && value2 !== undefined) {
-                var ratio = (t - key1) / (key2 - key1);
-                this.target[this.path] = (value2 - value1) * ratio + value1;
-            } else {
-                this.target[this.path] = value1;
-            }
-        } else {
-            this.target[this.path] = value1;
-        }
-    }
-
+    // exports
     zen3d.KeyframeTrack = KeyframeTrack;
+
 })();
 (function() {
+
+    // imports
+    var KeyframeTrack = zen3d.KeyframeTrack;
 
     var range = {key1: 0, value1: 0, key2: 0, value2: 0};
 
@@ -10406,34 +10736,43 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * used for vector property track
      */
     var QuaternionKeyframeTrack = function(target, propertyPath) {
-        QuaternionKeyframeTrack.superClass.constructor.call(this, target, propertyPath);
+        KeyframeTrack.call(this, target, propertyPath);
     }
 
-    zen3d.inherit(QuaternionKeyframeTrack, zen3d.KeyframeTrack);
+    QuaternionKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
-    QuaternionKeyframeTrack.prototype._updateValue = function(t) {
-        this.data.getRange(t, range);
+        constructor: QuaternionKeyframeTrack,
 
-        var key1 = range.key1;
-        var key2 = range.key2;
-        var value1 = range.value1;
-        var value2 = range.value2;
-
-        if(this.interpolant) {
-            if(value1 !== undefined && value2 !== undefined) {
-                var ratio = (t - key1) / (key2 - key1);
-                this.target[this.path].slerpQuaternions(value1, value2, ratio);
+        _updateValue: function(t) {
+            this.data.getRange(t, range);
+    
+            var key1 = range.key1;
+            var key2 = range.key2;
+            var value1 = range.value1;
+            var value2 = range.value2;
+    
+            if(this.interpolant) {
+                if(value1 !== undefined && value2 !== undefined) {
+                    var ratio = (t - key1) / (key2 - key1);
+                    this.target[this.path].slerpQuaternions(value1, value2, ratio);
+                } else {
+                    this.target[this.path].copy(value1);
+                }
             } else {
                 this.target[this.path].copy(value1);
             }
-        } else {
-            this.target[this.path].copy(value1);
         }
-    }
 
+    });
+
+    // exports
     zen3d.QuaternionKeyframeTrack = QuaternionKeyframeTrack;
+
 })();
 (function() {
+
+    // imports
+    var KeyframeTrack = zen3d.KeyframeTrack;
 
     var range = {key1: 0, value1: 0, key2: 0, value2: 0};
     
@@ -10442,34 +10781,43 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * used for vector property track
      */
     var VectorKeyframeTrack = function(target, propertyPath) {
-        VectorKeyframeTrack.superClass.constructor.call(this, target, propertyPath);
+        KeyframeTrack.call(this, target, propertyPath);
     }
 
-    zen3d.inherit(VectorKeyframeTrack, zen3d.KeyframeTrack);
+    VectorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
-    VectorKeyframeTrack.prototype._updateValue = function(t) {
-        this.data.getRange(t, range);
+        constructor: VectorKeyframeTrack,
 
-        var key1 = range.key1;
-        var key2 = range.key2;
-        var value1 = range.value1;
-        var value2 = range.value2;
-
-        if(this.interpolant) {
-            if(value1 !== undefined && value2 !== undefined) {
-                var ratio = (t - key1) / (key2 - key1);
-                this.target[this.path].lerpVectors(value1, value2, ratio);
+        _updateValue: function(t) {
+            this.data.getRange(t, range);
+    
+            var key1 = range.key1;
+            var key2 = range.key2;
+            var value1 = range.value1;
+            var value2 = range.value2;
+    
+            if(this.interpolant) {
+                if(value1 !== undefined && value2 !== undefined) {
+                    var ratio = (t - key1) / (key2 - key1);
+                    this.target[this.path].lerpVectors(value1, value2, ratio);
+                } else {
+                    this.target[this.path].copy(value1);
+                }
             } else {
                 this.target[this.path].copy(value1);
             }
-        } else {
-            this.target[this.path].copy(value1);
         }
-    }
 
+    });
+
+    // exports
     zen3d.VectorKeyframeTrack = VectorKeyframeTrack;
+
 })();
 (function() {
+
+    // imports
+    var KeyframeTrack = zen3d.KeyframeTrack;
 
     var range = {key1: 0, value1: 0, key2: 0, value2: 0};
 
@@ -10477,36 +10825,44 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * ColorKeyframeTrack
      * used for color property track
      */
-    var ColorKeyframeTrack = function(target, propertyPath) {
-        ColorKeyframeTrack.superClass.constructor.call(this, target, propertyPath);
+    function ColorKeyframeTrack(target, propertyPath) {
+        KeyframeTrack.call(this, target, propertyPath);
     }
 
-    zen3d.inherit(ColorKeyframeTrack, zen3d.KeyframeTrack);
+    ColorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
-    ColorKeyframeTrack.prototype._updateValue = function(t) {
-        this.data.getRange(t, range);
+        constructor: ColorKeyframeTrack,
 
-        var key1 = range.key1;
-        var key2 = range.key2;
-        var value1 = range.value1;
-        var value2 = range.value2;
-
-        if(this.interpolant) {
-            if(value1 !== undefined && value2 !== undefined) {
-                var ratio = (t - key1) / (key2 - key1);
-                this.target[this.path].lerpColors(value1, value2, ratio);
+        _updateValue: function(t) {
+            this.data.getRange(t, range);
+    
+            var key1 = range.key1;
+            var key2 = range.key2;
+            var value1 = range.value1;
+            var value2 = range.value2;
+    
+            if(this.interpolant) {
+                if(value1 !== undefined && value2 !== undefined) {
+                    var ratio = (t - key1) / (key2 - key1);
+                    this.target[this.path].lerpColors(value1, value2, ratio);
+                } else {
+                    this.target[this.path].copy(value1);
+                }
             } else {
                 this.target[this.path].copy(value1);
             }
-        } else {
-            this.target[this.path].copy(value1);
         }
-    }
 
+    });
+
+    // exports
     zen3d.ColorKeyframeTrack = ColorKeyframeTrack;
+
 })();
 (function() {
-    var KeyframeClip = function(name) {
+
+    function KeyframeClip(name) {
+
         this.name = name || "";
 
         this.tracks = [];
@@ -10518,37 +10874,47 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.endFrame = 0;
 
         this.frame = 0;
+
     }
 
-    KeyframeClip.prototype.update = function(t) {
-        this.frame += t;
+    KeyframeClip.prototype = Object.assign(KeyframeClip.prototype, {
 
-        if(this.frame > this.endFrame) {
-            if(this.loop) {
-                this.frame = this.startFrame;
-            } else {
-                this.frame = this.endFrame;
+        update: function(t) {
+            this.frame += t;
+    
+            if(this.frame > this.endFrame) {
+                if(this.loop) {
+                    this.frame = this.startFrame;
+                } else {
+                    this.frame = this.endFrame;
+                }
             }
+    
+            this.setFrame(this.frame);
+        },
+
+        setFrame: function(frame) {
+            for(var i = 0, l = this.tracks.length; i < l; i++) {
+                this.tracks[i].frame = frame;
+            }
+    
+            this.frame = frame;
         }
 
-        this.setFrame(this.frame);
-    }
+    });
 
-    KeyframeClip.prototype.setFrame = function(frame) {
-        for(var i = 0, l = this.tracks.length; i < l; i++) {
-            this.tracks[i].frame = frame;
-        }
-
-        this.frame = frame;
-    }
-
+    // exports
     zen3d.KeyframeClip = KeyframeClip;
+
 })();
 (function() {
-    var KeyframeAnimation = function() {
+
+    function KeyframeAnimation() {
+
         this._clips = {};
 
         this._currentClipName = "";
+
     }
 
     Object.defineProperties(KeyframeAnimation.prototype, {
@@ -10564,41 +10930,47 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     });
 
-    KeyframeAnimation.prototype.add = function(clip) {
-        this._clips[clip.name] = clip;
-    }
+    KeyframeAnimation.prototype = Object.assign(KeyframeAnimation.prototype, {
 
-    KeyframeAnimation.prototype.remove = function(clip) {
-        delete this._clips[clip.name];
-    }
+        add: function(clip) {
+            this._clips[clip.name] = clip;
+        },
 
-    KeyframeAnimation.prototype.update = function(t) {
-        var currentClip = this._clips[this._currentClipName];
-        if(currentClip) {
-            currentClip.update(t);
+        remove: function(clip) {
+            delete this._clips[clip.name];
+        },
+
+        update: function(t) {
+            var currentClip = this._clips[this._currentClipName];
+            if(currentClip) {
+                currentClip.update(t);
+            }
+        },
+
+        active: function(name) {
+            var clip = this._clips[name];
+            if(clip) {
+                this._currentClipName = name;
+                clip.setFrame(clip.startFrame);// restore
+            } else {
+                console.warn("KeyframeAnimation: try to active a undefind clip!");
+            }
+        },
+
+        // return all clip names of this animation
+        getAllClipNames: function() {
+            var array = [];
+            for(var key in this._clips) {
+                array.push(key);
+            }
+            return array;
         }
-    }
 
-    KeyframeAnimation.prototype.active = function(name) {
-        var clip = this._clips[name];
-        if(clip) {
-            this._currentClipName = name;
-            clip.setFrame(clip.startFrame);// restore
-        } else {
-            console.warn("KeyframeAnimation: try to active a undefind clip!");
-        }
-    }
+    });
 
-    // return all clip names of this animation
-    KeyframeAnimation.prototype.getAllClipNames = function() {
-        var array = [];
-        for(var key in this._clips) {
-            array.push(key);
-        }
-        return array;
-    }
-
+    // exports
     zen3d.KeyframeAnimation = KeyframeAnimation;
+
 })();
 (function() {
     /**
@@ -13638,253 +14010,4 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     }
 
     zen3d.Performance = Performance;
-})();
-(function() {
-    /**
-     * HoverController Class
-     * @class
-     */
-    var HoverController = function(camera, lookAtPoint) {
-        this.camera = camera;
-
-        this.lookAtPoint = lookAtPoint;
-
-        this.up = new zen3d.Vector3(0, 1, 0);
-
-        this.distance = 100;
-
-        this._panAngle = 0;
-        this._panRad = 0;
-        this.minPanAngle = -Infinity;
-        this.maxPanAngle = Infinity;
-
-        this._tiltAngle = 0;
-        this._tiltRad = 0;
-        this.minTileAngle = -90;
-        this.maxTileAngle = 90;
-
-        this.bindMouse = undefined;
-        this._lastMouseX, this._lastMouseY, this._mouseDown = false;
-
-        this.bindTouch = undefined;
-        this._lastTouchX, this._lastTouchY, this._fingerTwo = false, this._lastDistance;
-
-        this._lastPosition = new zen3d.Vector3();
-        this._lastQuaternion = new zen3d.Quaternion();
-    }
-
-    Object.defineProperties(HoverController.prototype, {
-        panAngle: {
-            get: function() {
-                return this._panAngle;
-            },
-            set: function(value) {
-                this._panAngle = Math.max(this.minPanAngle, Math.min(this.maxPanAngle, value));
-                this._panRad = this._panAngle * Math.PI / 180;
-            }
-        },
-        tiltAngle: {
-            get: function() {
-                return this._tiltAngle;
-            },
-            set: function(value) {
-                this._tiltAngle = Math.max(this.minTileAngle, Math.min(this.maxTileAngle, value));
-                this._tiltRad = this._tiltAngle * Math.PI / 180;
-            }
-        }
-    });
-
-    var EPS = 0.000001;
-
-    HoverController.prototype.update = function() {
-        this.bindMouse && this._updateMouse();
-        this.bindTouch && this._updateTouch();
-
-        var distanceX = this.distance * Math.sin(this._panRad) * Math.cos(this._tiltRad);
-        var distanceY = this.distance * Math.sin(this._tiltRad);
-        var distanceZ = this.distance * Math.cos(this._panRad) * Math.cos(this._tiltRad);
-
-        var camera = this.camera;
-        var target = this.lookAtPoint;
-        camera.position.set(distanceX + target.x, distanceY + target.y, distanceZ + target.z);
-        camera.lookAt(target, this.up);
-
-        if(
-            this._lastPosition.distanceToSquared(camera.position) > EPS ||
-            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
-        ) {
-            this._lastPosition.copy(camera.position);
-            this._lastQuaternion.copy(camera.quaternion);
-            return true;
-        }
-        return false;
-    }
-
-    HoverController.prototype._updateMouse = function() {
-        var mouse = this.bindMouse;
-        if(mouse.isPressed(0)) {
-            if(!this._mouseDown || this._lastMouseX == undefined || this._lastMouseY == undefined) {
-                this._mouseDown = true;
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            } else {
-                var moveX = mouse.position.x - this._lastMouseX;
-                var moveY = mouse.position.y - this._lastMouseY;
-
-                this.panAngle -= moveX;
-                this.tiltAngle += moveY;
-
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            }
-        } else if(mouse.wasReleased(0)) {
-            this._mouseDown = false;
-        }
-        this.distance = Math.max(this.distance - mouse.wheel * 2, 1);
-    }
-
-    var hVec2_1 = new zen3d.Vector2();
-    var hVec2_2 = new zen3d.Vector2();
-
-    HoverController.prototype._updateTouch = function(touch) {
-        var touch = this.bindTouch;
-        if(touch.touchCount > 0) {
-            if(touch.touchCount == 1) {
-                var _touch = touch.getTouch(0);
-                if(_touch.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo || this._lastTouchX == undefined || this._lastTouchY == undefined) {
-                    this._lastTouchX = _touch.position.x;
-                    this._lastTouchY = _touch.position.y;
-                } else {
-                    var moveX = _touch.position.x - this._lastTouchX;
-                    var moveY = _touch.position.y - this._lastTouchY;
-
-                    this.panAngle -= moveX * 0.5;
-                    this.tiltAngle += moveY * 0.5;
-
-                    this._lastTouchX = _touch.position.x;
-                    this._lastTouchY = _touch.position.y;
-                }
-                this._fingerTwo = false;
-            } else if(touch.touchCount == 2) {
-                var _touch1 = touch.getTouch(0);
-                var _touch2 = touch.getTouch(1);
-                if(_touch1.phase == zen3d.TouchPhase.BEGAN || _touch2.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo == false || this._lastDistance == undefined) {
-                    hVec2_1.set(_touch1.position.x, _touch1.position.y);
-                    hVec2_2.set(_touch2.position.x, _touch2.position.y);
-                    this._lastDistance = hVec2_1.distanceTo(hVec2_2);
-                } else {
-                    hVec2_1.set(_touch1.position.x, _touch1.position.y);
-                    hVec2_2.set(_touch2.position.x, _touch2.position.y);
-                    var distance = hVec2_1.distanceTo(hVec2_2);
-
-                    var deltaDistance = distance - this._lastDistance;
-
-                    this.distance = Math.max(this.distance - deltaDistance, 1);
-
-                    this._lastDistance = distance;
-                }
-                this._fingerTwo = true;
-            } else {
-                this._fingerTwo = false;
-            }
-        }
-    }
-
-    zen3d.HoverController = HoverController;
-})();
-(function() {
-    /**
-     * FreeController Class
-     * @class
-     */
-    var FreeController = function(camera) {
-        this.camera = camera;
-        this.camera.euler.order = 'YXZ'; // the right order?
-
-        this.bindKeyboard = undefined;
-        this.bindMouse = undefined;
-        this._lastMouseX, this._lastMouseY, this._mouseDown = false;
-
-        this._lastPosition = new zen3d.Vector3();
-        this._lastQuaternion = new zen3d.Quaternion();
-    }
-
-    var EPS = 0.000001;
-
-    FreeController.prototype.update = function() {
-        this.bindKeyboard && this.keyboardUpdate();
-        this.bindMouse && this.mouseUpdate();
-
-        var camera = this.camera;
-
-        if(
-            this._lastPosition.distanceToSquared(camera.position) > EPS ||
-            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
-        ) {
-            this._lastPosition.copy(camera.position);
-            this._lastQuaternion.copy(camera.quaternion);
-            return true;
-        }
-        return false;
-    }
-
-    var forward = new zen3d.Vector3();
-    var up = new zen3d.Vector3();
-    var right = new zen3d.Vector3();
-
-    FreeController.prototype.keyboardUpdate = function() {
-        var keyboard = this.bindKeyboard;
-
-        forward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
-        up.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
-        right.set(1, 0, 0).applyQuaternion(this.camera.quaternion);
-
-        if(keyboard.isPressed("W")) {
-            this.camera.position.add(forward);
-        }
-        if(keyboard.isPressed("A")) {
-            this.camera.position.sub(right);
-        }
-        if(keyboard.isPressed("S")) {
-            this.camera.position.sub(forward);
-        }
-        if(keyboard.isPressed("D")) {
-            this.camera.position.add(right);
-        }
-        if(keyboard.isPressed("E")) {
-            this.camera.position.add(up);
-        }
-        if(keyboard.isPressed("Q")) {
-            this.camera.position.sub(up);
-        }
-    }
-
-    FreeController.prototype.mouseUpdate = function() {
-        var mouse = this.bindMouse;
-
-        if(mouse.isPressed(0)) {
-            if(!this._mouseDown || this._lastMouseX == undefined || this._lastMouseY == undefined) {
-                this._mouseDown = true;
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            } else {
-                var moveX = mouse.position.x - this._lastMouseX;
-                var moveY = mouse.position.y - this._lastMouseY;
-
-                this.camera.euler.x -= moveY * 0.01;
-                this.camera.euler.y -= moveX * 0.01;
-
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            }
-        } else if(mouse.wasReleased(0)) {
-            this._mouseDown = false;
-        }
-        if(mouse.wheel !== 0) {
-            forward.set(0, 0, -1).applyQuaternion(this.camera.quaternion).multiplyScalar(mouse.wheel);
-            this.camera.position.add(forward);
-        }
-    }
-
-    zen3d.FreeController = FreeController;
 })();

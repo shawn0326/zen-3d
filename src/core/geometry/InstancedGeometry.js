@@ -1,13 +1,17 @@
 (function() {
+
+    // imports
+    var Geometry = zen3d.Geometry;
+
     function InstancedGeometry() {
 
-        zen3d.Geometry.call( this );
+        Geometry.call( this );
 
         this.maxInstancedCount = undefined;
 
     }
 
-    InstancedGeometry.prototype = Object.assign( Object.create( zen3d.Geometry.prototype ), {
+    InstancedGeometry.prototype = Object.assign( Object.create( Geometry.prototype ), {
 
         constructor: InstancedGeometry,
 
@@ -15,5 +19,7 @@
     
     });
 
+    // exports
     zen3d.InstancedGeometry = InstancedGeometry;
+    
 })();

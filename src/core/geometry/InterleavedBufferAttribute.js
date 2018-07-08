@@ -1,6 +1,10 @@
 (function() {
-    var InterleavedBufferAttribute = function(interleavedBuffer, size, offset, normalized) {
-        this.uuid = zen3d.generateUUID();
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+
+    function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized) {
+        this.uuid = generateUUID();
 
         this.data = interleavedBuffer;
         this.size = size;
@@ -24,5 +28,7 @@
         }
     });
 
+    // exports
     zen3d.InterleavedBufferAttribute = InterleavedBufferAttribute;
+
 })();

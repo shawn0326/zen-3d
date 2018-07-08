@@ -21,14 +21,11 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="../build/zen3d.input.js"></script>
 </head>
 <body>
 
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - clipping planes
-        <br/>
-        press 's' to toggle shadow
     </div>
 
 	<script>
@@ -95,9 +92,6 @@
 
 			toggleShadow();
 
-			// input
-			var keyboard = new zen3d.Keyboard(window);
-
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
@@ -107,14 +101,8 @@
 				camera.position.z = 100 * Math.cos(count / 1000 * .5);
 				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-				// handle input
-				if(keyboard.wasPressed("s")) {
-					toggleShadow();
-				}
-
 				renderer.render(scene, camera);
-
-				keyboard.update();
+				
 	        }
 
 	        loop(0);

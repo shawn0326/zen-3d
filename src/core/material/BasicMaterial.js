@@ -1,15 +1,26 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * BasicMaterial
      * @class
      */
-    var BasicMaterial = function() {
-        BasicMaterial.superClass.constructor.call(this);
+    function BasicMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.BASIC;
+        this.type = MATERIAL_TYPE.BASIC;
     }
 
-    zen3d.inherit(BasicMaterial, zen3d.Material);
+    BasicMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+        constructor: BasicMaterial
+
+    });
+
+    // exports
     zen3d.BasicMaterial = BasicMaterial;
+
 })();

@@ -1,21 +1,30 @@
 (function() {
+
+    // imports
+    var EventDispatcher = zen3d.EventDispatcher;
+    var generateUUID = zen3d.generateUUID;
+    var Box3 = zen3d.Box3;
+    var Sphere = zen3d.Sphere;
+    var WEBGL_BUFFER_USAGE = zen3d.WEBGL_BUFFER_USAGE;
+    var BufferAttribute = zen3d.BufferAttribute;
+
     /**
      * Geometry data
      * @class
      */
-    var Geometry = function() {
-        Geometry.superClass.constructor.call(this);
+    function Geometry() {
+        EventDispatcher.call(this);
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         this.attributes = {};
         this.index = null;
 
-        this.usageType = zen3d.WEBGL_BUFFER_USAGE.STATIC_DRAW;
+        this.usageType = WEBGL_BUFFER_USAGE.STATIC_DRAW;
 
-        this.boundingBox = new zen3d.Box3();
+        this.boundingBox = new Box3();
 
-        this.boundingSphere = new zen3d.Sphere();
+        this.boundingSphere = new Sphere();
 
         // if part dirty, update part of buffers
         this.dirtyRange = {enable: false, start: 0, count: 0};
@@ -23,63 +32,69 @@
         this.groups = [];
     }
 
-    zen3d.inherit(Geometry, zen3d.EventDispatcher);
+    Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
 
-    Geometry.prototype.addAttribute = function(name, attribute) {
-        this.attributes[name] = attribute;
-    }
+        constructor: Geometry,
 
-    Geometry.prototype.getAttribute = function(name) {
-        return this.attributes[name];
-    }
+        addAttribute: function(name, attribute) {
+            this.attributes[name] = attribute;
+        },
 
-    Geometry.prototype.removeAttribute = function(name) {
-        delete this.attributes[name];
-    }
+        getAttribute: function(name) {
+            return this.attributes[name];
+        },
 
-    Geometry.prototype.setIndex = function(index) {
-        if(Array.isArray(index)) {
-            this.index = new zen3d.BufferAttribute(new Uint16Array( index ), 1);
-        } else {
-            this.index = index;
+        removeAttribute: function(name) {
+            delete this.attributes[name];
+        },
+
+        setIndex: function(index) {
+            if(Array.isArray(index)) {
+                this.index = new BufferAttribute(new Uint16Array( index ), 1);
+            } else {
+                this.index = index;
+            }
+        },
+
+        addGroup: function(start, count, materialIndex) {
+            this.groups.push({
+                start: start,
+                count: count,
+                materialIndex: materialIndex !== undefined ? materialIndex : 0
+            });
+        },
+
+        clearGroups: function() {
+            this.groups = [];
+        },
+
+        computeBoundingBox: function() {
+            var position = this.attributes["a_Position"] || this.attributes["position"];
+            if(position.isInterleavedBufferAttribute) {
+                var data = position.data;
+                this.boundingBox.setFromArray(data.array, data.stride);
+            } else {
+                this.boundingBox.setFromArray(position.array, position.size);
+            }
+        },
+
+        computeBoundingSphere: function() {
+            var position = this.attributes["a_Position"] || this.attributes["position"];
+            if(position.isInterleavedBufferAttribute) {
+                var data = position.data;
+                this.boundingSphere.setFromArray(data.array, data.stride);
+            } else {
+                this.boundingSphere.setFromArray(position.array, position.size);
+            }
+        },
+
+        dispose: function() {
+            this.dispatchEvent({type: 'dispose'});
         }
-    }
 
-    Geometry.prototype.addGroup = function(start, count, materialIndex) {
-        this.groups.push({
-			start: start,
-			count: count,
-			materialIndex: materialIndex !== undefined ? materialIndex : 0
-		});
-    }
+    });
 
-    Geometry.prototype.clearGroups = function() {
-        this.groups = [];
-    }
-
-    Geometry.prototype.computeBoundingBox = function() {
-        var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
-            var data = position.data;
-            this.boundingBox.setFromArray(data.array, data.stride);
-        } else {
-            this.boundingBox.setFromArray(position.array, position.size);
-        }
-    }
-
-    Geometry.prototype.computeBoundingSphere = function() {
-        var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
-            var data = position.data;
-            this.boundingSphere.setFromArray(data.array, data.stride);
-        } else {
-            this.boundingSphere.setFromArray(position.array, position.size);
-        }
-    }
-
-    Geometry.prototype.dispose = function() {
-        this.dispatchEvent({type: 'dispose'});
-    }
-
+    // exports
     zen3d.Geometry = Geometry;
+
 })();

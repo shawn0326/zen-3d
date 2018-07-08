@@ -1,6 +1,10 @@
 (function() {
-    var BufferAttribute = function(array, size, normalized) {
-        this.uuid = zen3d.generateUUID();
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+
+    function BufferAttribute(array, size, normalized) {
+        this.uuid = generateUUID();
 
         this.array = array;
         this.size = size;
@@ -13,10 +17,16 @@
         this.version = 0;
     }
 
-    BufferAttribute.prototype.setArray = function(array) {
-        this.count = array !== undefined ? array.length / this.size : 0;
-		this.array = array;
-    }
+    BufferAttribute.prototype = Object.assign(BufferAttribute.prototype, {
 
+        setArray: function(array) {
+            this.count = array !== undefined ? array.length / this.size : 0;
+            this.array = array;
+        }
+
+    });
+
+    // exports
     zen3d.BufferAttribute = BufferAttribute;
+
 })();

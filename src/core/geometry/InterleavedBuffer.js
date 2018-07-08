@@ -1,6 +1,10 @@
 (function() {
-    var InterleavedBuffer = function(array, stride) {
-        this.uuid = zen3d.generateUUID();
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+
+    function InterleavedBuffer(array, stride) {
+        this.uuid = generateUUID();
 
         this.array = array;
         this.stride = stride;
@@ -12,10 +16,16 @@
         this.version = 0;
     }
 
-    InterleavedBuffer.prototype.setArray = function(array) {
-        this.count = array !== undefined ? array.length / this.stride : 0;
-        this.array = array;
-    }
+    InterleavedBuffer.prototype = Object.assign(InterleavedBuffer.prototype, {
 
+        setArray: function(array) {
+            this.count = array !== undefined ? array.length / this.stride : 0;
+            this.array = array;
+        }
+
+    });
+
+    // exports
     zen3d.InterleavedBuffer = InterleavedBuffer;
+
 })();

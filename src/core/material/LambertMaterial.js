@@ -1,17 +1,28 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * LambertMaterial
      * @class
      */
-    var LambertMaterial = function() {
-        LambertMaterial.superClass.constructor.call(this);
+    function LambertMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.LAMBERT;
+        this.type = MATERIAL_TYPE.LAMBERT;
 
         this.acceptLight = true;
     }
 
-    zen3d.inherit(LambertMaterial, zen3d.Material);
+    LambertMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+        constructor: LambertMaterial
+
+    });
+
+    // exports
     zen3d.LambertMaterial = LambertMaterial;
+
 })();

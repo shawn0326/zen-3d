@@ -1,17 +1,27 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var BLEND_TYPE = zen3d.BLEND_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * DistanceMaterial
      * @class
      */
-    var DistanceMaterial = function() {
-        DistanceMaterial.superClass.constructor.call(this);
+    function DistanceMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.DISTANCE;
+        this.type = MATERIAL_TYPE.DISTANCE;
 
-        this.blending = zen3d.BLEND_TYPE.NONE;
+        this.blending = BLEND_TYPE.NONE;
     }
 
-    zen3d.inherit(DistanceMaterial, zen3d.Material);
+    DistanceMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+
+        constructor: DistanceMaterial
+
+    });
 
     zen3d.DistanceMaterial = DistanceMaterial;
 })();

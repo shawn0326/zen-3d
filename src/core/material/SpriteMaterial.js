@@ -1,28 +1,39 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * SpriteMaterial
      * @class
      */
-    var SpriteMaterial = function() {
-        SpriteMaterial.superClass.constructor.call(this);
+    function SpriteMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.SPRITE;
+        this.type = MATERIAL_TYPE.SPRITE;
 
         this.rotation = 0;
 
     	this.fog = false;
     }
 
-    zen3d.inherit(SpriteMaterial, zen3d.Material);
+    SpriteMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    SpriteMaterial.prototype.copy = function(source) {
-        SpriteMaterial.superClass.copy.call(this, source);
+        constructor: SpriteMaterial,
 
-        this.rotation = source.rotation;
-        this.fog = source.fog;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.rotation = source.rotation;
+            this.fog = source.fog;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.SpriteMaterial = SpriteMaterial;
+
 })();

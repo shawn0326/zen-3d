@@ -1,32 +1,44 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+    var Color3 = zen3d.Color3;
+
     /**
      * PhongMaterial
      * @class
      */
-    var PhongMaterial = function() {
-        PhongMaterial.superClass.constructor.call(this);
+    function PhongMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.PHONG;
+        this.type = MATERIAL_TYPE.PHONG;
 
         // specular
         this.shininess = 30;
-        this.specular = new zen3d.Color3(0x666666);
+        this.specular = new Color3(0x666666);
         this.specularMap = null;
 
         this.acceptLight = true;
     }
 
-    zen3d.inherit(PhongMaterial, zen3d.Material);
+    PhongMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    PhongMaterial.prototype.copy = function(source) {
-        PhongMaterial.superClass.copy.call(this, source);
+        constructor: PhongMaterial,
 
-        this.shininess = source.shininess;
-        this.specular.copy(source.specular);
-        this.specularMap = source.specularMap;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.shininess = source.shininess;
+            this.specular.copy(source.specular);
+            this.specularMap = source.specularMap;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.PhongMaterial = PhongMaterial;
+    
 })();

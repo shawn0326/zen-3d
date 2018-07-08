@@ -1,28 +1,40 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Material = zen3d.Material;
+
     /**
      * LineLoopMaterial
      * @class
      */
-    var LineLoopMaterial = function() {
-        LineLoopMaterial.superClass.constructor.call(this);
+    function LineLoopMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.LINE_LOOP;
+        this.type = MATERIAL_TYPE.LINE_LOOP;
 
         // chrome bug on MacOS: gl.lineWidth no effect
         this.lineWidth = 1;
 
-        this.drawMode = zen3d.DRAW_MODE.LINE_LOOP;
+        this.drawMode = DRAW_MODE.LINE_LOOP;
     }
 
-    zen3d.inherit(LineLoopMaterial, zen3d.Material);
+    LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    LineLoopMaterial.prototype.copy = function(source) {
-        LineLoopMaterial.superClass.copy.call(this, source);
+        constructor: LineLoopMaterial,
 
-        this.lineWidth = source.lineWidth;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.lineWidth = source.lineWidth;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.LineLoopMaterial = LineLoopMaterial;
+
 })();

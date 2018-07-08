@@ -1,30 +1,42 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var DRAW_MODE = zen3d.DRAW_MODE;
+    var Material = zen3d.Material;
+
     /**
      * PointsMaterial
      * @class
      */
-    var PointsMaterial = function() {
-        PointsMaterial.superClass.constructor.call(this);
+    function PointsMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.POINT;
+        this.type = MATERIAL_TYPE.POINT;
 
         this.size = 1;
 
         this.sizeAttenuation = true;
 
-        this.drawMode = zen3d.DRAW_MODE.POINTS;
+        this.drawMode = DRAW_MODE.POINTS;
     }
 
-    zen3d.inherit(PointsMaterial, zen3d.Material);
+    PointsMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    PointsMaterial.prototype.copy = function(source) {
-        PointsMaterial.superClass.copy.call(this, source);
+        constructor: PointsMaterial,
 
-        this.size = source.size;
-        this.sizeAttenuation = source.sizeAttenuation;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.size = source.size;
+            this.sizeAttenuation = source.sizeAttenuation;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.PointsMaterial = PointsMaterial;
+    
 })();

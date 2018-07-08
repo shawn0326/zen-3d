@@ -33,6 +33,7 @@
     },
     "scripts": {
         "default": "gulp",
+        "b": "gulp build",
         "build": "gulp build",
         "watch": "gulp watch",
         "extension": "gulp extension",

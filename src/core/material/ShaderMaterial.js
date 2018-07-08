@@ -1,12 +1,17 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * ShaderMaterial
      * @class
      */
-    var ShaderMaterial = function(vertexShader, fragmentShader, uniforms) {
-        ShaderMaterial.superClass.constructor.call(this);
+    function ShaderMaterial(vertexShader, fragmentShader, uniforms) {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.SHADER;
+        this.type = MATERIAL_TYPE.SHADER;
 
         this.vertexShader = vertexShader || "";
 
@@ -18,16 +23,22 @@
         this.uniforms = uniforms || {};
     }
 
-    zen3d.inherit(ShaderMaterial, zen3d.Material);
+    ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    ShaderMaterial.prototype.copy = function(source) {
-        ShaderMaterial.superClass.copy.call(this, source);
+        constructor: ShaderMaterial,
 
-        this.vertexShader = source.vertexShader;
-        this.fragmentShader = source.fragmentShader;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.vertexShader = source.vertexShader;
+            this.fragmentShader = source.fragmentShader;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.ShaderMaterial = ShaderMaterial;
+
 })();

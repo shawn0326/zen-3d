@@ -1,12 +1,17 @@
 (function() {
+
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var Material = zen3d.Material;
+
     /**
      * PBRMaterial
      * @class
      */
-    var PBRMaterial = function() {
-        PBRMaterial.superClass.constructor.call(this);
+    function PBRMaterial() {
+        Material.call(this);
 
-        this.type = zen3d.MATERIAL_TYPE.PBR;
+        this.type = MATERIAL_TYPE.PBR;
 
         this.roughness = 0.5;
 	    this.metalness = 0.5;
@@ -17,16 +22,22 @@
         this.acceptLight = true;
     }
 
-    zen3d.inherit(PBRMaterial, zen3d.Material);
+    PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    PBRMaterial.prototype.copy = function(source) {
-        PBRMaterial.superClass.copy.call(this, source);
+        constructor: PBRMaterial,
 
-        this.roughness = source.roughness;
-        this.metalness = source.metalness;
+        copy: function(source) {
+            Material.copy.call(this, source);
+    
+            this.roughness = source.roughness;
+            this.metalness = source.metalness;
+    
+            return this;
+        }
 
-        return this;
-    }
-
+    });
+    
+    // exports
     zen3d.PBRMaterial = PBRMaterial;
+
 })();

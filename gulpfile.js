@@ -162,9 +162,6 @@ var filesSrc = [
     //performance
     "core/Performance.js",
 
-    // controller
-    "extension/controller/HoverController.js",
-    "extension/controller/FreeController.js"
 ];
 
 for(var i = 0, l = filesSrc.length; i < l; i++) {
@@ -202,7 +199,9 @@ var inputSrc = [
     // input
     "src/extension/input/Keyboard.js",
     "src/extension/input/Mouse.js",
-    "src/extension/input/Touch.js"
+    "src/extension/input/Touch.js",
+    "src/extension/input/HoverController.js",
+    "src/extension/input/FreeController.js"
 ];
 
 var voxSrc = [
