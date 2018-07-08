@@ -26,6 +26,35 @@
         return this;
     }
 
+    Vector4.prototype.normalize = function () {
+
+		return this.multiplyScalar( 1 / (this.getLength() || 1) );
+
+	}
+
+    Vector4.prototype.multiplyScalar = function ( scalar ) {
+
+		this.x *= scalar;
+		this.y *= scalar;
+		this.z *= scalar;
+		this.w *= scalar;
+
+		return this;
+
+	}
+
+    Vector4.prototype.getLengthSquared = function () {
+
+		return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+
+	}
+
+	Vector4.prototype.getLength = function () {
+
+		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+
+	}
+
     /**
      * apply a 4x4 matrix
      */
