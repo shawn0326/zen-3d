@@ -8217,79 +8217,104 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 	
 })();
 (function() {
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+    var WEBGL_PIXEL_FORMAT = zen3d.WEBGL_PIXEL_FORMAT;
+    var WEBGL_PIXEL_TYPE = zen3d.WEBGL_PIXEL_TYPE;
+    var WEBGL_TEXTURE_FILTER = zen3d.WEBGL_TEXTURE_FILTER;
+    var WEBGL_TEXTURE_WRAP = zen3d.WEBGL_TEXTURE_WRAP;
+    var TEXEL_ENCODING_TYPE = zen3d.TEXEL_ENCODING_TYPE;
+    var EventDispatcher = zen3d.EventDispatcher;
+
     /**
      * TextureBase
      * @class
      */
-    var TextureBase = function() {
-        TextureBase.superClass.constructor.call(this);
+    function TextureBase() {
+        EventDispatcher.call(this);
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         this.textureType = "";
 
         this.border = 0;
 
-        this.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.RGBA;
+        this.pixelFormat = WEBGL_PIXEL_FORMAT.RGBA;
 
-        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+        this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 
-        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+        this.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+        this.minFilter = WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 
-        this.wrapS = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
-        this.wrapT = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+        this.wrapS = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+        this.wrapT = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
         this.anisotropy = 1;
 
         this.generateMipmaps = true;
 
-        this.encoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
+        this.encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
         this.flipY = true;
 
         this.version = 0;
     }
 
-    zen3d.inherit(TextureBase, zen3d.EventDispatcher);
+    TextureBase.prototype = Object.assign(TextureBase.prototype, {
 
-    TextureBase.prototype.dispose = function() {
-        this.dispatchEvent({type: 'dispose'});
+        dispose: function() {
+            this.dispatchEvent({type: 'dispose'});
+    
+            this.version = 0;
+        }
 
-        this.version = 0;
-    }
+    });
 
+    // exports
     zen3d.TextureBase = TextureBase;
+
 })();
 (function() {
+
+    // imports
+    var TextureBase = zen3d.TextureBase;
+    var Vector2 = zen3d.Vector2;
+    var Matrix3 = zen3d.Matrix3;
+    var WEBGL_TEXTURE_TYPE = zen3d.WEBGL_TEXTURE_TYPE;
+
     /**
      * Texture2D
      * @class
      */
-    var Texture2D = function() {
-        Texture2D.superClass.constructor.call(this);
+    function Texture2D() {
+        TextureBase.call(this);
 
-        this.textureType = zen3d.WEBGL_TEXTURE_TYPE.TEXTURE_2D;
+        this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_2D;
 
         this.image = null;
         this.mipmaps = [];
 
         // uv transform
-        this.offset = new zen3d.Vector2();
-        this.repeat = new zen3d.Vector2(1, 1);
-        this.center = new zen3d.Vector2();
+        this.offset = new Vector2();
+        this.repeat = new Vector2(1, 1);
+        this.center = new Vector2();
         this.rotation = 0;
 
-        this.matrix = new zen3d.Matrix3();
+        this.matrix = new Matrix3();
 
         this.matrixAutoUpdate = true;
     }
 
-    zen3d.inherit(Texture2D, zen3d.TextureBase);
+    Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), {
 
-    Texture2D.prototype.updateMatrix = function() {
-        this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
-    }
+        constructor: Texture2D,
+
+        updateMatrix: function() {
+            this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
+        }
+
+    });
 
     Texture2D.fromImage = function(image) {
         var texture = new Texture2D();
@@ -8320,24 +8345,35 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         return texture;
     }
 
+    // exports
     zen3d.Texture2D = Texture2D;
+
 })();
 (function() {
+
+    // imports
+    var TextureBase = zen3d.TextureBase;
+    var WEBGL_TEXTURE_TYPE = zen3d.WEBGL_TEXTURE_TYPE;
+
     /**
      * TextureCube
      * @class
      */
-    var TextureCube = function() {
-        TextureCube.superClass.constructor.call(this);
+    function TextureCube() {
+        TextureBase.call(this);
 
-        this.textureType = zen3d.WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
+        this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
 
         this.images = [];
 
         this.flipY = false;
     }
 
-    zen3d.inherit(TextureCube, zen3d.TextureBase);
+    TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), {
+
+        constructor: TextureCube
+
+    });
 
     TextureCube.fromImage = function(imageArray) {
         var texture = new TextureCube();
@@ -8386,57 +8422,84 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         return texture;
     }
 
+    // exports
     zen3d.TextureCube = TextureCube;
+
 })();
 (function() {
-    var TextureData = function(data, width, height) {
-        TextureData.superClass.constructor.call(this);
+
+    // imports
+    var Texture2D = zen3d.Texture2D;
+    var WEBGL_PIXEL_TYPE = zen3d.WEBGL_PIXEL_TYPE;
+    var WEBGL_TEXTURE_FILTER = zen3d.WEBGL_TEXTURE_FILTER;
+
+    function TextureData(data, width, height) {
+        Texture2D.call(this);
 
         this.image = {data: data, width: width, height: height};
 
         // default pixel type set to float
-        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+        this.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
 
-        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+        this.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+        this.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
 
         this.generateMipmaps = false;
 
         this.flipY = false;
     }
 
-    zen3d.inherit(TextureData, zen3d.Texture2D);
+    TextureData.prototype = Object.assign(Object.create(Texture2D.prototype), {
 
-    TextureData.prototype.isDataTexture = true;
+        constructor: TextureData,
 
+        isDataTexture: true
+
+    });
+
+    // exports
     zen3d.TextureData = TextureData;
+
 })();
 (function() {
-    var TextureDepth = function(width, height) {
-        TextureDepth.superClass.constructor.call(this);
+
+    // imports
+    var Texture2D = zen3d.Texture2D;
+    var WEBGL_PIXEL_TYPE = zen3d.WEBGL_PIXEL_TYPE;
+    var WEBGL_PIXEL_FORMAT = zen3d.WEBGL_PIXEL_FORMAT;
+    var WEBGL_TEXTURE_FILTER = zen3d.WEBGL_TEXTURE_FILTER;
+
+    function TextureDepth(width, height) {
+        Texture2D.call(this);
 
         this.image = {width: width, height: height};
 
         // DEPTH_ATTACHMENT set to unsigned_short or unsigned_int
         // DEPTH_STENCIL_ATTACHMENT set to UNSIGNED_INT_24_8
-        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT;
+        this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT;
 
         // don't change
-        this.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;   
+        this.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;   
 
-        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+        this.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+        this.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
 
         this.generateMipmaps = false;
 
         this.flipY = false;
     }
 
-    zen3d.inherit(TextureDepth, zen3d.Texture2D);
+    TextureDepth.prototype = Object.assign(Object.create(Texture2D.prototype), {
 
-    TextureDepth.prototype.isDepthTexture = true;
+        constructor: TextureDepth,
 
+        isDepthTexture: true
+
+    });
+
+    // exports
     zen3d.TextureDepth = TextureDepth;
+
 })();
 (function() {
 
@@ -9105,13 +9168,22 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
 })();
 (function() {
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+    var Vector3 = zen3d.Vector3;
+    var Euler = zen3d.Euler;
+    var Quaternion = zen3d.Quaternion;
+    var Matrix4 = zen3d.Matrix4;
+    var SHADOW_TYPE = zen3d.SHADOW_TYPE;
+
     /**
      * Object3D
      * @class
      */
-    var Object3D = function() {
+    function Object3D() {
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         // a custom name for this object
         this.name = "";
@@ -9120,14 +9192,14 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.type = "";
 
         // position
-        this.position = new zen3d.Vector3();
+        this.position = new Vector3();
         // scale
-        this.scale = new zen3d.Vector3(1, 1, 1);
+        this.scale = new Vector3(1, 1, 1);
 
         // euler rotate
-        var euler = this.euler = new zen3d.Euler();
+        var euler = this.euler = new Euler();
         // quaternion rotate
-        var quaternion = this.quaternion = new zen3d.Quaternion();
+        var quaternion = this.quaternion = new Quaternion();
 
         // bind euler and quaternion
         euler.onChange(function() {
@@ -9138,9 +9210,9 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         });
 
         // transform matrix
-        this.matrix = new zen3d.Matrix4();
+        this.matrix = new Matrix4();
         // world transform matrix
-        this.worldMatrix = new zen3d.Matrix4();
+        this.worldMatrix = new Matrix4();
 
         // children
         this.children = new Array();
@@ -9150,7 +9222,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // shadow
         this.castShadow = false;
         this.receiveShadow = false;
-        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
+        this.shadowType = SHADOW_TYPE.PCF_SOFT;
 
         // frustum test
         this.frustumCulled = true;
@@ -9175,168 +9247,174 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         }
     });
 
-    /**
-     * add child to object3d
-     */
-    Object3D.prototype.add = function(object) {
-        this.children.push(object);
-        object.parent = this;
-    }
+    Object3D.prototype = Object.assign(Object3D.prototype, {
 
-    /**
-     * remove child from object3d
-     */
-    Object3D.prototype.remove = function(object) {
-        var index = this.children.indexOf(object);
-        if (index !== -1) {
-            this.children.splice(index, 1);
-        }
-        object.parent = null;
-    }
+        /**
+         * add child to object3d
+         */
+        add: function(object) {
+            this.children.push(object);
+            object.parent = this;
+        },
 
-    /**
-     * get object by name
-     */
-    Object3D.prototype.getObjectByName = function(name) {
-        return this.getObjectByProperty('name', name);
-    }
-
-    /**
-     * get object by property
-     */
-    Object3D.prototype.getObjectByProperty = function(name, value) {
-        if (this[name] === value) return this;
-
-        for (var i = 0, l = this.children.length; i < l; i++) {
-
-            var child = this.children[i];
-            var object = child.getObjectByProperty(name, value);
-
-            if (object !== undefined) {
-
-                return object;
-
+        /**
+         * remove child from object3d
+         */
+        remove: function(object) {
+            var index = this.children.indexOf(object);
+            if (index !== -1) {
+                this.children.splice(index, 1);
             }
+            object.parent = null;
+        },
 
+        /**
+         * get object by name
+         */
+        getObjectByName: function(name) {
+            return this.getObjectByProperty('name', name);
+        },
+
+        /**
+         * get object by property
+         */
+        getObjectByProperty: function(name, value) {
+            if (this[name] === value) return this;
+    
+            for (var i = 0, l = this.children.length; i < l; i++) {
+    
+                var child = this.children[i];
+                var object = child.getObjectByProperty(name, value);
+    
+                if (object !== undefined) {
+    
+                    return object;
+    
+                }
+    
+            }
+    
+            return undefined;
+        },
+
+        /**
+         * update matrix
+         */
+        updateMatrix: function() {
+            var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
+    
+            this.worldMatrix.copy(matrix);
+    
+            if (this.parent) {
+                var parentMatrix = this.parent.worldMatrix;
+                this.worldMatrix.premultiply(parentMatrix);
+            }
+    
+            var children = this.children;
+            for (var i = 0, l = children.length; i < l; i++) {
+                children[i].updateMatrix();
+            }
+        },
+
+        /*
+         * get world direction
+         * must call after world matrix updated
+         */
+        getWorldDirection: function() {
+
+            var position = new Vector3();
+            var quaternion = new Quaternion();
+            var scale = new Vector3();
+
+            return function getWorldDirection(optionalTarget) {
+
+                var result = optionalTarget || new Vector3();
+
+                this.worldMatrix.decompose(position, quaternion, scale);
+
+                result.set(0, 0, 1).applyQuaternion(quaternion);
+
+                return result;
+
+            };
+        }(),
+
+        /**
+         * set view by look at, this func will set quaternion of this object
+         */
+        lookAt: function() {
+
+            var m = new Matrix4();
+    
+            return function lookAt(target, up) {
+    
+                m.lookAtRH(target, this.position, up);
+                this.quaternion.setFromRotationMatrix(m);
+    
+            };
+    
+        }(),
+
+        /**
+         * raycast
+         */
+        raycast: function() {
+            // implemental by subclass
+        },
+
+        traverse: function ( callback ) {
+            callback( this );
+    
+            var children = this.children;
+            for ( var i = 0, l = children.length; i < l; i ++ ) {
+                children[ i ].traverse( callback );
+            }
+        },
+
+        clone: function ( recursive ) {
+            return new this.constructor().copy( this, recursive );
+        },
+
+        copy: function( source, recursive ) {
+            if ( recursive === undefined ) recursive = true;
+    
+            this.name = source.name;
+    
+            this.type = source.type;
+    
+            this.position.copy( source.position );
+            this.quaternion.copy( source.quaternion );
+            this.scale.copy( source.scale );
+    
+            this.matrix.copy( source.matrix );
+            this.worldMatrix.copy( source.worldMatrix );
+    
+            this.castShadow = source.castShadow;
+            this.receiveShadow = source.receiveShadow;
+    
+            this.frustumCulled = source.frustumCulled;
+    
+            this.userData = JSON.parse( JSON.stringify( source.userData ) );
+    
+            if ( recursive === true ) {
+    
+                for ( var i = 0; i < source.children.length; i ++ ) {
+    
+                    var child = source.children[ i ];
+                    this.add( child.clone() );
+    
+                }
+    
+            }
+    
+            return this;
         }
 
-        return undefined;
-    }
+    });
 
-    /**
-     * update matrix
-     */
-    Object3D.prototype.updateMatrix = function() {
-        var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
-
-        this.worldMatrix.copy(matrix);
-
-        if (this.parent) {
-            var parentMatrix = this.parent.worldMatrix;
-            this.worldMatrix.premultiply(parentMatrix);
-        }
-
-        var children = this.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            children[i].updateMatrix();
-        }
-    }
-
-    /*
-     * get world direction
-     * must call after world matrix updated
-     */
-    Object3D.prototype.getWorldDirection = function() {
-
-        var position = new zen3d.Vector3();
-        var quaternion = new zen3d.Quaternion();
-        var scale = new zen3d.Vector3();
-
-        return function getWorldDirection(optionalTarget) {
-
-            var result = optionalTarget || new zen3d.Vector3();
-
-            this.worldMatrix.decompose(position, quaternion, scale);
-
-            result.set(0, 0, 1).applyQuaternion(quaternion);
-
-            return result;
-
-        };
-    }();
-
-    /**
-     * set view by look at, this func will set quaternion of this object
-     */
-    Object3D.prototype.lookAt = function() {
-
-        var m = new zen3d.Matrix4();
-
-        return function lookAt(target, up) {
-
-            m.lookAtRH(target, this.position, up);
-            this.quaternion.setFromRotationMatrix(m);
-
-        };
-
-    }();
-
-    /**
-     * raycast
-     */
-    Object3D.prototype.raycast = function() {
-        // implemental by subclass
-    }
-
-    Object3D.prototype.traverse = function ( callback ) {
-		callback( this );
-
-		var children = this.children;
-		for ( var i = 0, l = children.length; i < l; i ++ ) {
-			children[ i ].traverse( callback );
-		}
-	}
-
-    Object3D.prototype.clone = function ( recursive ) {
-		return new this.constructor().copy( this, recursive );
-	}
-
-    Object3D.prototype.copy = function( source, recursive ) {
-        if ( recursive === undefined ) recursive = true;
-
-        this.name = source.name;
-
-        this.type = source.type;
-
-        this.position.copy( source.position );
-		this.quaternion.copy( source.quaternion );
-		this.scale.copy( source.scale );
-
-        this.matrix.copy( source.matrix );
-		this.worldMatrix.copy( source.worldMatrix );
-
-        this.castShadow = source.castShadow;
-		this.receiveShadow = source.receiveShadow;
-
-        this.frustumCulled = source.frustumCulled;
-
-        this.userData = JSON.parse( JSON.stringify( source.userData ) );
-
-        if ( recursive === true ) {
-
-			for ( var i = 0; i < source.children.length; i ++ ) {
-
-				var child = source.children[ i ];
-				this.add( child.clone() );
-
-			}
-
-		}
-
-		return this;
-    }
-
+    // exports
     zen3d.Object3D = Object3D;
+
 })();
 (function() {
     /**
@@ -9472,19 +9550,27 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.FogExp2 = FogExp2;
 })();
 (function() {
+
+    // imports
+    var Object3D = zen3d.Object3D;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+
     /**
      * Group
      * @class
      */
-    var Group = function() {
-        Group.superClass.constructor.call(this);
+    function Group() {
+        Object3D.call(this);
 
-        this.type = zen3d.OBJECT_TYPE.GROUP;
+        this.type = OBJECT_TYPE.GROUP;
     }
 
-    zen3d.inherit(Group, zen3d.Object3D);
+    Group.prototype = Object.create(Object3D.prototype);
+    Group.prototype.constructor = Group;
 
+    // exports
     zen3d.Group = Group;
+
 })();
 
 (function() {

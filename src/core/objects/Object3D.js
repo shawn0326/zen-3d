@@ -1,11 +1,20 @@
 (function() {
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+    var Vector3 = zen3d.Vector3;
+    var Euler = zen3d.Euler;
+    var Quaternion = zen3d.Quaternion;
+    var Matrix4 = zen3d.Matrix4;
+    var SHADOW_TYPE = zen3d.SHADOW_TYPE;
+
     /**
      * Object3D
      * @class
      */
-    var Object3D = function() {
+    function Object3D() {
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         // a custom name for this object
         this.name = "";
@@ -14,14 +23,14 @@
         this.type = "";
 
         // position
-        this.position = new zen3d.Vector3();
+        this.position = new Vector3();
         // scale
-        this.scale = new zen3d.Vector3(1, 1, 1);
+        this.scale = new Vector3(1, 1, 1);
 
         // euler rotate
-        var euler = this.euler = new zen3d.Euler();
+        var euler = this.euler = new Euler();
         // quaternion rotate
-        var quaternion = this.quaternion = new zen3d.Quaternion();
+        var quaternion = this.quaternion = new Quaternion();
 
         // bind euler and quaternion
         euler.onChange(function() {
@@ -32,9 +41,9 @@
         });
 
         // transform matrix
-        this.matrix = new zen3d.Matrix4();
+        this.matrix = new Matrix4();
         // world transform matrix
-        this.worldMatrix = new zen3d.Matrix4();
+        this.worldMatrix = new Matrix4();
 
         // children
         this.children = new Array();
@@ -44,7 +53,7 @@
         // shadow
         this.castShadow = false;
         this.receiveShadow = false;
-        this.shadowType = zen3d.SHADOW_TYPE.PCF_SOFT;
+        this.shadowType = SHADOW_TYPE.PCF_SOFT;
 
         // frustum test
         this.frustumCulled = true;
@@ -69,166 +78,172 @@
         }
     });
 
-    /**
-     * add child to object3d
-     */
-    Object3D.prototype.add = function(object) {
-        this.children.push(object);
-        object.parent = this;
-    }
+    Object3D.prototype = Object.assign(Object3D.prototype, {
 
-    /**
-     * remove child from object3d
-     */
-    Object3D.prototype.remove = function(object) {
-        var index = this.children.indexOf(object);
-        if (index !== -1) {
-            this.children.splice(index, 1);
-        }
-        object.parent = null;
-    }
+        /**
+         * add child to object3d
+         */
+        add: function(object) {
+            this.children.push(object);
+            object.parent = this;
+        },
 
-    /**
-     * get object by name
-     */
-    Object3D.prototype.getObjectByName = function(name) {
-        return this.getObjectByProperty('name', name);
-    }
-
-    /**
-     * get object by property
-     */
-    Object3D.prototype.getObjectByProperty = function(name, value) {
-        if (this[name] === value) return this;
-
-        for (var i = 0, l = this.children.length; i < l; i++) {
-
-            var child = this.children[i];
-            var object = child.getObjectByProperty(name, value);
-
-            if (object !== undefined) {
-
-                return object;
-
+        /**
+         * remove child from object3d
+         */
+        remove: function(object) {
+            var index = this.children.indexOf(object);
+            if (index !== -1) {
+                this.children.splice(index, 1);
             }
+            object.parent = null;
+        },
 
+        /**
+         * get object by name
+         */
+        getObjectByName: function(name) {
+            return this.getObjectByProperty('name', name);
+        },
+
+        /**
+         * get object by property
+         */
+        getObjectByProperty: function(name, value) {
+            if (this[name] === value) return this;
+    
+            for (var i = 0, l = this.children.length; i < l; i++) {
+    
+                var child = this.children[i];
+                var object = child.getObjectByProperty(name, value);
+    
+                if (object !== undefined) {
+    
+                    return object;
+    
+                }
+    
+            }
+    
+            return undefined;
+        },
+
+        /**
+         * update matrix
+         */
+        updateMatrix: function() {
+            var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
+    
+            this.worldMatrix.copy(matrix);
+    
+            if (this.parent) {
+                var parentMatrix = this.parent.worldMatrix;
+                this.worldMatrix.premultiply(parentMatrix);
+            }
+    
+            var children = this.children;
+            for (var i = 0, l = children.length; i < l; i++) {
+                children[i].updateMatrix();
+            }
+        },
+
+        /*
+         * get world direction
+         * must call after world matrix updated
+         */
+        getWorldDirection: function() {
+
+            var position = new Vector3();
+            var quaternion = new Quaternion();
+            var scale = new Vector3();
+
+            return function getWorldDirection(optionalTarget) {
+
+                var result = optionalTarget || new Vector3();
+
+                this.worldMatrix.decompose(position, quaternion, scale);
+
+                result.set(0, 0, 1).applyQuaternion(quaternion);
+
+                return result;
+
+            };
+        }(),
+
+        /**
+         * set view by look at, this func will set quaternion of this object
+         */
+        lookAt: function() {
+
+            var m = new Matrix4();
+    
+            return function lookAt(target, up) {
+    
+                m.lookAtRH(target, this.position, up);
+                this.quaternion.setFromRotationMatrix(m);
+    
+            };
+    
+        }(),
+
+        /**
+         * raycast
+         */
+        raycast: function() {
+            // implemental by subclass
+        },
+
+        traverse: function ( callback ) {
+            callback( this );
+    
+            var children = this.children;
+            for ( var i = 0, l = children.length; i < l; i ++ ) {
+                children[ i ].traverse( callback );
+            }
+        },
+
+        clone: function ( recursive ) {
+            return new this.constructor().copy( this, recursive );
+        },
+
+        copy: function( source, recursive ) {
+            if ( recursive === undefined ) recursive = true;
+    
+            this.name = source.name;
+    
+            this.type = source.type;
+    
+            this.position.copy( source.position );
+            this.quaternion.copy( source.quaternion );
+            this.scale.copy( source.scale );
+    
+            this.matrix.copy( source.matrix );
+            this.worldMatrix.copy( source.worldMatrix );
+    
+            this.castShadow = source.castShadow;
+            this.receiveShadow = source.receiveShadow;
+    
+            this.frustumCulled = source.frustumCulled;
+    
+            this.userData = JSON.parse( JSON.stringify( source.userData ) );
+    
+            if ( recursive === true ) {
+    
+                for ( var i = 0; i < source.children.length; i ++ ) {
+    
+                    var child = source.children[ i ];
+                    this.add( child.clone() );
+    
+                }
+    
+            }
+    
+            return this;
         }
 
-        return undefined;
-    }
+    });
 
-    /**
-     * update matrix
-     */
-    Object3D.prototype.updateMatrix = function() {
-        var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
-
-        this.worldMatrix.copy(matrix);
-
-        if (this.parent) {
-            var parentMatrix = this.parent.worldMatrix;
-            this.worldMatrix.premultiply(parentMatrix);
-        }
-
-        var children = this.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            children[i].updateMatrix();
-        }
-    }
-
-    /*
-     * get world direction
-     * must call after world matrix updated
-     */
-    Object3D.prototype.getWorldDirection = function() {
-
-        var position = new zen3d.Vector3();
-        var quaternion = new zen3d.Quaternion();
-        var scale = new zen3d.Vector3();
-
-        return function getWorldDirection(optionalTarget) {
-
-            var result = optionalTarget || new zen3d.Vector3();
-
-            this.worldMatrix.decompose(position, quaternion, scale);
-
-            result.set(0, 0, 1).applyQuaternion(quaternion);
-
-            return result;
-
-        };
-    }();
-
-    /**
-     * set view by look at, this func will set quaternion of this object
-     */
-    Object3D.prototype.lookAt = function() {
-
-        var m = new zen3d.Matrix4();
-
-        return function lookAt(target, up) {
-
-            m.lookAtRH(target, this.position, up);
-            this.quaternion.setFromRotationMatrix(m);
-
-        };
-
-    }();
-
-    /**
-     * raycast
-     */
-    Object3D.prototype.raycast = function() {
-        // implemental by subclass
-    }
-
-    Object3D.prototype.traverse = function ( callback ) {
-		callback( this );
-
-		var children = this.children;
-		for ( var i = 0, l = children.length; i < l; i ++ ) {
-			children[ i ].traverse( callback );
-		}
-	}
-
-    Object3D.prototype.clone = function ( recursive ) {
-		return new this.constructor().copy( this, recursive );
-	}
-
-    Object3D.prototype.copy = function( source, recursive ) {
-        if ( recursive === undefined ) recursive = true;
-
-        this.name = source.name;
-
-        this.type = source.type;
-
-        this.position.copy( source.position );
-		this.quaternion.copy( source.quaternion );
-		this.scale.copy( source.scale );
-
-        this.matrix.copy( source.matrix );
-		this.worldMatrix.copy( source.worldMatrix );
-
-        this.castShadow = source.castShadow;
-		this.receiveShadow = source.receiveShadow;
-
-        this.frustumCulled = source.frustumCulled;
-
-        this.userData = JSON.parse( JSON.stringify( source.userData ) );
-
-        if ( recursive === true ) {
-
-			for ( var i = 0; i < source.children.length; i ++ ) {
-
-				var child = source.children[ i ];
-				this.add( child.clone() );
-
-			}
-
-		}
-
-		return this;
-    }
-
+    // exports
     zen3d.Object3D = Object3D;
+
 })();

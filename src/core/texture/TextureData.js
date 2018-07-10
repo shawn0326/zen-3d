@@ -1,23 +1,35 @@
 (function() {
-    var TextureData = function(data, width, height) {
-        TextureData.superClass.constructor.call(this);
+
+    // imports
+    var Texture2D = zen3d.Texture2D;
+    var WEBGL_PIXEL_TYPE = zen3d.WEBGL_PIXEL_TYPE;
+    var WEBGL_TEXTURE_FILTER = zen3d.WEBGL_TEXTURE_FILTER;
+
+    function TextureData(data, width, height) {
+        Texture2D.call(this);
 
         this.image = {data: data, width: width, height: height};
 
         // default pixel type set to float
-        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+        this.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
 
-        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+        this.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+        this.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
 
         this.generateMipmaps = false;
 
         this.flipY = false;
     }
 
-    zen3d.inherit(TextureData, zen3d.Texture2D);
+    TextureData.prototype = Object.assign(Object.create(Texture2D.prototype), {
 
-    TextureData.prototype.isDataTexture = true;
+        constructor: TextureData,
 
+        isDataTexture: true
+
+    });
+
+    // exports
     zen3d.TextureData = TextureData;
+
 })();

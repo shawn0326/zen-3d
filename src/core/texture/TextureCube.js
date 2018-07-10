@@ -1,19 +1,28 @@
 (function() {
+
+    // imports
+    var TextureBase = zen3d.TextureBase;
+    var WEBGL_TEXTURE_TYPE = zen3d.WEBGL_TEXTURE_TYPE;
+
     /**
      * TextureCube
      * @class
      */
-    var TextureCube = function() {
-        TextureCube.superClass.constructor.call(this);
+    function TextureCube() {
+        TextureBase.call(this);
 
-        this.textureType = zen3d.WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
+        this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
 
         this.images = [];
 
         this.flipY = false;
     }
 
-    zen3d.inherit(TextureCube, zen3d.TextureBase);
+    TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), {
+
+        constructor: TextureCube
+
+    });
 
     TextureCube.fromImage = function(imageArray) {
         var texture = new TextureCube();
@@ -62,5 +71,7 @@
         return texture;
     }
 
+    // exports
     zen3d.TextureCube = TextureCube;
+
 })();

@@ -1,45 +1,59 @@
 (function() {
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+    var WEBGL_PIXEL_FORMAT = zen3d.WEBGL_PIXEL_FORMAT;
+    var WEBGL_PIXEL_TYPE = zen3d.WEBGL_PIXEL_TYPE;
+    var WEBGL_TEXTURE_FILTER = zen3d.WEBGL_TEXTURE_FILTER;
+    var WEBGL_TEXTURE_WRAP = zen3d.WEBGL_TEXTURE_WRAP;
+    var TEXEL_ENCODING_TYPE = zen3d.TEXEL_ENCODING_TYPE;
+    var EventDispatcher = zen3d.EventDispatcher;
+
     /**
      * TextureBase
      * @class
      */
-    var TextureBase = function() {
-        TextureBase.superClass.constructor.call(this);
+    function TextureBase() {
+        EventDispatcher.call(this);
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         this.textureType = "";
 
         this.border = 0;
 
-        this.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.RGBA;
+        this.pixelFormat = WEBGL_PIXEL_FORMAT.RGBA;
 
-        this.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+        this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 
-        this.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        this.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+        this.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+        this.minFilter = WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 
-        this.wrapS = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
-        this.wrapT = zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+        this.wrapS = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+        this.wrapT = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
         this.anisotropy = 1;
 
         this.generateMipmaps = true;
 
-        this.encoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
+        this.encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
         this.flipY = true;
 
         this.version = 0;
     }
 
-    zen3d.inherit(TextureBase, zen3d.EventDispatcher);
+    TextureBase.prototype = Object.assign(TextureBase.prototype, {
 
-    TextureBase.prototype.dispose = function() {
-        this.dispatchEvent({type: 'dispose'});
+        dispose: function() {
+            this.dispatchEvent({type: 'dispose'});
+    
+            this.version = 0;
+        }
 
-        this.version = 0;
-    }
+    });
 
+    // exports
     zen3d.TextureBase = TextureBase;
+
 })();
