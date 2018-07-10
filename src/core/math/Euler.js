@@ -1,9 +1,13 @@
 (function() {
+
+    // imports
+    var Matrix4 = zen3d.Matrix4;
+
     /**
      * a Euler class
      * @class
      */
-    var Euler = function(x, y, z, order) {
+    function Euler(x, y, z, order) {
         this._x = x || 0;
         this._y = y || 0;
         this._z = z || 0;
@@ -53,187 +57,182 @@
         }
     });
 
-    /**
-     * copy from another euler
-     **/
-    Euler.prototype.copyFrom = function(euler) {
-        this._x = euler._x;
-        this._y = euler._y;
-        this._z = euler._z;
-        this._order = euler._order;
-
-        this.onChangeCallback();
-
-        return this;
-    }
-
-    /**
-     * set values of this euler
-     **/
-    Euler.prototype.set = function(x, y, z, order) {
-        this._x = x || 0;
-        this._y = y || 0;
-        this._z = z || 0;
-        this._order = order || this._order;
-
-        this.onChangeCallback();
-
-        return this;
-    }
-
-    /**
-     * set values from rotation matrix
-     **/
-    Euler.prototype.setFromRotationMatrix = function(m, order, update) {
-
-		var clamp = function(value, min, max) {
-
-			return Math.max( min, Math.min( max, value ) );
-
-		};
-
-		// assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-
-		var te = m.elements;
-		var m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ];
-		var m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ];
-		var m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
-
-		order = order || this._order;
-
-		if ( order === 'XYZ' ) {
-
-			this._y = Math.asin( clamp( m13, - 1, 1 ) );
-
-			if ( Math.abs( m13 ) < 0.99999 ) {
-
-				this._x = Math.atan2( - m23, m33 );
-				this._z = Math.atan2( - m12, m11 );
-
-			} else {
-
-				this._x = Math.atan2( m32, m22 );
-				this._z = 0;
-
-			}
-
-		} else if ( order === 'YXZ' ) {
-
-			this._x = Math.asin( - clamp( m23, - 1, 1 ) );
-
-			if ( Math.abs( m23 ) < 0.99999 ) {
-
-				this._y = Math.atan2( m13, m33 );
-				this._z = Math.atan2( m21, m22 );
-
-			} else {
-
-				this._y = Math.atan2( - m31, m11 );
-				this._z = 0;
-
-			}
-
-		} else if ( order === 'ZXY' ) {
-
-			this._x = Math.asin( clamp( m32, - 1, 1 ) );
-
-			if ( Math.abs( m32 ) < 0.99999 ) {
-
-				this._y = Math.atan2( - m31, m33 );
-				this._z = Math.atan2( - m12, m22 );
-
-			} else {
-
-				this._y = 0;
-				this._z = Math.atan2( m21, m11 );
-
-			}
-
-		} else if ( order === 'ZYX' ) {
-
-			this._y = Math.asin( - clamp( m31, - 1, 1 ) );
-
-			if ( Math.abs( m31 ) < 0.99999 ) {
-
-				this._x = Math.atan2( m32, m33 );
-				this._z = Math.atan2( m21, m11 );
-
-			} else {
-
-				this._x = 0;
-				this._z = Math.atan2( - m12, m22 );
-
-			}
-
-		} else if ( order === 'YZX' ) {
-
-			this._z = Math.asin( clamp( m21, - 1, 1 ) );
-
-			if ( Math.abs( m21 ) < 0.99999 ) {
-
-				this._x = Math.atan2( - m23, m22 );
-				this._y = Math.atan2( - m31, m11 );
-
-			} else {
-
-				this._x = 0;
-				this._y = Math.atan2( m13, m33 );
-
-			}
-
-		} else if ( order === 'XZY' ) {
-
-			this._z = Math.asin( - clamp( m12, - 1, 1 ) );
-
-			if ( Math.abs( m12 ) < 0.99999 ) {
-
-				this._x = Math.atan2( m32, m22 );
-				this._y = Math.atan2( m13, m11 );
-
-			} else {
-
-				this._x = Math.atan2( - m23, m33 );
-				this._y = 0;
-
-			}
-
-		} else {
-
-			console.warn( 'given unsupported order: ' + order );
-
-		}
-
-		this._order = order;
-
-		if ( update !== false ) this.onChangeCallback();
-
-		return this;
-
-	}
-
-    /**
-     * set values from quaternion
-     **/
-    Euler.prototype.setFromQuaternion = function(q, order, update) {
-
-		var matrix = zen3d.helpMatrix;
-
-		q.toMatrix4(matrix);
-
-		return this.setFromRotationMatrix(matrix, order, update);
-
-	}
-
-    /**
-     * set change callback
-     **/
-    Euler.prototype.onChange = function(callback) {
-        this.onChangeCallback = callback;
-
-        return this;
-    }
-
-    Euler.prototype.onChangeCallback = function() {}
-
+    Euler.prototype = Object.assign(Euler.prototype, {
+
+        copyFrom: function(euler) {
+            this._x = euler._x;
+            this._y = euler._y;
+            this._z = euler._z;
+            this._order = euler._order;
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        set: function(x, y, z, order) {
+            this._x = x || 0;
+            this._y = y || 0;
+            this._z = z || 0;
+            this._order = order || this._order;
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        setFromRotationMatrix: function(m, order, update) {
+
+            var clamp = function(value, min, max) {
+    
+                return Math.max( min, Math.min( max, value ) );
+    
+            };
+    
+            // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+    
+            var te = m.elements;
+            var m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ];
+            var m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ];
+            var m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
+    
+            order = order || this._order;
+    
+            if ( order === 'XYZ' ) {
+    
+                this._y = Math.asin( clamp( m13, - 1, 1 ) );
+    
+                if ( Math.abs( m13 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( - m23, m33 );
+                    this._z = Math.atan2( - m12, m11 );
+    
+                } else {
+    
+                    this._x = Math.atan2( m32, m22 );
+                    this._z = 0;
+    
+                }
+    
+            } else if ( order === 'YXZ' ) {
+    
+                this._x = Math.asin( - clamp( m23, - 1, 1 ) );
+    
+                if ( Math.abs( m23 ) < 0.99999 ) {
+    
+                    this._y = Math.atan2( m13, m33 );
+                    this._z = Math.atan2( m21, m22 );
+    
+                } else {
+    
+                    this._y = Math.atan2( - m31, m11 );
+                    this._z = 0;
+    
+                }
+    
+            } else if ( order === 'ZXY' ) {
+    
+                this._x = Math.asin( clamp( m32, - 1, 1 ) );
+    
+                if ( Math.abs( m32 ) < 0.99999 ) {
+    
+                    this._y = Math.atan2( - m31, m33 );
+                    this._z = Math.atan2( - m12, m22 );
+    
+                } else {
+    
+                    this._y = 0;
+                    this._z = Math.atan2( m21, m11 );
+    
+                }
+    
+            } else if ( order === 'ZYX' ) {
+    
+                this._y = Math.asin( - clamp( m31, - 1, 1 ) );
+    
+                if ( Math.abs( m31 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( m32, m33 );
+                    this._z = Math.atan2( m21, m11 );
+    
+                } else {
+    
+                    this._x = 0;
+                    this._z = Math.atan2( - m12, m22 );
+    
+                }
+    
+            } else if ( order === 'YZX' ) {
+    
+                this._z = Math.asin( clamp( m21, - 1, 1 ) );
+    
+                if ( Math.abs( m21 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( - m23, m22 );
+                    this._y = Math.atan2( - m31, m11 );
+    
+                } else {
+    
+                    this._x = 0;
+                    this._y = Math.atan2( m13, m33 );
+    
+                }
+    
+            } else if ( order === 'XZY' ) {
+    
+                this._z = Math.asin( - clamp( m12, - 1, 1 ) );
+    
+                if ( Math.abs( m12 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( m32, m22 );
+                    this._y = Math.atan2( m13, m11 );
+    
+                } else {
+    
+                    this._x = Math.atan2( - m23, m33 );
+                    this._y = 0;
+    
+                }
+    
+            } else {
+    
+                console.warn( 'given unsupported order: ' + order );
+    
+            }
+    
+            this._order = order;
+    
+            if ( update !== false ) this.onChangeCallback();
+    
+            return this;
+    
+        },
+
+        setFromQuaternion: function() {
+
+            var matrix = new Matrix4();
+
+            return function(q, order, update) {
+        
+                q.toMatrix4(matrix);
+        
+                return this.setFromRotationMatrix(matrix, order, update);
+        
+            };
+
+        }(),
+
+        onChange: function(callback) {
+            this.onChangeCallback = callback;
+    
+            return this;
+        },
+
+        onChangeCallback: function() {}
+
+    });
+
+    // exports
     zen3d.Euler = Euler;
+
 })();

@@ -504,11 +504,15 @@
 })();
 
 (function() {
+
+    // imports
+    var Matrix4 = zen3d.Matrix4;
+
     /**
      * a Euler class
      * @class
      */
-    var Euler = function(x, y, z, order) {
+    function Euler(x, y, z, order) {
         this._x = x || 0;
         this._y = y || 0;
         this._z = z || 0;
@@ -558,872 +562,775 @@
         }
     });
 
-    /**
-     * copy from another euler
-     **/
-    Euler.prototype.copyFrom = function(euler) {
-        this._x = euler._x;
-        this._y = euler._y;
-        this._z = euler._z;
-        this._order = euler._order;
-
-        this.onChangeCallback();
-
-        return this;
-    }
-
-    /**
-     * set values of this euler
-     **/
-    Euler.prototype.set = function(x, y, z, order) {
-        this._x = x || 0;
-        this._y = y || 0;
-        this._z = z || 0;
-        this._order = order || this._order;
-
-        this.onChangeCallback();
-
-        return this;
-    }
-
-    /**
-     * set values from rotation matrix
-     **/
-    Euler.prototype.setFromRotationMatrix = function(m, order, update) {
-
-		var clamp = function(value, min, max) {
-
-			return Math.max( min, Math.min( max, value ) );
-
-		};
-
-		// assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-
-		var te = m.elements;
-		var m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ];
-		var m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ];
-		var m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
-
-		order = order || this._order;
-
-		if ( order === 'XYZ' ) {
-
-			this._y = Math.asin( clamp( m13, - 1, 1 ) );
-
-			if ( Math.abs( m13 ) < 0.99999 ) {
-
-				this._x = Math.atan2( - m23, m33 );
-				this._z = Math.atan2( - m12, m11 );
-
-			} else {
-
-				this._x = Math.atan2( m32, m22 );
-				this._z = 0;
-
-			}
-
-		} else if ( order === 'YXZ' ) {
-
-			this._x = Math.asin( - clamp( m23, - 1, 1 ) );
-
-			if ( Math.abs( m23 ) < 0.99999 ) {
-
-				this._y = Math.atan2( m13, m33 );
-				this._z = Math.atan2( m21, m22 );
-
-			} else {
-
-				this._y = Math.atan2( - m31, m11 );
-				this._z = 0;
-
-			}
-
-		} else if ( order === 'ZXY' ) {
-
-			this._x = Math.asin( clamp( m32, - 1, 1 ) );
-
-			if ( Math.abs( m32 ) < 0.99999 ) {
-
-				this._y = Math.atan2( - m31, m33 );
-				this._z = Math.atan2( - m12, m22 );
-
-			} else {
-
-				this._y = 0;
-				this._z = Math.atan2( m21, m11 );
-
-			}
-
-		} else if ( order === 'ZYX' ) {
-
-			this._y = Math.asin( - clamp( m31, - 1, 1 ) );
-
-			if ( Math.abs( m31 ) < 0.99999 ) {
-
-				this._x = Math.atan2( m32, m33 );
-				this._z = Math.atan2( m21, m11 );
-
-			} else {
-
-				this._x = 0;
-				this._z = Math.atan2( - m12, m22 );
-
-			}
-
-		} else if ( order === 'YZX' ) {
-
-			this._z = Math.asin( clamp( m21, - 1, 1 ) );
-
-			if ( Math.abs( m21 ) < 0.99999 ) {
-
-				this._x = Math.atan2( - m23, m22 );
-				this._y = Math.atan2( - m31, m11 );
-
-			} else {
-
-				this._x = 0;
-				this._y = Math.atan2( m13, m33 );
-
-			}
-
-		} else if ( order === 'XZY' ) {
-
-			this._z = Math.asin( - clamp( m12, - 1, 1 ) );
-
-			if ( Math.abs( m12 ) < 0.99999 ) {
-
-				this._x = Math.atan2( m32, m22 );
-				this._y = Math.atan2( m13, m11 );
-
-			} else {
-
-				this._x = Math.atan2( - m23, m33 );
-				this._y = 0;
-
-			}
-
-		} else {
-
-			console.warn( 'given unsupported order: ' + order );
-
-		}
-
-		this._order = order;
-
-		if ( update !== false ) this.onChangeCallback();
-
-		return this;
-
-	}
-
-    /**
-     * set values from quaternion
-     **/
-    Euler.prototype.setFromQuaternion = function(q, order, update) {
-
-		var matrix = zen3d.helpMatrix;
-
-		q.toMatrix4(matrix);
-
-		return this.setFromRotationMatrix(matrix, order, update);
-
-	}
-
-    /**
-     * set change callback
-     **/
-    Euler.prototype.onChange = function(callback) {
-        this.onChangeCallback = callback;
-
-        return this;
-    }
-
-    Euler.prototype.onChangeCallback = function() {}
-
+    Euler.prototype = Object.assign(Euler.prototype, {
+
+        copyFrom: function(euler) {
+            this._x = euler._x;
+            this._y = euler._y;
+            this._z = euler._z;
+            this._order = euler._order;
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        set: function(x, y, z, order) {
+            this._x = x || 0;
+            this._y = y || 0;
+            this._z = z || 0;
+            this._order = order || this._order;
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        setFromRotationMatrix: function(m, order, update) {
+
+            var clamp = function(value, min, max) {
+    
+                return Math.max( min, Math.min( max, value ) );
+    
+            };
+    
+            // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+    
+            var te = m.elements;
+            var m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ];
+            var m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ];
+            var m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
+    
+            order = order || this._order;
+    
+            if ( order === 'XYZ' ) {
+    
+                this._y = Math.asin( clamp( m13, - 1, 1 ) );
+    
+                if ( Math.abs( m13 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( - m23, m33 );
+                    this._z = Math.atan2( - m12, m11 );
+    
+                } else {
+    
+                    this._x = Math.atan2( m32, m22 );
+                    this._z = 0;
+    
+                }
+    
+            } else if ( order === 'YXZ' ) {
+    
+                this._x = Math.asin( - clamp( m23, - 1, 1 ) );
+    
+                if ( Math.abs( m23 ) < 0.99999 ) {
+    
+                    this._y = Math.atan2( m13, m33 );
+                    this._z = Math.atan2( m21, m22 );
+    
+                } else {
+    
+                    this._y = Math.atan2( - m31, m11 );
+                    this._z = 0;
+    
+                }
+    
+            } else if ( order === 'ZXY' ) {
+    
+                this._x = Math.asin( clamp( m32, - 1, 1 ) );
+    
+                if ( Math.abs( m32 ) < 0.99999 ) {
+    
+                    this._y = Math.atan2( - m31, m33 );
+                    this._z = Math.atan2( - m12, m22 );
+    
+                } else {
+    
+                    this._y = 0;
+                    this._z = Math.atan2( m21, m11 );
+    
+                }
+    
+            } else if ( order === 'ZYX' ) {
+    
+                this._y = Math.asin( - clamp( m31, - 1, 1 ) );
+    
+                if ( Math.abs( m31 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( m32, m33 );
+                    this._z = Math.atan2( m21, m11 );
+    
+                } else {
+    
+                    this._x = 0;
+                    this._z = Math.atan2( - m12, m22 );
+    
+                }
+    
+            } else if ( order === 'YZX' ) {
+    
+                this._z = Math.asin( clamp( m21, - 1, 1 ) );
+    
+                if ( Math.abs( m21 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( - m23, m22 );
+                    this._y = Math.atan2( - m31, m11 );
+    
+                } else {
+    
+                    this._x = 0;
+                    this._y = Math.atan2( m13, m33 );
+    
+                }
+    
+            } else if ( order === 'XZY' ) {
+    
+                this._z = Math.asin( - clamp( m12, - 1, 1 ) );
+    
+                if ( Math.abs( m12 ) < 0.99999 ) {
+    
+                    this._x = Math.atan2( m32, m22 );
+                    this._y = Math.atan2( m13, m11 );
+    
+                } else {
+    
+                    this._x = Math.atan2( - m23, m33 );
+                    this._y = 0;
+    
+                }
+    
+            } else {
+    
+                console.warn( 'given unsupported order: ' + order );
+    
+            }
+    
+            this._order = order;
+    
+            if ( update !== false ) this.onChangeCallback();
+    
+            return this;
+    
+        },
+
+        setFromQuaternion: function() {
+
+            var matrix = new Matrix4();
+
+            return function(q, order, update) {
+        
+                q.toMatrix4(matrix);
+        
+                return this.setFromRotationMatrix(matrix, order, update);
+        
+            };
+
+        }(),
+
+        onChange: function(callback) {
+            this.onChangeCallback = callback;
+    
+            return this;
+        },
+
+        onChangeCallback: function() {}
+
+    });
+
+    // exports
     zen3d.Euler = Euler;
+
 })();
 
 (function() {
+
     /**
      * a vector 2 class
      * @class
      */
-    var Vector2 = function(x, y) {
+    function Vector2(x, y) {
         this.x = x || 0;
         this.y = y || 0;
     }
 
-    Vector2.prototype.lerpVectors = function(v1, v2, ratio) {
-        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
-    }
+    Vector2.prototype = Object.assign(Vector2.prototype, {
 
-    /**
-     * set values of this vector
-     **/
-    Vector2.prototype.set = function(x, y) {
-        this.x = x || 0;
-        this.y = y || 0;
-
-        return this;
-    }
-
-    Vector2.prototype.min = function(v) {
-        this.x = Math.min(this.x, v.x);
-        this.y = Math.min(this.y, v.y);
-
-        return this;
-    }
-
-    Vector2.prototype.max = function(v) {
-        this.x = Math.max(this.x, v.x);
-        this.y = Math.max(this.y, v.y);
-
-        return this;
-    }
-
-    Vector2.prototype.getLength = function() {
-        return Math.sqrt(this.getLengthSquared());
-    }
-
-    Vector2.prototype.getLengthSquared = function() {
-        return this.x * this.x + this.y * this.y;
-    }
-
-    /**
-     * normalize
-     **/
-    Vector2.prototype.normalize = function(thickness) {
-        thickness = thickness || 1;
-        var length = this.getLength();
-        if (length != 0) {
-            var invLength = thickness / length;
-            this.x *= invLength;
-            this.y *= invLength;
+        set: function(x, y) {
+            this.x = x || 0;
+            this.y = y || 0;
+    
             return this;
+        },
+
+        lerpVectors: function(v1, v2, ratio) {
+            return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+        },
+
+        min: function(v) {
+            this.x = Math.min(this.x, v.x);
+            this.y = Math.min(this.y, v.y);
+    
+            return this;
+        },
+
+        max: function(v) {
+            this.x = Math.max(this.x, v.x);
+            this.y = Math.max(this.y, v.y);
+    
+            return this;
+        },
+
+        getLength: function() {
+            return Math.sqrt(this.getLengthSquared());
+        },
+
+        getLengthSquared: function() {
+            return this.x * this.x + this.y * this.y;
+        },
+
+        normalize: function(thickness) {
+            thickness = thickness || 1;
+            var length = this.getLength();
+            if (length != 0) {
+                var invLength = thickness / length;
+                this.x *= invLength;
+                this.y *= invLength;
+                return this;
+            }
+        },
+
+        subtract: function(a, target) {
+            if (!target) {
+                target = new Vector2();
+            }
+            target.set(this.x - a.x, this.y - a.y);
+            return target;
+        },
+
+        copy: function(v) {
+            this.x = v.x;
+            this.y = v.y;
+    
+            return this;
+        },
+
+        addVectors: function(a, b) {
+            this.x = a.x + b.x;
+            this.y = a.y + b.y;
+    
+            return this;
+        },
+
+        subVectors: function(a, b) {
+            this.x = a.x - b.x;
+            this.y = a.y - b.y;
+    
+            return this;
+        },
+
+        multiplyScalar: function(scalar) {
+            this.x *= scalar;
+            this.y *= scalar;
+    
+            return this;
+        },
+
+        distanceToSquared: function(v) {
+            var dx = this.x - v.x,
+                dy = this.y - v.y;
+    
+            return dx * dx + dy * dy;
+        },
+
+        distanceTo: function(v) {
+            return Math.sqrt(this.distanceToSquared(v));
+        },
+
+        fromArray: function(array, offset) {
+            if (offset === undefined) offset = 0;
+    
+            this.x = array[offset];
+            this.y = array[offset + 1];
+    
+            return this;
+        },
+
+        add: function(v) {
+            this.x += v.x;
+            this.y += v.y;
+    
+            return this;
+        },
+
+        clone: function() {
+            return new Vector2(this.x, this.y);
         }
-    }
 
-    /**
-     * subtract a vector and return a new instance
-     **/
-    Vector2.prototype.subtract = function(a, target) {
-        if (!target) {
-            target = new Vector2();
-        }
-        target.set(this.x - a.x, this.y - a.y);
-        return target;
-    }
+    });
 
-    /**
-     * copy
-     */
-    Vector2.prototype.copy = function(v) {
-        this.x = v.x;
-        this.y = v.y;
-
-        return this;
-    }
-
-    /**
-     * addVectors
-     */
-    Vector2.prototype.addVectors = function(a, b) {
-        this.x = a.x + b.x;
-        this.y = a.y + b.y;
-
-        return this;
-    }
-
-    /**
-     * subVectors
-     */
-    Vector2.prototype.subVectors = function(a, b) {
-        this.x = a.x - b.x;
-        this.y = a.y - b.y;
-
-        return this;
-    }
-
-    /**
-     * multiplyScalar
-     */
-    Vector2.prototype.multiplyScalar = function(scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-
-        return this;
-    }
-
-    /**
-     * distanceToSquared
-     */
-    Vector2.prototype.distanceToSquared = function(v) {
-        var dx = this.x - v.x,
-            dy = this.y - v.y;
-
-        return dx * dx + dy * dy;
-    }
-
-    /**
-     * distanceTo
-     */
-    Vector2.prototype.distanceTo = function(v) {
-        return Math.sqrt(this.distanceToSquared(v));
-    }
-
-    /**
-     * fromArray
-     **/
-    Vector2.prototype.fromArray = function(array, offset) {
-        if (offset === undefined) offset = 0;
-
-        this.x = array[offset];
-        this.y = array[offset + 1];
-
-        return this;
-    }
-
-    Vector2.prototype.add = function(v) {
-        this.x += v.x;
-        this.y += v.y;
-
-        return this;
-    }
-
-    /**
-     * clone
-     */
-    Vector2.prototype.clone = function() {
-        return new Vector2(this.x, this.y);
-    }
-
+    // exports
     zen3d.Vector2 = Vector2;
+    
 })();
 (function() {
+
+    // imports
+    var Matrix4 = zen3d.Matrix4;
+
     /**
      * a vector 3 class
      * @class
      */
-    var Vector3 = function(x, y, z) {
+    function Vector3(x, y, z) {
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
     }
 
-    Vector3.prototype.lerpVectors = function(v1, v2, ratio) {
-        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
-    }
+    Vector3.prototype = Object.assign(Vector3.prototype, {
 
-    /**
-     * set values of this vector
-     **/
-    Vector3.prototype.set = function(x, y, z) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
+        lerpVectors: function(v1, v2, ratio) {
+            return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+        },
 
-        return this;
-    }
-
-    Vector3.prototype.min = function(v) {
-        this.x = Math.min(this.x, v.x);
-        this.y = Math.min(this.y, v.y);
-        this.z = Math.min(this.z, v.z);
-
-        return this;
-    }
-
-    Vector3.prototype.max = function(v) {
-        this.x = Math.max(this.x, v.x);
-        this.y = Math.max(this.y, v.y);
-        this.z = Math.max(this.z, v.z);
-
-        return this;
-    }
-
-    Vector3.prototype.getLength = function() {
-        return Math.sqrt(this.getLengthSquared());
-    }
-
-    Vector3.prototype.getLengthSquared = function() {
-        return this.x * this.x + this.y * this.y + this.z * this.z;
-    }
-
-    /**
-     * normalize
-     **/
-    Vector3.prototype.normalize = function(thickness) {
-        thickness = thickness || 1;
-        var length = this.getLength();
-        if (length != 0) {
-            var invLength = thickness / length;
-            this.x *= invLength;
-            this.y *= invLength;
-            this.z *= invLength;
+        set: function(x, y, z) {
+            this.x = x || 0;
+            this.y = y || 0;
+            this.z = z || 0;
+    
             return this;
+        },
+
+        min: function(v) {
+            this.x = Math.min(this.x, v.x);
+            this.y = Math.min(this.y, v.y);
+            this.z = Math.min(this.z, v.z);
+    
+            return this;
+        },
+
+        max: function(v) {
+            this.x = Math.max(this.x, v.x);
+            this.y = Math.max(this.y, v.y);
+            this.z = Math.max(this.z, v.z);
+    
+            return this;
+        },
+
+        getLength: function() {
+            return Math.sqrt(this.getLengthSquared());
+        },
+
+        getLengthSquared: function() {
+            return this.x * this.x + this.y * this.y + this.z * this.z;
+        },
+
+        normalize: function(thickness) {
+            thickness = thickness || 1;
+            var length = this.getLength();
+            if (length != 0) {
+                var invLength = thickness / length;
+                this.x *= invLength;
+                this.y *= invLength;
+                this.z *= invLength;
+                return this;
+            }
+        },
+
+        subtract: function(a, target) {
+            if (!target) {
+                target = new Vector3();
+            }
+            target.set(this.x - a.x, this.y - a.y, this.z - a.z);
+            return target;
+        },
+
+        multiply: function ( v ) {
+            this.x *= v.x;
+            this.y *= v.y;
+            this.z *= v.z;
+    
+            return this;
+        },
+
+        crossVectors: function(a, b) {
+            var ax = a.x,
+                ay = a.y,
+                az = a.z;
+            var bx = b.x,
+                by = b.y,
+                bz = b.z;
+    
+            this.x = ay * bz - az * by;
+            this.y = az * bx - ax * bz;
+            this.z = ax * by - ay * bx;
+    
+            return this;
+        },
+
+        cross: function(v) {
+            var x = this.x,
+                y = this.y,
+                z = this.z;
+    
+            this.x = y * v.z - z * v.y;
+            this.y = z * v.x - x * v.z;
+            this.z = x * v.y - y * v.x;
+    
+            return this;
+        },
+
+        dot: function(a) {
+            return this.x * a.x + this.y * a.y + this.z * a.z;
+        },
+
+        applyQuaternion: function(q) {
+
+            var x = this.x,
+                y = this.y,
+                z = this.z;
+            var qx = q._x,
+                qy = q._y,
+                qz = q._z,
+                qw = q._w;
+    
+            // calculate quat * vector
+    
+            var ix = qw * x + qy * z - qz * y;
+            var iy = qw * y + qz * x - qx * z;
+            var iz = qw * z + qx * y - qy * x;
+            var iw = -qx * x - qy * y - qz * z;
+    
+            // calculate result * inverse quat
+    
+            this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+            this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+            this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+    
+            return this;
+        },
+
+        applyMatrix4: function(m) {
+
+            // input: Matrix4 affine matrix
+    
+            var x = this.x,
+                y = this.y,
+                z = this.z;
+            var e = m.elements;
+    
+            this.x = e[0] * x + e[4] * y + e[8] * z + e[12];
+            this.y = e[1] * x + e[5] * y + e[9] * z + e[13];
+            this.z = e[2] * x + e[6] * y + e[10] * z + e[14];
+    
+            return this;
+    
+        },
+
+        applyMatrix3: function ( m ) {
+
+            var x = this.x, y = this.y, z = this.z;
+            var e = m.elements;
+    
+            this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
+            this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
+            this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+    
+            return this;
+    
+        },
+
+        transformDirection: function(m) {
+
+            // input: Matrix4 affine matrix
+            // vector interpreted as a direction
+    
+            var x = this.x,
+                y = this.y,
+                z = this.z;
+            var e = m.elements;
+    
+            this.x = e[0] * x + e[4] * y + e[8] * z;
+            this.y = e[1] * x + e[5] * y + e[9] * z;
+            this.z = e[2] * x + e[6] * y + e[10] * z;
+    
+            return this.normalize();
+    
+        },
+
+        setFromMatrixPosition: function(m) {
+
+            return this.setFromMatrixColumn(m, 3);
+    
+        },
+
+        setFromMatrixColumn: function(m, index) {
+
+            return this.fromArray(m.elements, index * 4);
+    
+        },
+
+        fromArray: function(array, offset) {
+
+            if (offset === undefined) offset = 0;
+    
+            this.x = array[offset];
+            this.y = array[offset + 1];
+            this.z = array[offset + 2];
+    
+            return this;
+    
+        },
+
+        copy: function(v) {
+            this.x = v.x;
+            this.y = v.y;
+            this.z = v.z;
+    
+            return this;
+        },
+
+        addVectors: function(a, b) {
+            this.x = a.x + b.x;
+            this.y = a.y + b.y;
+            this.z = a.z + b.z;
+    
+            return this;
+        },
+
+        addScalar: function(s) {
+            this.x += s;
+            this.y += s;
+            this.z += s;
+    
+            return this;
+        },
+
+        add: function(v) {
+            this.x += v.x;
+            this.y += v.y;
+            this.z += v.z;
+    
+            return this;
+        },
+
+        subVectors: function(a, b) {
+            this.x = a.x - b.x;
+            this.y = a.y - b.y;
+            this.z = a.z - b.z;
+    
+            return this;
+        },
+
+        sub: function(v) {
+            this.x -= v.x;
+            this.y -= v.y;
+            this.z -= v.z;
+    
+            return this;
+        },
+
+        multiplyScalar: function(scalar) {
+            this.x *= scalar;
+            this.y *= scalar;
+            this.z *= scalar;
+    
+            return this;
+        },
+
+        distanceToSquared: function(v) {
+            var dx = this.x - v.x,
+                dy = this.y - v.y,
+                dz = this.z - v.z;
+    
+            return dx * dx + dy * dy + dz * dz;
+        },
+
+        distanceTo: function(v) {
+            return Math.sqrt(this.distanceToSquared(v));
+        },
+
+        setFromSpherical: function (s) {
+            var sinPhiRadius = Math.sin( s.phi ) * s.radius;
+    
+            this.x = sinPhiRadius * Math.sin( s.theta );
+            this.y = Math.cos( s.phi ) * s.radius;
+            this.z = sinPhiRadius * Math.cos( s.theta );
+    
+            return this;
+        },
+
+        unproject: function() {
+            var matrix;
+    
+            return function unproject(camera) {
+                if (matrix === undefined) matrix = new Matrix4();
+    
+                matrix.multiplyMatrices(camera.worldMatrix, matrix.getInverse(camera.projectionMatrix));
+                return this.applyProjection(matrix);
+            };
+        }(),
+
+        applyProjection: function(m) {
+            // input: Matrix4 projection matrix
+            var x = this.x,
+                y = this.y,
+                z = this.z;
+            var e = m.elements;
+            var d = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]); // perspective divide
+    
+            this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * d;
+            this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * d;
+            this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
+    
+            return this;
+        },
+
+        equals: function(v) {
+            return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
+        },
+
+        clone: function() {
+            return new Vector3(this.x, this.y, this.z);
         }
-    }
 
-    /**
-     * subtract a vector and return a new instance
-     **/
-    Vector3.prototype.subtract = function(a, target) {
-        if (!target) {
-            target = new Vector3();
-        }
-        target.set(this.x - a.x, this.y - a.y, this.z - a.z);
-        return target;
-    }
+    });
 
-    Vector3.prototype.multiply = function ( v ) {
-		this.x *= v.x;
-		this.y *= v.y;
-        this.z *= v.z;
-
-		return this;
-	}
-
-    /**
-     * cross vectors
-     **/
-    Vector3.prototype.crossVectors = function(a, b) {
-        var ax = a.x,
-            ay = a.y,
-            az = a.z;
-        var bx = b.x,
-            by = b.y,
-            bz = b.z;
-
-        this.x = ay * bz - az * by;
-        this.y = az * bx - ax * bz;
-        this.z = ax * by - ay * bx;
-
-        return this;
-    }
-
-    /**
-     * cross
-     **/
-    Vector3.prototype.cross = function(v) {
-        var x = this.x,
-            y = this.y,
-            z = this.z;
-
-        this.x = y * v.z - z * v.y;
-        this.y = z * v.x - x * v.z;
-        this.z = x * v.y - y * v.x;
-
-        return this;
-    }
-
-    /**
-     * dot product a vector and return a new instance
-     **/
-    Vector3.prototype.dot = function(a) {
-        return this.x * a.x + this.y * a.y + this.z * a.z;
-    }
-
-    /**
-     * apply quaternion
-     **/
-    Vector3.prototype.applyQuaternion = function(q) {
-
-        var x = this.x,
-            y = this.y,
-            z = this.z;
-        var qx = q._x,
-            qy = q._y,
-            qz = q._z,
-            qw = q._w;
-
-        // calculate quat * vector
-
-        var ix = qw * x + qy * z - qz * y;
-        var iy = qw * y + qz * x - qx * z;
-        var iz = qw * z + qx * y - qy * x;
-        var iw = -qx * x - qy * y - qz * z;
-
-        // calculate result * inverse quat
-
-        this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-        this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-        this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-
-        return this;
-    }
-
-    /**
-     * apply quaternion
-     **/
-    Vector3.prototype.applyMatrix4 = function(m) {
-
-        // input: zen3d.Matrix4 affine matrix
-
-        var x = this.x,
-            y = this.y,
-            z = this.z;
-        var e = m.elements;
-
-        this.x = e[0] * x + e[4] * y + e[8] * z + e[12];
-        this.y = e[1] * x + e[5] * y + e[9] * z + e[13];
-        this.z = e[2] * x + e[6] * y + e[10] * z + e[14];
-
-        return this;
-
-    }
-
-    Vector3.prototype.applyMatrix3 = function ( m ) {
-
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
-
-		this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
-		this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
-		this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
-
-		return this;
-
-	}
-
-    /**
-     * transformDirection
-     **/
-    Vector3.prototype.transformDirection = function(m) {
-
-        // input: zen3d.Matrix4 affine matrix
-        // vector interpreted as a direction
-
-        var x = this.x,
-            y = this.y,
-            z = this.z;
-        var e = m.elements;
-
-        this.x = e[0] * x + e[4] * y + e[8] * z;
-        this.y = e[1] * x + e[5] * y + e[9] * z;
-        this.z = e[2] * x + e[6] * y + e[10] * z;
-
-        return this.normalize();
-
-    }
-
-    /**
-     * setFromMatrixPosition
-     **/
-    Vector3.prototype.setFromMatrixPosition = function(m) {
-
-        return this.setFromMatrixColumn(m, 3);
-
-    }
-
-    /**
-     * setFromMatrixColumn
-     **/
-    Vector3.prototype.setFromMatrixColumn = function(m, index) {
-
-        return this.fromArray(m.elements, index * 4);
-
-    }
-
-    /**
-     * fromArray
-     **/
-    Vector3.prototype.fromArray = function(array, offset) {
-
-        if (offset === undefined) offset = 0;
-
-        this.x = array[offset];
-        this.y = array[offset + 1];
-        this.z = array[offset + 2];
-
-        return this;
-
-    }
-
-    /**
-     * copy
-     */
-    Vector3.prototype.copy = function(v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-
-        return this;
-    }
-
-    /**
-     * addVectors
-     */
-    Vector3.prototype.addVectors = function(a, b) {
-        this.x = a.x + b.x;
-        this.y = a.y + b.y;
-        this.z = a.z + b.z;
-
-        return this;
-    }
-
-    Vector3.prototype.addScalar = function(s) {
-        this.x += s;
-        this.y += s;
-        this.z += s;
-
-        return this;
-    }
-
-    Vector3.prototype.add = function(v) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-
-        return this;
-    }
-
-    /**
-     * subVectors
-     */
-    Vector3.prototype.subVectors = function(a, b) {
-        this.x = a.x - b.x;
-        this.y = a.y - b.y;
-        this.z = a.z - b.z;
-
-        return this;
-    }
-
-    Vector3.prototype.sub = function(v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        this.z -= v.z;
-
-        return this;
-    }
-
-    /**
-     * multiplyScalar
-     */
-    Vector3.prototype.multiplyScalar = function(scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        this.z *= scalar;
-
-        return this;
-    }
-
-    /**
-     * distanceToSquared
-     */
-    Vector3.prototype.distanceToSquared = function(v) {
-        var dx = this.x - v.x,
-            dy = this.y - v.y,
-            dz = this.z - v.z;
-
-        return dx * dx + dy * dy + dz * dz;
-    }
-
-    /**
-     * distanceTo
-     */
-    Vector3.prototype.distanceTo = function(v) {
-        return Math.sqrt(this.distanceToSquared(v));
-    }
-
-    /**
-     * setFromSpherical
-     */
-    Vector3.prototype.setFromSpherical = function (s) {
-		var sinPhiRadius = Math.sin( s.phi ) * s.radius;
-
-		this.x = sinPhiRadius * Math.sin( s.theta );
-		this.y = Math.cos( s.phi ) * s.radius;
-		this.z = sinPhiRadius * Math.cos( s.theta );
-
-		return this;
-	}
-
-    /**
-     * unproject
-     */
-    Vector3.prototype.unproject = function() {
-        var matrix;
-
-        return function unproject(camera) {
-            if (matrix === undefined) matrix = new zen3d.Matrix4();
-
-            matrix.multiplyMatrices(camera.worldMatrix, matrix.getInverse(camera.projectionMatrix));
-            return this.applyProjection(matrix);
-        };
-    }()
-
-    /**
-     * applyProjection
-     */
-    Vector3.prototype.applyProjection = function(m) {
-        // input: zen3d.Matrix4 projection matrix
-        var x = this.x,
-            y = this.y,
-            z = this.z;
-        var e = m.elements;
-        var d = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]); // perspective divide
-
-        this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * d;
-        this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * d;
-        this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
-
-        return this;
-    }
-
-    Vector3.prototype.equals = function(v) {
-        return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
-    }
-
-    /**
-     * clone
-     */
-    Vector3.prototype.clone = function() {
-        return new Vector3(this.x, this.y, this.z);
-    }
-
+    // exports
     zen3d.Vector3 = Vector3;
+
 })();
 (function() {
+
     /**
      * a vector 4 class
      * @class
      */
-    var Vector4 = function(x, y, z, w) {
+    function Vector4(x, y, z, w) {
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
         this.w = ( w !== undefined ) ? w : 1;
     }
 
-    Vector4.prototype.lerpVectors = function(v1, v2, ratio) {
-        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
-    }
+    Vector4.prototype = Object.assign(Vector4.prototype, {
 
-    /**
-     * set values of this vector
-     **/
-    Vector4.prototype.set = function(x, y, z, w) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
-        this.w = ( w !== undefined ) ? w : 1;
+        lerpVectors: function(v1, v2, ratio) {
+            return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+        },
 
-        return this;
-    }
+        set: function(x, y, z, w) {
+            this.x = x || 0;
+            this.y = y || 0;
+            this.z = z || 0;
+            this.w = ( w !== undefined ) ? w : 1;
+    
+            return this;
+        },
 
-    Vector4.prototype.normalize = function () {
+        normalize: function () {
 
-		return this.multiplyScalar( 1 / (this.getLength() || 1) );
+            return this.multiplyScalar( 1 / (this.getLength() || 1) );
+    
+        },
 
-	}
+        multiplyScalar: function ( scalar ) {
 
-    Vector4.prototype.multiplyScalar = function ( scalar ) {
+            this.x *= scalar;
+            this.y *= scalar;
+            this.z *= scalar;
+            this.w *= scalar;
+    
+            return this;
+    
+        },
 
-		this.x *= scalar;
-		this.y *= scalar;
-		this.z *= scalar;
-		this.w *= scalar;
+        getLengthSquared: function () {
 
-		return this;
+            return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+    
+        },
 
-	}
+        getLength: function () {
 
-    Vector4.prototype.getLengthSquared = function () {
+            return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+    
+        },
 
-		return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+        applyMatrix4: function(m) {
+            var x = this.x, y = this.y, z = this.z, w = this.w;
+            var e = m.elements;
+    
+            this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] * w;
+            this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] * w;
+            this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] * w;
+            this.w = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] * w;
+    
+            return this;
+        },
 
-	}
+        equals: function(v) {
+            return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
+        },
 
-	Vector4.prototype.getLength = function () {
+        add: function(v) {
+            this.x += v.x;
+            this.y += v.y;
+            this.z += v.z;
+            this.w += v.w;
+    
+            return this;
+        },
 
-		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+        multiply: function ( v ) {
+            this.x *= v.x;
+            this.y *= v.y;
+            this.z *= v.z;
+            this.w *= v.w;
+    
+            return this;
+        },
 
-	}
+        multiplyScalar: function(scalar) {
+            this.x *= scalar;
+            this.y *= scalar;
+            this.z *= scalar;
+            this.w *= scalar;
+    
+            return this;
+        },
 
-    /**
-     * apply a 4x4 matrix
-     */
-    Vector4.prototype.applyMatrix4 = function(m) {
-		var x = this.x, y = this.y, z = this.z, w = this.w;
-		var e = m.elements;
+        subVectors: function(a, b) {
+            this.x = a.x - b.x;
+            this.y = a.y - b.y;
+            this.z = a.z - b.z;
+            this.w = a.w - b.w;
+    
+            return this;
+        },
 
-		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] * w;
-		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] * w;
-		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] * w;
-		this.w = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] * w;
+        copy: function(v) {
+            this.x = v.x;
+            this.y = v.y;
+            this.z = v.z;
+            this.w = ( v.w !== undefined ) ? v.w : 1;
+    
+            return this;
+        }
 
-		return this;
-	}
+    });
 
-    /**
-     * equals
-     */
-    Vector4.prototype.equals = function(v) {
-		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
-	}
-
-    Vector4.prototype.add = function(v) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-        this.w += v.w;
-
-        return this;
-    }
-
-    Vector4.prototype.multiply = function ( v ) {
-		this.x *= v.x;
-		this.y *= v.y;
-        this.z *= v.z;
-        this.w *= v.w;
-
-		return this;
-	}
-
-    /**
-     * multiplyScalar
-     */
-    Vector4.prototype.multiplyScalar = function(scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        this.z *= scalar;
-        this.w *= scalar;
-
-        return this;
-    }
-
-    /**
-     * subVectors
-     */
-    Vector4.prototype.subVectors = function(a, b) {
-        this.x = a.x - b.x;
-        this.y = a.y - b.y;
-        this.z = a.z - b.z;
-        this.w = a.w - b.w;
-
-        return this;
-    }
-
-    /**
-     * copy
-     */
-    Vector4.prototype.copy = function(v) {
-        this.x = v.x;
-		this.y = v.y;
-		this.z = v.z;
-		this.w = ( v.w !== undefined ) ? v.w : 1;
-
-		return this;
-	}
-
+    // exports
     zen3d.Vector4 = Vector4;
+
 })();
 (function() {
+
     /**
      * a 3x3 matrix class
      * @class
      */
-    var Matrix3 = function() {
+    function Matrix3() {
         this.elements = new Float32Array([
             1, 0, 0,
             0, 1, 0,
@@ -1431,235 +1338,232 @@
         ]);
     }
 
-    /**
-     * identity matrix
-     **/
-    Matrix3.prototype.identity = function() {
-        this.set(
-            1, 0, 0,
-            0, 1, 0,
-            0, 0, 1
-        );
+    Matrix3.prototype = Object.assign(Matrix3.prototype, {
 
-        return this;
-    }
+        identity: function() {
+            this.set(
+                1, 0, 0,
+                0, 1, 0,
+                0, 0, 1
+            );
+    
+            return this;
+        },
 
-    Matrix3.prototype.inverse = function() {
-        return this.getInverse(this);
-    }
+        inverse: function() {
+            return this.getInverse(this);
+        },
 
-    Matrix3.prototype.getInverse = function ( matrix ) {
+        getInverse: function ( matrix ) {
 
-		var me = matrix.elements,
-			te = this.elements,
+            var me = matrix.elements,
+                te = this.elements,
+    
+                n11 = me[ 0 ], n21 = me[ 1 ], n31 = me[ 2 ],
+                n12 = me[ 3 ], n22 = me[ 4 ], n32 = me[ 5 ],
+                n13 = me[ 6 ], n23 = me[ 7 ], n33 = me[ 8 ],
+    
+                t11 = n33 * n22 - n32 * n23,
+                t12 = n32 * n13 - n33 * n12,
+                t13 = n23 * n12 - n22 * n13,
+    
+                det = n11 * t11 + n21 * t12 + n31 * t13;
+    
+            if ( det === 0 ) {
+    
+                var msg = "zen3d.Matrix3: .getInverse() can't invert matrix, determinant is 0";
+                console.warn( msg );
+                return this.identity();
+    
+            }
+    
+            var detInv = 1 / det;
+    
+            te[ 0 ] = t11 * detInv;
+            te[ 1 ] = ( n31 * n23 - n33 * n21 ) * detInv;
+            te[ 2 ] = ( n32 * n21 - n31 * n22 ) * detInv;
+    
+            te[ 3 ] = t12 * detInv;
+            te[ 4 ] = ( n33 * n11 - n31 * n13 ) * detInv;
+            te[ 5 ] = ( n31 * n12 - n32 * n11 ) * detInv;
+    
+            te[ 6 ] = t13 * detInv;
+            te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv;
+            te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv;
+    
+            return this;
+    
+        },
 
-			n11 = me[ 0 ], n21 = me[ 1 ], n31 = me[ 2 ],
-			n12 = me[ 3 ], n22 = me[ 4 ], n32 = me[ 5 ],
-			n13 = me[ 6 ], n23 = me[ 7 ], n33 = me[ 8 ],
+        transpose: function () {
 
-			t11 = n33 * n22 - n32 * n23,
-			t12 = n32 * n13 - n33 * n12,
-			t13 = n23 * n12 - n22 * n13,
+            var tmp, m = this.elements;
+    
+            tmp = m[ 1 ]; m[ 1 ] = m[ 3 ]; m[ 3 ] = tmp;
+            tmp = m[ 2 ]; m[ 2 ] = m[ 6 ]; m[ 6 ] = tmp;
+            tmp = m[ 5 ]; m[ 5 ] = m[ 7 ]; m[ 7 ] = tmp;
+    
+            return this;
+    
+        },
 
-			det = n11 * t11 + n21 * t12 + n31 * t13;
+        set: function(n11, n12, n13,
+            n21, n22, n23,
+            n31, n32, n33) {
+    
+            var ele = this.elements;
+            ele[0] = n11;
+            ele[3] = n12;
+            ele[6] = n13;
+    
+            ele[1] = n21;
+            ele[4] = n22;
+            ele[7] = n23;
+    
+            ele[2] = n31;
+            ele[5] = n32;
+            ele[8] = n33;
+    
+            return this;
+        },
 
-		if ( det === 0 ) {
+        copy: function(m) {
+            this.elements.set(m.elements);
+    
+            return this;
+        },
 
-			var msg = "zen3d.Matrix3: .getInverse() can't invert matrix, determinant is 0";
-			console.warn( msg );
-			return this.identity();
+        multiply: function(m) {
 
-		}
+            return this.multiplyMatrices(this, m);
+    
+        },
 
-		var detInv = 1 / det;
+        premultiply: function(m) {
 
-		te[ 0 ] = t11 * detInv;
-		te[ 1 ] = ( n31 * n23 - n33 * n21 ) * detInv;
-		te[ 2 ] = ( n32 * n21 - n31 * n22 ) * detInv;
+            return this.multiplyMatrices(m, this);
+    
+        },
 
-		te[ 3 ] = t12 * detInv;
-		te[ 4 ] = ( n33 * n11 - n31 * n13 ) * detInv;
-		te[ 5 ] = ( n31 * n12 - n32 * n11 ) * detInv;
+        multiplyMatrices: function(a, b) {
 
-		te[ 6 ] = t13 * detInv;
-		te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv;
-		te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv;
+            var ae = a.elements;
+            var be = b.elements;
+            var te = this.elements;
+    
+            var a11 = ae[0],
+                a12 = ae[3],
+                a13 = ae[6];
+            var a21 = ae[1],
+                a22 = ae[4],
+                a23 = ae[7];
+            var a31 = ae[2],
+                a32 = ae[5],
+                a33 = ae[8];
+    
+            var b11 = be[0],
+                b12 = be[3],
+                b13 = be[6];
+            var b21 = be[1],
+                b22 = be[4],
+                b23 = be[7];
+            var b31 = be[2],
+                b32 = be[5],
+                b33 = be[8];
+    
+            te[0] = a11 * b11 + a12 * b21 + a13 * b31;
+            te[3] = a11 * b12 + a12 * b22 + a13 * b32;
+            te[6] = a11 * b13 + a12 * b23 + a13 * b33;
+    
+            te[1] = a21 * b11 + a22 * b21 + a23 * b31;
+            te[4] = a21 * b12 + a22 * b22 + a23 * b32;
+            te[7] = a21 * b13 + a22 * b23 + a23 * b33;
+    
+            te[2] = a31 * b11 + a32 * b21 + a33 * b31;
+            te[5] = a31 * b12 + a32 * b22 + a33 * b32;
+            te[8] = a31 * b13 + a32 * b23 + a33 * b33;
+    
+            return this;
+    
+        },
 
-		return this;
+        // transform 2d
+        transform: function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
+            var te = this.elements;
+    
+            var cr = 1;
+            var sr = 0;
+            if (rotation % 360) {
+                var r = rotation;
+                cr = Math.cos(r);
+                sr = Math.sin(r);
+            }
+    
+            te[0] = cr * scaleX;
+            te[3] = -sr * scaleY;
+            te[6] = x;
+    
+            te[1] = sr * scaleX;
+            te[4] = cr * scaleY;
+            te[7] = y;
+    
+            te[2] = 0;
+            te[5] = 0;
+            te[8] = 1;
+    
+            if (anchorX || anchorY) {
+                // prepend the anchor offset:
+                te[6] -= anchorX * te[0] + anchorY * te[3];
+                te[7] -= anchorX * te[1] + anchorY * te[4];
+            }
+    
+            return this;
+        },
 
-	}
+        setUvTransform: function ( tx, ty, sx, sy, rotation, cx, cy ) {
 
-    Matrix3.prototype.transpose = function () {
+            var c = Math.cos( rotation );
+            var s = Math.sin( rotation );
+    
+            this.set(
+                sx * c, sx * s, - sx * ( c * cx + s * cy ) + cx + tx,
+                - sy * s, sy * c, - sy * ( - s * cx + c * cy ) + cy + ty,
+                0, 0, 1
+            );
+    
+        },
 
-		var tmp, m = this.elements;
+        setFromMatrix4: function ( m ) {
 
-		tmp = m[ 1 ]; m[ 1 ] = m[ 3 ]; m[ 3 ] = tmp;
-		tmp = m[ 2 ]; m[ 2 ] = m[ 6 ]; m[ 6 ] = tmp;
-		tmp = m[ 5 ]; m[ 5 ] = m[ 7 ]; m[ 7 ] = tmp;
-
-		return this;
-
-	}
-
-    /**
-     * set the value of matrix
-     **/
-    Matrix3.prototype.set = function(n11, n12, n13,
-        n21, n22, n23,
-        n31, n32, n33) {
-
-        var ele = this.elements;
-        ele[0] = n11;
-        ele[3] = n12;
-        ele[6] = n13;
-
-        ele[1] = n21;
-        ele[4] = n22;
-        ele[7] = n23;
-
-        ele[2] = n31;
-        ele[5] = n32;
-        ele[8] = n33;
-
-        return this;
-    }
-
-    /**
-     * copy matrix
-     **/
-    Matrix3.prototype.copy = function(m) {
-        this.elements.set(m.elements);
-
-        return this;
-    }
-
-    /**
-     * multiply matrix
-     **/
-    Matrix3.prototype.multiply = function(m) {
-
-        return this.multiplyMatrices(this, m);
-
-    }
-
-    Matrix3.prototype.premultiply = function(m) {
-
-        return this.multiplyMatrices(m, this);
-
-    }
-
-    Matrix3.prototype.multiplyMatrices = function(a, b) {
-
-        var ae = a.elements;
-        var be = b.elements;
-        var te = this.elements;
-
-        var a11 = ae[0],
-            a12 = ae[3],
-            a13 = ae[6];
-        var a21 = ae[1],
-            a22 = ae[4],
-            a23 = ae[7];
-        var a31 = ae[2],
-            a32 = ae[5],
-            a33 = ae[8];
-
-        var b11 = be[0],
-            b12 = be[3],
-            b13 = be[6];
-        var b21 = be[1],
-            b22 = be[4],
-            b23 = be[7];
-        var b31 = be[2],
-            b32 = be[5],
-            b33 = be[8];
-
-        te[0] = a11 * b11 + a12 * b21 + a13 * b31;
-        te[3] = a11 * b12 + a12 * b22 + a13 * b32;
-        te[6] = a11 * b13 + a12 * b23 + a13 * b33;
-
-        te[1] = a21 * b11 + a22 * b21 + a23 * b31;
-        te[4] = a21 * b12 + a22 * b22 + a23 * b32;
-        te[7] = a21 * b13 + a22 * b23 + a23 * b33;
-
-        te[2] = a31 * b11 + a32 * b21 + a33 * b31;
-        te[5] = a31 * b12 + a32 * b22 + a33 * b32;
-        te[8] = a31 * b13 + a32 * b23 + a33 * b33;
-
-        return this;
-
-    }
-
-    // transform 2d
-    Matrix3.prototype.transform = function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
-        var te = this.elements;
-
-        var cr = 1;
-        var sr = 0;
-        if (rotation % 360) {
-            var r = rotation;
-            cr = Math.cos(r);
-            sr = Math.sin(r);
+            var me = m.elements;
+    
+            this.set(
+    
+                me[ 0 ], me[ 4 ], me[ 8 ],
+                me[ 1 ], me[ 5 ], me[ 9 ],
+                me[ 2 ], me[ 6 ], me[ 10 ]
+    
+            );
+    
+            return this;
+    
         }
 
-        te[0] = cr * scaleX;
-        te[3] = -sr * scaleY;
-        te[6] = x;
+    });
 
-        te[1] = sr * scaleX;
-        te[4] = cr * scaleY;
-        te[7] = y;
-
-        te[2] = 0;
-        te[5] = 0;
-        te[8] = 1;
-
-        if (anchorX || anchorY) {
-            // prepend the anchor offset:
-            te[6] -= anchorX * te[0] + anchorY * te[3];
-            te[7] -= anchorX * te[1] + anchorY * te[4];
-        }
-
-        return this;
-    }
-
-    Matrix3.prototype.setUvTransform = function ( tx, ty, sx, sy, rotation, cx, cy ) {
-
-		var c = Math.cos( rotation );
-		var s = Math.sin( rotation );
-
-		this.set(
-			sx * c, sx * s, - sx * ( c * cx + s * cy ) + cx + tx,
-			- sy * s, sy * c, - sy * ( - s * cx + c * cy ) + cy + ty,
-			0, 0, 1
-		);
-
-	}
-
-    Matrix3.prototype.setFromMatrix4 = function ( m ) {
-
-		var me = m.elements;
-
-		this.set(
-
-			me[ 0 ], me[ 4 ], me[ 8 ],
-			me[ 1 ], me[ 5 ], me[ 9 ],
-			me[ 2 ], me[ 6 ], me[ 10 ]
-
-		);
-
-		return this;
-
-	}
-
+    // exports
     zen3d.Matrix3 = Matrix3;
+
 })();
 (function() {
+
+    var Vector3 = zen3d.Vector3;
+
     /**
      * a 4x4 matrix class
      * @class
      */
-    var Matrix4 = function() {
+    function Matrix4() {
         this.elements = new Float32Array([
             1, 0, 0, 0,
             0, 1, 0, 0,
@@ -1668,662 +1572,552 @@
         ]);
     }
 
-    /**
-     * identity matrix
-     **/
-    Matrix4.prototype.identity = function() {
-        this.set(
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-        );
-
-        return this;
-    }
-
-    /**
-     * set the value of matrix
-     **/
-    Matrix4.prototype.set = function(n11, n12, n13, n14,
-        n21, n22, n23, n24,
-        n31, n32, n33, n34,
-        n41, n42, n43, n44) {
-
-        var ele = this.elements;
-        ele[0] = n11;
-        ele[4] = n12;
-        ele[8] = n13;
-        ele[12] = n14;
-        ele[1] = n21;
-        ele[5] = n22;
-        ele[9] = n23;
-        ele[13] = n24;
-        ele[2] = n31;
-        ele[6] = n32;
-        ele[10] = n33;
-        ele[14] = n34;
-        ele[3] = n41;
-        ele[7] = n42;
-        ele[11] = n43;
-        ele[15] = n44;
-
-        return this;
-    }
-
-    /**
-     * copy matrix
-     **/
-    Matrix4.prototype.copy = function(m) {
-        this.elements.set(m.elements);
-
-        return this;
-    }
-
-    Matrix4.prototype.makeTranslation = function(x, y, z) {
-        this.set(
-            1, 0, 0, x,
-            0, 1, 0, y,
-            0, 0, 1, z,
-            0, 0, 0, 1
-        );
-
-        return this;
-    }
-
-    /**
-     * multiply matrix
-     **/
-    Matrix4.prototype.multiply = function(m) {
-
-        return this.multiplyMatrices(this, m);
-
-    }
-
-    Matrix4.prototype.premultiply = function(m) {
-
-        return this.multiplyMatrices(m, this);
-
-    }
-
-    Matrix4.prototype.multiplyMatrices = function(a, b) {
-
-        var ae = a.elements;
-        var be = b.elements;
-        var te = this.elements;
-
-        var a11 = ae[0],
-            a12 = ae[4],
-            a13 = ae[8],
-            a14 = ae[12];
-        var a21 = ae[1],
-            a22 = ae[5],
-            a23 = ae[9],
-            a24 = ae[13];
-        var a31 = ae[2],
-            a32 = ae[6],
-            a33 = ae[10],
-            a34 = ae[14];
-        var a41 = ae[3],
-            a42 = ae[7],
-            a43 = ae[11],
-            a44 = ae[15];
-
-        var b11 = be[0],
-            b12 = be[4],
-            b13 = be[8],
-            b14 = be[12];
-        var b21 = be[1],
-            b22 = be[5],
-            b23 = be[9],
-            b24 = be[13];
-        var b31 = be[2],
-            b32 = be[6],
-            b33 = be[10],
-            b34 = be[14];
-        var b41 = be[3],
-            b42 = be[7],
-            b43 = be[11],
-            b44 = be[15];
-
-        te[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
-        te[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
-        te[8] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
-        te[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
-
-        te[1] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
-        te[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
-        te[9] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
-        te[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
-
-        te[2] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
-        te[6] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
-        te[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
-        te[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
-
-        te[3] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
-        te[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
-        te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
-        te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
-
-        return this;
-
-    }
-
-    /**
-     * transpose matrix
-     **/
-    Matrix4.prototype.transpose = function() {
-
-        var te = this.elements;
-        var tmp;
-
-        tmp = te[1];
-        te[1] = te[4];
-        te[4] = tmp;
-        tmp = te[2];
-        te[2] = te[8];
-        te[8] = tmp;
-        tmp = te[6];
-        te[6] = te[9];
-        te[9] = tmp;
-
-        tmp = te[3];
-        te[3] = te[12];
-        te[12] = tmp;
-        tmp = te[7];
-        te[7] = te[13];
-        te[13] = tmp;
-        tmp = te[11];
-        te[11] = te[14];
-        te[14] = tmp;
-
-        return this;
-    }
-
-    Matrix4.prototype.inverse = function() {
-        return this.getInverse(this);
-    }
-
-    Matrix4.prototype.getInverse = function(m) {
-
-        // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
-        var te = this.elements,
-            me = m.elements,
-
-            n11 = me[0],
-            n21 = me[1],
-            n31 = me[2],
-            n41 = me[3],
-            n12 = me[4],
-            n22 = me[5],
-            n32 = me[6],
-            n42 = me[7],
-            n13 = me[8],
-            n23 = me[9],
-            n33 = me[10],
-            n43 = me[11],
-            n14 = me[12],
-            n24 = me[13],
-            n34 = me[14],
-            n44 = me[15],
-
-            t11 = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44,
-            t12 = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44,
-            t13 = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44,
-            t14 = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
-
-        var det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
-
-        if (det === 0) {
-
-            console.warn("can't invert matrix, determinant is 0");
-
-            return this.identity();
-
-        }
-
-        var detInv = 1 / det;
-
-        te[0] = t11 * detInv;
-        te[1] = (n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44) * detInv;
-        te[2] = (n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44) * detInv;
-        te[3] = (n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43) * detInv;
-
-        te[4] = t12 * detInv;
-        te[5] = (n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44) * detInv;
-        te[6] = (n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44) * detInv;
-        te[7] = (n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43) * detInv;
-
-        te[8] = t13 * detInv;
-        te[9] = (n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44) * detInv;
-        te[10] = (n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44) * detInv;
-        te[11] = (n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43) * detInv;
-
-        te[12] = t14 * detInv;
-        te[13] = (n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34) * detInv;
-        te[14] = (n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34) * detInv;
-        te[15] = (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33) * detInv;
-
-        return this;
-
-    }
-
-    /**
-     * make transform from pos&scale&rotation(Quaternion)
-     **/
-    Matrix4.prototype.transform = function(pos, scale, rot) {
-
-        var rotMatrix = rot.toMatrix4(zen3d.helpMatrix);
-
-        var rele = rotMatrix.elements;
-        var ele = this.elements;
-
-        ele[0] = rele[0] * scale.x;
-        ele[1] = rele[1] * scale.x;
-        ele[2] = rele[2] * scale.x;
-        ele[3] = 0;
-
-        ele[4] = rele[4] * scale.y;
-        ele[5] = rele[5] * scale.y;
-        ele[6] = rele[6] * scale.y;
-        ele[7] = 0;
-
-        ele[8] = rele[8] * scale.z;
-        ele[9] = rele[9] * scale.z;
-        ele[10] = rele[10] * scale.z;
-        ele[11] = 0;
-
-        ele[12] = pos.x;
-        ele[13] = pos.y;
-        ele[14] = pos.z;
-        ele[15] = 1;
-
-        return this;
-    }
-
-    Matrix4.prototype.makeRotationFromQuaternion = function(q) {
-
-        var te = this.elements;
-
-        var x = q.x,
-            y = q.y,
-            z = q.z,
-            w = q.w;
-        var x2 = x + x,
-            y2 = y + y,
-            z2 = z + z;
-        var xx = x * x2,
-            xy = x * y2,
-            xz = x * z2;
-        var yy = y * y2,
-            yz = y * z2,
-            zz = z * z2;
-        var wx = w * x2,
-            wy = w * y2,
-            wz = w * z2;
-
-        te[0] = 1 - (yy + zz);
-        te[4] = xy - wz;
-        te[8] = xz + wy;
-
-        te[1] = xy + wz;
-        te[5] = 1 - (xx + zz);
-        te[9] = yz - wx;
-
-        te[2] = xz - wy;
-        te[6] = yz + wx;
-        te[10] = 1 - (xx + yy);
-
-        // last column
-        te[3] = 0;
-        te[7] = 0;
-        te[11] = 0;
-
-        // bottom row
-        te[12] = 0;
-        te[13] = 0;
-        te[14] = 0;
-        te[15] = 1;
-
-        return this;
-
-    }
-
-    Matrix4.prototype.lookAtRH = function() {
-        var x = new zen3d.Vector3();
-		var y = new zen3d.Vector3();
-        var z = new zen3d.Vector3();
-        
-        return function lookAtRH(eye, target, up) {
+    Matrix4.prototype = Object.assign(Matrix4.prototype, {
+
+        identity: function() {
+            this.set(
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            );
+    
+            return this;
+        },
+
+        set: function(n11, n12, n13, n14,
+            n21, n22, n23, n24,
+            n31, n32, n33, n34,
+            n41, n42, n43, n44) {
+    
+            var ele = this.elements;
+            ele[0] = n11;
+            ele[4] = n12;
+            ele[8] = n13;
+            ele[12] = n14;
+            ele[1] = n21;
+            ele[5] = n22;
+            ele[9] = n23;
+            ele[13] = n24;
+            ele[2] = n31;
+            ele[6] = n32;
+            ele[10] = n33;
+            ele[14] = n34;
+            ele[3] = n41;
+            ele[7] = n42;
+            ele[11] = n43;
+            ele[15] = n44;
+    
+            return this;
+        },
+
+        copy: function(m) {
+            this.elements.set(m.elements);
+    
+            return this;
+        },
+
+        makeTranslation: function(x, y, z) {
+            this.set(
+                1, 0, 0, x,
+                0, 1, 0, y,
+                0, 0, 1, z,
+                0, 0, 0, 1
+            );
+    
+            return this;
+        },
+
+        multiply: function(m) {
+
+            return this.multiplyMatrices(this, m);
+    
+        },
+
+        premultiply: function(m) {
+
+            return this.multiplyMatrices(m, this);
+    
+        },
+
+        multiplyMatrices: function(a, b) {
+
+            var ae = a.elements;
+            var be = b.elements;
             var te = this.elements;
+    
+            var a11 = ae[0],
+                a12 = ae[4],
+                a13 = ae[8],
+                a14 = ae[12];
+            var a21 = ae[1],
+                a22 = ae[5],
+                a23 = ae[9],
+                a24 = ae[13];
+            var a31 = ae[2],
+                a32 = ae[6],
+                a33 = ae[10],
+                a34 = ae[14];
+            var a41 = ae[3],
+                a42 = ae[7],
+                a43 = ae[11],
+                a44 = ae[15];
+    
+            var b11 = be[0],
+                b12 = be[4],
+                b13 = be[8],
+                b14 = be[12];
+            var b21 = be[1],
+                b22 = be[5],
+                b23 = be[9],
+                b24 = be[13];
+            var b31 = be[2],
+                b32 = be[6],
+                b33 = be[10],
+                b34 = be[14];
+            var b41 = be[3],
+                b42 = be[7],
+                b43 = be[11],
+                b44 = be[15];
+    
+            te[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+            te[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
+            te[8] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
+            te[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
+    
+            te[1] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
+            te[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+            te[9] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+            te[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+    
+            te[2] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
+            te[6] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
+            te[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
+            te[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
+    
+            te[3] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
+            te[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
+            te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+            te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+    
+            return this;
+    
+        },
 
-            z.subVectors( eye, target );
+        transpose: function() {
 
-            if(z.getLengthSquared() === 0) {
+            var te = this.elements;
+            var tmp;
+    
+            tmp = te[1];
+            te[1] = te[4];
+            te[4] = tmp;
+            tmp = te[2];
+            te[2] = te[8];
+            te[8] = tmp;
+            tmp = te[6];
+            te[6] = te[9];
+            te[9] = tmp;
+    
+            tmp = te[3];
+            te[3] = te[12];
+            te[12] = tmp;
+            tmp = te[7];
+            te[7] = te[13];
+            te[13] = tmp;
+            tmp = te[11];
+            te[11] = te[14];
+            te[14] = tmp;
+    
+            return this;
+        },
 
-                // eye and target are in the same position
+        inverse: function() {
+            return this.getInverse(this);
+        },
 
-                z.z = 1;
-                
+        getInverse: function(m) {
+
+            // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
+            var te = this.elements,
+                me = m.elements,
+    
+                n11 = me[0],
+                n21 = me[1],
+                n31 = me[2],
+                n41 = me[3],
+                n12 = me[4],
+                n22 = me[5],
+                n32 = me[6],
+                n42 = me[7],
+                n13 = me[8],
+                n23 = me[9],
+                n33 = me[10],
+                n43 = me[11],
+                n14 = me[12],
+                n24 = me[13],
+                n34 = me[14],
+                n44 = me[15],
+    
+                t11 = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44,
+                t12 = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44,
+                t13 = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44,
+                t14 = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+    
+            var det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
+    
+            if (det === 0) {
+    
+                console.warn("can't invert matrix, determinant is 0");
+    
+                return this.identity();
+    
             }
+    
+            var detInv = 1 / det;
+    
+            te[0] = t11 * detInv;
+            te[1] = (n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44) * detInv;
+            te[2] = (n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44) * detInv;
+            te[3] = (n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43) * detInv;
+    
+            te[4] = t12 * detInv;
+            te[5] = (n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44) * detInv;
+            te[6] = (n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44) * detInv;
+            te[7] = (n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43) * detInv;
+    
+            te[8] = t13 * detInv;
+            te[9] = (n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44) * detInv;
+            te[10] = (n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44) * detInv;
+            te[11] = (n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43) * detInv;
+    
+            te[12] = t14 * detInv;
+            te[13] = (n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34) * detInv;
+            te[14] = (n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34) * detInv;
+            te[15] = (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33) * detInv;
+    
+            return this;
+    
+        },
 
-            z.normalize();
-            x.crossVectors( up, z );
-            
-            if ( x.getLengthSquared() === 0 ) {
+        /**
+         * make transform from pos&scale&rotation(Quaternion)
+         **/
+        transform: function() {
 
-				// up and z are parallel
-
-				if ( Math.abs( up.z ) === 1 ) {
-
-					z.x += 0.0001;
-
-				} else {
-
-					z.z += 0.0001;
-
-				}
-
-				z.normalize();
-				x.crossVectors( up, z );
-
-			}
-
-			x.normalize();
-			y.crossVectors( z, x );
-
-			te[ 0 ] = x.x; te[ 4 ] = y.x; te[ 8 ] = z.x;
-			te[ 1 ] = x.y; te[ 5 ] = y.y; te[ 9 ] = z.y;
-			te[ 2 ] = x.z; te[ 6 ] = y.z; te[ 10 ] = z.z;
-
-			return this;
-        }
+            var matrix = new Matrix4();
+    
+            return function(pos, scale, rot) {
+    
+                var rotMatrix = rot.toMatrix4(matrix);
         
-    }()
+                var rele = rotMatrix.elements;
+                var ele = this.elements;
+        
+                ele[0] = rele[0] * scale.x;
+                ele[1] = rele[1] * scale.x;
+                ele[2] = rele[2] * scale.x;
+                ele[3] = 0;
+        
+                ele[4] = rele[4] * scale.y;
+                ele[5] = rele[5] * scale.y;
+                ele[6] = rele[6] * scale.y;
+                ele[7] = 0;
+        
+                ele[8] = rele[8] * scale.z;
+                ele[9] = rele[9] * scale.z;
+                ele[10] = rele[10] * scale.z;
+                ele[11] = 0;
+        
+                ele[12] = pos.x;
+                ele[13] = pos.y;
+                ele[14] = pos.z;
+                ele[15] = 1;
+        
+                return this;
+            }
+        }(),
 
-    var vector, matrix;
-    Matrix4.prototype.decompose = function(position, quaternion, scale) {
-        if (vector === undefined) {
-            vector = new zen3d.Vector3();
-            matrix = new Matrix4();
+        makeRotationFromQuaternion: function(q) {
+
+            var te = this.elements;
+    
+            var x = q.x,
+                y = q.y,
+                z = q.z,
+                w = q.w;
+            var x2 = x + x,
+                y2 = y + y,
+                z2 = z + z;
+            var xx = x * x2,
+                xy = x * y2,
+                xz = x * z2;
+            var yy = y * y2,
+                yz = y * z2,
+                zz = z * z2;
+            var wx = w * x2,
+                wy = w * y2,
+                wz = w * z2;
+    
+            te[0] = 1 - (yy + zz);
+            te[4] = xy - wz;
+            te[8] = xz + wy;
+    
+            te[1] = xy + wz;
+            te[5] = 1 - (xx + zz);
+            te[9] = yz - wx;
+    
+            te[2] = xz - wy;
+            te[6] = yz + wx;
+            te[10] = 1 - (xx + yy);
+    
+            // last column
+            te[3] = 0;
+            te[7] = 0;
+            te[11] = 0;
+    
+            // bottom row
+            te[12] = 0;
+            te[13] = 0;
+            te[14] = 0;
+            te[15] = 1;
+    
+            return this;
+    
+        },
+
+        lookAtRH: function() {
+            var x = new Vector3();
+            var y = new Vector3();
+            var z = new Vector3();
+            
+            return function lookAtRH(eye, target, up) {
+                var te = this.elements;
+    
+                z.subVectors( eye, target );
+    
+                if(z.getLengthSquared() === 0) {
+    
+                    // eye and target are in the same position
+    
+                    z.z = 1;
+                    
+                }
+    
+                z.normalize();
+                x.crossVectors( up, z );
+                
+                if ( x.getLengthSquared() === 0 ) {
+    
+                    // up and z are parallel
+    
+                    if ( Math.abs( up.z ) === 1 ) {
+    
+                        z.x += 0.0001;
+    
+                    } else {
+    
+                        z.z += 0.0001;
+    
+                    }
+    
+                    z.normalize();
+                    x.crossVectors( up, z );
+    
+                }
+    
+                x.normalize();
+                y.crossVectors( z, x );
+    
+                te[ 0 ] = x.x; te[ 4 ] = y.x; te[ 8 ] = z.x;
+                te[ 1 ] = x.y; te[ 5 ] = y.y; te[ 9 ] = z.y;
+                te[ 2 ] = x.z; te[ 6 ] = y.z; te[ 10 ] = z.z;
+    
+                return this;
+            }
+            
+        }(),
+
+        decompose: function() {
+        
+            var vector = new Vector3(), matrix = new Matrix4();
+    
+            return function(position, quaternion, scale) {
+        
+                var te = this.elements;
+        
+                var sx = vector.set(te[0], te[1], te[2]).getLength();
+                var sy = vector.set(te[4], te[5], te[6]).getLength();
+                var sz = vector.set(te[8], te[9], te[10]).getLength();
+        
+                // if determine is negative, we need to invert one scale
+                var det = this.determinant();
+                if (det < 0) {
+                    sx = -sx;
+                }
+        
+                position.x = te[12];
+                position.y = te[13];
+                position.z = te[14];
+        
+                // scale the rotation part
+        
+                matrix.elements.set(this.elements); // at this point matrix is incomplete so we can't use .copy()
+        
+                var invSX = 1 / sx;
+                var invSY = 1 / sy;
+                var invSZ = 1 / sz;
+        
+                matrix.elements[0] *= invSX;
+                matrix.elements[1] *= invSX;
+                matrix.elements[2] *= invSX;
+        
+                matrix.elements[4] *= invSY;
+                matrix.elements[5] *= invSY;
+                matrix.elements[6] *= invSY;
+        
+                matrix.elements[8] *= invSZ;
+                matrix.elements[9] *= invSZ;
+                matrix.elements[10] *= invSZ;
+        
+                quaternion.setFromRotationMatrix(matrix);
+        
+                scale.x = sx;
+                scale.y = sy;
+                scale.z = sz;
+        
+                return this;
+            }
+        }(),
+
+        determinant: function() {
+
+            var te = this.elements;
+    
+            var n11 = te[0],
+                n12 = te[4],
+                n13 = te[8],
+                n14 = te[12];
+            var n21 = te[1],
+                n22 = te[5],
+                n23 = te[9],
+                n24 = te[13];
+            var n31 = te[2],
+                n32 = te[6],
+                n33 = te[10],
+                n34 = te[14];
+            var n41 = te[3],
+                n42 = te[7],
+                n43 = te[11],
+                n44 = te[15];
+    
+            //TODO: make this more efficient
+            //( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
+    
+            return (
+                n41 * (+n14 * n23 * n32 -
+                    n13 * n24 * n32 -
+                    n14 * n22 * n33 +
+                    n12 * n24 * n33 +
+                    n13 * n22 * n34 -
+                    n12 * n23 * n34
+                ) +
+                n42 * (+n11 * n23 * n34 -
+                    n11 * n24 * n33 +
+                    n14 * n21 * n33 -
+                    n13 * n21 * n34 +
+                    n13 * n24 * n31 -
+                    n14 * n23 * n31
+                ) +
+                n43 * (+n11 * n24 * n32 -
+                    n11 * n22 * n34 -
+                    n14 * n21 * n32 +
+                    n12 * n21 * n34 +
+                    n14 * n22 * n31 -
+                    n12 * n24 * n31
+                ) +
+                n44 * (-n13 * n22 * n31 -
+                    n11 * n23 * n32 +
+                    n11 * n22 * n33 +
+                    n13 * n21 * n32 -
+                    n12 * n21 * n33 +
+                    n12 * n23 * n31
+                )
+    
+            );
+    
+        },
+
+        fromArray: function(array, offset) {
+            if (offset === undefined) offset = 0;
+    
+            for (var i = 0; i < 16; i++) {
+                this.elements[i] = array[i + offset];
+            }
+    
+            return this;
+        },
+
+        getMaxScaleOnAxis: function() {
+            var te = this.elements;
+    
+            var scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2];
+            var scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6];
+            var scaleZSq = te[8] * te[8] + te[9] * te[9] + te[10] * te[10];
+    
+            return Math.sqrt(Math.max(scaleXSq, scaleYSq, scaleZSq));
+        },
+
+        toArray: function(array, offset) {
+            if (array === undefined) array = [];
+            if (offset === undefined) offset = 0;
+    
+            var te = this.elements;
+    
+            array[offset] = te[0];
+            array[offset + 1] = te[1];
+            array[offset + 2] = te[2];
+            array[offset + 3] = te[3];
+    
+            array[offset + 4] = te[4];
+            array[offset + 5] = te[5];
+            array[offset + 6] = te[6];
+            array[offset + 7] = te[7];
+    
+            array[offset + 8] = te[8];
+            array[offset + 9] = te[9];
+            array[offset + 10] = te[10];
+            array[offset + 11] = te[11];
+    
+            array[offset + 12] = te[12];
+            array[offset + 13] = te[13];
+            array[offset + 14] = te[14];
+            array[offset + 15] = te[15];
+    
+            return array;
         }
 
-        var te = this.elements;
+    });
 
-        var sx = vector.set(te[0], te[1], te[2]).getLength();
-        var sy = vector.set(te[4], te[5], te[6]).getLength();
-        var sz = vector.set(te[8], te[9], te[10]).getLength();
-
-        // if determine is negative, we need to invert one scale
-        var det = this.determinant();
-        if (det < 0) {
-            sx = -sx;
-        }
-
-        position.x = te[12];
-        position.y = te[13];
-        position.z = te[14];
-
-        // scale the rotation part
-
-        matrix.elements.set(this.elements); // at this point matrix is incomplete so we can't use .copy()
-
-        var invSX = 1 / sx;
-        var invSY = 1 / sy;
-        var invSZ = 1 / sz;
-
-        matrix.elements[0] *= invSX;
-        matrix.elements[1] *= invSX;
-        matrix.elements[2] *= invSX;
-
-        matrix.elements[4] *= invSY;
-        matrix.elements[5] *= invSY;
-        matrix.elements[6] *= invSY;
-
-        matrix.elements[8] *= invSZ;
-        matrix.elements[9] *= invSZ;
-        matrix.elements[10] *= invSZ;
-
-        quaternion.setFromRotationMatrix(matrix);
-
-        scale.x = sx;
-        scale.y = sy;
-        scale.z = sz;
-
-        return this;
-    }
-
-    Matrix4.prototype.determinant = function() {
-
-        var te = this.elements;
-
-        var n11 = te[0],
-            n12 = te[4],
-            n13 = te[8],
-            n14 = te[12];
-        var n21 = te[1],
-            n22 = te[5],
-            n23 = te[9],
-            n24 = te[13];
-        var n31 = te[2],
-            n32 = te[6],
-            n33 = te[10],
-            n34 = te[14];
-        var n41 = te[3],
-            n42 = te[7],
-            n43 = te[11],
-            n44 = te[15];
-
-        //TODO: make this more efficient
-        //( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
-
-        return (
-            n41 * (+n14 * n23 * n32 -
-                n13 * n24 * n32 -
-                n14 * n22 * n33 +
-                n12 * n24 * n33 +
-                n13 * n22 * n34 -
-                n12 * n23 * n34
-            ) +
-            n42 * (+n11 * n23 * n34 -
-                n11 * n24 * n33 +
-                n14 * n21 * n33 -
-                n13 * n21 * n34 +
-                n13 * n24 * n31 -
-                n14 * n23 * n31
-            ) +
-            n43 * (+n11 * n24 * n32 -
-                n11 * n22 * n34 -
-                n14 * n21 * n32 +
-                n12 * n21 * n34 +
-                n14 * n22 * n31 -
-                n12 * n24 * n31
-            ) +
-            n44 * (-n13 * n22 * n31 -
-                n11 * n23 * n32 +
-                n11 * n22 * n33 +
-                n13 * n21 * n32 -
-                n12 * n21 * n33 +
-                n12 * n23 * n31
-            )
-
-        );
-
-    }
-
-    Matrix4.prototype.fromArray = function(array, offset) {
-        if (offset === undefined) offset = 0;
-
-        for (var i = 0; i < 16; i++) {
-            this.elements[i] = array[i + offset];
-        }
-
-        return this;
-    }
-
-    Matrix4.prototype.getMaxScaleOnAxis = function() {
-        var te = this.elements;
-
-        var scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2];
-        var scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6];
-        var scaleZSq = te[8] * te[8] + te[9] * te[9] + te[10] * te[10];
-
-        return Math.sqrt(Math.max(scaleXSq, scaleYSq, scaleZSq));
-    }
-
-    Matrix4.prototype.toArray = function(array, offset) {
-        if (array === undefined) array = [];
-        if (offset === undefined) offset = 0;
-
-        var te = this.elements;
-
-        array[offset] = te[0];
-        array[offset + 1] = te[1];
-        array[offset + 2] = te[2];
-        array[offset + 3] = te[3];
-
-        array[offset + 4] = te[4];
-        array[offset + 5] = te[5];
-        array[offset + 6] = te[6];
-        array[offset + 7] = te[7];
-
-        array[offset + 8] = te[8];
-        array[offset + 9] = te[9];
-        array[offset + 10] = te[10];
-        array[offset + 11] = te[11];
-
-        array[offset + 12] = te[12];
-        array[offset + 13] = te[13];
-        array[offset + 14] = te[14];
-        array[offset + 15] = te[15];
-
-        return array;
-    }
-
+    // exports
     zen3d.Matrix4 = Matrix4;
-    zen3d.helpMatrix = new Matrix4();
+    
 })();
 (function() {
+
+    // imports
+    var Vector3 = zen3d.Vector3;
+    var Matrix4 = zen3d.Matrix4;
+
     /**
      * a Quaternion class
      * @class
      */
-    var Quaternion = function(x, y, z, w) {
+    function Quaternion(x, y, z, w) {
         this._x = x || 0;
         this._y = y || 0;
         this._z = z || 0;
         this._w = ( w !== undefined ) ? w : 1;
-    }
-
-    /**
-     * normalize
-     **/
-    Quaternion.prototype.normalize = function(thickness) {
-        var l = this.length();
-
-		if ( l === 0 ) {
-
-			this._x = 0;
-			this._y = 0;
-			this._z = 0;
-			this._w = 1;
-
-		} else {
-
-			l = 1 / l;
-
-			this._x = this._x * l;
-			this._y = this._y * l;
-			this._z = this._z * l;
-			this._w = this._w * l;
-
-		}
-
-		this.onChangeCallback();
-
-		return this;
-    }
-
-    Quaternion.prototype.length = function () {
-		return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
-	}
-
-    /*
-     * Linearly interpolates between two quaternions.
-     */
-    Quaternion.prototype.lerpQuaternions = function(q1, q2, ratio) {
-        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
-        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
-        var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
-
-        // shortest direction
-        if (dot < 0) {
-            dot = -dot;
-            w2 = -w2;
-            x2 = -x2;
-            y2 = -y2;
-            z2 = -z2;
-        }
-
-        this._w = w1 + ratio * (w2 - w1);
-        this._x = x1 + ratio * (x2 - x1);
-        this._y = y1 + ratio * (y2 - y1);
-        this._z = z1 + ratio * (z2 - z1);
-        var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
-        this._w *= len;
-        this._x *= len;
-        this._y *= len;
-        this._z *= len;
-
-        this.onChangeCallback();
-
-        return this;
-    }
-
-    /*
-     * Spherically interpolates between two quaternions
-     * providing an interpolation between rotations with constant angle change rate.
-     */
-    Quaternion.prototype.slerpQuaternions = function(q1, q2, ratio) {
-        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
-        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
-        var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
-
-        // shortest direction
-        if (dot < 0) {
-            dot = -dot;
-            w2 = -w2;
-            x2 = -x2;
-            y2 = -y2;
-            z2 = -z2;
-        }
-
-        if (dot < 0.95) {
-            var angle = Math.acos(dot);
-            var s = 1 / Math.sin(angle);
-            var s1 = Math.sin(angle * (1 - ratio)) * s;
-            var s2 = Math.sin(angle * ratio) * s;
-            this._w = w1 * s1 + w2 * s2;
-            this._x = x1 * s1 + x2 * s2;
-            this._y = y1 * s1 + y2 * s2;
-            this._z = z1 * s1 + z2 * s2;
-        } else {
-            // nearly identical angle, interpolate linearly
-            this._w = w1 + ratio * (w2 - w1);
-            this._x = x1 + ratio * (x2 - x1);
-            this._y = y1 + ratio * (y2 - y1);
-            this._z = z1 + ratio * (z2 - z1);
-            var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
-            this._w *= len;
-            this._x *= len;
-            this._y *= len;
-            this._z *= len;
-        }
-
-        this.onChangeCallback();
-
-        return this;
     }
 
     Object.defineProperties(Quaternion.prototype, {
@@ -2365,714 +2159,863 @@
         }
     });
 
-    /**
-     * set values of this vector
-     **/
-    Quaternion.prototype.set = function(x, y, z, w) {
-        this._x = x || 0;
-        this._y = y || 0;
-        this._z = z || 0;
-        this._w = ( w !== undefined ) ? w : 1;
+    Quaternion.prototype = Object.assign(Quaternion.prototype, {
 
-        this.onChangeCallback();
-
-        return this;
-    }
-
-    /**
-     * copy
-     */
-    Quaternion.prototype.copy = function(v) {
-        this._x = v.x;
-		this._y = v.y;
-		this._z = v.z;
-		this._w = ( v.w !== undefined ) ? v.w : 1;
-
-        this.onChangeCallback();
-
-		return this;
-	}
-
-    /**
-     * set values from euler
-     **/
-    Quaternion.prototype.setFromEuler = function(euler, update) {
-		var c1 = Math.cos( euler._x / 2 );
-		var c2 = Math.cos( euler._y / 2 );
-		var c3 = Math.cos( euler._z / 2 );
-		var s1 = Math.sin( euler._x / 2 );
-		var s2 = Math.sin( euler._y / 2 );
-		var s3 = Math.sin( euler._z / 2 );
-
-		var order = euler._order;
-
-		if ( order === 'XYZ' ) {
-
-			this._x = s1 * c2 * c3 + c1 * s2 * s3;
-			this._y = c1 * s2 * c3 - s1 * c2 * s3;
-			this._z = c1 * c2 * s3 + s1 * s2 * c3;
-			this._w = c1 * c2 * c3 - s1 * s2 * s3;
-
-		} else if ( order === 'YXZ' ) {
-
-			this._x = s1 * c2 * c3 + c1 * s2 * s3;
-			this._y = c1 * s2 * c3 - s1 * c2 * s3;
-			this._z = c1 * c2 * s3 - s1 * s2 * c3;
-			this._w = c1 * c2 * c3 + s1 * s2 * s3;
-
-		} else if ( order === 'ZXY' ) {
-
-			this._x = s1 * c2 * c3 - c1 * s2 * s3;
-			this._y = c1 * s2 * c3 + s1 * c2 * s3;
-			this._z = c1 * c2 * s3 + s1 * s2 * c3;
-			this._w = c1 * c2 * c3 - s1 * s2 * s3;
-
-		} else if ( order === 'ZYX' ) {
-
-			this._x = s1 * c2 * c3 - c1 * s2 * s3;
-			this._y = c1 * s2 * c3 + s1 * c2 * s3;
-			this._z = c1 * c2 * s3 - s1 * s2 * c3;
-			this._w = c1 * c2 * c3 + s1 * s2 * s3;
-
-		} else if ( order === 'YZX' ) {
-
-			this._x = s1 * c2 * c3 + c1 * s2 * s3;
-			this._y = c1 * s2 * c3 + s1 * c2 * s3;
-			this._z = c1 * c2 * s3 - s1 * s2 * c3;
-			this._w = c1 * c2 * c3 - s1 * s2 * s3;
-
-		} else if ( order === 'XZY' ) {
-
-			this._x = s1 * c2 * c3 - c1 * s2 * s3;
-			this._y = c1 * s2 * c3 - s1 * c2 * s3;
-			this._z = c1 * c2 * s3 + s1 * s2 * c3;
-			this._w = c1 * c2 * c3 + s1 * s2 * s3;
-
-		}
-
-        if ( update !== false ) this.onChangeCallback();
-
-		return this;
-
-	}
-
-    /**
-     * set values from rotation matrix
-     **/
-    Quaternion.prototype.setFromRotationMatrix = function ( m ) {
-
-		var te = m.elements,
-
-			m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
-			m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
-			m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ],
-
-			trace = m11 + m22 + m33,
-			s;
-
-		if ( trace > 0 ) {
-
-			s = 0.5 / Math.sqrt( trace + 1.0 );
-
-			this._w = 0.25 / s;
-			this._x = ( m32 - m23 ) * s;
-			this._y = ( m13 - m31 ) * s;
-			this._z = ( m21 - m12 ) * s;
-
-		} else if ( m11 > m22 && m11 > m33 ) {
-
-			s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
-
-			this._w = ( m32 - m23 ) / s;
-			this._x = 0.25 * s;
-			this._y = ( m12 + m21 ) / s;
-			this._z = ( m13 + m31 ) / s;
-
-		} else if ( m22 > m33 ) {
-
-			s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
-
-			this._w = ( m13 - m31 ) / s;
-			this._x = ( m12 + m21 ) / s;
-			this._y = 0.25 * s;
-			this._z = ( m23 + m32 ) / s;
-
-		} else {
-
-			s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
-
-			this._w = ( m21 - m12 ) / s;
-			this._x = ( m13 + m31 ) / s;
-			this._y = ( m23 + m32 ) / s;
-			this._z = 0.25 * s;
-
-		}
-
-		this.onChangeCallback();
-
-		return this;
-
-	}
-
-    Quaternion.prototype.setFromUnitVectors = function () {
-
-		// http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
-
-		// assumes direction vectors vFrom and vTo are normalized
-
-		var v1 = new zen3d.Vector3();
-		var r;
-
-		var EPS = 0.000001;
-
-		return function setFromUnitVectors( vFrom, vTo ) {
-
-			if ( v1 === undefined ) v1 = new zen3d.Vector3();
-
-			r = vFrom.dot( vTo ) + 1;
-
-			if ( r < EPS ) {
-
-				r = 0;
-
-				if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
-
-					v1.set( - vFrom.y, vFrom.x, 0 );
-
-				} else {
-
-					v1.set( 0, - vFrom.z, vFrom.y );
-
-				}
-
-			} else {
-
-				v1.crossVectors( vFrom, vTo );
-
-			}
-
-			this._x = v1.x;
-			this._y = v1.y;
-			this._z = v1.z;
-			this._w = r;
-
-			return this.normalize();
-
-		};
-
-    }();
+        normalize: function(thickness) {
+            var l = this.length();
     
-    Quaternion.prototype.multiply = function ( q ) {
-
-		return this.multiplyQuaternions( this, q );
-
-	}
-
-    Quaternion.prototype.premultiply = function ( q ) {
-
-		return this.multiplyQuaternions( q, this );
-
-	}
-
-	Quaternion.prototype.multiplyQuaternions = function ( a, b ) {
-
-		// from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
-
-		var qax = a._x, qay = a._y, qaz = a._z, qaw = a._w;
-		var qbx = b._x, qby = b._y, qbz = b._z, qbw = b._w;
-
-		this._x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
-		this._y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
-		this._z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
-		this._w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
-
-		this.onChangeCallback();
-
-		return this;
-
-	}
-
-    /**
-     * quaternion to matrix
-     **/
-    Quaternion.prototype.toMatrix4 = function(target) {
-        if(!target) {
-            target = new zen3d.Matrix4();
-        }
-        var ele = target.elements;
-
-        var xy2 = 2.0 * this._x * this._y, xz2 = 2.0 * this._x * this._z, xw2 = 2.0 * this._x * this._w;
-        var yz2 = 2.0 * this._y * this._z, yw2 = 2.0 * this._y * this._w, zw2 = 2.0 * this._z * this._w;
-        var xx = this._x * this._x, yy = this._y * this._y, zz = this._z * this._z, ww = this._w * this._w;
-
-        ele[0] = xx - yy - zz + ww;
-        ele[4] = xy2 - zw2;
-        ele[8] = xz2 + yw2;
-        ele[12] = 0;
-        ele[1] = xy2 + zw2;
-        ele[5] = -xx + yy - zz + ww;
-        ele[9] = yz2 - xw2;
-        ele[13] = 0;
-        ele[2] = xz2 - yw2;
-        ele[6] = yz2 + xw2;
-        ele[10] = -xx - yy + zz + ww;
-        ele[14] = 0;
-        ele[3] = 0.0;
-        ele[7] = 0.0;
-        ele[11] = 0;
-        ele[15] = 1;
-
-        return target;
-    }
-
-    Quaternion.prototype.dot = function ( v ) {
-
-		return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
-
-	}
-
-    /**
-     * set quaternion from axis angle
-     **/
-    Quaternion.prototype.setFromAxisAngle = function(axis, angle) {
-
-		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
-
-		// assumes axis is normalized
-
-		var halfAngle = angle / 2, s = Math.sin( halfAngle );
-
-		this._x = axis.x * s;
-		this._y = axis.y * s;
-		this._z = axis.z * s;
-		this._w = Math.cos( halfAngle );
-
-		this.onChangeCallback();
-
-		return this;
-	}
-
-    Quaternion.prototype.fromArray = function ( array, offset ) {
-		if ( offset === undefined ) offset = 0;
-
-		this._x = array[ offset ];
-		this._y = array[ offset + 1 ];
-		this._z = array[ offset + 2 ];
-		this._w = array[ offset + 3 ];
-
-		this.onChangeCallback();
-
-		return this;
-	}
-
-    /**
-     * set change callback
-     **/
-    Quaternion.prototype.onChange = function(callback) {
-        this.onChangeCallback = callback;
-
-        return this;
-    }
-
-    Quaternion.prototype.onChangeCallback = function() {}
-
-    zen3d.Quaternion = Quaternion;
-})();
-
-(function() {
-    var Box2 = function(min, max) {
-        this.min = (min !== undefined) ? min : new zen3d.Vector2(+Infinity, +Infinity);
-        this.max = (max !== undefined) ? max : new zen3d.Vector2(-Infinity, -Infinity);
-    }
-
-    Box2.prototype.set = function(x1, y1, x2, y2) {
-        this.min.set(x1, y1);
-        this.max.set(x2, y2);
-    }
-
-    Box2.prototype.copy = function(box) {
-        this.min.copy(box.min);
-        this.max.copy(box.max);
-
-        return this;
-    }
-
-    zen3d.Box2 = Box2;
-})();
-(function() {
-    var Box3 = function(min, max) {
-        this.min = (min !== undefined) ? min : new zen3d.Vector3(+Infinity, +Infinity, +Infinity);
-        this.max = (max !== undefined) ? max : new zen3d.Vector3(-Infinity, -Infinity, -Infinity);
-    }
-
-    Box3.prototype.set = function(min, max) {
-        this.min.copy(min);
-        this.max.copy(max);
-    }
-
-    Box3.prototype.setFromPoints = function(points) {
-        this.makeEmpty();
-
-        for (var i = 0, il = points.length; i < il; i++) {
-            this.expandByPoint(points[i]);
-        }
-
-        return this;
-    }
-
-    Box3.prototype.makeEmpty = function() {
-        this.min.x = this.min.y = this.min.z = +Infinity;
-        this.max.x = this.max.y = this.max.z = -Infinity;
-
-        return this;
-    }
-
-    Box3.prototype.expandByPoint = function(point) {
-        this.min.min(point);
-        this.max.max(point);
-
-        return this;
-    }
-
-    Box3.prototype.expandByScalar = function(scalar) {
-        this.min.addScalar(-scalar);
-        this.max.addScalar(scalar);
-
-        return this;
-    }
-
-    Box3.prototype.setFromArray = function(array, gap) {
-        var minX = +Infinity;
-        var minY = +Infinity;
-        var minZ = +Infinity;
-
-        var maxX = -Infinity;
-        var maxY = -Infinity;
-        var maxZ = -Infinity;
-
-        var _gap = (gap !== undefined ? gap : 3);
-
-        for (var i = 0, l = array.length; i < l; i += _gap) {
-
-            var x = array[i];
-            var y = array[i + 1];
-            var z = array[i + 2];
-
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (z < minZ) minZ = z;
-
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
-            if (z > maxZ) maxZ = z;
-
-        }
-
-        this.min.set(minX, minY, minZ);
-        this.max.set(maxX, maxY, maxZ);
-
-        return this;
-    }
-
-    Box3.prototype.isEmpty = function() {
-        // this is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
-        return (this.max.x < this.min.x) || (this.max.y < this.min.y) || (this.max.z < this.min.z);
-    }
-
-    Box3.prototype.equals = function(box) {
-        return box.min.equals(this.min) && box.max.equals(this.max);
-    }
-
-    Box3.prototype.getCenter = function(optionalTarget) {
-        var result = optionalTarget || new zen3d.Vector3();
-        return this.isEmpty() ? result.set(0, 0, 0) : result.addVectors(this.min, this.max).multiplyScalar(0.5);
-    }
-
-    Box3.prototype.applyMatrix4 = function() {
-        var points = [
-            new zen3d.Vector3(),
-            new zen3d.Vector3(),
-            new zen3d.Vector3(),
-            new zen3d.Vector3(),
-            new zen3d.Vector3(),
-            new zen3d.Vector3(),
-            new zen3d.Vector3(),
-            new zen3d.Vector3()
-        ];
-
-        return function applyMatrix4(matrix) {
-            // transform of empty box is an empty box.
-            if (this.isEmpty()) return this;
-
-            // NOTE: I am using a binary pattern to specify all 2^3 combinations below
-            points[0].set(this.min.x, this.min.y, this.min.z).applyMatrix4(matrix); // 000
-            points[1].set(this.min.x, this.min.y, this.max.z).applyMatrix4(matrix); // 001
-            points[2].set(this.min.x, this.max.y, this.min.z).applyMatrix4(matrix); // 010
-            points[3].set(this.min.x, this.max.y, this.max.z).applyMatrix4(matrix); // 011
-            points[4].set(this.max.x, this.min.y, this.min.z).applyMatrix4(matrix); // 100
-            points[5].set(this.max.x, this.min.y, this.max.z).applyMatrix4(matrix); // 101
-            points[6].set(this.max.x, this.max.y, this.min.z).applyMatrix4(matrix); // 110
-            points[7].set(this.max.x, this.max.y, this.max.z).applyMatrix4(matrix); // 111
-
-            this.setFromPoints(points);
-
+            if ( l === 0 ) {
+    
+                this._x = 0;
+                this._y = 0;
+                this._z = 0;
+                this._w = 1;
+    
+            } else {
+    
+                l = 1 / l;
+    
+                this._x = this._x * l;
+                this._y = this._y * l;
+                this._z = this._z * l;
+                this._w = this._w * l;
+    
+            }
+    
+            this.onChangeCallback();
+    
             return this;
-        };
-    }()
+        },
 
-    Box3.prototype.copy = function(box) {
-        this.min.copy(box.min);
-        this.max.copy(box.max);
+        length: function () {
+            return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
+        },
 
-        return this;
+        /*
+        * Linearly interpolates between two quaternions.
+        */
+        lerpQuaternions: function(q1, q2, ratio) {
+            var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
+            var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
+            var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
+    
+            // shortest direction
+            if (dot < 0) {
+                dot = -dot;
+                w2 = -w2;
+                x2 = -x2;
+                y2 = -y2;
+                z2 = -z2;
+            }
+    
+            this._w = w1 + ratio * (w2 - w1);
+            this._x = x1 + ratio * (x2 - x1);
+            this._y = y1 + ratio * (y2 - y1);
+            this._z = z1 + ratio * (z2 - z1);
+            var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
+            this._w *= len;
+            this._x *= len;
+            this._y *= len;
+            this._z *= len;
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        /*
+        * Spherically interpolates between two quaternions
+        * providing an interpolation between rotations with constant angle change rate.
+        */
+        slerpQuaternions: function(q1, q2, ratio) {
+            var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
+            var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
+            var dot = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2;
+    
+            // shortest direction
+            if (dot < 0) {
+                dot = -dot;
+                w2 = -w2;
+                x2 = -x2;
+                y2 = -y2;
+                z2 = -z2;
+            }
+    
+            if (dot < 0.95) {
+                var angle = Math.acos(dot);
+                var s = 1 / Math.sin(angle);
+                var s1 = Math.sin(angle * (1 - ratio)) * s;
+                var s2 = Math.sin(angle * ratio) * s;
+                this._w = w1 * s1 + w2 * s2;
+                this._x = x1 * s1 + x2 * s2;
+                this._y = y1 * s1 + y2 * s2;
+                this._z = z1 * s1 + z2 * s2;
+            } else {
+                // nearly identical angle, interpolate linearly
+                this._w = w1 + ratio * (w2 - w1);
+                this._x = x1 + ratio * (x2 - x1);
+                this._y = y1 + ratio * (y2 - y1);
+                this._z = z1 + ratio * (z2 - z1);
+                var len = 1.0 / Math.sqrt(this._w * this._w + this._x * this._x + this._y * this._y + this._z * this._z);
+                this._w *= len;
+                this._x *= len;
+                this._y *= len;
+                this._z *= len;
+            }
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        set: function(x, y, z, w) {
+            this._x = x || 0;
+            this._y = y || 0;
+            this._z = z || 0;
+            this._w = ( w !== undefined ) ? w : 1;
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        copy: function(v) {
+            this._x = v.x;
+            this._y = v.y;
+            this._z = v.z;
+            this._w = ( v.w !== undefined ) ? v.w : 1;
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        setFromEuler: function(euler, update) {
+            var c1 = Math.cos( euler._x / 2 );
+            var c2 = Math.cos( euler._y / 2 );
+            var c3 = Math.cos( euler._z / 2 );
+            var s1 = Math.sin( euler._x / 2 );
+            var s2 = Math.sin( euler._y / 2 );
+            var s3 = Math.sin( euler._z / 2 );
+    
+            var order = euler._order;
+    
+            if ( order === 'XYZ' ) {
+    
+                this._x = s1 * c2 * c3 + c1 * s2 * s3;
+                this._y = c1 * s2 * c3 - s1 * c2 * s3;
+                this._z = c1 * c2 * s3 + s1 * s2 * c3;
+                this._w = c1 * c2 * c3 - s1 * s2 * s3;
+    
+            } else if ( order === 'YXZ' ) {
+    
+                this._x = s1 * c2 * c3 + c1 * s2 * s3;
+                this._y = c1 * s2 * c3 - s1 * c2 * s3;
+                this._z = c1 * c2 * s3 - s1 * s2 * c3;
+                this._w = c1 * c2 * c3 + s1 * s2 * s3;
+    
+            } else if ( order === 'ZXY' ) {
+    
+                this._x = s1 * c2 * c3 - c1 * s2 * s3;
+                this._y = c1 * s2 * c3 + s1 * c2 * s3;
+                this._z = c1 * c2 * s3 + s1 * s2 * c3;
+                this._w = c1 * c2 * c3 - s1 * s2 * s3;
+    
+            } else if ( order === 'ZYX' ) {
+    
+                this._x = s1 * c2 * c3 - c1 * s2 * s3;
+                this._y = c1 * s2 * c3 + s1 * c2 * s3;
+                this._z = c1 * c2 * s3 - s1 * s2 * c3;
+                this._w = c1 * c2 * c3 + s1 * s2 * s3;
+    
+            } else if ( order === 'YZX' ) {
+    
+                this._x = s1 * c2 * c3 + c1 * s2 * s3;
+                this._y = c1 * s2 * c3 + s1 * c2 * s3;
+                this._z = c1 * c2 * s3 - s1 * s2 * c3;
+                this._w = c1 * c2 * c3 - s1 * s2 * s3;
+    
+            } else if ( order === 'XZY' ) {
+    
+                this._x = s1 * c2 * c3 - c1 * s2 * s3;
+                this._y = c1 * s2 * c3 - s1 * c2 * s3;
+                this._z = c1 * c2 * s3 + s1 * s2 * c3;
+                this._w = c1 * c2 * c3 + s1 * s2 * s3;
+    
+            }
+    
+            if ( update !== false ) this.onChangeCallback();
+    
+            return this;
+    
+        },
+
+        setFromRotationMatrix: function ( m ) {
+
+            var te = m.elements,
+    
+                m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
+                m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
+                m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ],
+    
+                trace = m11 + m22 + m33,
+                s;
+    
+            if ( trace > 0 ) {
+    
+                s = 0.5 / Math.sqrt( trace + 1.0 );
+    
+                this._w = 0.25 / s;
+                this._x = ( m32 - m23 ) * s;
+                this._y = ( m13 - m31 ) * s;
+                this._z = ( m21 - m12 ) * s;
+    
+            } else if ( m11 > m22 && m11 > m33 ) {
+    
+                s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
+    
+                this._w = ( m32 - m23 ) / s;
+                this._x = 0.25 * s;
+                this._y = ( m12 + m21 ) / s;
+                this._z = ( m13 + m31 ) / s;
+    
+            } else if ( m22 > m33 ) {
+    
+                s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
+    
+                this._w = ( m13 - m31 ) / s;
+                this._x = ( m12 + m21 ) / s;
+                this._y = 0.25 * s;
+                this._z = ( m23 + m32 ) / s;
+    
+            } else {
+    
+                s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
+    
+                this._w = ( m21 - m12 ) / s;
+                this._x = ( m13 + m31 ) / s;
+                this._y = ( m23 + m32 ) / s;
+                this._z = 0.25 * s;
+    
+            }
+    
+            this.onChangeCallback();
+    
+            return this;
+    
+        },
+
+        setFromUnitVectors: function () {
+
+            // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+    
+            // assumes direction vectors vFrom and vTo are normalized
+    
+            var v1 = new Vector3();
+            var r;
+    
+            var EPS = 0.000001;
+    
+            return function setFromUnitVectors( vFrom, vTo ) {
+    
+                if ( v1 === undefined ) v1 = new Vector3();
+    
+                r = vFrom.dot( vTo ) + 1;
+    
+                if ( r < EPS ) {
+    
+                    r = 0;
+    
+                    if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+    
+                        v1.set( - vFrom.y, vFrom.x, 0 );
+    
+                    } else {
+    
+                        v1.set( 0, - vFrom.z, vFrom.y );
+    
+                    }
+    
+                } else {
+    
+                    v1.crossVectors( vFrom, vTo );
+    
+                }
+    
+                this._x = v1.x;
+                this._y = v1.y;
+                this._z = v1.z;
+                this._w = r;
+    
+                return this.normalize();
+    
+            };
+    
+        }(),
+
+        multiply: function ( q ) {
+
+            return this.multiplyQuaternions( this, q );
+    
+        },
+
+        premultiply: function ( q ) {
+
+            return this.multiplyQuaternions( q, this );
+    
+        },
+
+        multiplyQuaternions: function ( a, b ) {
+
+            // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
+    
+            var qax = a._x, qay = a._y, qaz = a._z, qaw = a._w;
+            var qbx = b._x, qby = b._y, qbz = b._z, qbw = b._w;
+    
+            this._x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+            this._y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+            this._z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+            this._w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+    
+            this.onChangeCallback();
+    
+            return this;
+    
+        },
+
+        toMatrix4: function(target) {
+            if(!target) {
+                target = new Matrix4();
+            }
+            var ele = target.elements;
+    
+            var xy2 = 2.0 * this._x * this._y, xz2 = 2.0 * this._x * this._z, xw2 = 2.0 * this._x * this._w;
+            var yz2 = 2.0 * this._y * this._z, yw2 = 2.0 * this._y * this._w, zw2 = 2.0 * this._z * this._w;
+            var xx = this._x * this._x, yy = this._y * this._y, zz = this._z * this._z, ww = this._w * this._w;
+    
+            ele[0] = xx - yy - zz + ww;
+            ele[4] = xy2 - zw2;
+            ele[8] = xz2 + yw2;
+            ele[12] = 0;
+            ele[1] = xy2 + zw2;
+            ele[5] = -xx + yy - zz + ww;
+            ele[9] = yz2 - xw2;
+            ele[13] = 0;
+            ele[2] = xz2 - yw2;
+            ele[6] = yz2 + xw2;
+            ele[10] = -xx - yy + zz + ww;
+            ele[14] = 0;
+            ele[3] = 0.0;
+            ele[7] = 0.0;
+            ele[11] = 0;
+            ele[15] = 1;
+    
+            return target;
+        },
+
+        dot: function ( v ) {
+
+            return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
+    
+        },
+
+        /**
+         * set quaternion from axis angle
+         **/
+        setFromAxisAngle: function(axis, angle) {
+
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
+    
+            // assumes axis is normalized
+    
+            var halfAngle = angle / 2, s = Math.sin( halfAngle );
+    
+            this._x = axis.x * s;
+            this._y = axis.y * s;
+            this._z = axis.z * s;
+            this._w = Math.cos( halfAngle );
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        fromArray: function ( array, offset ) {
+            if ( offset === undefined ) offset = 0;
+    
+            this._x = array[ offset ];
+            this._y = array[ offset + 1 ];
+            this._z = array[ offset + 2 ];
+            this._w = array[ offset + 3 ];
+    
+            this.onChangeCallback();
+    
+            return this;
+        },
+
+        onChange: function(callback) {
+            this.onChangeCallback = callback;
+    
+            return this;
+        },
+
+        onChangeCallback: function() {}
+
+    });
+
+    // exports
+    zen3d.Quaternion = Quaternion;
+
+})();
+
+(function() {
+
+    // imports
+    var Vector2 = zen3d.Vector2;
+
+    function Box2(min, max) {
+        this.min = (min !== undefined) ? min : new Vector2(+Infinity, +Infinity);
+        this.max = (max !== undefined) ? max : new Vector2(-Infinity, -Infinity);
     }
 
-    zen3d.Box3 = Box3;
+    Box2.prototype = Object.assign(Box2.prototype, {
+
+        set: function(x1, y1, x2, y2) {
+            this.min.set(x1, y1);
+            this.max.set(x2, y2);
+        },
+
+        copy: function(box) {
+            this.min.copy(box.min);
+            this.max.copy(box.max);
+    
+            return this;
+        }
+
+    });
+
+    // exports
+    zen3d.Box2 = Box2;
+
 })();
 (function() {
-    var Sphere = function(center, radius) {
-        this.center = (center !== undefined) ? center : new zen3d.Vector3();
-        this.radius = (radius !== undefined) ? radius : 0;
+
+    // imports
+    var Vector3 = zen3d.Vector3;
+
+    function Box3(min, max) {
+        this.min = (min !== undefined) ? min : new Vector3(+Infinity, +Infinity, +Infinity);
+        this.max = (max !== undefined) ? max : new Vector3(-Infinity, -Infinity, -Infinity);
     }
 
-    Sphere.prototype.set = function(center, radius) {
-        this.center.copy(center);
-        this.radius = radius;
+    Box3.prototype = Object.assign(Box3.prototypes, {
 
-        return this;
-    }
+        set: function(min, max) {
+            this.min.copy(min);
+            this.max.copy(max);
+        },
 
-    Sphere.prototype.setFromArray = function() {
-        var box = new zen3d.Box3();
-        var point = new zen3d.Vector3();
+        setFromPoints: function(points) {
+            this.makeEmpty();
+    
+            for (var i = 0, il = points.length; i < il; i++) {
+                this.expandByPoint(points[i]);
+            }
+    
+            return this;
+        },
 
-        return function setFromArray(array, gap) {
+        makeEmpty: function() {
+            this.min.x = this.min.y = this.min.z = +Infinity;
+            this.max.x = this.max.y = this.max.z = -Infinity;
+    
+            return this;
+        },
+
+        expandByPoint: function(point) {
+            this.min.min(point);
+            this.max.max(point);
+    
+            return this;
+        },
+
+        expandByScalar: function(scalar) {
+            this.min.addScalar(-scalar);
+            this.max.addScalar(scalar);
+    
+            return this;
+        },
+
+        setFromArray: function(array, gap) {
+            var minX = +Infinity;
+            var minY = +Infinity;
+            var minZ = +Infinity;
+    
+            var maxX = -Infinity;
+            var maxY = -Infinity;
+            var maxZ = -Infinity;
+    
             var _gap = (gap !== undefined ? gap : 3);
-
-            var center = this.center;
-
-            box.setFromArray(array, _gap).getCenter(center);
-
-            var maxRadiusSq = 0;
-
+    
             for (var i = 0, l = array.length; i < l; i += _gap) {
+    
                 var x = array[i];
                 var y = array[i + 1];
                 var z = array[i + 2];
-
-                point.set(x, y, z);
-
-                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(point));
+    
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (z < minZ) minZ = z;
+    
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+                if (z > maxZ) maxZ = z;
+    
             }
+    
+            this.min.set(minX, minY, minZ);
+            this.max.set(maxX, maxY, maxZ);
+    
+            return this;
+        },
 
-            this.radius = Math.sqrt(maxRadiusSq);
+        isEmpty: function() {
+            // this is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
+            return (this.max.x < this.min.x) || (this.max.y < this.min.y) || (this.max.z < this.min.z);
+        },
 
+        equals: function(box) {
+            return box.min.equals(this.min) && box.max.equals(this.max);
+        },
+
+        getCenter: function(optionalTarget) {
+            var result = optionalTarget || new Vector3();
+            return this.isEmpty() ? result.set(0, 0, 0) : result.addVectors(this.min, this.max).multiplyScalar(0.5);
+        },
+
+        applyMatrix4: function() {
+            var points = [
+                new Vector3(),
+                new Vector3(),
+                new Vector3(),
+                new Vector3(),
+                new Vector3(),
+                new Vector3(),
+                new Vector3(),
+                new Vector3()
+            ];
+    
+            return function applyMatrix4(matrix) {
+                // transform of empty box is an empty box.
+                if (this.isEmpty()) return this;
+    
+                // NOTE: I am using a binary pattern to specify all 2^3 combinations below
+                points[0].set(this.min.x, this.min.y, this.min.z).applyMatrix4(matrix); // 000
+                points[1].set(this.min.x, this.min.y, this.max.z).applyMatrix4(matrix); // 001
+                points[2].set(this.min.x, this.max.y, this.min.z).applyMatrix4(matrix); // 010
+                points[3].set(this.min.x, this.max.y, this.max.z).applyMatrix4(matrix); // 011
+                points[4].set(this.max.x, this.min.y, this.min.z).applyMatrix4(matrix); // 100
+                points[5].set(this.max.x, this.min.y, this.max.z).applyMatrix4(matrix); // 101
+                points[6].set(this.max.x, this.max.y, this.min.z).applyMatrix4(matrix); // 110
+                points[7].set(this.max.x, this.max.y, this.max.z).applyMatrix4(matrix); // 111
+    
+                this.setFromPoints(points);
+    
+                return this;
+            };
+        }(),
+
+        copy: function(box) {
+            this.min.copy(box.min);
+            this.max.copy(box.max);
+    
             return this;
         }
-    }();
 
-    Sphere.prototype.applyMatrix4 = function(matrix) {
-        this.center.applyMatrix4(matrix);
-        this.radius = this.radius * matrix.getMaxScaleOnAxis();
+    });
 
-        return this;
-    }
+    // exports
+    zen3d.Box3 = Box3;
 
-    Sphere.prototype.getBoundingBox = function(optionalTarget) {
-        var box = optionalTarget || new zen3d.Box3();
-
-        box.set(this.center, this.center);
-        box.expandByScalar(this.radius);
-
-        return box;
-    }
-
-    Sphere.prototype.clone = function() {
-        return new Sphere().copy(this);
-    }
-
-    Sphere.prototype.copy = function(sphere) {
-        this.center.copy(sphere.center);
-        this.radius = sphere.radius;
-
-        return this;
-    }
-
-    zen3d.Sphere = Sphere;
 })();
 (function() {
-    var Plane = function(normal, constant) {
-        this.normal = (normal !== undefined) ? normal : new zen3d.Vector3(1, 0, 0);
+
+    // imports
+    var Vector3 = zen3d.Vector3;
+    var Box3 = zen3d.Box3;
+
+    function Sphere(center, radius) {
+        this.center = (center !== undefined) ? center : new Vector3();
+        this.radius = (radius !== undefined) ? radius : 0;
+    }
+
+    Sphere.prototype = Object.assign(Sphere.prototype, {
+
+        set: function(center, radius) {
+            this.center.copy(center);
+            this.radius = radius;
+    
+            return this;
+        },
+
+        setFromArray: function() {
+            var box = new Box3();
+            var point = new Vector3();
+    
+            return function setFromArray(array, gap) {
+                var _gap = (gap !== undefined ? gap : 3);
+    
+                var center = this.center;
+    
+                box.setFromArray(array, _gap).getCenter(center);
+    
+                var maxRadiusSq = 0;
+    
+                for (var i = 0, l = array.length; i < l; i += _gap) {
+                    var x = array[i];
+                    var y = array[i + 1];
+                    var z = array[i + 2];
+    
+                    point.set(x, y, z);
+    
+                    maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(point));
+                }
+    
+                this.radius = Math.sqrt(maxRadiusSq);
+    
+                return this;
+            }
+        }(),
+
+        applyMatrix4: function(matrix) {
+            this.center.applyMatrix4(matrix);
+            this.radius = this.radius * matrix.getMaxScaleOnAxis();
+    
+            return this;
+        },
+
+        getBoundingBox: function(optionalTarget) {
+            var box = optionalTarget || new Box3();
+    
+            box.set(this.center, this.center);
+            box.expandByScalar(this.radius);
+    
+            return box;
+        },
+
+        clone: function() {
+            return new Sphere().copy(this);
+        },
+
+        copy: function(sphere) {
+            this.center.copy(sphere.center);
+            this.radius = sphere.radius;
+    
+            return this;
+        }
+
+    });
+
+    // exports
+    zen3d.Sphere = Sphere;
+
+})();
+(function() {
+
+    // imports
+    var Vector3 = zen3d.Vector3;
+    var Matrix3 = zen3d.Matrix3;
+
+    function Plane(normal, constant) {
+        this.normal = (normal !== undefined) ? normal : new Vector3(1, 0, 0);
         this.constant = (constant !== undefined) ? constant : 0;
     }
 
-    Plane.prototype.set = function(normal, constant) {
-        this.normal.copy(normal);
-        this.constant = constant;
+    Plane.prototype = Object.assign(Plane.prototype, {
 
-        return this;
-    }
+        set: function(normal, constant) {
+            this.normal.copy(normal);
+            this.constant = constant;
+    
+            return this;
+        },
 
-    Plane.prototype.setComponents = function(x, y, z, w) {
-        this.normal.set(x, y, z);
-        this.constant = w;
+        setComponents: function(x, y, z, w) {
+            this.normal.set(x, y, z);
+            this.constant = w;
+    
+            return this;
+        },
 
-        return this;
-    }
+        normalize: function() {
+            // Note: will lead to a divide by zero if the plane is invalid.
+    
+            var inverseNormalLength = 1.0 / this.normal.getLength();
+            this.normal.multiplyScalar(inverseNormalLength);
+            this.constant *= inverseNormalLength;
+    
+            return this;
+        },
 
-    Plane.prototype.normalize = function() {
-        // Note: will lead to a divide by zero if the plane is invalid.
+        distanceToPoint: function(point) {
+            return this.normal.dot(point) + this.constant;
+        },
 
-        var inverseNormalLength = 1.0 / this.normal.getLength();
-        this.normal.multiplyScalar(inverseNormalLength);
-        this.constant *= inverseNormalLength;
+        coplanarPoint: function ( optionalTarget ) {
+            var result = optionalTarget || new Vector3();
+    
+            return result.copy( this.normal ).multiplyScalar( - this.constant );
+        },
 
-        return this;
-    }
+        copy: function(plane) {
+            this.normal.copy(plane.normal);
+            this.constant = plane.constant;
+            return this;
+        },
 
-    Plane.prototype.distanceToPoint = function(point) {
-        return this.normal.dot(point) + this.constant;
-    }
+        applyMatrix4: function() {
 
-    Plane.prototype.coplanarPoint = function ( optionalTarget ) {
-		var result = optionalTarget || new Vector3();
+            var v1 = new Vector3();
+            var m1 = new Matrix3();
+    
+            return function applyMatrix4(matrix, optionalNormalMatrix) {
+                var normalMatrix = optionalNormalMatrix || m1.setFromMatrix4( matrix ).inverse().transpose();
+    
+                var referencePoint = this.coplanarPoint( v1 ).applyMatrix4( matrix );
+    
+                var normal = this.normal.applyMatrix3( normalMatrix ).normalize();
+    
+                this.constant = - referencePoint.dot( normal );
+    
+                return this;
+            }
+    
+        }()
 
-		return result.copy( this.normal ).multiplyScalar( - this.constant );
-	}
+    });
 
-    Plane.prototype.copy = function(plane) {
-        this.normal.copy(plane.normal);
-        this.constant = plane.constant;
-        return this;
-    }
-
-    Plane.prototype.applyMatrix4 = function() {
-
-        var v1 = new zen3d.Vector3();
-		var m1 = new zen3d.Matrix3();
-
-        return function applyMatrix4(matrix, optionalNormalMatrix) {
-            var normalMatrix = optionalNormalMatrix || m1.setFromMatrix4( matrix ).inverse().transpose();
-
-			var referencePoint = this.coplanarPoint( v1 ).applyMatrix4( matrix );
-
-			var normal = this.normal.applyMatrix3( normalMatrix ).normalize();
-
-			this.constant = - referencePoint.dot( normal );
-
-			return this;
-        }
-
-    }();
-
+    // exports
     zen3d.Plane = Plane;
+    
 })();
 (function() {
-    var Frustum = function(p0, p1, p2, p3, p4, p5) {
+
+    // imports
+    var Plane = zen3d.Plane;
+    var Vector3 = zen3d.Vector3;
+
+    function Frustum(p0, p1, p2, p3, p4, p5) {
         this.planes = [
-            (p0 !== undefined) ? p0 : new zen3d.Plane(),
-            (p1 !== undefined) ? p1 : new zen3d.Plane(),
-            (p2 !== undefined) ? p2 : new zen3d.Plane(),
-            (p3 !== undefined) ? p3 : new zen3d.Plane(),
-            (p4 !== undefined) ? p4 : new zen3d.Plane(),
-            (p5 !== undefined) ? p5 : new zen3d.Plane()
+            (p0 !== undefined) ? p0 : new Plane(),
+            (p1 !== undefined) ? p1 : new Plane(),
+            (p2 !== undefined) ? p2 : new Plane(),
+            (p3 !== undefined) ? p3 : new Plane(),
+            (p4 !== undefined) ? p4 : new Plane(),
+            (p5 !== undefined) ? p5 : new Plane()
         ];
     }
 
-    Frustum.prototype.set = function(p0, p1, p2, p3, p4, p5) {
-        var planes = this.planes;
+    Frustum.prototype = Object.assign(Frustum.prototype, {
 
-        planes[0].copy(p0);
-        planes[1].copy(p1);
-        planes[2].copy(p2);
-        planes[3].copy(p3);
-        planes[4].copy(p4);
-        planes[5].copy(p5);
-
-        return this;
-    }
-
-    Frustum.prototype.setFromMatrix = function(m) {
-        var planes = this.planes;
-        var me = m.elements;
-        var me0 = me[0],
-            me1 = me[1],
-            me2 = me[2],
-            me3 = me[3];
-        var me4 = me[4],
-            me5 = me[5],
-            me6 = me[6],
-            me7 = me[7];
-        var me8 = me[8],
-            me9 = me[9],
-            me10 = me[10],
-            me11 = me[11];
-        var me12 = me[12],
-            me13 = me[13],
-            me14 = me[14],
-            me15 = me[15];
-
-        planes[0].setComponents(me3 - me0, me7 - me4, me11 - me8, me15 - me12).normalize();
-        planes[1].setComponents(me3 + me0, me7 + me4, me11 + me8, me15 + me12).normalize();
-        planes[2].setComponents(me3 + me1, me7 + me5, me11 + me9, me15 + me13).normalize();
-        planes[3].setComponents(me3 - me1, me7 - me5, me11 - me9, me15 - me13).normalize();
-        planes[4].setComponents(me3 - me2, me7 - me6, me11 - me10, me15 - me14).normalize();
-        planes[5].setComponents(me3 + me2, me7 + me6, me11 + me10, me15 + me14).normalize();
-
-        return this;
-    }
-
-    Frustum.prototype.intersectsSphere = function(sphere) {
-        var planes = this.planes;
-        var center = sphere.center;
-        var negRadius = -sphere.radius;
-
-        for (var i = 0; i < 6; i++) {
-            var distance = planes[i].distanceToPoint(center);
-
-            if (distance < negRadius) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    Frustum.prototype.intersectsBox = function() {
-        var p1 = new zen3d.Vector3();
-        var p2 = new zen3d.Vector3();
-
-        return function intersectsBox(box) {
+        set: function(p0, p1, p2, p3, p4, p5) {
             var planes = this.planes;
+    
+            planes[0].copy(p0);
+            planes[1].copy(p1);
+            planes[2].copy(p2);
+            planes[3].copy(p3);
+            planes[4].copy(p4);
+            planes[5].copy(p5);
+    
+            return this;
+        },
 
+        setFromMatrix: function(m) {
+            var planes = this.planes;
+            var me = m.elements;
+            var me0 = me[0],
+                me1 = me[1],
+                me2 = me[2],
+                me3 = me[3];
+            var me4 = me[4],
+                me5 = me[5],
+                me6 = me[6],
+                me7 = me[7];
+            var me8 = me[8],
+                me9 = me[9],
+                me10 = me[10],
+                me11 = me[11];
+            var me12 = me[12],
+                me13 = me[13],
+                me14 = me[14],
+                me15 = me[15];
+    
+            planes[0].setComponents(me3 - me0, me7 - me4, me11 - me8, me15 - me12).normalize();
+            planes[1].setComponents(me3 + me0, me7 + me4, me11 + me8, me15 + me12).normalize();
+            planes[2].setComponents(me3 + me1, me7 + me5, me11 + me9, me15 + me13).normalize();
+            planes[3].setComponents(me3 - me1, me7 - me5, me11 - me9, me15 - me13).normalize();
+            planes[4].setComponents(me3 - me2, me7 - me6, me11 - me10, me15 - me14).normalize();
+            planes[5].setComponents(me3 + me2, me7 + me6, me11 + me10, me15 + me14).normalize();
+    
+            return this;
+        },
+
+        intersectsSphere: function(sphere) {
+            var planes = this.planes;
+            var center = sphere.center;
+            var negRadius = -sphere.radius;
+    
             for (var i = 0; i < 6; i++) {
-                var plane = planes[i];
-
-                p1.x = plane.normal.x > 0 ? box.min.x : box.max.x;
-                p2.x = plane.normal.x > 0 ? box.max.x : box.min.x;
-                p1.y = plane.normal.y > 0 ? box.min.y : box.max.y;
-                p2.y = plane.normal.y > 0 ? box.max.y : box.min.y;
-                p1.z = plane.normal.z > 0 ? box.min.z : box.max.z;
-                p2.z = plane.normal.z > 0 ? box.max.z : box.min.z;
-
-                var d1 = plane.distanceToPoint(p1);
-                var d2 = plane.distanceToPoint(p2);
-
-                // if both outside plane, no intersection
-
-                if (d1 < 0 && d2 < 0) {
+                var distance = planes[i].distanceToPoint(center);
+    
+                if (distance < negRadius) {
                     return false;
                 }
             }
-
+    
             return true;
-        }
-    }();
+        },
 
+        intersectsBox: function() {
+            var p1 = new Vector3();
+            var p2 = new Vector3();
+    
+            return function intersectsBox(box) {
+                var planes = this.planes;
+    
+                for (var i = 0; i < 6; i++) {
+                    var plane = planes[i];
+    
+                    p1.x = plane.normal.x > 0 ? box.min.x : box.max.x;
+                    p2.x = plane.normal.x > 0 ? box.max.x : box.min.x;
+                    p1.y = plane.normal.y > 0 ? box.min.y : box.max.y;
+                    p2.y = plane.normal.y > 0 ? box.max.y : box.min.y;
+                    p1.z = plane.normal.z > 0 ? box.min.z : box.max.z;
+                    p2.z = plane.normal.z > 0 ? box.max.z : box.min.z;
+    
+                    var d1 = plane.distanceToPoint(p1);
+                    var d2 = plane.distanceToPoint(p2);
+    
+                    // if both outside plane, no intersection
+    
+                    if (d1 < 0 && d2 < 0) {
+                        return false;
+                    }
+                }
+    
+                return true;
+            }
+        }()
+
+    });
+
+    // exports
     zen3d.Frustum = Frustum;
+
 })();
 (function() {
-    var Color3 = function(r, g, b) {
+
+    function Color3(r, g, b) {
         this.r = 0;
         this.g = 0;
         this.b = 0;
@@ -3084,346 +3027,367 @@
         return this.setRGB(r, g, b);
     }
 
-    Color3.prototype.lerpColors = function(c1, c2, ratio) {
-        this.r = ratio * (c2.r - c1.r) + c1.r;
-        this.g = ratio * (c2.g - c1.g) + c1.g;
-        this.b = ratio * (c2.b - c1.b) + c1.b;
-
-        this.r = this.r;
-        this.g = this.g;
-        this.b = this.b;
-    }
-
-    /**
-     * copy
-     */
-    Color3.prototype.copy = function(v) {
-        this.r = v.r;
-        this.g = v.g;
-        this.b = v.b;
-
-        return this;
-    }
-
-    // set from hex
-    Color3.prototype.setHex = function(hex) {
-        hex = Math.floor(hex);
-
-        this.r = (hex >> 16 & 255) / 255;
-        this.g = (hex >> 8 & 255) / 255;
-        this.b = (hex & 255) / 255;
-
-        return this;
-    }
-
-    // set from RGB
-    Color3.prototype.setRGB = function(r, g, b) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-
-        return this;
-    }
-
-    // set from HSL
-    Color3.prototype.setHSL = function() {
-
-        function euclideanModulo(n, m) {
-            return ((n % m) + m) % m;
-        }
-
-        function hue2rgb(p, q, t) {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * 6 * (2 / 3 - t);
-            return p;
-        }
-
-        return function setHSL(h, s, l) {
-            // h,s,l ranges are in 0.0 - 1.0
-            h = euclideanModulo(h, 1);
-            s = Math.max(0, Math.min(1, s));
-            l = Math.max(0, Math.min(1, l));
-
-            if (s === 0) {
-                this.r = this.g = this.b = l;
-            } else {
-                var p = l <= 0.5 ? l * (1 + s) : l + s - (l * s);
-                var q = (2 * l) - p;
-
-                this.r = hue2rgb(q, p, h + 1 / 3);
-                this.g = hue2rgb(q, p, h);
-                this.b = hue2rgb(q, p, h - 1 / 3);
-            }
-            return this;
-        };
-
-    }();
-
-    Color3.prototype.fromArray = function( array, offset ) {
-		if ( offset === undefined ) offset = 0;
-
-		this.r = array[ offset ];
-		this.g = array[ offset + 1 ];
-		this.b = array[ offset + 2 ];
-
-		return this;
-    }
+    Color3.prototype = Object.assign(Color3.prototype, {
+        
+        lerpColors: function(c1, c2, ratio) {
+            this.r = ratio * (c2.r - c1.r) + c1.r;
+            this.g = ratio * (c2.g - c1.g) + c1.g;
+            this.b = ratio * (c2.b - c1.b) + c1.b;
     
-    Color3.prototype.toArray = function ( array, offset ) {
+            this.r = this.r;
+            this.g = this.g;
+            this.b = this.b;
+        },
 
-		if ( array === undefined ) array = [];
-		if ( offset === undefined ) offset = 0;
+        copy: function(v) {
+            this.r = v.r;
+            this.g = v.g;
+            this.b = v.b;
+    
+            return this;
+        },
 
-		array[ offset ] = this.r;
-		array[ offset + 1 ] = this.g;
-		array[ offset + 2 ] = this.b;
+        // set from hex
+        setHex: function(hex) {
+            hex = Math.floor(hex);
+    
+            this.r = (hex >> 16 & 255) / 255;
+            this.g = (hex >> 8 & 255) / 255;
+            this.b = (hex & 255) / 255;
+    
+            return this;
+        },
 
-		return array;
+        // set from RGB
+        setRGB: function(r, g, b) {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+    
+            return this;
+        },
 
-	}
+        // set from HSL
+        setHSL: function() {
 
+            function euclideanModulo(n, m) {
+                return ((n % m) + m) % m;
+            }
+    
+            function hue2rgb(p, q, t) {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * 6 * (2 / 3 - t);
+                return p;
+            }
+    
+            return function setHSL(h, s, l) {
+                // h,s,l ranges are in 0.0 - 1.0
+                h = euclideanModulo(h, 1);
+                s = Math.max(0, Math.min(1, s));
+                l = Math.max(0, Math.min(1, l));
+    
+                if (s === 0) {
+                    this.r = this.g = this.b = l;
+                } else {
+                    var p = l <= 0.5 ? l * (1 + s) : l + s - (l * s);
+                    var q = (2 * l) - p;
+    
+                    this.r = hue2rgb(q, p, h + 1 / 3);
+                    this.g = hue2rgb(q, p, h);
+                    this.b = hue2rgb(q, p, h - 1 / 3);
+                }
+                return this;
+            };
+    
+        }(),
+
+        fromArray: function( array, offset ) {
+            if ( offset === undefined ) offset = 0;
+    
+            this.r = array[ offset ];
+            this.g = array[ offset + 1 ];
+            this.b = array[ offset + 2 ];
+    
+            return this;
+        },
+
+        toArray: function ( array, offset ) {
+
+            if ( array === undefined ) array = [];
+            if ( offset === undefined ) offset = 0;
+    
+            array[ offset ] = this.r;
+            array[ offset + 1 ] = this.g;
+            array[ offset + 2 ] = this.b;
+    
+            return array;
+    
+        }
+
+    });
+
+    // exports
     zen3d.Color3 = Color3;
+    
 })();
 (function() {
-    var Ray = function(origin, direction) {
-        this.origin = (origin !== undefined) ? origin : new zen3d.Vector3();
-        this.direction = (direction !== undefined) ? direction : new zen3d.Vector3();
+
+    // imports
+    var Vector3 = zen3d.Vector3;
+
+    function Ray(origin, direction) {
+        this.origin = (origin !== undefined) ? origin : new Vector3();
+        this.direction = (direction !== undefined) ? direction : new Vector3();
     }
 
-    Ray.prototype.set = function(origin, direction) {
-        this.origin.copy(origin);
-        this.direction.copy(direction);
-    }
+    Ray.prototype = Object.assign(Ray.prototype, {
 
-    Ray.prototype.at = function(t, optionalTarget) {
-        var result = optionalTarget || new zen3d.Vector3();
+        set: function(origin, direction) {
+            this.origin.copy(origin);
+            this.direction.copy(direction);
+        },
 
-        return result.copy(this.direction).multiplyScalar(t).add(this.origin);
-    }
+        at: function(t, optionalTarget) {
+            var result = optionalTarget || new Vector3();
+    
+            return result.copy(this.direction).multiplyScalar(t).add(this.origin);
+        },
 
-    Ray.prototype.intersectsSphere = function() {
-        var v1 = new zen3d.Vector3();
+        intersectsSphere: function() {
+            var v1 = new Vector3();
+    
+            return function intersectSphere(sphere, optionalTarget) {
+                v1.subVectors(sphere.center, this.origin);
+                var tca = v1.dot(this.direction);
+                var d2 = v1.dot(v1) - tca * tca;
+                var radius2 = sphere.radius * sphere.radius;
+                if (d2 > radius2) {
+                    return null;
+                }
+    
+                var thc = Math.sqrt(radius2 - d2);
+    
+                // t0 = first intersect point - entrance on front of sphere
+                var t0 = tca - thc;
+    
+                // t1 = second intersect point - exit point on back of sphere
+                var t1 = tca + thc;
+                // console.log(t0, t1);
+                // test to see if both t0 and t1 are behind the ray - if so, return null
+                if (t0 < 0 && t1 < 0) {
+                    return null;
+                }
+                // test to see if t0 is behind the ray:
+                // if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
+                // in order to always return an intersect point that is in front of the ray.
+                if (t0 < 0) {
+                    return this.at(t1, optionalTarget);
+                }
+    
+                // else t0 is in front of the ray, so return the first collision point scaled by t0
+                return this.at(t0, optionalTarget);
+            };
+        }(),
 
-        return function intersectSphere(sphere, optionalTarget) {
-            v1.subVectors(sphere.center, this.origin);
-            var tca = v1.dot(this.direction);
-            var d2 = v1.dot(v1) - tca * tca;
-            var radius2 = sphere.radius * sphere.radius;
-            if (d2 > radius2) {
-                return null;
-            }
-
-            var thc = Math.sqrt(radius2 - d2);
-
-            // t0 = first intersect point - entrance on front of sphere
-            var t0 = tca - thc;
-
-            // t1 = second intersect point - exit point on back of sphere
-            var t1 = tca + thc;
-            // console.log(t0, t1);
-            // test to see if both t0 and t1 are behind the ray - if so, return null
-            if (t0 < 0 && t1 < 0) {
-                return null;
-            }
-            // test to see if t0 is behind the ray:
-            // if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
-            // in order to always return an intersect point that is in front of the ray.
-            if (t0 < 0) {
-                return this.at(t1, optionalTarget);
-            }
-
-            // else t0 is in front of the ray, so return the first collision point scaled by t0
-            return this.at(t0, optionalTarget);
-        };
-    }()
-
-    Ray.prototype.intersectsBox = function(box, optionalTarget) {
-        var tmin, tmax, tymin, tymax, tzmin, tzmax;
-
-        var invdirx = 1 / this.direction.x,
-            invdiry = 1 / this.direction.y,
-            invdirz = 1 / this.direction.z;
-
-        var origin = this.origin;
-
-        if (invdirx >= 0) {
-
-            tmin = (box.min.x - origin.x) * invdirx;
-            tmax = (box.max.x - origin.x) * invdirx;
-
-        } else {
-
-            tmin = (box.max.x - origin.x) * invdirx;
-            tmax = (box.min.x - origin.x) * invdirx;
-
-        }
-
-        if (invdiry >= 0) {
-
-            tymin = (box.min.y - origin.y) * invdiry;
-            tymax = (box.max.y - origin.y) * invdiry;
-
-        } else {
-
-            tymin = (box.max.y - origin.y) * invdiry;
-            tymax = (box.min.y - origin.y) * invdiry;
-
-        }
-
-        if ((tmin > tymax) || (tymin > tmax)) return null;
-
-        // These lines also handle the case where tmin or tmax is NaN
-        // (result of 0 * Infinity). x !== x returns true if x is NaN
-
-        if (tymin > tmin || tmin !== tmin) tmin = tymin;
-
-        if (tymax < tmax || tmax !== tmax) tmax = tymax;
-
-        if (invdirz >= 0) {
-
-            tzmin = (box.min.z - origin.z) * invdirz;
-            tzmax = (box.max.z - origin.z) * invdirz;
-
-        } else {
-
-            tzmin = (box.max.z - origin.z) * invdirz;
-            tzmax = (box.min.z - origin.z) * invdirz;
-
-        }
-
-        if ((tmin > tzmax) || (tzmin > tmax)) return null;
-
-        if (tzmin > tmin || tmin !== tmin) tmin = tzmin;
-
-        if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
-
-        //return point closest to the ray (positive side)
-
-        if (tmax < 0) return null;
-
-        return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
-    }
-
-    Ray.prototype.intersectTriangle = function() {
-
-        // Compute the offset origin, edges, and normal.
-        var diff = new zen3d.Vector3();
-        var edge1 = new zen3d.Vector3();
-        var edge2 = new zen3d.Vector3();
-        var normal = new zen3d.Vector3();
-
-        return function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
-            // from http://www.geometrictools.com/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
-
-            edge1.subVectors(b, a);
-            edge2.subVectors(c, a);
-            normal.crossVectors(edge1, edge2);
-
-            // Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
-            // E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
-            //   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
-            //   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
-            //   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
-            var DdN = this.direction.dot(normal);
-            var sign;
-            if (DdN > 0) {
-
-                if (backfaceCulling) return null;
-                sign = 1;
-
-            } else if (DdN < 0) {
-
-                sign = -1;
-                DdN = -DdN;
-
+        intersectsBox: function(box, optionalTarget) {
+            var tmin, tmax, tymin, tymax, tzmin, tzmax;
+    
+            var invdirx = 1 / this.direction.x,
+                invdiry = 1 / this.direction.y,
+                invdirz = 1 / this.direction.z;
+    
+            var origin = this.origin;
+    
+            if (invdirx >= 0) {
+    
+                tmin = (box.min.x - origin.x) * invdirx;
+                tmax = (box.max.x - origin.x) * invdirx;
+    
             } else {
-
-                return null;
-
+    
+                tmin = (box.max.x - origin.x) * invdirx;
+                tmax = (box.min.x - origin.x) * invdirx;
+    
             }
-
-            diff.subVectors(this.origin, a);
-            var DdQxE2 = sign * this.direction.dot(edge2.crossVectors(diff, edge2));
-
-            // b1 < 0, no intersection
-            if (DdQxE2 < 0) {
-
-                return null;
-
+    
+            if (invdiry >= 0) {
+    
+                tymin = (box.min.y - origin.y) * invdiry;
+                tymax = (box.max.y - origin.y) * invdiry;
+    
+            } else {
+    
+                tymin = (box.max.y - origin.y) * invdiry;
+                tymax = (box.min.y - origin.y) * invdiry;
+    
             }
-
-            var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
-
-            // b2 < 0, no intersection
-            if (DdE1xQ < 0) {
-
-                return null;
-
+    
+            if ((tmin > tymax) || (tymin > tmax)) return null;
+    
+            // These lines also handle the case where tmin or tmax is NaN
+            // (result of 0 * Infinity). x !== x returns true if x is NaN
+    
+            if (tymin > tmin || tmin !== tmin) tmin = tymin;
+    
+            if (tymax < tmax || tmax !== tmax) tmax = tymax;
+    
+            if (invdirz >= 0) {
+    
+                tzmin = (box.min.z - origin.z) * invdirz;
+                tzmax = (box.max.z - origin.z) * invdirz;
+    
+            } else {
+    
+                tzmin = (box.max.z - origin.z) * invdirz;
+                tzmax = (box.min.z - origin.z) * invdirz;
+    
             }
+    
+            if ((tmin > tzmax) || (tzmin > tmax)) return null;
+    
+            if (tzmin > tmin || tmin !== tmin) tmin = tzmin;
+    
+            if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
+    
+            //return point closest to the ray (positive side)
+    
+            if (tmax < 0) return null;
+    
+            return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
+        },
 
-            // b1+b2 > 1, no intersection
-            if (DdQxE2 + DdE1xQ > DdN) {
+        intersectTriangle: function() {
 
-                return null;
-
+            // Compute the offset origin, edges, and normal.
+            var diff = new Vector3();
+            var edge1 = new Vector3();
+            var edge2 = new Vector3();
+            var normal = new Vector3();
+    
+            return function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
+                // from http://www.geometrictools.com/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
+    
+                edge1.subVectors(b, a);
+                edge2.subVectors(c, a);
+                normal.crossVectors(edge1, edge2);
+    
+                // Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
+                // E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
+                //   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
+                //   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
+                //   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
+                var DdN = this.direction.dot(normal);
+                var sign;
+                if (DdN > 0) {
+    
+                    if (backfaceCulling) return null;
+                    sign = 1;
+    
+                } else if (DdN < 0) {
+    
+                    sign = -1;
+                    DdN = -DdN;
+    
+                } else {
+    
+                    return null;
+    
+                }
+    
+                diff.subVectors(this.origin, a);
+                var DdQxE2 = sign * this.direction.dot(edge2.crossVectors(diff, edge2));
+    
+                // b1 < 0, no intersection
+                if (DdQxE2 < 0) {
+    
+                    return null;
+    
+                }
+    
+                var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
+    
+                // b2 < 0, no intersection
+                if (DdE1xQ < 0) {
+    
+                    return null;
+    
+                }
+    
+                // b1+b2 > 1, no intersection
+                if (DdQxE2 + DdE1xQ > DdN) {
+    
+                    return null;
+    
+                }
+    
+                // Line intersects triangle, check if ray does.
+                var QdN = -sign * diff.dot(normal);
+    
+                // t < 0, no intersection
+                if (QdN < 0) {
+    
+                    return null;
+    
+                }
+    
+                // Ray intersects triangle.
+                return this.at(QdN / DdN, optionalTarget);
             }
+        }(),
 
-            // Line intersects triangle, check if ray does.
-            var QdN = -sign * diff.dot(normal);
+        copy: function(ray) {
+            this.origin.copy(ray.origin);
+            this.direction.copy(ray.direction);
+    
+            return this;
+        },
 
-            // t < 0, no intersection
-            if (QdN < 0) {
-
-                return null;
-
-            }
-
-            // Ray intersects triangle.
-            return this.at(QdN / DdN, optionalTarget);
+        applyMatrix4: function(matrix4) {
+            this.direction.add(this.origin).applyMatrix4(matrix4);
+            this.origin.applyMatrix4(matrix4);
+            this.direction.sub(this.origin);
+            this.direction.normalize();
+    
+            return this;
         }
-    }()
 
-    Ray.prototype.copy = function(ray) {
-        this.origin.copy(ray.origin);
-        this.direction.copy(ray.direction);
+    });
 
-        return this;
-    }
-
-    Ray.prototype.applyMatrix4 = function(matrix4) {
-        this.direction.add(this.origin).applyMatrix4(matrix4);
-        this.origin.applyMatrix4(matrix4);
-        this.direction.sub(this.origin);
-        this.direction.normalize();
-
-        return this;
-    }
-
+    // exports
     zen3d.Ray = Ray;
+
 })();
 (function() {
+
+    // imports
+    var Vector3 = zen3d.Vector3;
+
     function Triangle(a, b, c) {
-        this.a = (a !== undefined) ? a : new zen3d.Vector3();
-        this.b = (b !== undefined) ? b : new zen3d.Vector3();
-        this.c = (c !== undefined) ? c : new zen3d.Vector3();
+        this.a = (a !== undefined) ? a : new Vector3();
+        this.b = (b !== undefined) ? b : new Vector3();
+        this.c = (c !== undefined) ? c : new Vector3();
     }
 
-    Triangle.prototype.set = function(a, b, c) {
-        this.a.copy(a);
-        this.b.copy(b);
-        this.c.copy(c);
+    Triangle.prototype = Object.assign(Triangle.prototype, {
 
-        return this;
-    }
+        set: function(a, b, c) {
+            this.a.copy(a);
+            this.b.copy(b);
+            this.c.copy(c);
+    
+            return this;
+        }
+
+    });
 
     Triangle.normal = function() {
-        var v0 = new zen3d.Vector3();
+        var v0 = new Vector3();
 
         return function normal(a, b, c, optionalTarget) {
-            var result = optionalTarget || new zen3d.Vector3();
+            var result = optionalTarget || new Vector3();
 
             result.subVectors(c, b);
             v0.subVectors(a, b);
@@ -3441,9 +3405,9 @@
     // static/instance method to calculate barycentric coordinates
     // based on: http://www.blackpawn.com/texts/pointinpoly/default.html
     Triangle.barycoordFromPoint = function() {
-        var v0 = new zen3d.Vector3();
-        var v1 = new zen3d.Vector3();
-        var v2 = new zen3d.Vector3();
+        var v0 = new Vector3();
+        var v1 = new Vector3();
+        var v2 = new Vector3();
 
         return function barycoordFromPoint(point, a, b, c, optionalTarget) {
             v0.subVectors(c, a);
@@ -3458,7 +3422,7 @@
 
             var denom = (dot00 * dot11 - dot01 * dot01);
 
-            var result = optionalTarget || new zen3d.Vector3();
+            var result = optionalTarget || new Vector3();
 
             // collinear or singular triangle
             if (denom === 0) {
@@ -3477,7 +3441,7 @@
     }();
 
     Triangle.containsPoint = function() {
-        var v1 = new zen3d.Vector3();
+        var v1 = new Vector3();
 
         return function containsPoint(point, a, b, c) {
             var result = Triangle.barycoordFromPoint(point, a, b, c, v1);
@@ -3486,10 +3450,16 @@
         };
     }();
 
+    // exports
     zen3d.Triangle = Triangle;
+
 })();
 (function() {
-    var Curve = function(posPoints, ctrlPoints) {
+
+    // imports
+    var Vector2 = zen3d.Vector2;
+
+    function Curve(posPoints, ctrlPoints) {
         this.posPoints = undefined;
         this.ctrlPoints = undefined;
 
@@ -3498,96 +3468,102 @@
         this.set(posPoints, ctrlPoints);
     }
 
-    Curve.prototype.set = function (posPoints, ctrlPoints) {
-        this.posPoints = posPoints;
-        this.ctrlPoints = ctrlPoints;
+    Curve.prototype = Object.assign(Curve.prototype, {
 
-        if(posPoints.length !== ctrlPoints.length) {
-            console.warn("Curve: posPoints and ctrlPoints's length not equal!");
-        }
+        set: function (posPoints, ctrlPoints) {
+            this.posPoints = posPoints;
+            this.ctrlPoints = ctrlPoints;
+    
+            if(posPoints.length !== ctrlPoints.length) {
+                console.warn("Curve: posPoints and ctrlPoints's length not equal!");
+            }
+    
+            this.segCount = posPoints.length - 1;
+        },
 
-        this.segCount = posPoints.length - 1;
-    }
-
-    Curve.prototype.calc = function () {
-        var A0 = new zen3d.Vector2();
-        var B0 = new zen3d.Vector2();
-        var A1 = new zen3d.Vector2();
-        var B1 = new zen3d.Vector2();
-
-        return function calc(t) {
-            for(var i = 0; i < this.segCount; i++) {
-                if(t >= this.posPoints[i].x && t <= this.posPoints[i + 1].x) {
-                    A0.copy(this.posPoints[i]);
-                    A1.copy(this.posPoints[i + 1]);
-                    B0.copy(this.ctrlPoints[i]);
-                    B1.copy(this.ctrlPoints[i + 1]);
-                    break;
+        calc: function () {
+            var A0 = new Vector2();
+            var B0 = new Vector2();
+            var A1 = new Vector2();
+            var B1 = new Vector2();
+    
+            return function calc(t) {
+                for(var i = 0; i < this.segCount; i++) {
+                    if(t >= this.posPoints[i].x && t <= this.posPoints[i + 1].x) {
+                        A0.copy(this.posPoints[i]);
+                        A1.copy(this.posPoints[i + 1]);
+                        B0.copy(this.ctrlPoints[i]);
+                        B1.copy(this.ctrlPoints[i + 1]);
+                        break;
+                    }
                 }
+    
+                if (!A0) {
+                    A0.copy(this.posPoints[this.posPoints.length - 1]);
+                }
+                if (!B0) {
+                    B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
+                }
+                A1.copy(A1 || A0);
+                B1.copy(B1 || B0);
+    
+                t = (t - A0.x) / (A1.x - A0.x);
+                return this._cubic_bezier(A0.y, B0.y, B1.y, A1.y, t);
             }
+        }(),
 
-            if (!A0) {
-                A0.copy(this.posPoints[this.posPoints.length - 1]);
-            }
-            if (!B0) {
-                B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
-            }
-            A1.copy(A1 || A0);
-            B1.copy(B1 || B0);
+        // TODO: a smarter curve sampler?????
 
-            t = (t - A0.x) / (A1.x - A0.x);
-            return this._cubic_bezier(A0.y, B0.y, B1.y, A1.y, t);
+        // average x sampler
+        // first x and last x must in result
+        // samplerNum can't less than 2
+        // result: [t0, value0, t1, value1, ...]
+        averageXSampler: function(samplerNum) {
+            if(samplerNum < 2) {
+                console.warn("Curve: sampler num less than 2!");
+            }
+    
+            var sampler = [];
+    
+            var firstT = this.posPoints[0].x;
+            var lastT = this.posPoints[this.posPoints.length - 1].x;
+            var tempT = (lastT - firstT) / (samplerNum - 1);
+            var t = 0;
+            for(var i = 0; i < samplerNum; i++) {
+                if(i === samplerNum - 1) {
+                    t = lastT;// fix
+                } else {
+                    t = firstT + i * tempT;
+                }
+    
+                sampler.push(t, this.calc(t));
+            }
+    
+            return sampler;
+        },
+
+        _cubic_bezier: function(p0, p1, p2, p3, t) {
+            p0 = this._mix(p0, p1, t);
+            p1 = this._mix(p1, p2, t);
+            p2 = this._mix(p2, p3, t);
+    
+            p0 = this._mix(p0, p1, t);
+            p1 = this._mix(p1, p2, t);
+    
+            p0 = this._mix(p0, p1, t);
+    
+            return p0;
+        },
+
+        _mix: function(value0, value1, t) {
+            return value0 * (1 - t) + value1 * t;
         }
-    }();
 
-    // TODO: a smarter curve sampler?????
+    });
 
-    // average x sampler
-    // first x and last x must in result
-    // samplerNum can't less than 2
-    // result: [t0, value0, t1, value1, ...]
-    Curve.prototype.averageXSampler = function(samplerNum) {
-        if(samplerNum < 2) {
-            console.warn("Curve: sampler num less than 2!");
-        }
-
-        var sampler = [];
-
-        var firstT = this.posPoints[0].x;
-        var lastT = this.posPoints[this.posPoints.length - 1].x;
-        var tempT = (lastT - firstT) / (samplerNum - 1);
-        var t = 0;
-        for(var i = 0; i < samplerNum; i++) {
-            if(i === samplerNum - 1) {
-                t = lastT;// fix
-            } else {
-                t = firstT + i * tempT;
-            }
-
-            sampler.push(t, this.calc(t));
-        }
-
-        return sampler;
-    }
-
-    Curve.prototype._cubic_bezier = function(p0, p1, p2, p3, t) {
-        p0 = this._mix(p0, p1, t);
-        p1 = this._mix(p1, p2, t);
-        p2 = this._mix(p2, p3, t);
-
-        p0 = this._mix(p0, p1, t);
-        p1 = this._mix(p1, p2, t);
-
-        p0 = this._mix(p0, p1, t);
-
-        return p0;
-    }
-
-    Curve.prototype._mix = function(value0, value1, t) {
-        return value0 * (1 - t) + value1 * t;
-    }
-
+    // exports
     zen3d.Curve = Curve;
+    
 })();
 (function() {
 
@@ -3602,59 +3578,65 @@
      * The equator starts at positive z.
      */
 
-    var Spherical = function(radius, phi, theta) {
+    function Spherical(radius, phi, theta) {
         this.radius = ( radius !== undefined ) ? radius : 1.0;
         this.phi = ( phi !== undefined ) ? phi : 0; // up / down towards top and bottom pole
         this.theta = ( theta !== undefined ) ? theta : 0; // around the equator of the sphere
     }
 
-    Spherical.prototype.set = function(radius, phi, theta) {
-        this.radius = radius;
-		this.phi = phi;
-		this.theta = theta;
+    Spherical.prototype = Object.assign(Spherical.prototype, {
 
-		return this;
-    }
+        set: function(radius, phi, theta) {
+            this.radius = radius;
+            this.phi = phi;
+            this.theta = theta;
+    
+            return this;
+        },
 
-    Spherical.prototype.copy = function(other) {
-        this.radius = other.radius;
-		this.phi = other.phi;
-		this.theta = other.theta;
+        copy: function(other) {
+            this.radius = other.radius;
+            this.phi = other.phi;
+            this.theta = other.theta;
+    
+            return this;
+        },
 
-		return this;
-    }
+        clone: function() {
+            return new this.constructor().copy(this);
+        },
 
-    Spherical.prototype.clone = function() {
-        return new this.constructor().copy(this);
-    }
+        // restrict phi to be betwee EPS and PI-EPS
+        makeSafe: function() {
+            var EPS = 0.000001;
+            this.phi = Math.max( EPS, Math.min( Math.PI - EPS, this.phi ) );
+    
+            return this;
+        },
 
-    // restrict phi to be betwee EPS and PI-EPS
-    Spherical.prototype.makeSafe = function() {
-        var EPS = 0.000001;
-		this.phi = Math.max( EPS, Math.min( Math.PI - EPS, this.phi ) );
+        setFromVector3: function(vec3) {
+            this.radius = vec3.getLength();
+    
+            if ( this.radius === 0 ) {
+    
+                this.theta = 0;
+                this.phi = 0;
+    
+            } else {
+    
+                this.theta = Math.atan2( vec3.x, vec3.z ); // equator angle around y-up axis
+                this.phi = Math.acos( Math.min(1, Math.max(-1, vec3.y / this.radius)) ); // polar angle
+    
+            }
+    
+            return this;
+        }
 
-		return this;
-    }
+    });
 
-    Spherical.prototype.setFromVector3 = function(vec3) {
-        this.radius = vec3.getLength();
-
-		if ( this.radius === 0 ) {
-
-			this.theta = 0;
-			this.phi = 0;
-
-		} else {
-
-			this.theta = Math.atan2( vec3.x, vec3.z ); // equator angle around y-up axis
-			this.phi = Math.acos( Math.min(1, Math.max(-1, vec3.y / this.radius)) ); // polar angle
-
-		}
-
-		return this;
-    }
-
+    // exports
     zen3d.Spherical = Spherical;
+
 })();
 (function() {
     /**
@@ -8953,7 +8935,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * SpriteMaterial
      * @class
      */
-    var SpriteMaterial = function() {
+    function SpriteMaterial() {
         Material.call(this);
 
         this.type = MATERIAL_TYPE.SPRITE;
@@ -8980,7 +8962,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
     // exports
     zen3d.SpriteMaterial = SpriteMaterial;
-    
+
 })();
 
 (function() {

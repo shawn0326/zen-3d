@@ -1,23 +1,31 @@
 (function() {
+
+    // imports
+    var Vector3 = zen3d.Vector3;
+
     function Triangle(a, b, c) {
-        this.a = (a !== undefined) ? a : new zen3d.Vector3();
-        this.b = (b !== undefined) ? b : new zen3d.Vector3();
-        this.c = (c !== undefined) ? c : new zen3d.Vector3();
+        this.a = (a !== undefined) ? a : new Vector3();
+        this.b = (b !== undefined) ? b : new Vector3();
+        this.c = (c !== undefined) ? c : new Vector3();
     }
 
-    Triangle.prototype.set = function(a, b, c) {
-        this.a.copy(a);
-        this.b.copy(b);
-        this.c.copy(c);
+    Triangle.prototype = Object.assign(Triangle.prototype, {
 
-        return this;
-    }
+        set: function(a, b, c) {
+            this.a.copy(a);
+            this.b.copy(b);
+            this.c.copy(c);
+    
+            return this;
+        }
+
+    });
 
     Triangle.normal = function() {
-        var v0 = new zen3d.Vector3();
+        var v0 = new Vector3();
 
         return function normal(a, b, c, optionalTarget) {
-            var result = optionalTarget || new zen3d.Vector3();
+            var result = optionalTarget || new Vector3();
 
             result.subVectors(c, b);
             v0.subVectors(a, b);
@@ -35,9 +43,9 @@
     // static/instance method to calculate barycentric coordinates
     // based on: http://www.blackpawn.com/texts/pointinpoly/default.html
     Triangle.barycoordFromPoint = function() {
-        var v0 = new zen3d.Vector3();
-        var v1 = new zen3d.Vector3();
-        var v2 = new zen3d.Vector3();
+        var v0 = new Vector3();
+        var v1 = new Vector3();
+        var v2 = new Vector3();
 
         return function barycoordFromPoint(point, a, b, c, optionalTarget) {
             v0.subVectors(c, a);
@@ -52,7 +60,7 @@
 
             var denom = (dot00 * dot11 - dot01 * dot01);
 
-            var result = optionalTarget || new zen3d.Vector3();
+            var result = optionalTarget || new Vector3();
 
             // collinear or singular triangle
             if (denom === 0) {
@@ -71,7 +79,7 @@
     }();
 
     Triangle.containsPoint = function() {
-        var v1 = new zen3d.Vector3();
+        var v1 = new Vector3();
 
         return function containsPoint(point, a, b, c) {
             var result = Triangle.barycoordFromPoint(point, a, b, c, v1);
@@ -80,5 +88,7 @@
         };
     }();
 
+    // exports
     zen3d.Triangle = Triangle;
+
 })();

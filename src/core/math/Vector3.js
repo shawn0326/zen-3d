@@ -110,7 +110,7 @@
             return this.x * a.x + this.y * a.y + this.z * a.z;
         },
 
-        applyQuaternion = function(q) {
+        applyQuaternion: function(q) {
 
             var x = this.x,
                 y = this.y,
@@ -166,7 +166,7 @@
     
         },
 
-        transformDirection = function(m) {
+        transformDirection: function(m) {
 
             // input: Matrix4 affine matrix
             // vector interpreted as a direction
@@ -190,7 +190,7 @@
     
         },
 
-        setFromMatrixColumn = function(m, index) {
+        setFromMatrixColumn: function(m, index) {
 
             return this.fromArray(m.elements, index * 4);
     
