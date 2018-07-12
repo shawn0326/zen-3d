@@ -1,12 +1,18 @@
 (function() {
+
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var PointLightShadow = zen3d.PointLightShadow;
+
     /**
      * PointLight
      * @class
      */
-    var PointLight = function() {
-        PointLight.superClass.constructor.call(this);
+    function PointLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.POINT;
+        this.lightType = LIGHT_TYPE.POINT;
 
         // decay of this light
         this.decay = 2;
@@ -14,18 +20,23 @@
         // distance of this light
         this.distance = 200;
 
-        this.shadow = new zen3d.PointLightShadow();
+        this.shadow = new PointLightShadow();
     }
 
-    zen3d.inherit(PointLight, zen3d.Light);
+    PointLight.prototype = Object.assign(Object.create(Light.prototype), {
 
-    PointLight.prototype.copy = function(source) {
-        PointLight.superClass.copy.call(this, source);
+        constructor: PointLight,
 
-        this.shadow.copy(source.shadow);
+        copy: function(source) {
+            Light.prototype.copy.call(this, source);
+    
+            this.shadow.copy(source.shadow);
+    
+            return this;
+        }
+    });
 
-        return this;
-    }
-
+    // exports
     zen3d.PointLight = PointLight;
+    
 })();

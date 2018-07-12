@@ -1,19 +1,27 @@
 (function() {
+
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Object3D = zen3d.Object3D;
+
     /**
      * Points
      * @class
      */
-    var Points = function(geometry, material) {
-        Points.superClass.constructor.call(this);
+    function Points(geometry, material) {
+        Object3D.call(this);
 
         this.geometry = geometry;
 
         this.material = material;
 
-        this.type = zen3d.OBJECT_TYPE.POINT;
+        this.type = OBJECT_TYPE.POINT;
     }
 
-    zen3d.inherit(Points, zen3d.Object3D);
+    Points.prototype = Object.create(Object3D.prototype);
+    Points.prototype.constructor = Points;
 
+    // exports
     zen3d.Points = Points;
+    
 })();

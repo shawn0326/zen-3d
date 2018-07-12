@@ -9417,14 +9417,21 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
 })();
 (function() {
+
+    // imports
+    var LightCache = zen3d.LightCache;
+    var RenderList = zen3d.RenderList;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Object3D = zen3d.Object3D;
+
     /**
      * Scene
      * @class
      */
-    var Scene = function() {
-        Scene.superClass.constructor.call(this);
+    function Scene() {
+        Object3D.call(this);
 
-        this.type = zen3d.OBJECT_TYPE.SCENE;
+        this.type = OBJECT_TYPE.SCENE;
 
         this.overrideMaterial = null;
 
@@ -9434,120 +9441,138 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this._renderLists = {};
 
-        this.lights = new zen3d.LightCache();
+        this.lights = new LightCache();
     }
 
-    zen3d.inherit(Scene, zen3d.Object3D);
+    Scene.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    Scene.prototype.updateRenderList = function(camera) {
-        var id = camera.uuid;
+        constructor: Scene,
 
-        if(!this._renderLists[id]) {
-            this._renderLists[id] = new zen3d.RenderList();
+        updateRenderList: function(camera) {
+            var id = camera.uuid;
+    
+            if(!this._renderLists[id]) {
+                this._renderLists[id] = new RenderList();
+            }
+    
+            var renderList = this._renderLists[id];
+    
+            renderList.startCount();
+    
+            this._doUpdateRenderList(this, camera, renderList);
+    
+            renderList.endCount();
+    
+            renderList.sort();
+    
+            return renderList;
+        },
+
+        getRenderList: function(camera) {
+            return this._renderLists[camera.uuid];
+        },
+
+        updateLights: function() {
+            var lights = this.lights;
+    
+            this.lights.startCount();
+    
+            this._doUpdateLights(this);
+    
+            this.lights.endCount();
+    
+            return this.lights;
+        },
+
+        _doUpdateRenderList: function(object, camera, renderList) {
+
+            if (!!object.geometry && !!object.material) { // renderable
+                renderList.add(object, camera);
+            }
+    
+            // skip ui children
+            if(OBJECT_TYPE.CANVAS2D === object.type) {
+                return;
+            }
+    
+            // handle children by recursion
+            var children = object.children;
+            for (var i = 0, l = children.length; i < l; i++) {
+                this._doUpdateRenderList(children[i], camera, renderList);
+            }
+        },
+
+        _doUpdateLights: function(object) {
+
+            if (OBJECT_TYPE.LIGHT === object.type) { // light
+                this.lights.add(object);
+            }
+    
+            // skip ui children
+            if(OBJECT_TYPE.CANVAS2D === object.type) {
+                return;
+            }
+    
+            // handle children by recursion
+            var children = object.children;
+            for (var i = 0, l = children.length; i < l; i++) {
+                this._doUpdateLights(children[i]);
+            }
         }
 
-        var renderList = this._renderLists[id];
+    });
 
-        renderList.startCount();
-
-        this._doUpdateRenderList(this, camera, renderList);
-
-        renderList.endCount();
-
-        renderList.sort();
-
-        return renderList;
-    }
-
-    Scene.prototype.getRenderList = function(camera) {
-        return this._renderLists[camera.uuid];
-    }
-
-    Scene.prototype.updateLights= function() {
-        var lights = this.lights;
-
-        this.lights.startCount();
-
-        this._doUpdateLights(this);
-
-        this.lights.endCount();
-
-        return this.lights;
-    }
-
-    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
-
-    Scene.prototype._doUpdateRenderList = function(object, camera, renderList) {
-
-        if (!!object.geometry && !!object.material) { // renderable
-            renderList.add(object, camera);
-        }
-
-        // skip ui children
-        if(OBJECT_TYPE.CANVAS2D === object.type) {
-            return;
-        }
-
-        // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            this._doUpdateRenderList(children[i], camera, renderList);
-        }
-    }
-
-    Scene.prototype._doUpdateLights = function(object) {
-
-        if (OBJECT_TYPE.LIGHT === object.type) { // light
-            this.lights.add(object);
-        }
-
-        // skip ui children
-        if(OBJECT_TYPE.CANVAS2D === object.type) {
-            return;
-        }
-
-        // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            this._doUpdateLights(children[i]);
-        }
-    }
-
+    // exports
     zen3d.Scene = Scene;
+    
 })();
 
 (function() {
+
+    // imports
+    var FOG_TYPE = zen3d.FOG_TYPE;
+    var Color3 = zen3d.Color3;
+
     /**
      * Fog
      * @class
      */
-    var Fog = function(color, near, far) {
+    function Fog(color, near, far) {
 
-        this.fogType = zen3d.FOG_TYPE.NORMAL;
+        this.fogType = FOG_TYPE.NORMAL;
 
-        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
+        this.color = new Color3( (color !== undefined) ? color : 0x000000 );
 
         this.near = (near !== undefined) ? near : 1;
         this.far = (far !== undefined) ? far : 1000;
     }
 
+    // exports
     zen3d.Fog = Fog;
+
 })();
 (function() {
+
+    // imports
+    var FOG_TYPE = zen3d.FOG_TYPE;
+    var Color3 = zen3d.Color3;
+
     /**
      * FogExp2
      * @class
      */
-    var FogExp2 = function(color, density) {
+    function FogExp2(color, density) {
 
-        this.fogType = zen3d.FOG_TYPE.EXP2;
+        this.fogType = FOG_TYPE.EXP2;
 
-        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
+        this.color = new Color3( (color !== undefined) ? color : 0x000000 );
 
         this.density = (density !== undefined) ? density : 0.00025;
     }
 
+    // exports
     zen3d.FogExp2 = FogExp2;
+
 })();
 (function() {
 
@@ -9574,91 +9599,129 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 })();
 
 (function() {
+
+    // imports
+    var Object3D = zen3d.Object3D;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Color3 = zen3d.Color3;
+
     /**
      * Light
      * @class
      */
-    var Light = function() {
-        Light.superClass.constructor.call(this);
+    function Light() {
+        Object3D.call(this);
 
-        this.type = zen3d.OBJECT_TYPE.LIGHT;
+        this.type = OBJECT_TYPE.LIGHT;
 
         this.lightType = "";
 
         // default light color is white
-        this.color = new zen3d.Color3(0xffffff);
+        this.color = new Color3(0xffffff);
 
         // light intensity, default 1
         this.intensity = 1;
     }
 
-    zen3d.inherit(Light, zen3d.Object3D);
+    Light.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    Light.prototype.copy = function(source) {
-        Light.superClass.copy.call(this, source);
+        constructor: Light,
 
-        this.type = source.type;
-        this.lightType = source.lightType;
-        this.color.copy(source.color);
-        this.intensity = source.intensity;
+        copy: function(source) {
+            Object3D.prototype.copy.call(this, source);
+    
+            this.type = source.type;
+            this.lightType = source.lightType;
+            this.color.copy(source.color);
+            this.intensity = source.intensity;
+    
+            return this;
+        }
 
-        return this;
-    }
+    });
 
+    // exports
     zen3d.Light = Light;
+
 })();
 
 (function() {
+
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+
     /**
      * AmbientLight
      * @class
      */
-    var AmbientLight = function() {
-        AmbientLight.superClass.constructor.call(this);
+    function AmbientLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.AMBIENT;
+        this.lightType = LIGHT_TYPE.AMBIENT;
     }
 
-    zen3d.inherit(AmbientLight, zen3d.Light);
+    AmbientLight.prototype = Object.create(Light.prototype);
+    AmbientLight.prototype.constructor = AmbientLight;
 
+    // exports
     zen3d.AmbientLight = AmbientLight;
+
 })();
 
 (function() {
+
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var DirectionalLightShadow = zen3d.DirectionalLightShadow;
+
     /**
      * DirectionalLight
      * @class
      */
-    var DirectionalLight = function() {
-        DirectionalLight.superClass.constructor.call(this);
+    function DirectionalLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.DIRECT;
+        this.lightType = LIGHT_TYPE.DIRECT;
 
-        this.shadow = new zen3d.DirectionalLightShadow();
+        this.shadow = new DirectionalLightShadow();
     }
 
-    zen3d.inherit(DirectionalLight, zen3d.Light);
+    DirectionalLight.prototype = Object.assign(Object.create(Light.prototype), {
 
-    DirectionalLight.prototype.copy = function(source) {
-        DirectionalLight.superClass.copy.call(this, source);
+        constructor: DirectionalLight,
 
-        this.shadow.copy(source.shadow);
-        
-        return this;
-    }
+        copy: function(source) {
+            Light.prototype.copy.call(this, source);
+    
+            this.shadow.copy(source.shadow);
+            
+            return this;
+        }
 
+    });
+
+    // exports
     zen3d.DirectionalLight = DirectionalLight;
+
 })();
 
 (function() {
+
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var PointLightShadow = zen3d.PointLightShadow;
+
     /**
      * PointLight
      * @class
      */
-    var PointLight = function() {
-        PointLight.superClass.constructor.call(this);
+    function PointLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.POINT;
+        this.lightType = LIGHT_TYPE.POINT;
 
         // decay of this light
         this.decay = 2;
@@ -9666,31 +9729,42 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         // distance of this light
         this.distance = 200;
 
-        this.shadow = new zen3d.PointLightShadow();
+        this.shadow = new PointLightShadow();
     }
 
-    zen3d.inherit(PointLight, zen3d.Light);
+    PointLight.prototype = Object.assign(Object.create(Light.prototype), {
 
-    PointLight.prototype.copy = function(source) {
-        PointLight.superClass.copy.call(this, source);
+        constructor: PointLight,
 
-        this.shadow.copy(source.shadow);
+        copy: function(source) {
+            Light.prototype.copy.call(this, source);
+    
+            this.shadow.copy(source.shadow);
+    
+            return this;
+        }
+    });
 
-        return this;
-    }
-
+    // exports
     zen3d.PointLight = PointLight;
+    
 })();
 
 (function() {
+    
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var SpotLightShadow = zen3d.SpotLightShadow;
+
     /**
      * SpotLight
      * @class
      */
-    var SpotLight = function() {
-        SpotLight.superClass.constructor.call(this);
+    function SpotLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.SPOT;
+        this.lightType = LIGHT_TYPE.SPOT;
 
         // decay of this light
         this.decay = 2;
@@ -9703,20 +9777,25 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 
         this.angle = Math.PI / 6;
 
-        this.shadow = new zen3d.SpotLightShadow();
+        this.shadow = new SpotLightShadow();
     }
 
-    zen3d.inherit(SpotLight, zen3d.Light);
+    SpotLight.prototype = Object.assign(Object.create(Light.prototype), {
 
-    SpotLight.prototype.copy = function(source) {
-        SpotLight.superClass.copy.call(this, source);
+        constructor: SpotLight,
 
-        this.shadow.copy(source.shadow);
+        copy: function(source) {
+            Light.prototype.copy.call(this, source);
+    
+            this.shadow.copy(source.shadow);
+    
+            return this;
+        }
+    });
 
-        return this;
-    }
-
+    // exports
     zen3d.SpotLight = SpotLight;
+
 })();
 
 (function() {
@@ -10016,23 +10095,33 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
     zen3d.PointLightShadow = PointLightShadow;
 })();
 (function() {
+
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Object3D = zen3d.Object3D;
+    var Matrix4 = zen3d.Matrix4;
+    var Frustum = zen3d.Frustum;
+    var Vector4 = zen3d.Vector4;
+    var Quaternion = zen3d.Quaternion;
+    var Vector3 = zen3d.Vector3;
+
     /**
      * Camera
      * @class
      */
-    var Camera = function() {
-        Camera.superClass.constructor.call(this);
+    function Camera() {
+        Object3D.call(this);
 
-        this.type = zen3d.OBJECT_TYPE.CAMERA;
+        this.type = OBJECT_TYPE.CAMERA;
 
         // view matrix
-        this.viewMatrix = new zen3d.Matrix4();
+        this.viewMatrix = new Matrix4();
 
         // projection matrix
-        this.projectionMatrix = new zen3d.Matrix4();
+        this.projectionMatrix = new Matrix4();
 
         // camera frustum
-        this.frustum = new zen3d.Frustum();
+        this.frustum = new Frustum();
 
         // gamma space or linear space
         this.gammaFactor = 2.0;
@@ -10040,324 +10129,388 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.gammaOutput = false;
         
         // Where on the screen is the camera rendered in normalized coordinates.
-        this.rect = new zen3d.Vector4(0, 0, 1, 1);
+        this.rect = new Vector4(0, 0, 1, 1);
 
         // frustum test
         this.frustumCulled = true;
     }
 
-    zen3d.inherit(Camera, zen3d.Object3D);
+    Camera.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    /**
-     * set view by look at, this func will set quaternion of this camera
-     */
-    Camera.prototype.lookAt = function() {
-        var m = new zen3d.Matrix4();
+        constructor: Camera,
 
-        return function lookAt(target, up) {
+        /**
+         * set view by look at, this func will set quaternion of this camera
+         */
+        lookAt: function() {
+            var m = new Matrix4();
+    
+            return function lookAt(target, up) {
+    
+                m.lookAtRH(this.position, target, up);
+                this.quaternion.setFromRotationMatrix(m);
+    
+            };
+        }(),
 
-            m.lookAtRH(this.position, target, up);
-            this.quaternion.setFromRotationMatrix(m);
+        /**
+         * set orthographic projection matrix
+         */
+        setOrtho: function(left, right, bottom, top, near, far) {
+            this.projectionMatrix.set(
+                2 / (right - left), 0, 0, -(right + left) / (right - left),
+                0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
+                0, 0, -2 / (far - near), -(far + near) / (far - near),
+                0, 0, 0, 1
+            );
+        },
 
-        };
-    }();
+        /**
+         * set perspective projection matrix
+         */
+        setPerspective: function(fov, aspect, near, far) {
+            this.projectionMatrix.set(
+                1 / (aspect * Math.tan(fov / 2)), 0, 0, 0,
+                0, 1 / (Math.tan(fov / 2)), 0, 0,
+                0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
+                0, 0, -1, 0
+            );
+        },
 
-    /**
-     * set orthographic projection matrix
-     */
-    Camera.prototype.setOrtho = function(left, right, bottom, top, near, far) {
-        this.projectionMatrix.set(
-            2 / (right - left), 0, 0, -(right + left) / (right - left),
-            0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
-            0, 0, -2 / (far - near), -(far + near) / (far - near),
-            0, 0, 0, 1
-        );
-    }
+        /*
+         * get world direction (override)
+         * must call after world matrix updated
+         */
+        getWorldDirection: function() {
 
-    /**
-     * set perspective projection matrix
-     */
-    Camera.prototype.setPerspective = function(fov, aspect, near, far) {
-        this.projectionMatrix.set(
-            1 / (aspect * Math.tan(fov / 2)), 0, 0, 0,
-            0, 1 / (Math.tan(fov / 2)), 0, 0,
-            0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
-            0, 0, -1, 0
-        );
-    }
+            var position = new Vector3();
+            var quaternion = new Quaternion();
+            var scale = new Vector3();
+    
+            return function getWorldDirection(optionalTarget) {
+    
+                var result = optionalTarget || new Vector3();
+    
+                this.worldMatrix.decompose(position, quaternion, scale);
+    
+                result.set(0, 0, -1).applyQuaternion(quaternion);
+    
+                return result;
+    
+            };
+        }(),
 
-    /*
-     * get world direction (override)
-     * must call after world matrix updated
-     */
-    Camera.prototype.getWorldDirection = function() {
+        updateMatrix: function() {
 
-        var position = new zen3d.Vector3();
-        var quaternion = new zen3d.Quaternion();
-        var scale = new zen3d.Vector3();
+            var matrix = new Matrix4();
 
-        return function getWorldDirection(optionalTarget) {
+            return function updateMatrix() {
+                Object3D.prototype.updateMatrix.call(this);
+    
+                this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
+        
+                matrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+                this.frustum.setFromMatrix(matrix); // update frustum
+            }
+            
+        }(),
 
-            var result = optionalTarget || new zen3d.Vector3();
+        copy: function ( source, recursive ) {
+            Object3D.prototype.copy.call( this, source, recursive );
+    
+            this.viewMatrix.copy( source.viewMatrix );
+            this.projectionMatrix.copy( source.projectionMatrix );
+    
+            return this;
+        }
 
-            this.worldMatrix.decompose(position, quaternion, scale);
+    });
 
-            result.set(0, 0, -1).applyQuaternion(quaternion);
-
-            return result;
-
-        };
-    }();
-
-    var helpMatrix = new zen3d.Matrix4();
-
-    Camera.prototype.updateMatrix = function() {
-        Camera.superClass.updateMatrix.call(this);
-
-        this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
-
-        helpMatrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
-        this.frustum.setFromMatrix(helpMatrix); // update frustum
-    }
-
-    Camera.prototype.copy = function ( source, recursive ) {
-		Camera.superClass.copy.call( this, source, recursive );
-
-		this.viewMatrix.copy( source.viewMatrix );
-		this.projectionMatrix.copy( source.projectionMatrix );
-
-		return this;
-	}
-
+    // exports
     zen3d.Camera = Camera;
+
 })();
 (function() {
+
+    // imports
+    var Object3D = zen3d.Object3D;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Sphere = zen3d.Sphere;
+    var Box3 = zen3d.box3;
+    var Matrix4 = zen3d.Matrix4;
+    var Ray = zen3d.Ray;
+    var Vector3 = zen3d.Vector3;
+    var Vector2 = zen3d.Vector2;
+
     /**
      * Mesh
      * @class
      */
-    var Mesh = function(geometry, material) {
-        Mesh.superClass.constructor.call(this);
+    function Mesh(geometry, material) {
+        Object3D.call(this);
 
         this.geometry = geometry;
 
         this.material = material;
 
-        this.type = zen3d.OBJECT_TYPE.MESH;
+        this.type = OBJECT_TYPE.MESH;
     }
 
-    zen3d.inherit(Mesh, zen3d.Object3D);
+    Mesh.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    // override
-    Mesh.prototype.raycast = function() {
-        var sphere = new zen3d.Sphere();
-        var box = new zen3d.Box3();
-        var inverseMatrix = new zen3d.Matrix4();
-        var ray = new zen3d.Ray();
+        constructor: Mesh,
 
-        var barycoord = new zen3d.Vector3();
-
-        var vA = new zen3d.Vector3();
-        var vB = new zen3d.Vector3();
-        var vC = new zen3d.Vector3();
-
-        var uvA = new zen3d.Vector2();
-        var uvB = new zen3d.Vector2();
-        var uvC = new zen3d.Vector2();
-
-        var intersectionPoint = new zen3d.Vector3();
-        var intersectionPointWorld = new zen3d.Vector3();
-
-        function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
-            zen3d.Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
-
-            uv1.multiplyScalar(barycoord.x);
-            uv2.multiplyScalar(barycoord.y);
-            uv3.multiplyScalar(barycoord.z);
-
-            uv1.add(uv2).add(uv3);
-
-            return uv1.clone();
-        }
-
-        function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
-            var intersect;
-            var material = object.material;
-
-            // if (material.side === BackSide) {
-            //     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
-            // } else {
-                // intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
-            // }
-            intersect = ray.intersectTriangle(pC, pB, pA, true, point);
-
-            if (intersect === null) return null;
-
-            intersectionPointWorld.copy(point);
-            intersectionPointWorld.applyMatrix4(object.worldMatrix);
-
-            var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
-
-            if (distance < raycaster.near || distance > raycaster.far) return null;
-
-            return {
-                distance: distance,
-                point: intersectionPointWorld.clone(),
-                object: object
-            };
-        }
-
-        return function raycast(raycaster, intersects) {
-            var geometry = this.geometry;
-            var worldMatrix = this.worldMatrix;
-
-            // sphere test
-            sphere.copy(geometry.boundingSphere);
-            sphere.applyMatrix4(worldMatrix);
-            if (!raycaster.ray.intersectsSphere(sphere)) {
-                return;
+        // override
+        raycast: function() {
+            var sphere = new Sphere();
+            var box = new Box3();
+            var inverseMatrix = new Matrix4();
+            var ray = new Ray();
+    
+            var barycoord = new Vector3();
+    
+            var vA = new Vector3();
+            var vB = new Vector3();
+            var vC = new Vector3();
+    
+            var uvA = new Vector2();
+            var uvB = new Vector2();
+            var uvC = new Vector2();
+    
+            var intersectionPoint = new Vector3();
+            var intersectionPointWorld = new Vector3();
+    
+            function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
+                zen3d.Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
+    
+                uv1.multiplyScalar(barycoord.x);
+                uv2.multiplyScalar(barycoord.y);
+                uv3.multiplyScalar(barycoord.z);
+    
+                uv1.add(uv2).add(uv3);
+    
+                return uv1.clone();
             }
-
-            // box test
-            box.copy(geometry.boundingBox);
-            box.applyMatrix4(worldMatrix);
-            if (!raycaster.ray.intersectsBox(box)) {
-                return;
+    
+            function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
+                var intersect;
+                var material = object.material;
+    
+                // if (material.side === BackSide) {
+                //     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+                // } else {
+                    // intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
+                // }
+                intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+    
+                if (intersect === null) return null;
+    
+                intersectionPointWorld.copy(point);
+                intersectionPointWorld.applyMatrix4(object.worldMatrix);
+    
+                var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
+    
+                if (distance < raycaster.near || distance > raycaster.far) return null;
+    
+                return {
+                    distance: distance,
+                    point: intersectionPointWorld.clone(),
+                    object: object
+                };
             }
-
-            // vertex test
-            inverseMatrix.getInverse(worldMatrix);
-            ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
-
-            var index = geometry.index.array;
-			var position = geometry.getAttribute("a_Position");
-			var uv = geometry.getAttribute("a_Uv");
-            var a, b, c;
-
-            for (var i = 0; i < index.length; i += 3) {
-                a = index[i];
-                b = index[i + 1];
-                c = index[i + 2];
-
-                vA.fromArray(position.array, a * 3);
-                vB.fromArray(position.array, b * 3);
-                vC.fromArray(position.array, c * 3);
-
-                var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
-
-                if (intersection) {
-                    // uv
-                    uvA.fromArray(uv.array, a * 2);
-                    uvB.fromArray(uv.array, b * 2);
-                    uvC.fromArray(uv.array, c * 2);
-
-                    intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
-
-                    intersection.face = [a, b, c];
-                    intersection.faceIndex = a;
-
-                    intersects.push(intersection);
+    
+            return function raycast(raycaster, intersects) {
+                var geometry = this.geometry;
+                var worldMatrix = this.worldMatrix;
+    
+                // sphere test
+                sphere.copy(geometry.boundingSphere);
+                sphere.applyMatrix4(worldMatrix);
+                if (!raycaster.ray.intersectsSphere(sphere)) {
+                    return;
+                }
+    
+                // box test
+                box.copy(geometry.boundingBox);
+                box.applyMatrix4(worldMatrix);
+                if (!raycaster.ray.intersectsBox(box)) {
+                    return;
+                }
+    
+                // vertex test
+                inverseMatrix.getInverse(worldMatrix);
+                ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+    
+                var index = geometry.index.array;
+                var position = geometry.getAttribute("a_Position");
+                var uv = geometry.getAttribute("a_Uv");
+                var a, b, c;
+    
+                for (var i = 0; i < index.length; i += 3) {
+                    a = index[i];
+                    b = index[i + 1];
+                    c = index[i + 2];
+    
+                    vA.fromArray(position.array, a * 3);
+                    vB.fromArray(position.array, b * 3);
+                    vC.fromArray(position.array, c * 3);
+    
+                    var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
+    
+                    if (intersection) {
+                        // uv
+                        uvA.fromArray(uv.array, a * 2);
+                        uvB.fromArray(uv.array, b * 2);
+                        uvC.fromArray(uv.array, c * 2);
+    
+                        intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
+    
+                        intersection.face = [a, b, c];
+                        intersection.faceIndex = a;
+    
+                        intersects.push(intersection);
+                    }
                 }
             }
+        }(),
+
+        clone: function() {
+            return new this.constructor( this.geometry, this.material ).copy( this );
         }
-    }()
 
-    Mesh.prototype.clone = function() {
-        return new this.constructor( this.geometry, this.material ).copy( this );
-    }
+    });
 
+    // exports
     zen3d.Mesh = Mesh;
+    
 })();
 (function() {
+
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Mesh = zen3d.Mesh;
+
     /**
      * SkinnedMesh
      * @class
      */
-    var SkinnedMesh = function(geometry, material) {
-        SkinnedMesh.superClass.constructor.call(this, geometry, material);
+    function SkinnedMesh(geometry, material) {
+        Mesh.call(this, geometry, material);
 
-        this.type = zen3d.OBJECT_TYPE.SKINNED_MESH;
+        this.type = OBJECT_TYPE.SKINNED_MESH;
 
         this.skeleton = undefined;
     }
 
-    zen3d.inherit(SkinnedMesh, zen3d.Mesh);
+    SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), {
 
-    SkinnedMesh.prototype.updateMatrix = function() {
-        SkinnedMesh.superClass.updateMatrix.call(this);
+        constructor: SkinnedMesh,
 
-        if(this.skeleton) {
-            this.skeleton.updateBones();
+        updateMatrix: function() {
+            Mesh.prototype.updateMatrix.call(this);
+    
+            if(this.skeleton) {
+                this.skeleton.updateBones();
+            }
+        },
+
+        clone: function () {
+            return new this.constructor( this.geometry, this.material ).copy( this );
         }
-    }
 
-    SkinnedMesh.prototype.clone = function () {
-		return new this.constructor( this.geometry, this.material ).copy( this );
-	}
+    });
 
+    // exports
     zen3d.SkinnedMesh = SkinnedMesh;
+    
 })();
 
 (function() {
+
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Object3D = zen3d.Object3D;
+
     /**
      * Points
      * @class
      */
-    var Points = function(geometry, material) {
-        Points.superClass.constructor.call(this);
+    function Points(geometry, material) {
+        Object3D.call(this);
 
         this.geometry = geometry;
 
         this.material = material;
 
-        this.type = zen3d.OBJECT_TYPE.POINT;
+        this.type = OBJECT_TYPE.POINT;
     }
 
-    zen3d.inherit(Points, zen3d.Object3D);
+    Points.prototype = Object.create(Object3D.prototype);
+    Points.prototype.constructor = Points;
 
+    // exports
     zen3d.Points = Points;
+    
 })();
 
 (function() {
+
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Object3D = zen3d.Object3D;
+
     /**
      * Line
      * @class
      */
-    var Line = function(geometry, material) {
-        Line.superClass.constructor.call(this);
+    function Line(geometry, material) {
+        Object3D.call(this);
 
         this.geometry = geometry;
 
         this.material = material;
 
-        this.type = zen3d.OBJECT_TYPE.LINE;
+        this.type = OBJECT_TYPE.LINE;
     }
 
-    zen3d.inherit(Line, zen3d.Object3D);
+    Line.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    /**
-     * raycast
-     */
-    Line.prototype.raycast = function() {
-        // TODO
-    }
+        constructor: Line,
 
+        /**
+         * raycast
+         */
+        raycast: function() {
+            // TODO
+        }
+
+    });
+
+    // exports
     zen3d.Line = Line;
+    
 })();
 
 (function() {
 
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Object3D = zen3d.Object3D;
+    var Geometry = zen3d.Geometry;
+    var InterleavedBuffer = zen3d.InterleavedBuffer;
+    var InterleavedBufferAttribute = zen3d.InterleavedBufferAttribute;
+
     // all sprites used one shared geometry
-    var sharedGeometry = new zen3d.Geometry();
+    var sharedGeometry = new Geometry();
     var array = new Float32Array([
         -0.5, -0.5, 0, 0,
         0.5, -0.5, 1, 0,
         0.5, 0.5, 1, 1,
         -0.5, 0.5, 0, 1
     ]);
-    var buffer = new zen3d.InterleavedBuffer(array, 4);
-    sharedGeometry.addAttribute("position", new zen3d.InterleavedBufferAttribute(buffer, 2, 0));
-    sharedGeometry.addAttribute("uv", new zen3d.InterleavedBufferAttribute(buffer, 2, 2));
+    var buffer = new InterleavedBuffer(array, 4);
+    sharedGeometry.addAttribute("position", new InterleavedBufferAttribute(buffer, 2, 0));
+    sharedGeometry.addAttribute("uv", new InterleavedBufferAttribute(buffer, 2, 2));
     sharedGeometry.setIndex([
         0, 1, 2,
         0, 2, 3
@@ -10369,23 +10522,36 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
      * Sprite
      * @class
      */
-    var Sprite = function(material) {
-        Sprite.superClass.constructor.call(this);
+    function Sprite(material) {
+        Object3D.call(this);
 
         this.geometry = sharedGeometry;
 
         this.material = (material !== undefined) ? material : new zen3d.SpriteMaterial();
 
-        this.type = zen3d.OBJECT_TYPE.SPRITE;
+        this.type = OBJECT_TYPE.SPRITE;
     }
-
-    zen3d.inherit(Sprite, zen3d.Object3D);
 
     Sprite.geometry = sharedGeometry;
 
+    Sprite.prototype = Object.create(Object3D.prototype);
+    Sprite.prototype.constructor = Sprite;
+
+    // exports
     zen3d.Sprite = Sprite;
+
 })();
 (function() {
+
+    // imports
+    var Object3D = zen3d.Object3D;
+    var Geometry = zen3d.Geometry;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var ParticleMaterial = zen3d.ParticleMaterial;
+    var InterleavedBuffer = zen3d.InterleavedBuffer;
+    var InterleavedBufferAttribute = zen3d.InterleavedBufferAttribute;
+    var Vector3 = zen3d.Vector3;
+    var Color3 = zen3d.Color3;
 
     // construct a couple small arrays used for packing variables into floats etc
 	var UINT8_VIEW = new Uint8Array(4);
@@ -10403,8 +10569,8 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
 	 * a particle container
 	 * reference three.js - flimshaw - Charlie Hoey - http://charliehoey.com
 	 */
-    var ParticleContainer = function(options) {
-        ParticleContainer.superClass.constructor.call(this);
+    function ParticleContainer(options) {
+        Object3D.call(this);
 
         var options = options || {};
 
@@ -10412,7 +10578,7 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
         this.particleNoiseTex = options.particleNoiseTex || null;
         this.particleSpriteTex = options.particleSpriteTex || null;
 
-        this.geometry = new zen3d.Geometry();
+        this.geometry = new Geometry();
 
         var vertices = [];
         for(var i = 0; i < this.maxParticleCount; i++) {
@@ -10425,120 +10591,130 @@ sprite_vert: "uniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 
             vertices[i * 8 + 6] = 1.0                        ; //size
             vertices[i * 8 + 7] = 0.0                        ; //lifespan
         }
-		var buffer = new zen3d.InterleavedBuffer(new Float32Array(vertices), 8);
+		var buffer = new InterleavedBuffer(new Float32Array(vertices), 8);
 		buffer.dynamic = true;
 		var attribute;
-		attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 0);
+		attribute = new InterleavedBufferAttribute(buffer, 3, 0);
 		this.geometry.addAttribute("a_Position", attribute);
-		attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 0);
+		attribute = new InterleavedBufferAttribute(buffer, 4, 0);
 		this.geometry.addAttribute("particlePositionsStartTime", attribute);
-		attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 4);
+		attribute = new InterleavedBufferAttribute(buffer, 4, 4);
 		this.geometry.addAttribute("particleVelColSizeLife", attribute);
 
         this.particleCursor = 0;
         this.time = 0;
 
-        this.type = zen3d.OBJECT_TYPE.PARTICLE;
+        this.type = OBJECT_TYPE.PARTICLE;
 
-        this.material = new zen3d.ParticleMaterial();
+        this.material = new ParticleMaterial();
         
         this.frustumCulled = false;
     }
 
-    zen3d.inherit(ParticleContainer, zen3d.Object3D);
+    ParticleContainer.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    var position = new zen3d.Vector3();
-    var velocity = new zen3d.Vector3();
-    var positionRandomness = 0;
-    var velocityRandomness = 0;
-    var color = new zen3d.Color3();
-	var colorRandomness = 0;
-	var turbulence = 0;
-	var lifetime = 0;
-	var size = 0;
-	var sizeRandomness = 0;
-	var smoothPosition = false;
+        constructor: ParticleContainer,
 
-    var maxVel = 2;
-	var maxSource = 250;
+        spawn: function() {
 
-    ParticleContainer.prototype.spawn = function(options) {
-        var options = options || {};
+            var position = new Vector3();
+            var velocity = new Vector3();
+            var positionRandomness = 0;
+            var velocityRandomness = 0;
+            var color = new Color3();
+            var colorRandomness = 0;
+            var turbulence = 0;
+            var lifetime = 0;
+            var size = 0;
+            var sizeRandomness = 0;
+            var smoothPosition = false;
 
-        position = options.position !== undefined ? position.copy(options.position) : position.set(0., 0., 0.);
-        velocity = options.velocity !== undefined ? velocity.copy(options.velocity) : velocity.set(0., 0., 0.);
-        positionRandomness = options.positionRandomness !== undefined ? options.positionRandomness : 0.0;
-        velocityRandomness = options.velocityRandomness !== undefined ? options.velocityRandomness : 0.0;
-        color = options.color !== undefined ? color.copy(options.color) : color.setRGB(1, 1, 1);
-		colorRandomness = options.colorRandomness !== undefined ? options.colorRandomness : 1.0;
-		turbulence = options.turbulence !== undefined ? options.turbulence : 1.0;
-		lifetime = options.lifetime !== undefined ? options.lifetime : 5.0;
-		size = options.size !== undefined ? options.size : 10;
-		sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0.0;
+            var maxVel = 2;
+            var maxSource = 250;
 
-        var cursor = this.particleCursor;
-		var particlePositionsStartTimeAttribute = this.geometry.getAttribute("particlePositionsStartTime");
-		var buffer = particlePositionsStartTimeAttribute.data;
-        var vertices = buffer.array;
-        var vertexSize = buffer.stride;
+            return function spawn(options) {
+                var options = options || {};
+    
+                position = options.position !== undefined ? position.copy(options.position) : position.set(0., 0., 0.);
+                velocity = options.velocity !== undefined ? velocity.copy(options.velocity) : velocity.set(0., 0., 0.);
+                positionRandomness = options.positionRandomness !== undefined ? options.positionRandomness : 0.0;
+                velocityRandomness = options.velocityRandomness !== undefined ? options.velocityRandomness : 0.0;
+                color = options.color !== undefined ? color.copy(options.color) : color.setRGB(1, 1, 1);
+                colorRandomness = options.colorRandomness !== undefined ? options.colorRandomness : 1.0;
+                turbulence = options.turbulence !== undefined ? options.turbulence : 1.0;
+                lifetime = options.lifetime !== undefined ? options.lifetime : 5.0;
+                size = options.size !== undefined ? options.size : 10;
+                sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0.0;
+        
+                var cursor = this.particleCursor;
+                var particlePositionsStartTimeAttribute = this.geometry.getAttribute("particlePositionsStartTime");
+                var buffer = particlePositionsStartTimeAttribute.data;
+                var vertices = buffer.array;
+                var vertexSize = buffer.stride;
+        
+                vertices[cursor * vertexSize + 0] = position.x + (Math.random() - 0.5) * positionRandomness; //x
+                vertices[cursor * vertexSize + 1] = position.y + (Math.random() - 0.5) * positionRandomness; //y
+                vertices[cursor * vertexSize + 2] = position.z + (Math.random() - 0.5) * positionRandomness; //z
+                vertices[cursor * vertexSize + 3] = this.time + (Math.random() - 0.5) * 2e-2; //startTime
+        
+                var velX = velocity.x + (Math.random() - 0.5) * velocityRandomness;
+                var velY = velocity.y + (Math.random() - 0.5) * velocityRandomness;
+                var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
+        
+                // convert turbulence rating to something we can pack into a vec4
+                var turbulence = Math.floor(turbulence * 254);
+        
+                // clamp our value to between 0. and 1.
+                velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
+                velY = Math.floor(maxSource * ((velY - -maxVel) / (maxVel - -maxVel)));
+                velZ = Math.floor(maxSource * ((velZ - -maxVel) / (maxVel - -maxVel)));
+        
+                vertices[cursor * vertexSize + 4] = decodeFloat(velX, velY, velZ, turbulence); //velocity
+        
+                var r = color.r * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+                var g = color.g * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+                var b = color.b * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+                if(r > 254) r = 254;
+                if(r < 0) r = 0;
+                if(g > 254) g = 254;
+                if(g < 0) g = 0;
+                if(b > 254) b = 254;
+                if(b < 0) b = 0;
+                vertices[cursor * vertexSize + 5] = decodeFloat(r, g, b, 254); //color
+        
+                vertices[cursor * vertexSize + 6] = size + (Math.random() - 0.5) * sizeRandomness; //size
+        
+                vertices[cursor * vertexSize + 7] = lifetime; //lifespan
+        
+                this.particleCursor++;
+        
+                if(this.particleCursor >= this.maxParticleCount) {
+                    this.particleCursor = 0;
+                    buffer.version++;
+                    buffer.updateRange.offset = 0;
+                    buffer.updateRange.count = -1;
+                } else {
+                    buffer.version++;
+                    if(buffer.updateRange.count > -1) {
+                        buffer.updateRange.count = this.particleCursor * vertexSize - buffer.updateRange.offset;
+                    } else {
+                        buffer.updateRange.offset = cursor * vertexSize;
+                        buffer.updateRange.count = vertexSize;
+                    }
+                }
+            }
+            
+        }(),
 
-        vertices[cursor * vertexSize + 0] = position.x + (Math.random() - 0.5) * positionRandomness; //x
-        vertices[cursor * vertexSize + 1] = position.y + (Math.random() - 0.5) * positionRandomness; //y
-        vertices[cursor * vertexSize + 2] = position.z + (Math.random() - 0.5) * positionRandomness; //z
-        vertices[cursor * vertexSize + 3] = this.time + (Math.random() - 0.5) * 2e-2; //startTime
+        update: function(time) {
+            this.time = time;
+        }
 
-        var velX = velocity.x + (Math.random() - 0.5) * velocityRandomness;
-        var velY = velocity.y + (Math.random() - 0.5) * velocityRandomness;
-        var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
+    });
 
-        // convert turbulence rating to something we can pack into a vec4
-		var turbulence = Math.floor(turbulence * 254);
-
-        // clamp our value to between 0. and 1.
-		velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
-		velY = Math.floor(maxSource * ((velY - -maxVel) / (maxVel - -maxVel)));
-		velZ = Math.floor(maxSource * ((velZ - -maxVel) / (maxVel - -maxVel)));
-
-        vertices[cursor * vertexSize + 4] = decodeFloat(velX, velY, velZ, turbulence); //velocity
-
-        var r = color.r * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-        var g = color.g * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-        var b = color.b * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-        if(r > 254) r = 254;
-        if(r < 0) r = 0;
-        if(g > 254) g = 254;
-        if(g < 0) g = 0;
-        if(b > 254) b = 254;
-        if(b < 0) b = 0;
-        vertices[cursor * vertexSize + 5] = decodeFloat(r, g, b, 254); //color
-
-        vertices[cursor * vertexSize + 6] = size + (Math.random() - 0.5) * sizeRandomness; //size
-
-        vertices[cursor * vertexSize + 7] = lifetime; //lifespan
-
-        this.particleCursor++;
-
-        if(this.particleCursor >= this.maxParticleCount) {
-            this.particleCursor = 0;
-			buffer.version++;
-			buffer.updateRange.offset = 0;
-			buffer.updateRange.count = -1;
-        } else {
-			buffer.version++;
-			if(buffer.updateRange.count > -1) {
-				buffer.updateRange.count = this.particleCursor * vertexSize - buffer.updateRange.offset;
-			} else {
-				buffer.updateRange.offset = cursor * vertexSize;
-				buffer.updateRange.count = vertexSize;
-			}
-		}
-    }
-
-    ParticleContainer.prototype.update = function(time) {
-        this.time = time;
-    }
-
-	zen3d.ParticleContainer = ParticleContainer;
+    // exports
+    zen3d.ParticleContainer = ParticleContainer;
+    
 })();
 (function() {
 

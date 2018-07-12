@@ -1,12 +1,18 @@
 (function() {
+    
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var SpotLightShadow = zen3d.SpotLightShadow;
+
     /**
      * SpotLight
      * @class
      */
-    var SpotLight = function() {
-        SpotLight.superClass.constructor.call(this);
+    function SpotLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.SPOT;
+        this.lightType = LIGHT_TYPE.SPOT;
 
         // decay of this light
         this.decay = 2;
@@ -19,18 +25,23 @@
 
         this.angle = Math.PI / 6;
 
-        this.shadow = new zen3d.SpotLightShadow();
+        this.shadow = new SpotLightShadow();
     }
 
-    zen3d.inherit(SpotLight, zen3d.Light);
+    SpotLight.prototype = Object.assign(Object.create(Light.prototype), {
 
-    SpotLight.prototype.copy = function(source) {
-        SpotLight.superClass.copy.call(this, source);
+        constructor: SpotLight,
 
-        this.shadow.copy(source.shadow);
+        copy: function(source) {
+            Light.prototype.copy.call(this, source);
+    
+            this.shadow.copy(source.shadow);
+    
+            return this;
+        }
+    });
 
-        return this;
-    }
-
+    // exports
     zen3d.SpotLight = SpotLight;
+
 })();

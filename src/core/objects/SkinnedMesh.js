@@ -1,29 +1,40 @@
 (function() {
+
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Mesh = zen3d.Mesh;
+
     /**
      * SkinnedMesh
      * @class
      */
-    var SkinnedMesh = function(geometry, material) {
-        SkinnedMesh.superClass.constructor.call(this, geometry, material);
+    function SkinnedMesh(geometry, material) {
+        Mesh.call(this, geometry, material);
 
-        this.type = zen3d.OBJECT_TYPE.SKINNED_MESH;
+        this.type = OBJECT_TYPE.SKINNED_MESH;
 
         this.skeleton = undefined;
     }
 
-    zen3d.inherit(SkinnedMesh, zen3d.Mesh);
+    SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), {
 
-    SkinnedMesh.prototype.updateMatrix = function() {
-        SkinnedMesh.superClass.updateMatrix.call(this);
+        constructor: SkinnedMesh,
 
-        if(this.skeleton) {
-            this.skeleton.updateBones();
+        updateMatrix: function() {
+            Mesh.prototype.updateMatrix.call(this);
+    
+            if(this.skeleton) {
+                this.skeleton.updateBones();
+            }
+        },
+
+        clone: function () {
+            return new this.constructor( this.geometry, this.material ).copy( this );
         }
-    }
 
-    SkinnedMesh.prototype.clone = function () {
-		return new this.constructor( this.geometry, this.material ).copy( this );
-	}
+    });
 
+    // exports
     zen3d.SkinnedMesh = SkinnedMesh;
+    
 })();

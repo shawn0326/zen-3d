@@ -1,5 +1,15 @@
 (function() {
 
+    // imports
+    var Object3D = zen3d.Object3D;
+    var Geometry = zen3d.Geometry;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var ParticleMaterial = zen3d.ParticleMaterial;
+    var InterleavedBuffer = zen3d.InterleavedBuffer;
+    var InterleavedBufferAttribute = zen3d.InterleavedBufferAttribute;
+    var Vector3 = zen3d.Vector3;
+    var Color3 = zen3d.Color3;
+
     // construct a couple small arrays used for packing variables into floats etc
 	var UINT8_VIEW = new Uint8Array(4);
 	var FLOAT_VIEW = new Float32Array(UINT8_VIEW.buffer);
@@ -16,8 +26,8 @@
 	 * a particle container
 	 * reference three.js - flimshaw - Charlie Hoey - http://charliehoey.com
 	 */
-    var ParticleContainer = function(options) {
-        ParticleContainer.superClass.constructor.call(this);
+    function ParticleContainer(options) {
+        Object3D.call(this);
 
         var options = options || {};
 
@@ -25,7 +35,7 @@
         this.particleNoiseTex = options.particleNoiseTex || null;
         this.particleSpriteTex = options.particleSpriteTex || null;
 
-        this.geometry = new zen3d.Geometry();
+        this.geometry = new Geometry();
 
         var vertices = [];
         for(var i = 0; i < this.maxParticleCount; i++) {
@@ -38,118 +48,128 @@
             vertices[i * 8 + 6] = 1.0                        ; //size
             vertices[i * 8 + 7] = 0.0                        ; //lifespan
         }
-		var buffer = new zen3d.InterleavedBuffer(new Float32Array(vertices), 8);
+		var buffer = new InterleavedBuffer(new Float32Array(vertices), 8);
 		buffer.dynamic = true;
 		var attribute;
-		attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 0);
+		attribute = new InterleavedBufferAttribute(buffer, 3, 0);
 		this.geometry.addAttribute("a_Position", attribute);
-		attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 0);
+		attribute = new InterleavedBufferAttribute(buffer, 4, 0);
 		this.geometry.addAttribute("particlePositionsStartTime", attribute);
-		attribute = new zen3d.InterleavedBufferAttribute(buffer, 4, 4);
+		attribute = new InterleavedBufferAttribute(buffer, 4, 4);
 		this.geometry.addAttribute("particleVelColSizeLife", attribute);
 
         this.particleCursor = 0;
         this.time = 0;
 
-        this.type = zen3d.OBJECT_TYPE.PARTICLE;
+        this.type = OBJECT_TYPE.PARTICLE;
 
-        this.material = new zen3d.ParticleMaterial();
+        this.material = new ParticleMaterial();
         
         this.frustumCulled = false;
     }
 
-    zen3d.inherit(ParticleContainer, zen3d.Object3D);
+    ParticleContainer.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    var position = new zen3d.Vector3();
-    var velocity = new zen3d.Vector3();
-    var positionRandomness = 0;
-    var velocityRandomness = 0;
-    var color = new zen3d.Color3();
-	var colorRandomness = 0;
-	var turbulence = 0;
-	var lifetime = 0;
-	var size = 0;
-	var sizeRandomness = 0;
-	var smoothPosition = false;
+        constructor: ParticleContainer,
 
-    var maxVel = 2;
-	var maxSource = 250;
+        spawn: function() {
 
-    ParticleContainer.prototype.spawn = function(options) {
-        var options = options || {};
+            var position = new Vector3();
+            var velocity = new Vector3();
+            var positionRandomness = 0;
+            var velocityRandomness = 0;
+            var color = new Color3();
+            var colorRandomness = 0;
+            var turbulence = 0;
+            var lifetime = 0;
+            var size = 0;
+            var sizeRandomness = 0;
+            var smoothPosition = false;
 
-        position = options.position !== undefined ? position.copy(options.position) : position.set(0., 0., 0.);
-        velocity = options.velocity !== undefined ? velocity.copy(options.velocity) : velocity.set(0., 0., 0.);
-        positionRandomness = options.positionRandomness !== undefined ? options.positionRandomness : 0.0;
-        velocityRandomness = options.velocityRandomness !== undefined ? options.velocityRandomness : 0.0;
-        color = options.color !== undefined ? color.copy(options.color) : color.setRGB(1, 1, 1);
-		colorRandomness = options.colorRandomness !== undefined ? options.colorRandomness : 1.0;
-		turbulence = options.turbulence !== undefined ? options.turbulence : 1.0;
-		lifetime = options.lifetime !== undefined ? options.lifetime : 5.0;
-		size = options.size !== undefined ? options.size : 10;
-		sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0.0;
+            var maxVel = 2;
+            var maxSource = 250;
 
-        var cursor = this.particleCursor;
-		var particlePositionsStartTimeAttribute = this.geometry.getAttribute("particlePositionsStartTime");
-		var buffer = particlePositionsStartTimeAttribute.data;
-        var vertices = buffer.array;
-        var vertexSize = buffer.stride;
+            return function spawn(options) {
+                var options = options || {};
+    
+                position = options.position !== undefined ? position.copy(options.position) : position.set(0., 0., 0.);
+                velocity = options.velocity !== undefined ? velocity.copy(options.velocity) : velocity.set(0., 0., 0.);
+                positionRandomness = options.positionRandomness !== undefined ? options.positionRandomness : 0.0;
+                velocityRandomness = options.velocityRandomness !== undefined ? options.velocityRandomness : 0.0;
+                color = options.color !== undefined ? color.copy(options.color) : color.setRGB(1, 1, 1);
+                colorRandomness = options.colorRandomness !== undefined ? options.colorRandomness : 1.0;
+                turbulence = options.turbulence !== undefined ? options.turbulence : 1.0;
+                lifetime = options.lifetime !== undefined ? options.lifetime : 5.0;
+                size = options.size !== undefined ? options.size : 10;
+                sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0.0;
+        
+                var cursor = this.particleCursor;
+                var particlePositionsStartTimeAttribute = this.geometry.getAttribute("particlePositionsStartTime");
+                var buffer = particlePositionsStartTimeAttribute.data;
+                var vertices = buffer.array;
+                var vertexSize = buffer.stride;
+        
+                vertices[cursor * vertexSize + 0] = position.x + (Math.random() - 0.5) * positionRandomness; //x
+                vertices[cursor * vertexSize + 1] = position.y + (Math.random() - 0.5) * positionRandomness; //y
+                vertices[cursor * vertexSize + 2] = position.z + (Math.random() - 0.5) * positionRandomness; //z
+                vertices[cursor * vertexSize + 3] = this.time + (Math.random() - 0.5) * 2e-2; //startTime
+        
+                var velX = velocity.x + (Math.random() - 0.5) * velocityRandomness;
+                var velY = velocity.y + (Math.random() - 0.5) * velocityRandomness;
+                var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
+        
+                // convert turbulence rating to something we can pack into a vec4
+                var turbulence = Math.floor(turbulence * 254);
+        
+                // clamp our value to between 0. and 1.
+                velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
+                velY = Math.floor(maxSource * ((velY - -maxVel) / (maxVel - -maxVel)));
+                velZ = Math.floor(maxSource * ((velZ - -maxVel) / (maxVel - -maxVel)));
+        
+                vertices[cursor * vertexSize + 4] = decodeFloat(velX, velY, velZ, turbulence); //velocity
+        
+                var r = color.r * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+                var g = color.g * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+                var b = color.b * 254 + (Math.random() - 0.5) * colorRandomness * 254;
+                if(r > 254) r = 254;
+                if(r < 0) r = 0;
+                if(g > 254) g = 254;
+                if(g < 0) g = 0;
+                if(b > 254) b = 254;
+                if(b < 0) b = 0;
+                vertices[cursor * vertexSize + 5] = decodeFloat(r, g, b, 254); //color
+        
+                vertices[cursor * vertexSize + 6] = size + (Math.random() - 0.5) * sizeRandomness; //size
+        
+                vertices[cursor * vertexSize + 7] = lifetime; //lifespan
+        
+                this.particleCursor++;
+        
+                if(this.particleCursor >= this.maxParticleCount) {
+                    this.particleCursor = 0;
+                    buffer.version++;
+                    buffer.updateRange.offset = 0;
+                    buffer.updateRange.count = -1;
+                } else {
+                    buffer.version++;
+                    if(buffer.updateRange.count > -1) {
+                        buffer.updateRange.count = this.particleCursor * vertexSize - buffer.updateRange.offset;
+                    } else {
+                        buffer.updateRange.offset = cursor * vertexSize;
+                        buffer.updateRange.count = vertexSize;
+                    }
+                }
+            }
+            
+        }(),
 
-        vertices[cursor * vertexSize + 0] = position.x + (Math.random() - 0.5) * positionRandomness; //x
-        vertices[cursor * vertexSize + 1] = position.y + (Math.random() - 0.5) * positionRandomness; //y
-        vertices[cursor * vertexSize + 2] = position.z + (Math.random() - 0.5) * positionRandomness; //z
-        vertices[cursor * vertexSize + 3] = this.time + (Math.random() - 0.5) * 2e-2; //startTime
+        update: function(time) {
+            this.time = time;
+        }
 
-        var velX = velocity.x + (Math.random() - 0.5) * velocityRandomness;
-        var velY = velocity.y + (Math.random() - 0.5) * velocityRandomness;
-        var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
+    });
 
-        // convert turbulence rating to something we can pack into a vec4
-		var turbulence = Math.floor(turbulence * 254);
-
-        // clamp our value to between 0. and 1.
-		velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
-		velY = Math.floor(maxSource * ((velY - -maxVel) / (maxVel - -maxVel)));
-		velZ = Math.floor(maxSource * ((velZ - -maxVel) / (maxVel - -maxVel)));
-
-        vertices[cursor * vertexSize + 4] = decodeFloat(velX, velY, velZ, turbulence); //velocity
-
-        var r = color.r * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-        var g = color.g * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-        var b = color.b * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-        if(r > 254) r = 254;
-        if(r < 0) r = 0;
-        if(g > 254) g = 254;
-        if(g < 0) g = 0;
-        if(b > 254) b = 254;
-        if(b < 0) b = 0;
-        vertices[cursor * vertexSize + 5] = decodeFloat(r, g, b, 254); //color
-
-        vertices[cursor * vertexSize + 6] = size + (Math.random() - 0.5) * sizeRandomness; //size
-
-        vertices[cursor * vertexSize + 7] = lifetime; //lifespan
-
-        this.particleCursor++;
-
-        if(this.particleCursor >= this.maxParticleCount) {
-            this.particleCursor = 0;
-			buffer.version++;
-			buffer.updateRange.offset = 0;
-			buffer.updateRange.count = -1;
-        } else {
-			buffer.version++;
-			if(buffer.updateRange.count > -1) {
-				buffer.updateRange.count = this.particleCursor * vertexSize - buffer.updateRange.offset;
-			} else {
-				buffer.updateRange.offset = cursor * vertexSize;
-				buffer.updateRange.count = vertexSize;
-			}
-		}
-    }
-
-    ParticleContainer.prototype.update = function(time) {
-        this.time = time;
-    }
-
-	zen3d.ParticleContainer = ParticleContainer;
+    // exports
+    zen3d.ParticleContainer = ParticleContainer;
+    
 })();

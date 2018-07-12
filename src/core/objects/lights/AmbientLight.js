@@ -1,15 +1,23 @@
 (function() {
+
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+
     /**
      * AmbientLight
      * @class
      */
-    var AmbientLight = function() {
-        AmbientLight.superClass.constructor.call(this);
+    function AmbientLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.AMBIENT;
+        this.lightType = LIGHT_TYPE.AMBIENT;
     }
 
-    zen3d.inherit(AmbientLight, zen3d.Light);
+    AmbientLight.prototype = Object.create(Light.prototype);
+    AmbientLight.prototype.constructor = AmbientLight;
 
+    // exports
     zen3d.AmbientLight = AmbientLight;
+
 })();

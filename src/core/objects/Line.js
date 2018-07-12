@@ -1,26 +1,37 @@
 (function() {
+
+    // imports
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var Object3D = zen3d.Object3D;
+
     /**
      * Line
      * @class
      */
-    var Line = function(geometry, material) {
-        Line.superClass.constructor.call(this);
+    function Line(geometry, material) {
+        Object3D.call(this);
 
         this.geometry = geometry;
 
         this.material = material;
 
-        this.type = zen3d.OBJECT_TYPE.LINE;
+        this.type = OBJECT_TYPE.LINE;
     }
 
-    zen3d.inherit(Line, zen3d.Object3D);
+    Line.prototype = Object.assign(Object.create(Object3D.prototype), {
 
-    /**
-     * raycast
-     */
-    Line.prototype.raycast = function() {
-        // TODO
-    }
+        constructor: Line,
 
+        /**
+         * raycast
+         */
+        raycast: function() {
+            // TODO
+        }
+
+    });
+
+    // exports
     zen3d.Line = Line;
+    
 })();

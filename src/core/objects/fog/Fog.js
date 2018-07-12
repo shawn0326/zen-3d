@@ -1,17 +1,24 @@
 (function() {
+
+    // imports
+    var FOG_TYPE = zen3d.FOG_TYPE;
+    var Color3 = zen3d.Color3;
+
     /**
      * Fog
      * @class
      */
-    var Fog = function(color, near, far) {
+    function Fog(color, near, far) {
 
-        this.fogType = zen3d.FOG_TYPE.NORMAL;
+        this.fogType = FOG_TYPE.NORMAL;
 
-        this.color = new zen3d.Color3( (color !== undefined) ? color : 0x000000 );
+        this.color = new Color3( (color !== undefined) ? color : 0x000000 );
 
         this.near = (near !== undefined) ? near : 1;
         this.far = (far !== undefined) ? far : 1000;
     }
 
+    // exports
     zen3d.Fog = Fog;
+
 })();

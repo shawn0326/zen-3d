@@ -1,25 +1,37 @@
 (function() {
+
+    // imports
+    var Light = zen3d.Light;
+    var LIGHT_TYPE = zen3d.LIGHT_TYPE;
+    var DirectionalLightShadow = zen3d.DirectionalLightShadow;
+
     /**
      * DirectionalLight
      * @class
      */
-    var DirectionalLight = function() {
-        DirectionalLight.superClass.constructor.call(this);
+    function DirectionalLight() {
+        Light.call(this);
 
-        this.lightType = zen3d.LIGHT_TYPE.DIRECT;
+        this.lightType = LIGHT_TYPE.DIRECT;
 
-        this.shadow = new zen3d.DirectionalLightShadow();
+        this.shadow = new DirectionalLightShadow();
     }
 
-    zen3d.inherit(DirectionalLight, zen3d.Light);
+    DirectionalLight.prototype = Object.assign(Object.create(Light.prototype), {
 
-    DirectionalLight.prototype.copy = function(source) {
-        DirectionalLight.superClass.copy.call(this, source);
+        constructor: DirectionalLight,
 
-        this.shadow.copy(source.shadow);
-        
-        return this;
-    }
+        copy: function(source) {
+            Light.prototype.copy.call(this, source);
+    
+            this.shadow.copy(source.shadow);
+            
+            return this;
+        }
 
+    });
+
+    // exports
     zen3d.DirectionalLight = DirectionalLight;
+
 })();
