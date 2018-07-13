@@ -1,4 +1,5 @@
 (function() {
+    
     /**
      * GridHelper
      * @class
@@ -40,12 +41,14 @@
         var material = new zen3d.LineMaterial();
         material.vertexColors = true;
 
-        GridHelper.superClass.constructor.call(this, geometry, material);
+        zen3d.Mesh.call(this, geometry, material);
 
         // this.frustumCulled = false;
     }
 
-    zen3d.inherit(GridHelper, zen3d.Mesh);
+    GridHelper.prototype = Object.create(zen3d.Mesh.prototype);
+    GridHelper.prototype.constructor = GridHelper;
 
     zen3d.GridHelper = GridHelper;
+
 })();

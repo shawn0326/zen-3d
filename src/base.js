@@ -6,23 +6,9 @@
     var zen3d = win.zen3d = win.zen3d || {};
 
     /**
-     * Class inherit
-     */
-    var emptyConstructor = function() {};
-
-    var inherit = function(subClass, superClass) {
-        emptyConstructor.prototype = superClass.prototype;
-        subClass.superClass = superClass.prototype;
-        subClass.prototype = new emptyConstructor;
-        subClass.prototype.constructor = subClass;
-    }
-
-    zen3d.inherit = inherit;
-
-    /**
      * generate uuid
      */
-    var generateUUID = function () {
+    function generateUUID() {
 
 		// http://www.broofa.com/Tools/Math.uuid.htm
 
@@ -64,7 +50,7 @@
     /**
      * is mobile
      */
-    var isMobile = function() {
+    function isMobile() {
         if (!win["navigator"]) {
             return true;
         }
@@ -77,7 +63,7 @@
     /**
      * is web
      */
-    var isWeb = function() {
+    function isWeb() {
         return !!document;
     }
 
@@ -86,7 +72,7 @@
     /**
      * create checker board pixels
      */
-    var createCheckerBoardPixels = function(width, height, blockSize) {
+    function createCheckerBoardPixels(width, height, blockSize) {
         var pixelArray = new Uint8Array(width * height * 4);
 
         // white and blasck
@@ -123,19 +109,19 @@
 
     zen3d.createCheckerBoardPixels = createCheckerBoardPixels;
 
-    var isPowerOfTwo = function(value) {
+    function isPowerOfTwo(value) {
         return ( value & ( value - 1 ) ) === 0 && value !== 0;
     }
 
     zen3d.isPowerOfTwo = isPowerOfTwo;
 
-    var nearestPowerOfTwo = function ( value ) {
+    function nearestPowerOfTwo( value ) {
 		return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
 	}
 
     zen3d.nearestPowerOfTwo = nearestPowerOfTwo;
 
-    var nextPowerOfTwo = function ( value ) {
+    function nextPowerOfTwo( value ) {
 		value --;
 		value |= value >> 1;
 		value |= value >> 2;
@@ -148,7 +134,7 @@
 	}
     zen3d.nextPowerOfTwo = nextPowerOfTwo;
 
-    var cloneUniforms = function(uniforms_src) {
+    function cloneUniforms(uniforms_src) {
         var uniforms_dst = {};
 
         for(var name in uniforms_src) {
@@ -168,7 +154,7 @@
 
     // Generate halton sequence
     // https://en.wikipedia.org/wiki/Halton_sequence
-    var halton = function (index, base) {
+    function halton(index, base) {
         var result = 0;
         var f = 1 / base;
         var i = index;

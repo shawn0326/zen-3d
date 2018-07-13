@@ -57,7 +57,7 @@
     }
 
     var SSAOPass = function() {
-        SSAOPass.superClass.constructor.call(this, zen3d.SSAOShader);
+        zen3d.ShaderPostPass.call(this, zen3d.SSAOShader);
 
         this._kernels = {};
 
@@ -65,7 +65,8 @@
         this.setKernelSize(12); // 12
     }
 
-    zen3d.inherit(SSAOPass, zen3d.ShaderPostPass);
+    SSAOPass.prototype = Object.create(zen3d.ShaderPostPass.prototype);
+    SSAOPass.prototype.constructor = SSAOPass;
 
     SSAOPass.prototype.setKernelSize = function(size, offset) {
         offset = (offset !== undefined) ? offset : 0;

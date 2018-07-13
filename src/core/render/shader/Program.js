@@ -1,5 +1,17 @@
 (function() {
 
+    // imports
+    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
+    var TEXEL_ENCODING_TYPE = zen3d.TEXEL_ENCODING_TYPE;
+    var SHADOW_TYPE = zen3d.SHADOW_TYPE;
+    var SHADING_TYPE = zen3d.SHADING_TYPE;
+    var FOG_TYPE = zen3d.FOG_TYPE;
+    var DRAW_SIDE = zen3d.DRAW_SIDE;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var WebGLProgram = zen3d.WebGLProgram;
+    var ShaderChunk = zen3d.ShaderChunk;
+    var ShaderLib = zen3d.ShaderLib;
+
     var programMap = {};
 
     /**
@@ -17,10 +29,6 @@
         }
         return code;
     }
-
-    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
-    var TEXEL_ENCODING_TYPE = zen3d.TEXEL_ENCODING_TYPE;
-    var ENVMAP_COMBINE_TYPE = zen3d.ENVMAP_COMBINE_TYPE;
 
     function getTextureEncodingFromMap( map, gammaOverrideLinear ) {
 
@@ -202,7 +210,7 @@
             props.useEnvMap ? '#define ' + props.envMapCombine : '',
             '#define GAMMA_FACTOR ' + props.gammaFactor,
 
-            (props.diffuseMapEncoding || props.envMapEncoding || props.emissiveMapEncoding || props.outputEncoding) ? zen3d.ShaderChunk["encodings_pars_frag"] : '',
+            (props.diffuseMapEncoding || props.envMapEncoding || props.emissiveMapEncoding || props.outputEncoding) ? ShaderChunk["encodings_pars_frag"] : '',
             props.diffuseMapEncoding ? getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding) : '',
             props.envMapEncoding ? getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding) : '',
             props.emissiveMapEncoding ? getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding) : '',
@@ -213,8 +221,8 @@
         ].join("\n");
 
         // vertexCode & fragmentCode
-        var vertex = zen3d.ShaderLib[props.materialType + "_vert"] || props.vertexShader || zen3d.ShaderLib.basic_vert;
-        var fragment = zen3d.ShaderLib[props.materialType + "_frag"] || props.fragmentShader || zen3d.ShaderLib.basic_frag;
+        var vertex = ShaderLib[props.materialType + "_vert"] || props.vertexShader || ShaderLib.basic_vert;
+        var fragment = ShaderLib[props.materialType + "_frag"] || props.fragmentShader || ShaderLib.basic_frag;
 
         var vshader = [
             prefixVertex,
@@ -229,7 +237,7 @@
         vshader = parseIncludes(vshader);
         fshader = parseIncludes(fshader);
 
-        return new zen3d.WebGLProgram(gl, vshader, fshader);
+        return new WebGLProgram(gl, vshader, fshader);
     }
 
     var parseIncludes = function(string) {
@@ -238,7 +246,7 @@
 
         function replace(match, include) {
 
-            var replace = zen3d.ShaderChunk[include];
+            var replace = ShaderChunk[include];
 
             if (replace === undefined) {
 
@@ -279,7 +287,7 @@
         props.pointLightNum = !!lights ? lights.pointsNum : 0;
         props.spotLightNum = !!lights ? lights.spotsNum : 0;
         props.useShadow = object.receiveShadow;
-        props.usePCFSoftShadow = object.shadowType === zen3d.SHADOW_TYPE.PCF_SOFT;
+        props.usePCFSoftShadow = object.shadowType === SHADOW_TYPE.PCF_SOFT;
         // encoding
         var currentRenderTarget = glCore.state.currentRenderTarget;
         props.gammaFactor = camera.gammaFactor;
@@ -292,15 +300,15 @@
         props.premultipliedAlpha = material.premultipliedAlpha;
         props.useVertexColors = material.vertexColors;
         props.numClippingPlanes = !!clippingPlanes ? clippingPlanes.length : 0;
-        props.flatShading = material.shading === zen3d.SHADING_TYPE.FLAT_SHADING;
+        props.flatShading = material.shading === SHADING_TYPE.FLAT_SHADING;
         props.fog = !!fog;
-        props.fogExp2 = !!fog && (fog.fogType === zen3d.FOG_TYPE.EXP2);
+        props.fogExp2 = !!fog && (fog.fogType === FOG_TYPE.EXP2);
         props.sizeAttenuation = material.sizeAttenuation;
-        props.doubleSided = material.side === zen3d.DRAW_SIDE.DOUBLE;
-        props.flipSided = material.side === zen3d.DRAW_SIDE.BACK;
+        props.doubleSided = material.side === DRAW_SIDE.DOUBLE;
+        props.flipSided = material.side === DRAW_SIDE.BACK;
         props.packDepthToRGBA = material.packToRGBA;
         // skinned mesh
-        var useSkinning = object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && object.skeleton;
+        var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
         var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
         var useVertexTexture = capabilities.maxVertexTextures > 0 && capabilities.floatTextures;
         var maxBones = 0;
@@ -332,9 +340,8 @@
      * @param {Object3D} object?
      * @param {RenderCache} cache?
      */
-    var getProgram = function(glCore, camera, material, object, cache) {
+    function getProgram(glCore, camera, material, object, cache) {
         var gl = glCore.gl;
-        var capabilities = glCore.capabilities;
         var material = material || object.material;
 
         // get render context from cache
@@ -362,5 +369,7 @@
         return program;
     }
 
+    // exports
     zen3d.getProgram = getProgram;
+
 })();

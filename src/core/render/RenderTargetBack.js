@@ -1,31 +1,41 @@
 (function() {
+
+    // imports
+    var RenderTargetBase = zen3d.RenderTargetBase;
+
     /**
      * RenderTargetBack Class
      * no texture & framebuffer in this render target, but an canvas tag element
      * @class
      */
-    var RenderTargetBack = function(view) {
-        RenderTargetBack.superClass.constructor.call(this, view.width, view.height);
+    function RenderTargetBack(view) {
+        RenderTargetBase.call(this, view.width, view.height);
 
         this.view = view; // render to canvas
     }
 
-    zen3d.inherit(RenderTargetBack, zen3d.RenderTargetBase);
+    RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.prototype), {
 
-    /**
-     * resize render target
-     */
-    RenderTargetBack.prototype.resize = function(width, height) {
-        this.view.width = width;
-        this.view.height = height;
+        constructor: RenderTargetBack,
 
-        this.width = width;
-        this.height = height;
-    }
+        /**
+         * resize render target
+         */
+        resize: function(width, height) {
+            this.view.width = width;
+            this.view.height = height;
+    
+            this.width = width;
+            this.height = height;
+        },
 
-    RenderTargetBack.prototype.dispose = function() {
-        // dispose canvas?
-    }
+        dispose: function() {
+            // dispose canvas?
+        }
 
+    });
+
+    // exports
     zen3d.RenderTargetBack = RenderTargetBack;
+    
 })();

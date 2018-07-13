@@ -153,11 +153,9 @@ var filesSrc = [
     "core/animation/keyframe/KeyframeAnimation.js",
 
     //loader
-    "core/loader/AssimpJsonLoader.js",
     "core/loader/FileLoader.js",
     "core/loader/ImageLoader.js",
     "core/loader/TGALoader.js",
-    "core/loader/GLTFLoader.js",
 
     //performance
     "core/Performance.js",

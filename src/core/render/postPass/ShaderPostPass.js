@@ -1,4 +1,13 @@
 (function() {
+
+    // imports
+    var Scene = zen3d.Scene;
+    var Camera = zen3d.Camera;
+    var Vector3 = zen3d.Vector3;
+    var PlaneGeometry = zen3d.PlaneGeometry;
+    var ShaderMaterial = zen3d.ShaderMaterial;
+    var Mesh = zen3d.Mesh;
+
     function cloneUniforms(uniforms_src) {
         var uniforms_dst = {};
 
@@ -15,21 +24,21 @@
         return uniforms_dst;
     }
 
-    var ShaderPostPass = function(shader) {
-        var scene = new zen3d.Scene();
+    function ShaderPostPass(shader) {
+        var scene = new Scene();
 
-        var camera = this.camera = new zen3d.Camera();
+        var camera = this.camera = new Camera();
         camera.frustumCulled = false;
         camera.position.set(0, 1, 0);
-        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 0, -1));
+        camera.lookAt(new Vector3(0, 0, 0), new Vector3(0, 0, -1));
         camera.setOrtho(-1, 1, -1, 1, 0.1, 2);
         scene.add(camera);
 
-        var geometry = new zen3d.PlaneGeometry(2, 2, 1, 1);
+        var geometry = new PlaneGeometry(2, 2, 1, 1);
         this.uniforms = cloneUniforms(shader.uniforms);
-        var material = this.material = new zen3d.ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
+        var material = this.material = new ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
         Object.assign( material.defines, shader.defines ); // copy defines
-        var plane = new zen3d.Mesh(geometry, material);
+        var plane = new Mesh(geometry, material);
         plane.frustumCulled = false;
         scene.add(plane);
 
@@ -40,9 +49,15 @@
         this.renderConfig = {};
     }
 
-    ShaderPostPass.prototype.render = function(glCore) {
-        glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
-    }
+    ShaderPostPass.prototype = Object.assign(ShaderPostPass.prototype, {
 
+        render: function(glCore) {
+            glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
+        }
+
+    });
+
+    // exports
     zen3d.ShaderPostPass = ShaderPostPass;
+
 })();

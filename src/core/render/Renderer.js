@@ -1,11 +1,18 @@
 (function() {
+
+    // imports
+    var RenderTargetBack = zen3d.RenderTargetBack;
+    var WebGLCore = zen3d.WebGLCore;
+    var Performance = zen3d.Performance;
+    var ShadowMapPass = zen3d.ShadowMapPass;
+
     /**
      * Renderer
      * @class
      */
-    var Renderer = function(view, options) {
+    function Renderer(view, options) {
 
-        this.backRenderTarget = new zen3d.RenderTargetBack(view);
+        this.backRenderTarget = new RenderTargetBack(view);
         
         var gl = view.getContext("webgl", options || {
             antialias: true, // antialias
@@ -13,13 +20,13 @@
             // premultipliedAlpha: false, // effect performance, default false
             stencil: true
         });
-        this.glCore = new zen3d.WebGLCore(gl);
+        this.glCore = new WebGLCore(gl);
 
         this.autoClear = true;
 
-        this.performance = new zen3d.Performance();
+        this.performance = new Performance();
 
-        this.shadowMapPass = new zen3d.ShadowMapPass();
+        this.shadowMapPass = new ShadowMapPass();
 
         this.shadowAutoUpdate = true;
         this.shadowNeedsUpdate = false;
@@ -72,5 +79,7 @@
         this.performance.endCounter("render");
     }
 
+    // exports
     zen3d.Renderer = Renderer;
+
 })();

@@ -1,6 +1,7 @@
 (function() {
+    
     var RendererVR = function(view) {
-        RendererVR.superClass.constructor.call(this, view);
+        zen3d.Renderer.call(this, view);
 
         this.vrDisplay = undefined;
 
@@ -29,7 +30,8 @@
         }
     }
 
-    zen3d.inherit(RendererVR, zen3d.Renderer);
+    RendererVR.prototype = Object.create(zen3d.Renderer.prototype);
+    RendererVR.prototype.constructor = RendererVR;
 
     var viewMatrix = new zen3d.Matrix4();
 
@@ -92,4 +94,5 @@
     }
 
     zen3d.RendererVR = RendererVR;
+
 })();

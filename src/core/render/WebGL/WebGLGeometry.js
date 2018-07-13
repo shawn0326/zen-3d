@@ -83,7 +83,7 @@
         buffers.delete(attribute);
     }
 
-    var WebGLGeometry = function(gl, state, properties, capabilities) {
+    function WebGLGeometry(gl, state, properties, capabilities) {
         this.gl = gl;
 
         this.state = state;
@@ -93,44 +93,50 @@
         this.capabilities = capabilities;
     }
 
-    // if need, create webgl buffers; but not bind
-    WebGLGeometry.prototype.setGeometry = function(geometry) {
-        var gl = this.gl;
-        var state = this.state;
-        var properties = this.properties;
+    WebGLGeometry.prototype = Object.assign(WebGLGeometry.prototype, {
 
-        var geometryProperties = this.properties.get(geometry);
-        if (!geometryProperties.created) {
-            geometry.addEventListener('dispose', this.onGeometryDispose2, this);
-            geometryProperties.created = true;
+        // if need, create webgl buffers; but not bind
+        setGeometry: function(geometry) {
+            var gl = this.gl;
+            var state = this.state;
+            var properties = this.properties;
+    
+            var geometryProperties = this.properties.get(geometry);
+            if (!geometryProperties.created) {
+                geometry.addEventListener('dispose', this.onGeometryDispose2, this);
+                geometryProperties.created = true;
+            }
+    
+            if (geometry.index !== null) {
+                updateAttribute(gl, properties, geometry.index, gl.ELEMENT_ARRAY_BUFFER);
+            }
+    
+            for (var name in geometry.attributes) {
+                updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
+            }
+        },
+
+        onGeometryDispose: function(event) {
+            var gl = this.gl;
+            var geometry = event.target;
+            var geometryProperties = this.properties.get(geometry);
+    
+            geometry.removeEventListener('dispose', this.onGeometryDispose, this);
+    
+            if (geometry.index !== null) {
+                removeAttribute(gl, properties, geometry.index);
+            }
+    
+            for (var name in geometry.attributes) {
+                removeAttribute(gl, properties, geometry.attributes[name]);
+            }
+    
+            this.properties.delete(geometry);
         }
 
-        if (geometry.index !== null) {
-            updateAttribute(gl, properties, geometry.index, gl.ELEMENT_ARRAY_BUFFER);
-        }
+    });
 
-        for (var name in geometry.attributes) {
-            updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
-        }
-    }
-
-    WebGLGeometry.prototype.onGeometryDispose = function(event) {
-        var gl = this.gl;
-        var geometry = event.target;
-        var geometryProperties = this.properties.get(geometry);
-
-        geometry.removeEventListener('dispose', this.onGeometryDispose, this);
-
-        if (geometry.index !== null) {
-            removeAttribute(gl, properties, geometry.index);
-        }
-
-        for (var name in geometry.attributes) {
-            removeAttribute(gl, properties, geometry.attributes[name]);
-        }
-
-        this.properties.delete(geometry);
-    }
-
+    // exports
     zen3d.WebGLGeometry = WebGLGeometry;
+
 })();

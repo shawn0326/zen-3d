@@ -1,12 +1,17 @@
 (function() {
+
+    // imports
+    var generateUUID = zen3d.generateUUID;
+    var EventDispatcher = zen3d.EventDispatcher;
+
     /**
      * RenderTargetBase Class
      * @class
      */
-    var RenderTargetBase = function(width, height) {
-        RenderTargetBase.superClass.constructor.call(this);
+    function RenderTargetBase(width, height) {
+        EventDispatcher.call(this);
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         this.width = width;
         this.height = height;
@@ -15,23 +20,29 @@
         this.stencilBuffer = true;
     }
 
-    zen3d.inherit(RenderTargetBase, zen3d.EventDispatcher);
+    RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
 
-    /**
-     * resize render target
-     */
-    RenderTargetBase.prototype.resize = function(width, height) {
-        if(this.width !== width || this.height !== height) {
-            this.dispose();
+        constructor: RenderTargetBase,
+
+        /**
+         * resize render target
+         */
+        resize: function(width, height) {
+            if(this.width !== width || this.height !== height) {
+                this.dispose();
+            }
+    
+            this.width = width;
+            this.height = height;
+        },
+
+        dispose: function() {
+            this.dispatchEvent({type: 'dispose'});
         }
 
-        this.width = width;
-        this.height = height;
-    }
+    });
 
-    RenderTargetBase.prototype.dispose = function() {
-        this.dispatchEvent({type: 'dispose'});
-    }
-
+    // exports
     zen3d.RenderTargetBase = RenderTargetBase;
+
 })();

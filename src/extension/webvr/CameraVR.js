@@ -1,6 +1,7 @@
 (function() {
+
     var CameraVR = function() {
-        CameraVR.superClass.constructor.call(this);
+        zen3d.Object3D.call(this);
 
         this.type = zen3d.OBJECT_TYPE.CAMERA;
 
@@ -14,7 +15,8 @@
         this.far = 1000;
     }
 
-    zen3d.inherit(CameraVR, zen3d.Object3D);
+    CameraVR.prototype = Object.create(zen3d.Object3D.prototype);
+    CameraVR.prototype.constructor = CameraVR;
 
     Object.defineProperties(CameraVR.prototype, {
         gammaFactor: {
@@ -47,4 +49,5 @@
     });
 
     zen3d.CameraVR = CameraVR;
+
 })();

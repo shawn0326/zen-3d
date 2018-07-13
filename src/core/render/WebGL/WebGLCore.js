@@ -3,9 +3,23 @@
     var BLEND_TYPE = zen3d.BLEND_TYPE;
     var DRAW_SIDE = zen3d.DRAW_SIDE;
     var WEBGL_UNIFORM_TYPE = zen3d.WEBGL_UNIFORM_TYPE;
+    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
+    var FOG_TYPE = zen3d.FOG_TYPE;
+    var Vector3 = zen3d.Vector3;
+    var Vector4 = zen3d.Vector4;
+    var Plane = zen3d.Plane;
+    var WebGLProperties = zen3d.WebGLProperties;
+    var WebGLCapabilities = zen3d.WebGLCapabilities;
+    var WebGLState = zen3d.WebGLState;
+    var WebGLTexture = zen3d.WebGLTexture;
+    var WebGLGeometry = zen3d.WebGLGeometry;
+    var nextPowerOfTwo = zen3d.nextPowerOfTwo;
+    var TextureData = zen3d.TextureData;
+    var Quaternion = zen3d.Quaternion;
+    var getProgram = zen3d.getProgram;
 
-    var helpVector3 = new zen3d.Vector3();
-    var helpVector4 = new zen3d.Vector4();
+    var helpVector3 = new Vector3();
+    var helpVector4 = new Vector4();
 
     var defaultGetMaterial = function(renderable) {
         return renderable.material;
@@ -13,7 +27,7 @@
 
     var getClippingPlanesData = function() {
         var planesData;
-        var plane = new zen3d.Plane();
+        var plane = new Plane();
         return function getClippingPlanesData(planes, camera) {
             if(!planesData || planesData.length < planes.length * 4) {
                 planesData = new Float32Array(planes.length * 4);
@@ -34,16 +48,16 @@
      * render method by WebGL.
      * just for render pass once in one render target
      */
-    var WebGLCore = function(gl) {
+    function WebGLCore(gl) {
         this.gl = gl;
         
-        var properties = new zen3d.WebGLProperties();
+        var properties = new WebGLProperties();
         this.properties = properties;
 
-        var capabilities = new zen3d.WebGLCapabilities(gl);
+        var capabilities = new WebGLCapabilities(gl);
         this.capabilities = capabilities;
 
-        var state = new zen3d.WebGLState(gl, capabilities);
+        var state = new WebGLState(gl, capabilities);
         state.enable(gl.STENCIL_TEST);
         state.enable(gl.DEPTH_TEST);
         gl.depthFunc( gl.LEQUAL );
@@ -52,9 +66,9 @@
         state.clearColor(0, 0, 0, 0);
         this.state = state;
 
-        this.texture = new zen3d.WebGLTexture(gl, state, properties, capabilities);
+        this.texture = new WebGLTexture(gl, state, properties, capabilities);
 
-        this.geometry = new zen3d.WebGLGeometry(gl, state, properties, capabilities);
+        this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
 
         this._usedTextureUnits = 0;
 
@@ -148,7 +162,7 @@
             var geometry = renderItem.geometry;
             var group = renderItem.group;
 
-            var program = zen3d.getProgram(this, camera, material, object, scene);
+            var program = getProgram(this, camera, material, object, scene);
             state.setProgram(program);
 
             this.geometry.setGeometry(geometry);
@@ -168,7 +182,7 @@
 
                     // pvm matrix
                     case "u_Projection":
-                        if (object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                        if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
                             var projectionMat = object.orthoCamera.projectionMatrix.elements;
                         } else {
                             var projectionMat = camera.projectionMatrix.elements;
@@ -177,7 +191,7 @@
                         uniform.setValue(projectionMat);
                         break;
                     case "u_View":
-                        if (object.type === zen3d.OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
+                        if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
                             var viewMatrix = object.orthoCamera.viewMatrix.elements;
                         } else {
                             var viewMatrix = camera.viewMatrix.elements;
@@ -345,15 +359,15 @@
             }
 
             // boneMatrices
-            if(object.type === zen3d.OBJECT_TYPE.SKINNED_MESH) {
+            if(object.type === OBJECT_TYPE.SKINNED_MESH) {
                 this.uploadSkeleton(uniforms, object, program.id);
             }
 
-            if(object.type === zen3d.OBJECT_TYPE.SPRITE) {
+            if(object.type === OBJECT_TYPE.SPRITE) {
                 this.uploadSpriteUniform(uniforms, object, camera, scene.fog);
             }
             
-            if(object.type === zen3d.OBJECT_TYPE.PARTICLE) {
+            if(object.type === OBJECT_TYPE.PARTICLE) {
                 this.uploadParticlesUniform(uniforms, object, camera);
             }
 
@@ -379,7 +393,7 @@
             viewport.z = Math.floor(viewport.z);
             viewport.w = Math.floor(viewport.w);
 
-            if(object.type === zen3d.OBJECT_TYPE.CANVAS2D) {
+            if(object.type === OBJECT_TYPE.CANVAS2D) {
                 if(object.isScreenCanvas) {
                     object.setRenderViewport(viewport.x, viewport.y, viewport.z, viewport.w);
                     state.viewport(object.viewport.x, object.viewport.y, object.viewport.z, object.viewport.w);
@@ -497,13 +511,13 @@
             if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
                 if(skeleton.boneTexture === undefined) {
                     var size = Math.sqrt(skeleton.bones.length * 4);
-                    size = zen3d.nextPowerOfTwo(Math.ceil(size));
+                    size = nextPowerOfTwo(Math.ceil(size));
                     size = Math.max(4, size);
 
                     var boneMatrices = new Float32Array(size * size * 4);
                     boneMatrices.set(skeleton.boneMatrices);
 
-                    var boneTexture = new zen3d.TextureData(boneMatrices, size, size);
+                    var boneTexture = new TextureData(boneMatrices, size, size);
 
                     skeleton.boneMatrices = boneMatrices;
                     skeleton.boneTexture = boneTexture;
@@ -675,9 +689,9 @@
     }
 
     var scale = []; // for sprite scale upload
-    var spritePosition = new zen3d.Vector3();
-    var spriteRotation = new zen3d.Quaternion();
-    var spriteScale = new zen3d.Vector3();
+    var spritePosition = new Vector3();
+    var spriteRotation = new Quaternion();
+    var spriteScale = new Vector3();
 
     WebGLCore.prototype.uploadSpriteUniform = function(uniforms, sprite, camera, fog) {
         var gl = this.gl;
@@ -691,13 +705,13 @@
         if (fog) {
             uniforms.fogColor.setValue(fog.color.r, fog.color.g, fog.color.b);
 
-            if (fog.fogType === zen3d.FOG_TYPE.NORMAL) {
+            if (fog.fogType === FOG_TYPE.NORMAL) {
                 uniforms.fogNear.setValue(fog.near);
                 uniforms.fogFar.setValue(fog.far);
 
                 uniforms.fogType.setValue(1);
                 sceneFogType = 1;
-            } else if (fog.fogType === zen3d.FOG_TYPE.EXP2) {
+            } else if (fog.fogType === FOG_TYPE.EXP2) {
                 uniforms.fogDensity.setValue(fog.density);
                 uniforms.fogType.setValue(2);
                 sceneFogType = 2;

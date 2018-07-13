@@ -82,7 +82,7 @@
      * Canvas2D
      */
     var Canvas2D = function(width, height, isScreenCanvas, screenMatchMode) {
-        Canvas2D.superClass.constructor.call(this);
+        zen3d.Object3D.call(this);
 
         this.type = zen3d.OBJECT_TYPE.CANVAS2D;
 
@@ -128,7 +128,8 @@
         this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix); // update view matrix
     }
 
-    zen3d.inherit(Canvas2D, zen3d.Object3D);
+    Canvas2D.prototype = Object.create(zen3d.Object3D.prototype);
+    Canvas2D.prototype.constructor = Canvas2D;
 
     Object.defineProperties(Canvas2D.prototype, {
         isScreenCanvas: {
@@ -305,7 +306,7 @@
 
     // override
     Canvas2D.prototype.updateMatrix = function() {
-        Canvas2D.superClass.updateMatrix.call(this);
+        zen3d.Object3D.prototype.updateMatrix.call(this);
 
         this.sprites = [];
 

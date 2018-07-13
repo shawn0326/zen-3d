@@ -1,7 +1,7 @@
 (function() {
 
     var ShaderPass = function(shader, textureID) {
-        ShaderPass.superClass.constructor.call(this);
+        zen3d.Pass.call(this);
 
         this.textureID = ( textureID !== undefined ) ? textureID : "tDiffuse";
 
@@ -21,7 +21,8 @@
         scene.add(plane);
     }
 
-    zen3d.inherit(ShaderPass, zen3d.Pass);
+    ShaderPass.prototype = Object.create(zen3d.Pass.prototype);
+    ShaderPass.prototype.constructor = ShaderPass;
 
     ShaderPass.prototype.render = function(renderer, readBuffer, writeBuffer) {
         this.uniforms[this.textureID] = readBuffer.texture;
@@ -34,4 +35,5 @@
     }
 
     zen3d.ShaderPass = ShaderPass;
+
 })();

@@ -1,17 +1,25 @@
 (function() {
+
+    // imports
+    var RenderTargetBase = zen3d.RenderTargetBase;
+    var Texture2D = zen3d.Texture2D;
+
     /**
      * RenderTarget2D Class
      * @class
      */
-    var RenderTarget2D = function(width, height) {
-        RenderTarget2D.superClass.constructor.call(this, width, height);
+    function RenderTarget2D(width, height) {
+        RenderTargetBase.call(this, width, height);
 
-        this.texture = new zen3d.Texture2D();
+        this.texture = new Texture2D();
 
         this.depthTexture = null;
     }
 
-    zen3d.inherit(RenderTarget2D, zen3d.RenderTargetBase);
+    RenderTarget2D.prototype = Object.create(RenderTargetBase.prototype);
+    RenderTarget2D.prototype.constructor = RenderTarget2D;
 
+    // exports
     zen3d.RenderTarget2D = RenderTarget2D;
+
 })();

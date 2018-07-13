@@ -37,7 +37,7 @@
         return ext;
     }
 
-    var WebGLCapabilities = function(gl) {
+    function WebGLCapabilities(gl) {
         this.version = parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]);
 
         this.precision = "highp";
@@ -71,5 +71,7 @@
         var ext = getExtension(gl, "WEBGL_depth_texture");
     }
 
+    // exports
     zen3d.WebGLCapabilities = WebGLCapabilities;
+
 })();

@@ -1,6 +1,7 @@
 (function() {
+
     var RenderPass = function(scene, camera) {
-        RenderPass.superClass.constructor.call(this);
+        zen3d.Pass.call(this);
 
         this.scene = scene;
     	this.camera = camera;
@@ -8,7 +9,8 @@
     	this.needsSwap = false;
     }
 
-    zen3d.inherit(RenderPass, zen3d.Pass);
+    RenderPass.prototype = Object.create(zen3d.Pass.prototype);
+    RenderPass.prototype.constructor = RenderPass;
 
     RenderPass.prototype.render = function(renderer, readBuffer, writeBuffer) {
 
@@ -17,4 +19,5 @@
     }
 
     zen3d.RenderPass = RenderPass;
+
 })();

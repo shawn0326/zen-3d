@@ -1,4 +1,5 @@
 (function() {
+
     /**
      * SkyBox
      * @class
@@ -14,12 +15,14 @@
         material.side = zen3d.DRAW_SIDE.BACK;
         material.cubeMap = cubeTexture;
 
-        SkyBox.superClass.constructor.call(this, geometry, material);
+        SkyBox.prototype.call(this, geometry, material);
 
         this.frustumCulled = false;
     }
 
-    zen3d.inherit(SkyBox, zen3d.Mesh);
+    SkyBox.prototype = Object.create(zen3d.Mesh.prototype);
+    SkyBox.prototype.constructor = SkyBox;
 
     zen3d.SkyBox = SkyBox;
+
 })();

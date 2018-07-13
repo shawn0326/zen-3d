@@ -1,5 +1,10 @@
 (function() {
 
+    // imports
+    var WebGLUniform = zen3d.WebGLUniform;
+    var WebGLAttribute = zen3d.WebGLAttribute;
+    var generateUUID = zen3d.generateUUID;
+
     function addLineNumbers( string ) {
 
     	var lines = string.split( '\n' );
@@ -64,7 +69,7 @@
         for (var i = 0; i < totalUniforms; i++) {
             var uniformData = gl.getActiveUniform(program, i);
             var name = uniformData.name;
-            var uniform = new zen3d.WebGLUniform(gl, program, uniformData);
+            var uniform = new WebGLUniform(gl, program, uniformData);
             uniforms[name] = uniform;
         }
 
@@ -82,7 +87,7 @@
         for (var i = 0; i < totalAttributes; i++) {
             var attribData = gl.getActiveAttrib(program, i);
             var name = attribData.name;
-            var attribute = new zen3d.WebGLAttribute(gl, program, attribData);
+            var attribute = new WebGLAttribute(gl, program, attribData);
             attributes[name] = attribute;
         }
 
@@ -93,9 +98,9 @@
      * WebGL Program
      * @class Program
      */
-    var WebGLProgram = function(gl, vshader, fshader) {
+    function WebGLProgram(gl, vshader, fshader) {
 
-        this.uuid = zen3d.generateUUID();
+        this.uuid = generateUUID();
 
         // vertex shader source
         this.vshaderSource = vshader;

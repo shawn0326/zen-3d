@@ -1,7 +1,12 @@
 (function() {
+
+    // imports
     var WEBGL_TEXTURE_FILTER = zen3d.WEBGL_TEXTURE_FILTER;
     var WEBGL_TEXTURE_WRAP = zen3d.WEBGL_TEXTURE_WRAP;
+    var WEBGL_PIXEL_TYPE = zen3d.WEBGL_PIXEL_TYPE;
     var isWeb = zen3d.isWeb;
+    var isPowerOfTwo = zen3d.isPowerOfTwo;
+    var nearestPowerOfTwo = zen3d.nearestPowerOfTwo;
 
     function textureNeedsPowerOfTwo(texture) {
         if (texture.wrapS !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE || texture.wrapT !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE) return true;
@@ -18,19 +23,16 @@
         return WEBGL_TEXTURE_FILTER.LINEAR;
     }
 
-    var _isPowerOfTwo = zen3d.isPowerOfTwo;
-    var _nearestPowerOfTwo = zen3d.nearestPowerOfTwo;
-
-    function isPowerOfTwo(image) {
-        return _isPowerOfTwo(image.width) && _isPowerOfTwo(image.height);
+    function _isPowerOfTwo(image) {
+        return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
     }
 
     function makePowerOf2(image) {
         if (isWeb && (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement)) {
 
             var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
-            canvas.width = _nearestPowerOfTwo(image.width);
-            canvas.height = _nearestPowerOfTwo(image.height);
+            canvas.width = nearestPowerOfTwo(image.width);
+            canvas.height = nearestPowerOfTwo(image.height);
 
             var context = canvas.getContext('2d');
             context.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -71,7 +73,7 @@
         return image;
     }
 
-    var WebGLTexture = function(gl, state, properties, capabilities) {
+    function WebGLTexture(gl, state, properties, capabilities) {
         this.gl = gl;
 
         this.state = state;
@@ -99,11 +101,11 @@
 
             var image = clampToMaxSize(texture.image, this.capabilities.maxTextureSize);
 
-            if (textureNeedsPowerOfTwo(texture) && isPowerOfTwo(image) === false) {
+            if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
                 image = makePowerOf2(image);
             }
 
-            var isPowerOfTwoImage = isPowerOfTwo(image);
+            var isPowerOfTwoImage = _isPowerOfTwo(image);
 
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, isPowerOfTwoImage);
@@ -174,7 +176,7 @@
             }
 
             var image = images[0];
-            var isPowerOfTwoImage = isPowerOfTwo(image);
+            var isPowerOfTwoImage = _isPowerOfTwo(image);
 
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, isPowerOfTwoImage);
@@ -251,7 +253,7 @@
 
             state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
 
-            var isTargetPowerOfTwo = isPowerOfTwo(renderTarget);
+            var isTargetPowerOfTwo = _isPowerOfTwo(renderTarget);
 
             this.setTextureParameters(renderTarget.texture, isTargetPowerOfTwo);
 
@@ -280,11 +282,11 @@
                     pixelType = renderTarget.depthTexture.pixelType;
                     gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, renderTarget.width, renderTarget.height, 0, pixelFormat, pixelType, null);
 
-                    if ( pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT || pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT ) {
+                    if ( pixelType === WEBGL_PIXEL_TYPE.UNSIGNED_SHORT || pixelType === WEBGL_PIXEL_TYPE.UNSIGNED_INT ) {
 
                         gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
             
-                    } else if ( pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8 ) {
+                    } else if ( pixelType === WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8 ) {
             
                         gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
             
@@ -352,7 +354,7 @@
 
             state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
 
-            var isTargetPowerOfTwo = isPowerOfTwo(renderTarget);
+            var isTargetPowerOfTwo = _isPowerOfTwo(renderTarget);
 
             this.setTextureParameters(renderTarget.texture, isTargetPowerOfTwo);
 
@@ -400,7 +402,7 @@
         var state = this.state;
         var texture = renderTarget.texture;
 
-        if (texture.generateMipmaps && isPowerOfTwo(renderTarget) &&
+        if (texture.generateMipmaps && _isPowerOfTwo(renderTarget) &&
             texture.minFilter !== gl.NEAREST &&
             texture.minFilter !== gl.LINEAR) {
 
@@ -484,5 +486,7 @@
         }
     }
 
+    // exports
     zen3d.WebGLTexture = WebGLTexture;
+
 })();
