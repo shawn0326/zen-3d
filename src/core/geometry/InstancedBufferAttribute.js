@@ -1,25 +1,19 @@
-(function() {
-    
-    // imports
-    var BufferAttribute = zen3d.BufferAttribute;
+import {BufferAttribute}  from './BufferAttribute.js';
 
-    function InstancedBufferAttribute(array, itemSize, meshPerAttribute) {
+function InstancedBufferAttribute(array, itemSize, meshPerAttribute) {
 
-        BufferAttribute.call( this, array, itemSize );
+    BufferAttribute.call( this, array, itemSize );
 
-        this.meshPerAttribute = meshPerAttribute || 1;
+    this.meshPerAttribute = meshPerAttribute || 1;
 
-    }
+}
 
-    InstancedBufferAttribute.prototype = Object.assign( Object.create( BufferAttribute.prototype ), {
+InstancedBufferAttribute.prototype = Object.assign( Object.create( BufferAttribute.prototype ), {
 
-        constructor: InstancedBufferAttribute,
+    constructor: InstancedBufferAttribute,
 
-        isInstancedBufferAttribute: true
-    
-    });
+    isInstancedBufferAttribute: true
 
-    // exports
-    zen3d.InstancedBufferAttribute = InstancedBufferAttribute;
+});
 
-})();
+export {InstancedBufferAttribute};

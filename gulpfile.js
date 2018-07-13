@@ -17,8 +17,8 @@ var outputName = "zen3d";
 // src of files
 var filesSrc = [
 
-    "base.js",
-    "const.js",
+    "core/base.js",
+    "core/const.js",
 
     // math
     "core/math/Euler.js",

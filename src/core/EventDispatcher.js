@@ -1,73 +1,68 @@
-(function() {
+/**
+ * EventDispatcher Class
+ **/
+function EventDispatcher() {
+    this.eventMap = {};
+}
+
+Object.assign(EventDispatcher.prototype, {
 
     /**
-     * EventDispatcher Class
+     * add a event listener
      **/
-    function EventDispatcher() {
-        this.eventMap = {};
-    }
+    addEventListener: function(type, listener, thisObject) {
+        var list = this.eventMap[type];
 
-    EventDispatcher.prototype = Object.assign(EventDispatcher.prototype, {
-
-        /**
-         * add a event listener
-         **/
-        addEventListener: function(type, listener, thisObject) {
-            var list = this.eventMap[type];
-    
-            if(!list) {
-                list = this.eventMap[type] = [];
-            }
-    
-            list.push({listener: listener, thisObject: thisObject || this});
-        },
-
-        /**
-         * remove a event listener
-         **/
-        removeEventListener: function(type, listener, thisObject) {
-            var list = this.eventMap[type];
-    
-            if(!list) {
-                return;
-            }
-    
-            for(var i = 0, len = list.length; i < len; i++) {
-                var bin = list[i];
-                if(bin.listener == listener && bin.thisObject == (thisObject || this)) {
-                    list.splice(i, 1);
-                    break;
-                }
-            }
-        },
-
-        /**
-         * dispatch a event
-         **/
-        dispatchEvent: function(event) {
-            event.target = this;
-            this.notifyListener(event);
-        },
-
-        /**
-         * notify listener
-         **/
-        notifyListener: function(event) {
-            var list = this.eventMap[event.type];
-    
-            if(!list) {
-                return;
-            }
-    
-            for(var i = 0, len = list.length; i < len; i++) {
-                var bin = list[i];
-                bin.listener.call(bin.thisObject, event);
-            }
+        if(!list) {
+            list = this.eventMap[type] = [];
         }
 
-    });
+        list.push({listener: listener, thisObject: thisObject || this});
+    },
 
-    // exports
-    zen3d.EventDispatcher = EventDispatcher;
+    /**
+     * remove a event listener
+     **/
+    removeEventListener: function(type, listener, thisObject) {
+        var list = this.eventMap[type];
 
-})();
+        if(!list) {
+            return;
+        }
+
+        for(var i = 0, len = list.length; i < len; i++) {
+            var bin = list[i];
+            if(bin.listener == listener && bin.thisObject == (thisObject || this)) {
+                list.splice(i, 1);
+                break;
+            }
+        }
+    },
+
+    /**
+     * dispatch a event
+     **/
+    dispatchEvent: function(event) {
+        event.target = this;
+        this.notifyListener(event);
+    },
+
+    /**
+     * notify listener
+     **/
+    notifyListener: function(event) {
+        var list = this.eventMap[event.type];
+
+        if(!list) {
+            return;
+        }
+
+        for(var i = 0, len = list.length; i < len; i++) {
+            var bin = list[i];
+            bin.listener.call(bin.thisObject, event);
+        }
+    }
+
+});
+
+export {EventDispatcher};

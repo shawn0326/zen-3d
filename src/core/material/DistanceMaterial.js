@@ -1,27 +1,22 @@
-(function() {
+import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
+import {Material} from './Material.js';
 
-    // imports
-    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
-    var BLEND_TYPE = zen3d.BLEND_TYPE;
-    var Material = zen3d.Material;
+/**
+ * DistanceMaterial
+ * @class
+ */
+function DistanceMaterial() {
+    Material.call(this);
 
-    /**
-     * DistanceMaterial
-     * @class
-     */
-    function DistanceMaterial() {
-        Material.call(this);
+    this.type = MATERIAL_TYPE.DISTANCE;
 
-        this.type = MATERIAL_TYPE.DISTANCE;
+    this.blending = BLEND_TYPE.NONE;
+}
 
-        this.blending = BLEND_TYPE.NONE;
-    }
+DistanceMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    DistanceMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+    constructor: DistanceMaterial
 
-        constructor: DistanceMaterial
+});
 
-    });
-
-    zen3d.DistanceMaterial = DistanceMaterial;
-})();
+export {DistanceMaterial};

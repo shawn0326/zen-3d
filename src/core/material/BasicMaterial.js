@@ -1,26 +1,20 @@
-(function() {
+import {MATERIAL_TYPE} from '../const.js';
+import {Material} from './Material.js';
 
-    // imports
-    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
-    var Material = zen3d.Material;
+/**
+ * BasicMaterial
+ * @class
+ */
+function BasicMaterial() {
+    Material.call(this);
 
-    /**
-     * BasicMaterial
-     * @class
-     */
-    function BasicMaterial() {
-        Material.call(this);
+    this.type = MATERIAL_TYPE.BASIC;
+}
 
-        this.type = MATERIAL_TYPE.BASIC;
-    }
+BasicMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    BasicMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+    constructor: BasicMaterial
 
-        constructor: BasicMaterial
+});
 
-    });
-
-    // exports
-    zen3d.BasicMaterial = BasicMaterial;
-
-})();
+export {BasicMaterial};

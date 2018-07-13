@@ -1,25 +1,19 @@
-(function() {
+import {Geometry} from './Geometry.js';
 
-    // imports
-    var Geometry = zen3d.Geometry;
+function InstancedGeometry() {
 
-    function InstancedGeometry() {
+    Geometry.call( this );
 
-        Geometry.call( this );
+    this.maxInstancedCount = undefined;
 
-        this.maxInstancedCount = undefined;
+}
 
-    }
+InstancedGeometry.prototype = Object.assign( Object.create( Geometry.prototype ), {
 
-    InstancedGeometry.prototype = Object.assign( Object.create( Geometry.prototype ), {
+    constructor: InstancedGeometry,
 
-        constructor: InstancedGeometry,
+    isInstancedGeometry: true
 
-        isInstancedGeometry: true
-    
-    });
+});
 
-    // exports
-    zen3d.InstancedGeometry = InstancedGeometry;
-    
-})();
+export {InstancedGeometry};

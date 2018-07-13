@@ -26,14 +26,15 @@
         "gulp-concat": "^2.6.1",
         "gulp-notify": "^3.0.0",
         "gulp-qunit": "^1.5.0",
-        "gulp-rename": "^1.2.2",
+        "gulp-rename": "^1.3.0",
         "gulp-uglify": "^3.0.0",
         "gulp-watch": "^4.3.11",
-        "live-server": "^1.2.0"
+        "live-server": "^1.2.0",
+        "rollup": "^0.60.4"
     },
     "scripts": {
         "default": "gulp",
-        "b": "gulp build",
+        "b": "./node_modules/.bin/rollup -i ./src/main.js -o ./build/zen3d.js -n zen3d -f umd",
         "build": "gulp build",
         "watch": "gulp watch",
         "extension": "gulp extension",

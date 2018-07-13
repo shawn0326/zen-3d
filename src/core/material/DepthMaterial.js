@@ -1,31 +1,24 @@
-(function() {
+import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
+import {Material} from './Material.js';
 
-    // imports
-    var MATERIAL_TYPE = zen3d.MATERIAL_TYPE;
-    var BLEND_TYPE = zen3d.BLEND_TYPE;
-    var Material = zen3d.Material;
+/**
+ * DepthMaterial
+ * @class
+ */
+function DepthMaterial() {
+    Material.call(this);
 
-    /**
-     * DepthMaterial
-     * @class
-     */
-    function DepthMaterial() {
-        Material.call(this);
+    this.type = MATERIAL_TYPE.DEPTH;
 
-        this.type = MATERIAL_TYPE.DEPTH;
+    this.blending = BLEND_TYPE.NONE;
 
-        this.blending = BLEND_TYPE.NONE;
+    this.packToRGBA = false;
+}
 
-        this.packToRGBA = false;
-    }
+DepthMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    DepthMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+    constructor: DepthMaterial
 
-        constructor: DepthMaterial
+});
 
-    });
-
-    // exports
-    zen3d.DepthMaterial = DepthMaterial;
-
-})();
+export {DepthMaterial};
