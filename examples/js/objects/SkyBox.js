@@ -15,7 +15,7 @@
         material.side = zen3d.DRAW_SIDE.BACK;
         material.cubeMap = cubeTexture;
 
-        SkyBox.prototype.call(this, geometry, material);
+        zen3d.Mesh.call(this, geometry, material);
 
         this.frustumCulled = false;
     }

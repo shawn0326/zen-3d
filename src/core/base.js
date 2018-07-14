@@ -42,7 +42,7 @@ export var generateUUID = (function () {
  * is mobile
  */
 export var isMobile = (function () {
-    if (!win["navigator"]) {
+    if (!window.navigator) {
         return true;
     }
     var ua = navigator.userAgent.toLowerCase();

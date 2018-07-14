@@ -6,7 +6,7 @@ function Box3(min, max) {
     this.max = (max !== undefined) ? max : new Vector3(-Infinity, -Infinity, -Infinity);
 }
 
-Object.assign(Box3.prototypes, {
+Object.assign(Box3.prototype, {
 
     set: function(min, max) {
         this.min.copy(min);

@@ -82,7 +82,7 @@
      * Canvas2D
      */
     var Canvas2D = function(width, height, isScreenCanvas, screenMatchMode) {
-        Canvas2D.superClass.constructor.call(this);
+        zen3d.Object3D.call(this);
 
         this.type = zen3d.OBJECT_TYPE.CANVAS2D;
 
@@ -128,7 +128,8 @@
         this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix); // update view matrix
     }
 
-    zen3d.inherit(Canvas2D, zen3d.Object3D);
+    Canvas2D.prototype = Object.create(zen3d.Object3D.prototype);
+    Canvas2D.prototype.constructor = Canvas2D;
 
     Object.defineProperties(Canvas2D.prototype, {
         isScreenCanvas: {
@@ -305,7 +306,7 @@
 
     // override
     Canvas2D.prototype.updateMatrix = function() {
-        Canvas2D.superClass.updateMatrix.call(this);
+        zen3d.Object3D.prototype.updateMatrix.call(this);
 
         this.sprites = [];
 
@@ -338,12 +339,13 @@
     zen3d.Canvas2D = Canvas2D;
 })();
 (function() {
+
     /**
      * Canvas2DMaterial
      * @class
      */
     var Canvas2DMaterial = function() {
-        Canvas2DMaterial.superClass.constructor.call(this);
+        zen3d.Material.call(this);
 
         this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
 
@@ -352,7 +354,8 @@
         this.transparent = true;
     }
 
-    zen3d.inherit(Canvas2DMaterial, zen3d.Material);
+    Canvas2DMaterial.prototype = Object.create(zen3d.Material.prototype);
+    Canvas2DMaterial.prototype.constructor = Canvas2DMaterial;
 
     zen3d.Canvas2DMaterial = Canvas2DMaterial;
 })();
@@ -458,13 +461,16 @@
     zen3d.Object2D = Object2D;
 })();
 (function() {
+
     var Sprite2D = function() {
-        Sprite2D.superClass.constructor.call(this);
+        zen3d.Object2D.call(this);
 
         this.texture = null;
     }
 
-    zen3d.inherit(Sprite2D, zen3d.Object2D);
+    Sprite2D.prototype = Object.create(zen3d.Object2D.prototype);
+    Sprite2D.prototype.constructor = Sprite2D;
 
     zen3d.Sprite2D = Sprite2D;
+    
 })();

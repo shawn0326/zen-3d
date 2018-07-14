@@ -1,27 +1,21 @@
-(function() {
+import {OBJECT_TYPE} from '../const.js';
+import {Object3D} from './Object3D.js';
 
-    // imports
-    var OBJECT_TYPE = zen3d.OBJECT_TYPE;
-    var Object3D = zen3d.Object3D;
+/**
+ * Points
+ * @class
+ */
+function Points(geometry, material) {
+    Object3D.call(this);
 
-    /**
-     * Points
-     * @class
-     */
-    function Points(geometry, material) {
-        Object3D.call(this);
+    this.geometry = geometry;
 
-        this.geometry = geometry;
+    this.material = material;
 
-        this.material = material;
+    this.type = OBJECT_TYPE.POINT;
+}
 
-        this.type = OBJECT_TYPE.POINT;
-    }
+Points.prototype = Object.create(Object3D.prototype);
+Points.prototype.constructor = Points;
 
-    Points.prototype = Object.create(Object3D.prototype);
-    Points.prototype.constructor = Points;
-
-    // exports
-    zen3d.Points = Points;
-    
-})();
+export {Points};

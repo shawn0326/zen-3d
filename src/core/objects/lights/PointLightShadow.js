@@ -1,98 +1,92 @@
-(function() {
+import {WEBGL_TEXTURE_FILTER} from '../../const.js';
+import {LightShadow} from './LightShadow.js';
+import {RenderTargetCube} from '../../render/RenderTargetCube.js';
+import {Vector3} from '../../math/Vector3.js';
 
-    // imports
-    var LightShadow = zen3d.LightShadow;
-    var RenderTargetCube = zen3d.RenderTargetCube;
-    var Vector3 = zen3d.Vector3;
-    var WEBGL_TEXTURE_FILTER = zen3d.WEBGL_TEXTURE_FILTER;
+/**
+ * PointLightShadow
+ * @class
+ */
+function PointLightShadow() {
+    LightShadow.call(this);
+
+    this.renderTarget = new RenderTargetCube(this.mapSize.x, this.mapSize.y);
+
+    var map = this.renderTarget.texture;
+    map.generateMipmaps = false;
+    map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+    this.map = map;
+
+    this._targets = [
+        new Vector3(1, 0, 0), new Vector3(-1, 0, 0), new Vector3(0, 1, 0),
+        new Vector3(0, -1, 0), new Vector3(0, 0, 1), new Vector3(0, 0, -1)
+    ];
+
+    this._ups = [
+        new Vector3(0, -1, 0), new Vector3(0, -1, 0), new Vector3(0, 0, 1),
+        new Vector3(0, 0, -1), new Vector3(0, -1, 0), new Vector3(0, -1, 0)
+    ];
+
+    this._lookTarget = new Vector3();
+}
+
+PointLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
+
+    constructor: PointLightShadow,
 
     /**
-     * PointLightShadow
-     * @class
+     * update by light
      */
-    function PointLightShadow() {
-        LightShadow.call(this);
+    update: function(light, face) {
+        this._updateCamera(light, face);
+        this._updateMatrix();
 
-        this.renderTarget = new RenderTargetCube(this.mapSize.x, this.mapSize.y);
+        // TODO check size change, remove this from loop
+        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+            this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
+        }
+    },
 
-        var map = this.renderTarget.texture;
-        map.generateMipmaps = false;
-        map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-        this.map = map;
+    /**
+     * update camera matrix by light
+     */
+    _updateCamera: function(light, face) {
+        var camera = this.camera;
+        var lookTarget = this._lookTarget;
+        var targets = this._targets;
+        var ups = this._ups;
 
-        this._targets = [
-            new Vector3(1, 0, 0), new Vector3(-1, 0, 0), new Vector3(0, 1, 0),
-            new Vector3(0, -1, 0), new Vector3(0, 0, 1), new Vector3(0, 0, -1)
-        ];
+        // set camera position and lookAt(rotation)
+        camera.position.setFromMatrixPosition(light.worldMatrix);
+        lookTarget.set(targets[face].x + camera.position.x, targets[face].y + camera.position.y, targets[face].z + camera.position.z);
+        camera.lookAt(lookTarget, ups[face]);
 
-        this._ups = [
-            new Vector3(0, -1, 0), new Vector3(0, -1, 0), new Vector3(0, 0, 1),
-            new Vector3(0, 0, -1), new Vector3(0, -1, 0), new Vector3(0, -1, 0)
-        ];
+        // update view matrix
+        camera.updateMatrix();
 
-        this._lookTarget = new Vector3();
+        // update projection
+        camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);
+    },
+
+    /**
+     * update shadow matrix
+     */
+    _updateMatrix: function() {
+        var matrix = this.matrix;
+        var camera = this.camera;
+
+        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
+        matrix.set(
+            0.5, 0.0, 0.0, 0.5,
+            0.0, 0.5, 0.0, 0.5,
+            0.0, 0.0, 0.5, 0.5,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        matrix.multiply(camera.projectionMatrix);
+        matrix.multiply(camera.viewMatrix);
     }
 
-    PointLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
+});
 
-        constructor: PointLightShadow,
-
-        /**
-         * update by light
-         */
-        update: function(light, face) {
-            this._updateCamera(light, face);
-            this._updateMatrix();
-    
-            // TODO check size change, remove this from loop
-            if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
-                this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
-            }
-        },
-
-        /**
-         * update camera matrix by light
-         */
-        _updateCamera: function(light, face) {
-            var camera = this.camera;
-            var lookTarget = this._lookTarget;
-            var targets = this._targets;
-            var ups = this._ups;
-    
-            // set camera position and lookAt(rotation)
-            camera.position.setFromMatrixPosition(light.worldMatrix);
-            lookTarget.set(targets[face].x + camera.position.x, targets[face].y + camera.position.y, targets[face].z + camera.position.z);
-            camera.lookAt(lookTarget, ups[face]);
-    
-            // update view matrix
-            camera.updateMatrix();
-    
-            // update projection
-            camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);
-        },
-
-        /**
-         * update shadow matrix
-         */
-        _updateMatrix: function() {
-            var matrix = this.matrix;
-            var camera = this.camera;
-    
-            // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
-            matrix.set(
-                0.5, 0.0, 0.0, 0.5,
-                0.0, 0.5, 0.0, 0.5,
-                0.0, 0.0, 0.5, 0.5,
-                0.0, 0.0, 0.0, 1.0
-            );
-    
-            matrix.multiply(camera.projectionMatrix);
-            matrix.multiply(camera.viewMatrix);
-        }
-
-    });
-
-    // exports
-    zen3d.PointLightShadow = PointLightShadow;
-
-})();
+export {PointLightShadow};

@@ -1,135 +1,131 @@
-(function() {
+import {generateUUID} from '../../base.js';
+import {WebGLUniform} from './WebGLUniform.js';
+import {WebGLAttribute} from './WebGLAttribute.js';
 
-    // imports
-    var WebGLUniform = zen3d.WebGLUniform;
-    var WebGLAttribute = zen3d.WebGLAttribute;
-    var generateUUID = zen3d.generateUUID;
+function addLineNumbers( string ) {
 
-    function addLineNumbers( string ) {
+    var lines = string.split( '\n' );
 
-    	var lines = string.split( '\n' );
+    for ( var i = 0; i < lines.length; i ++ ) {
 
-    	for ( var i = 0; i < lines.length; i ++ ) {
-
-    		lines[ i ] = ( i + 1 ) + ': ' + lines[ i ];
-
-    	}
-
-    	return lines.join( '\n' );
+        lines[ i ] = ( i + 1 ) + ': ' + lines[ i ];
 
     }
 
-    /**
-     * create a shader
-     **/
-    function loadShader(gl, type, source) {
-        // create a shader object
-        var shader = gl.createShader(type);
-        // bind the shader source, source must be string type?
-        gl.shaderSource(shader, source);
-        // compile shader
-        gl.compileShader(shader);
-        // if compile failed, log error
-        var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-        if (!compiled) {
-            console.warn("shader not compiled!", gl.getShaderInfoLog(shader), addLineNumbers(source));
-        }
+    return lines.join( '\n' );
 
-        return shader;
+}
+
+/**
+ * create a shader
+ **/
+function loadShader(gl, type, source) {
+    // create a shader object
+    var shader = gl.createShader(type);
+    // bind the shader source, source must be string type?
+    gl.shaderSource(shader, source);
+    // compile shader
+    gl.compileShader(shader);
+    // if compile failed, log error
+    var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    if (!compiled) {
+        console.warn("shader not compiled!", gl.getShaderInfoLog(shader), addLineNumbers(source));
     }
 
-    /**
-     * create a WebGL program
-     **/
-    function createWebGLProgram(gl, vertexShader, fragmentShader) {
-        // create a program object
-        var program = gl.createProgram();
-        // attach shaders to program
-        gl.attachShader(program, vertexShader);
-        gl.attachShader(program, fragmentShader);
-        // link vertex shader and fragment shader
-        gl.linkProgram(program);
-        // if link failed, log error
-        var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-        if(!linked) {
-            console.warn("program not linked!", gl.getProgramInfoLog(program));
-        }
+    return shader;
+}
 
-        return program;
+/**
+ * create a WebGL program
+ **/
+function createWebGLProgram(gl, vertexShader, fragmentShader) {
+    // create a program object
+    var program = gl.createProgram();
+    // attach shaders to program
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    // link vertex shader and fragment shader
+    gl.linkProgram(program);
+    // if link failed, log error
+    var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+    if(!linked) {
+        console.warn("program not linked!", gl.getProgramInfoLog(program));
     }
 
-    /**
-     * extract uniforms
-     */
-    function extractUniforms(gl, program) {
-        var uniforms = {};
+    return program;
+}
 
-        var totalUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+/**
+ * extract uniforms
+ */
+function extractUniforms(gl, program) {
+    var uniforms = {};
 
-        for (var i = 0; i < totalUniforms; i++) {
-            var uniformData = gl.getActiveUniform(program, i);
-            var name = uniformData.name;
-            var uniform = new WebGLUniform(gl, program, uniformData);
-            uniforms[name] = uniform;
-        }
+    var totalUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
 
-        return uniforms;
+    for (var i = 0; i < totalUniforms; i++) {
+        var uniformData = gl.getActiveUniform(program, i);
+        var name = uniformData.name;
+        var uniform = new WebGLUniform(gl, program, uniformData);
+        uniforms[name] = uniform;
     }
 
-    /**
-     * extract attributes
-     */
-    function extractAttributes(gl, program) {
-        var attributes = {};
+    return uniforms;
+}
 
-        var totalAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+/**
+ * extract attributes
+ */
+function extractAttributes(gl, program) {
+    var attributes = {};
 
-        for (var i = 0; i < totalAttributes; i++) {
-            var attribData = gl.getActiveAttrib(program, i);
-            var name = attribData.name;
-            var attribute = new WebGLAttribute(gl, program, attribData);
-            attributes[name] = attribute;
-        }
+    var totalAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
 
-        return attributes;
+    for (var i = 0; i < totalAttributes; i++) {
+        var attribData = gl.getActiveAttrib(program, i);
+        var name = attribData.name;
+        var attribute = new WebGLAttribute(gl, program, attribData);
+        attributes[name] = attribute;
     }
 
-    /**
-     * WebGL Program
-     * @class Program
-     */
-    function WebGLProgram(gl, vshader, fshader) {
+    return attributes;
+}
 
-        this.uuid = generateUUID();
+/**
+ * WebGL Program
+ * @class Program
+ */
+function WebGLProgram(gl, vshader, fshader) {
 
-        // vertex shader source
-        this.vshaderSource = vshader;
+    this.uuid = generateUUID();
 
-        // fragment shader source
-        this.fshaderSource = fshader;
+    // vertex shader source
+    this.vshaderSource = vshader;
 
-        // WebGL vertex shader
-        var vertexShader = loadShader(gl, gl.VERTEX_SHADER, this.vshaderSource);
+    // fragment shader source
+    this.fshaderSource = fshader;
 
-        // WebGL fragment shader
-        var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, this.fshaderSource);
+    // WebGL vertex shader
+    var vertexShader = loadShader(gl, gl.VERTEX_SHADER, this.vshaderSource);
 
-        // program id
-        this.id = createWebGLProgram(gl, vertexShader, fragmentShader);
+    // WebGL fragment shader
+    var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, this.fshaderSource);
 
-        this.uniforms = extractUniforms(gl, this.id);
+    // program id
+    this.id = createWebGLProgram(gl, vertexShader, fragmentShader);
 
-        this.attributes = extractAttributes(gl, this.id);
+    this.uniforms = extractUniforms(gl, this.id);
 
-        // here we can delete shaders,
-        // according to the documentation: https://www.opengl.org/sdk/docs/man/html/glLinkProgram.xhtml
-        gl.deleteShader(vertexShader);
-        gl.deleteShader(fragmentShader);
-    }
+    this.attributes = extractAttributes(gl, this.id);
 
-    WebGLProgram.prototype.dispose = function(gl) {
-        gl.deleteProgram(this.id);
-    }
+    // here we can delete shaders,
+    // according to the documentation: https://www.opengl.org/sdk/docs/man/html/glLinkProgram.xhtml
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+}
 
-    zen3d.WebGLProgram = WebGLProgram;
-})();
+WebGLProgram.prototype.dispose = function(gl) {
+    gl.deleteProgram(this.id);
+}
+
+export {WebGLProgram};

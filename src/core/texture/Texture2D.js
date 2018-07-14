@@ -1,7 +1,9 @@
 import {TextureBase} from './TextureBase.js';
 import {Vector2} from '../math/Vector2.js';
 import {Matrix3} from '../math/Matrix3.js';
-import {WEBGL_TEXTURE_TYPE} from '../const.js';
+import {WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT} from '../const.js';
+import {ImageLoader} from '../loader/ImageLoader.js';
+import {TGALoader} from '../loader/TGALoader.js';
 
 /**
  * Texture2D
@@ -53,9 +55,9 @@ Texture2D.fromSrc = function(src) {
 
     var isTGA = src.search( /\.(tga)$/ ) > 0 || src.search( /^data\:image\/tga/ ) === 0;
 
-    var loader = isTGA ? new zen3d.TGALoader() : new zen3d.ImageLoader();
+    var loader = isTGA ? new TGALoader() : new ImageLoader();
     loader.load(src, function(image) {
-        texture.pixelFormat = isJPEG ? zen3d.WEBGL_PIXEL_FORMAT.RGB : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
+        texture.pixelFormat = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
         texture.image = image;
         texture.version++;
 

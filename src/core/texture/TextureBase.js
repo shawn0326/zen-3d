@@ -36,7 +36,9 @@ function TextureBase() {
     this.version = 0;
 }
 
-Object.assign(TextureBase.prototype, {
+TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
+
+    constructor: TextureBase,
 
     dispose: function() {
         this.dispatchEvent({type: 'dispose'});

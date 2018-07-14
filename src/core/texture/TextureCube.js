@@ -1,5 +1,7 @@
 import {TextureBase} from './TextureBase.js';
-import {WEBGL_TEXTURE_TYPE} from '../const.js';
+import {WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT} from '../const.js';
+import {ImageLoader} from '../loader/ImageLoader.js';
+import {TGALoader} from '../loader/TGALoader.js';
 
 /**
  * TextureCube
@@ -54,13 +56,13 @@ TextureCube.fromSrc = function(srcArray) {
             loaded();
             return;
         }
-        var loader = isTGA ? new zen3d.TGALoader() : new zen3d.ImageLoader();
+        var loader = isTGA ? new TGALoader() : new ImageLoader();
         loader.load(srcArray[count], next);
     }
     next();
 
     function loaded() {
-        texture.pixelFormat = isJPEG ? zen3d.WEBGL_PIXEL_FORMAT.RGB : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
+        texture.pixelFormat = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
         texture.version++;
         texture.dispatchEvent({type: 'onload'});
     }

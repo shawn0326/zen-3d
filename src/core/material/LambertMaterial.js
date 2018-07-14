@@ -1,5 +1,5 @@
-export {MATERIAL_TYPE} from '../const.js';
-export {Material} from './Material.js';
+import {MATERIAL_TYPE} from '../const.js';
+import {Material} from './Material.js';
 
 /**
  * LambertMaterial
