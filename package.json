@@ -32,11 +32,11 @@
         "uglify-js": "^3.0.23"
     },
     "scripts": {
-        "default": "npm run build",
-        "b": "npm run build",
+        "default": "rollup -c",
+        "b": "rollup -c",
         "build": "rollup -c",
-        "uglify": "uglifyjs build/zen3d.js -cm --preamble \"xxxxxxxxxx\" > build/zen3d.min.js",
-        "build-uglify": "rollup -c && uglifyjs ./build/zen3d.js -cm --preamble 1 > ./build/zen3d.min.js",
+        "uglify": "uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
+        "build-uglify": "rollup -c && uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
         "extension": "gulp extension",
         "example": "live-server --port=8080 --open=examples --watch=examples,build"
     }

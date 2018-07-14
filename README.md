@@ -42,14 +42,8 @@ npm install
 npm run default
 // build zen3d
 npm run build
-// watch build zen3d
-npm run watch
 // build extensions
 npm run extension
-// build shader
-npm run shader
-// run qunit test
-npm run test
 // start a server to run examples
 npm run example
 ````
