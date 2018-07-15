@@ -1,4 +1,25 @@
-(function() {
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (factory());
+}(this, (function () { 'use strict';
+
+    /**
+     * Canvas2DMaterial
+     * @class
+     */
+    function Canvas2DMaterial() {
+        zen3d.Material.call(this);
+
+        this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
+
+        this.depthWrite = false;
+
+        this.transparent = true;
+    }
+
+    Canvas2DMaterial.prototype = Object.create(zen3d.Material.prototype);
+    Canvas2DMaterial.prototype.constructor = Canvas2DMaterial;
 
     var constant = function() {
         var renderViewport = this._renderViewport;
@@ -18,7 +39,7 @@
         this._resolutionSize.set(resultW * scaleFactor, resultH * scaleFactor);
 
         this.viewport.set(resultX, resultY, resultW, resultH);
-    }
+    };
 
     var shrink = function() {
         var renderViewport = this._renderViewport;
@@ -44,7 +65,7 @@
         resultY = Math.floor((curViewH - resultH) / 2) + curViewY;
 
         this.viewport.set(resultX, resultY, resultW, resultH);
-    }
+    };
 
     var expand = function() {
         var renderViewport = this._renderViewport;
@@ -70,7 +91,7 @@
         resultY = Math.floor((curViewH - resultH) / 2) + curViewY;
 
         this.viewport.set(resultX, resultY, resultW, resultH);
-    }
+    };
 
     var SCREEN_MATCH_MODE = {
         CONSTANT: constant,
@@ -81,7 +102,7 @@
     /**
      * Canvas2D
      */
-    var Canvas2D = function(width, height, isScreenCanvas, screenMatchMode) {
+    function Canvas2D(width, height, isScreenCanvas, screenMatchMode) {
         zen3d.Object3D.call(this);
 
         this.type = zen3d.OBJECT_TYPE.CANVAS2D;
@@ -96,7 +117,7 @@
         this.geometry.setIndex([]);
 
         this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
-        this.material = new zen3d.Canvas2DMaterial();
+        this.material = new Canvas2DMaterial();
 
         this.sprites = [];
         this.drawArray = [];
@@ -150,7 +171,7 @@
         } else {
             this._size.set(width, height);
         }
-    }
+    };
 
     Canvas2D.prototype.setRenderViewport = function(x, y, w, h) {
         if(
@@ -163,7 +184,7 @@
             this._screenMatchMode.call(this);
             this._updateCamera();
         }
-    }
+    };
 
     Canvas2D.prototype.setScaleFactor = function(value) {
         if(this._scaleFactor !== value) {
@@ -171,7 +192,7 @@
             this._screenMatchMode.call(this);
             this._updateCamera();
         }
-    }
+    };
 
     Canvas2D.prototype.setScreenMatchMode = function(mode) {
         if(this._screenMatchMode !== mode) {
@@ -179,21 +200,21 @@
             this._screenMatchMode.call(this);
             this._updateCamera();
         }
-    }
+    };
 
     Canvas2D.prototype._updateCamera = function() {
         if(this._isScreenCanvas) {
             this.orthoCamera.setOrtho(-this._resolutionSize.x / 2, this._resolutionSize.x / 2, -this._resolutionSize.y / 2, this._resolutionSize.y / 2, 0, 1);
             this.orthoCamera.viewMatrix.getInverse(this.orthoCamera.worldMatrix); // update view matrix
         }
-    }
+    };
 
     /**
      * add child to canvas2d
      */
     Canvas2D.prototype.add = function(object) {
         this.children.push(object);
-    }
+    };
 
     /**
      * remove child from canvas2d
@@ -203,7 +224,7 @@
         if (index !== -1) {
             this.children.splice(index, 1);
         }
-    }
+    };
 
     var vertices = [];
     var indices = [];
@@ -302,7 +323,7 @@
             }
         }
 
-    }
+    };
 
     // override
     Canvas2D.prototype.updateMatrix = function() {
@@ -322,7 +343,7 @@
 
         // update geometry
         this.updateSprites();
-    }
+    };
 
     Canvas2D.prototype.cacheSprites = function(object) {
         var sprites = this.sprites;
@@ -332,36 +353,11 @@
         for(var i = 0, l = object.children.length; i < l; i++) {
             this.cacheSprites(object.children[i]);
         }
-    }
+    };
 
     Canvas2D.SCREEN_MATCH_MODE = SCREEN_MATCH_MODE;
 
-    zen3d.Canvas2D = Canvas2D;
-})();
-(function() {
-
-    /**
-     * Canvas2DMaterial
-     * @class
-     */
-    var Canvas2DMaterial = function() {
-        zen3d.Material.call(this);
-
-        this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
-
-        this.depthWrite = false;
-
-        this.transparent = true;
-    }
-
-    Canvas2DMaterial.prototype = Object.create(zen3d.Material.prototype);
-    Canvas2DMaterial.prototype.constructor = Canvas2DMaterial;
-
-    zen3d.Canvas2DMaterial = Canvas2DMaterial;
-})();
-
-(function() {
-    var Object2D = function() {
+    function Object2D() {
         this.width = 0;
         this.height = 0;
 
@@ -393,7 +389,7 @@
     Object2D.prototype.add = function(object) {
         this.children.push(object);
         object.parent = this;
-    }
+    };
 
     /**
      * remove child from object2d
@@ -404,14 +400,14 @@
             this.children.splice(index, 1);
         }
         object.parent = null;
-    }
+    };
 
     /**
      * get object by name
      */
     Object2D.prototype.getObjectByName = function(name) {
         return this.getObjectByProperty('name', name);
-    }
+    };
 
     /**
      * get object by property
@@ -433,7 +429,7 @@
         }
 
         return undefined;
-    }
+    };
 
     /**
      * update matrix
@@ -452,25 +448,26 @@
         for (var i = 0, l = children.length; i < l; i++) {
             children[i].updateMatrix();
         }
-    }
+    };
 
     Object2D.prototype.computeBoundingBox = function() {
         this.boundingBox.set(this.x, this.y, this.x + this.width, this.y + this.height);
-    }
+    };
 
-    zen3d.Object2D = Object2D;
-})();
-(function() {
-
-    var Sprite2D = function() {
-        zen3d.Object2D.call(this);
+    function Sprite2D() {
+        Object2D.call(this);
 
         this.texture = null;
     }
 
-    Sprite2D.prototype = Object.create(zen3d.Object2D.prototype);
+    Sprite2D.prototype = Object.create(Object2D.prototype);
     Sprite2D.prototype.constructor = Sprite2D;
 
+    zen3d = zen3d || {};
+
+    zen3d.Canvas2D = Canvas2D;
+    zen3d.Canvas2DMaterial = Canvas2DMaterial;
+    zen3d.Object2D = Object2D;
     zen3d.Sprite2D = Sprite2D;
-    
-})();
+
+})));

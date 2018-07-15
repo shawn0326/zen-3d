@@ -22,11 +22,6 @@
     "dependencies": {},
     "repository": {},
     "devDependencies": {
-        "gulp": "^3.9.1",
-        "gulp-concat": "^2.6.1",
-        "gulp-notify": "^3.0.0",
-        "gulp-rename": "^1.3.0",
-        "gulp-uglify": "^3.0.0",
         "live-server": "^1.2.0",
         "rollup": "^0.60.4",
         "uglify-js": "^3.0.23"
@@ -37,7 +32,10 @@
         "build": "rollup -c",
         "uglify": "uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
         "build-uglify": "rollup -c && uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
-        "extension": "gulp extension",
+        "build-canvas2d": "rollup ./src/extension/canvas2D/main.js -f umd -o ./build/zen3d.canvas2d.js",
+        "build-vox": "rollup ./src/extension/vox/main.js -f umd -o ./build/zen3d.vox.js",
+        "build-input": "rollup ./src/extension/input/main.js -f umd -o ./build/zen3d.input.js",
+        "extension": "npm run build-canvas2d && npm run build-vox && npm run build-input",
         "example": "live-server --port=8080 --open=examples --watch=examples,build"
     }
 }

@@ -24,7 +24,7 @@ function glsl() {
 }
 
 export default {
-	input: 'src/main.js',
+	input: 'src/core/main.js',
 	plugins: [
 		glsl()
 	],

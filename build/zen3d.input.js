@@ -1,4 +1,8 @@
-(function() {
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (factory());
+}(this, (function () { 'use strict';
 
     var _keyCodeToKeyIdentifier = {
         'TAB': 9,
@@ -57,7 +61,7 @@
      * @example
      * var keyboard = new Keyboard(window); // attach keyboard listeners to the window
      */
-    var Keyboard = function(element, options) {
+    function Keyboard(element, options) {
         options = options || {};
         this._element = null;
 
@@ -117,7 +121,7 @@
         if (this.stopPropagation) {
             event.stopPropagation();
         }
-    }
+    };
 
     Keyboard.prototype._handleKeyUp = function(event) {
         var code = event.keyCode || event.charCode;
@@ -131,7 +135,7 @@
         if (this.stopPropagation) {
             event.stopPropagation();
         }
-    }
+    };
 
     Keyboard.prototype._handleKeyPress = function(event) {
         var code = event.keyCode || event.charCode;
@@ -145,7 +149,7 @@
         if (this.stopPropagation) {
             event.stopPropagation();
         }
-    }
+    };
 
     /**
      * @function
@@ -165,7 +169,7 @@
                 this._lastmap[prop] = this._keymap[prop];
             }
         }
-    }
+    };
 
     /**
      * @function
@@ -178,7 +182,7 @@
         var id = toKeyIdentifier(key);
 
         return !!(this._keymap[id]);
-    }
+    };
 
     /**
      * @function
@@ -206,16 +210,13 @@
         return (!!!(this._keymap[id]) && !!(this._lastmap[id]));
     };
 
-    zen3d.Keyboard = Keyboard;
-})();
-(function() {
     /**
      * @name Mouse
      * @class A Mouse Device, bound to a DOM Element.
      * @description Create a new Mouse device
      * @param {Element} [element] The Element that the mouse events are attached to
      */
-    var Mouse = function(element) {
+    function Mouse(element) {
         // mouse position
         this.position = {
             x: 0,
@@ -246,7 +247,7 @@
     Mouse.prototype.disableContextMenu = function () {
         if (! this._element) return;
         this._element.addEventListener("contextmenu", this._contextMenuHandler);
-    }
+    };
 
     /**
      * @function
@@ -256,7 +257,7 @@
     Mouse.prototype.enableContextMenu = function () {
         if (! this._element) return;
         this._element.removeEventListener("contextmenu", this._contextMenuHandler);
-    }
+    };
 
     /**
      * @function
@@ -275,7 +276,7 @@
         this._element.addEventListener("mousemove", this._moveHandler, false);
         this._element.addEventListener("mousewheel", this._wheelHandler, false); // WekKit
         this._element.addEventListener("DOMMouseScroll", this._wheelHandler, false); // Gecko
-    }
+    };
 
     /**
      * @function
@@ -290,7 +291,7 @@
         this._element.removeEventListener("mousewheel", this._wheelHandler, false); // WekKit
         this._element.removeEventListener("DOMMouseScroll", this._wheelHandler, false); // Gecko
         this._element = null;
-    }
+    };
 
     /**
      * @function
@@ -304,7 +305,7 @@
         this._lastbuttons[2] = this._buttons[2];
         // set wheel to 0
         this.wheel = 0;
-    }
+    };
 
     /**
      * @function
@@ -315,7 +316,7 @@
      */
     Mouse.prototype.isPressed = function (button) {
         return this._buttons[button];
-    }
+    };
 
     /**
      * @function
@@ -326,7 +327,7 @@
      */
     Mouse.prototype.wasPressed = function (button) {
         return (this._buttons[button] && !this._lastbuttons[button]);
-    }
+    };
 
     /**
      * @function
@@ -337,22 +338,22 @@
      */
     Mouse.prototype.wasReleased = function (button) {
         return (!this._buttons[button] && this._lastbuttons[button]);
-    }
+    };
 
     Mouse.prototype._handleUp = function(event) {
         // disable released button
         this._buttons[event.button] = false;
-    }
+    };
 
     Mouse.prototype._handleDown = function(event) {
         // Store which button has affected
         this._buttons[event.button] = true;
-    }
+    };
 
     Mouse.prototype._handleMove = function(event) {
         this.position.x = event.clientX;
         this.position.y = event.clientY;
-    }
+    };
 
     Mouse.prototype._handleWheel = function(event) {
         // FF uses 'detail' and returns a value in 'no. of lines' to scroll
@@ -364,11 +365,7 @@
         } else {
             this.wheel = 0;
         }
-    }
-
-    zen3d.Mouse = Mouse;
-})();
-(function() {
+    };
 
     var TouchPhase = {
         BEGAN: "began",
@@ -376,16 +373,14 @@
         STATIONARY: "stationary",
         ENDED: "ended",
         CANCELED: "canceled"
-    }
-
-    zen3d.TouchPhase = TouchPhase;
+    };
 
     /**
      * @name TouchPoint
      * @class A Touch Point.
      * @description Create a new Touch Point
      */
-    var TouchPoint = function() {
+    function TouchPoint() {
         this.altitudeAngle = Math.PI / 2; // Value of 0 radians indicates that the stylus is parallel to the surface, pi/2 indicates that it is perpendicular.
         this.azimuthAngle = 0; // Value of 0 radians indicates that the stylus is pointed along the x-axis of the device.
         this.deltaPosition = {x: 0, y: 0}; // The position delta since last change.
@@ -426,19 +421,17 @@
         this.radius.x = touch.radiusX;
         this.radius.y = touch.radiusY;
         // this.tapCount;
-    }
+    };
 
     TouchPoint._pointPool = [];
 
     TouchPoint.create = function() {
         return this._pointPool.pop() || new TouchPoint();
-    }
+    };
 
     TouchPoint.release = function(touchPoint) {
         this._pointPool.push(touchPoint);
-    }
-
-    zen3d.TouchPoint = TouchPoint;
+    };
 
     /**
      * @name Touch
@@ -446,7 +439,7 @@
      * @description Create a new Touch
      * @param {Element} [element] The Element that the touch events are attached to
      */
-    var Touch = function(element) {
+    function Touch(element) {
         this._touchesMap = {};
         this._touches = [];
         this.touchCount = 0; // the count of touch points
@@ -478,7 +471,7 @@
         this._element.addEventListener('touchend', this._endHandler, false);
         this._element.addEventListener('touchmove', this._moveHandler, false);
         this._element.addEventListener('touchcancel', this._cancelHandler, false);
-    }
+    };
 
     /**
      * @function
@@ -493,7 +486,7 @@
             this._element.removeEventListener('touchcancel', this._cancelHandler, false);
         }
         this._element = null;
-    }
+    };
 
     /**
      * @function
@@ -517,7 +510,7 @@
                 this.touchCount--;
             }
         }
-    }
+    };
 
     /**
      * @function
@@ -526,7 +519,7 @@
      */
     Touch.prototype.getTouch = function(index) {
         return this._touches[index];
-    }
+    };
 
     Touch.prototype._getTouch = function(identifier) {
         var touchPoint = this._touchesMap[identifier];
@@ -538,7 +531,7 @@
         }
 
         return touchPoint;
-    }
+    };
 
     Touch.prototype._handleTouchStart = function (event) {
         for(var i = 0; i < event.changedTouches.length; i++) {
@@ -548,7 +541,7 @@
 
             touchPoint.set(touch, TouchPhase.BEGAN);
         }
-    }
+    };
 
     Touch.prototype._handleTouchEnd = function (event) {
         for(var i = 0; i < event.changedTouches.length; i++) {
@@ -558,7 +551,7 @@
 
             touchPoint.set(touch, TouchPhase.ENDED);
         }
-    }
+    };
 
     Touch.prototype._handleTouchMove = function (event) {
         // call preventDefault to avoid issues in Chrome Android:
@@ -572,7 +565,7 @@
 
             touchPoint.set(touch, TouchPhase.MOVED);
         }
-    }
+    };
 
     Touch.prototype._handleTouchCancel = function (event) {
         for(var i = 0; i < event.changedTouches.length; i++) {
@@ -582,256 +575,14 @@
 
             touchPoint.set(touch, TouchPhase.CANCELED);
         }
-    }
+    };
 
+    zen3d = zen3d || {};
+
+    zen3d.Keyboard = Keyboard;
+    zen3d.Mouse = Mouse;
+    zen3d.TouchPhase = TouchPhase;
+    zen3d.TouchPoint = TouchPoint;
     zen3d.Touch = Touch;
-})();
-(function() {
-    /**
-     * HoverController Class
-     * @class
-     */
-    var HoverController = function(camera, lookAtPoint) {
-        this.camera = camera;
 
-        this.lookAtPoint = lookAtPoint;
-
-        this.up = new zen3d.Vector3(0, 1, 0);
-
-        this.distance = 100;
-
-        this._panAngle = 0;
-        this._panRad = 0;
-        this.minPanAngle = -Infinity;
-        this.maxPanAngle = Infinity;
-
-        this._tiltAngle = 0;
-        this._tiltRad = 0;
-        this.minTileAngle = -90;
-        this.maxTileAngle = 90;
-
-        this.bindMouse = undefined;
-        this._lastMouseX, this._lastMouseY, this._mouseDown = false;
-
-        this.bindTouch = undefined;
-        this._lastTouchX, this._lastTouchY, this._fingerTwo = false, this._lastDistance;
-
-        this._lastPosition = new zen3d.Vector3();
-        this._lastQuaternion = new zen3d.Quaternion();
-    }
-
-    Object.defineProperties(HoverController.prototype, {
-        panAngle: {
-            get: function() {
-                return this._panAngle;
-            },
-            set: function(value) {
-                this._panAngle = Math.max(this.minPanAngle, Math.min(this.maxPanAngle, value));
-                this._panRad = this._panAngle * Math.PI / 180;
-            }
-        },
-        tiltAngle: {
-            get: function() {
-                return this._tiltAngle;
-            },
-            set: function(value) {
-                this._tiltAngle = Math.max(this.minTileAngle, Math.min(this.maxTileAngle, value));
-                this._tiltRad = this._tiltAngle * Math.PI / 180;
-            }
-        }
-    });
-
-    var EPS = 0.000001;
-
-    HoverController.prototype.update = function() {
-        this.bindMouse && this._updateMouse();
-        this.bindTouch && this._updateTouch();
-
-        var distanceX = this.distance * Math.sin(this._panRad) * Math.cos(this._tiltRad);
-        var distanceY = this.distance * Math.sin(this._tiltRad);
-        var distanceZ = this.distance * Math.cos(this._panRad) * Math.cos(this._tiltRad);
-
-        var camera = this.camera;
-        var target = this.lookAtPoint;
-        camera.position.set(distanceX + target.x, distanceY + target.y, distanceZ + target.z);
-        camera.lookAt(target, this.up);
-
-        if(
-            this._lastPosition.distanceToSquared(camera.position) > EPS ||
-            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
-        ) {
-            this._lastPosition.copy(camera.position);
-            this._lastQuaternion.copy(camera.quaternion);
-            return true;
-        }
-        return false;
-    }
-
-    HoverController.prototype._updateMouse = function() {
-        var mouse = this.bindMouse;
-        if(mouse.isPressed(0)) {
-            if(!this._mouseDown || this._lastMouseX == undefined || this._lastMouseY == undefined) {
-                this._mouseDown = true;
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            } else {
-                var moveX = mouse.position.x - this._lastMouseX;
-                var moveY = mouse.position.y - this._lastMouseY;
-
-                this.panAngle -= moveX;
-                this.tiltAngle += moveY;
-
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            }
-        } else if(mouse.wasReleased(0)) {
-            this._mouseDown = false;
-        }
-        this.distance = Math.max(this.distance - mouse.wheel * 2, 1);
-    }
-
-    var hVec2_1 = new zen3d.Vector2();
-    var hVec2_2 = new zen3d.Vector2();
-
-    HoverController.prototype._updateTouch = function(touch) {
-        var touch = this.bindTouch;
-        if(touch.touchCount > 0) {
-            if(touch.touchCount == 1) {
-                var _touch = touch.getTouch(0);
-                if(_touch.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo || this._lastTouchX == undefined || this._lastTouchY == undefined) {
-                    this._lastTouchX = _touch.position.x;
-                    this._lastTouchY = _touch.position.y;
-                } else {
-                    var moveX = _touch.position.x - this._lastTouchX;
-                    var moveY = _touch.position.y - this._lastTouchY;
-
-                    this.panAngle -= moveX * 0.5;
-                    this.tiltAngle += moveY * 0.5;
-
-                    this._lastTouchX = _touch.position.x;
-                    this._lastTouchY = _touch.position.y;
-                }
-                this._fingerTwo = false;
-            } else if(touch.touchCount == 2) {
-                var _touch1 = touch.getTouch(0);
-                var _touch2 = touch.getTouch(1);
-                if(_touch1.phase == zen3d.TouchPhase.BEGAN || _touch2.phase == zen3d.TouchPhase.BEGAN || this._fingerTwo == false || this._lastDistance == undefined) {
-                    hVec2_1.set(_touch1.position.x, _touch1.position.y);
-                    hVec2_2.set(_touch2.position.x, _touch2.position.y);
-                    this._lastDistance = hVec2_1.distanceTo(hVec2_2);
-                } else {
-                    hVec2_1.set(_touch1.position.x, _touch1.position.y);
-                    hVec2_2.set(_touch2.position.x, _touch2.position.y);
-                    var distance = hVec2_1.distanceTo(hVec2_2);
-
-                    var deltaDistance = distance - this._lastDistance;
-
-                    this.distance = Math.max(this.distance - deltaDistance, 1);
-
-                    this._lastDistance = distance;
-                }
-                this._fingerTwo = true;
-            } else {
-                this._fingerTwo = false;
-            }
-        }
-    }
-
-    zen3d.HoverController = HoverController;
-})();
-(function() {
-    /**
-     * FreeController Class
-     * @class
-     */
-    var FreeController = function(camera) {
-        this.camera = camera;
-        this.camera.euler.order = 'YXZ'; // the right order?
-
-        this.bindKeyboard = undefined;
-        this.bindMouse = undefined;
-        this._lastMouseX, this._lastMouseY, this._mouseDown = false;
-
-        this._lastPosition = new zen3d.Vector3();
-        this._lastQuaternion = new zen3d.Quaternion();
-    }
-
-    var EPS = 0.000001;
-
-    FreeController.prototype.update = function() {
-        this.bindKeyboard && this.keyboardUpdate();
-        this.bindMouse && this.mouseUpdate();
-
-        var camera = this.camera;
-
-        if(
-            this._lastPosition.distanceToSquared(camera.position) > EPS ||
-            8 * ( 1 - this._lastQuaternion.dot( camera.quaternion ) ) > EPS
-        ) {
-            this._lastPosition.copy(camera.position);
-            this._lastQuaternion.copy(camera.quaternion);
-            return true;
-        }
-        return false;
-    }
-
-    var forward = new zen3d.Vector3();
-    var up = new zen3d.Vector3();
-    var right = new zen3d.Vector3();
-
-    FreeController.prototype.keyboardUpdate = function() {
-        var keyboard = this.bindKeyboard;
-
-        forward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
-        up.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
-        right.set(1, 0, 0).applyQuaternion(this.camera.quaternion);
-
-        if(keyboard.isPressed("W")) {
-            this.camera.position.add(forward);
-        }
-        if(keyboard.isPressed("A")) {
-            this.camera.position.sub(right);
-        }
-        if(keyboard.isPressed("S")) {
-            this.camera.position.sub(forward);
-        }
-        if(keyboard.isPressed("D")) {
-            this.camera.position.add(right);
-        }
-        if(keyboard.isPressed("E")) {
-            this.camera.position.add(up);
-        }
-        if(keyboard.isPressed("Q")) {
-            this.camera.position.sub(up);
-        }
-    }
-
-    FreeController.prototype.mouseUpdate = function() {
-        var mouse = this.bindMouse;
-
-        if(mouse.isPressed(0)) {
-            if(!this._mouseDown || this._lastMouseX == undefined || this._lastMouseY == undefined) {
-                this._mouseDown = true;
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            } else {
-                var moveX = mouse.position.x - this._lastMouseX;
-                var moveY = mouse.position.y - this._lastMouseY;
-
-                this.camera.euler.x -= moveY * 0.01;
-                this.camera.euler.y -= moveX * 0.01;
-
-                this._lastMouseX = mouse.position.x;
-                this._lastMouseY = mouse.position.y;
-            }
-        } else if(mouse.wasReleased(0)) {
-            this._mouseDown = false;
-        }
-        if(mouse.wheel !== 0) {
-            forward.set(0, 0, -1).applyQuaternion(this.camera.quaternion).multiplyScalar(mouse.wheel);
-            this.camera.position.add(forward);
-        }
-    }
-
-    zen3d.FreeController = FreeController;
-})();
+})));

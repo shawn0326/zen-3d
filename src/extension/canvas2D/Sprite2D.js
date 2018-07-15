@@ -1,14 +1,12 @@
-(function() {
+import {Object2D} from './Object2D.js';
 
-    var Sprite2D = function() {
-        zen3d.Object2D.call(this);
+function Sprite2D() {
+    Object2D.call(this);
 
-        this.texture = null;
-    }
+    this.texture = null;
+}
 
-    Sprite2D.prototype = Object.create(zen3d.Object2D.prototype);
-    Sprite2D.prototype.constructor = Sprite2D;
+Sprite2D.prototype = Object.create(Object2D.prototype);
+Sprite2D.prototype.constructor = Sprite2D;
 
-    zen3d.Sprite2D = Sprite2D;
-    
-})();
+export {Sprite2D};
