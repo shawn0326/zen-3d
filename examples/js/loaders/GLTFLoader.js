@@ -618,8 +618,25 @@
      * @return {Promise<Object>}
      */
     GLTFParser.prototype.loadSkin = function(skinIndex) {
-        // TODO
-        console.warn("GLTFLoader: skin is not supported yet");
+        
+        var skinDef = this.json.skins[ skinIndex ];
+
+        var skinEntry = { joints: skinDef.joints };
+
+        if ( skinDef.inverseBindMatrices === undefined ) {
+
+			return Promise.resolve( skinEntry );
+
+        }
+        
+        return this.getDependency( 'accessor', skinDef.inverseBindMatrices ).then( function ( accessor ) {
+
+            skinEntry.inverseBindMatrices = accessor;
+
+			return skinEntry;
+
+        } );
+        
     }
 
     /**
@@ -628,8 +645,99 @@
      * @return {Promise<zen3d.KeyframeClip>}
      */
     GLTFParser.prototype.loadAnimation = function(animationIndex) {
-        // TODO
-        console.warn("GLTFLoader: animation is not supported yet");
+
+        var json = this.json;
+        
+        var animationDef = json.animations[ animationIndex ];
+
+        return this.getMultiDependencies( [
+
+			'accessor',
+			'node'
+
+		] ).then( function ( dependencies ) {
+
+            var tracks = [];
+            
+            var startFrame = 0;
+            var endFrame = 0;
+
+			for ( var i = 0, il = animationDef.channels.length; i < il; i ++ ) {
+
+				var channel = animationDef.channels[ i ];
+				var sampler = animationDef.samplers[ channel.sampler ];
+
+				if ( sampler ) {
+
+					var target = channel.target;
+					var name = target.node !== undefined ? target.node : target.id; // NOTE: target.id is deprecated.
+					var input = animationDef.parameters !== undefined ? animationDef.parameters[ sampler.input ] : sampler.input;
+					var output = animationDef.parameters !== undefined ? animationDef.parameters[ sampler.output ] : sampler.output;
+
+					var inputAccessor = dependencies.accessors[ input ];
+					var outputAccessor = dependencies.accessors[ output ];
+
+                    var node = dependencies.nodes[ name ];
+
+					if ( node ) {
+
+						node.updateMatrix();
+
+                        var TypedKeyframeTrack;
+                        var isVector3 = false;
+
+						switch ( PATH_PROPERTIES[ target.path ] ) {
+
+							case PATH_PROPERTIES.rotation:
+
+								TypedKeyframeTrack = zen3d.QuaternionKeyframeTrack;
+								break;
+
+							case PATH_PROPERTIES.position:
+							case PATH_PROPERTIES.scale:
+							default:
+
+                                TypedKeyframeTrack = zen3d.VectorKeyframeTrack;
+                                isVector3 = true;
+								break;
+
+                        }
+                        
+                        var track = new TypedKeyframeTrack(node, PATH_PROPERTIES[ target.path ]);
+
+                        var input = new inputAccessor.array.constructor(inputAccessor.array.subarray(0, inputAccessor.array.length));
+                        var output = new outputAccessor.array.constructor(outputAccessor.array.subarray(0, outputAccessor.array.length));
+
+                        for(var t = 0; t < input.length; t++) {
+                            if(isVector3) {
+                                track.data.addFrame(input[t], new zen3d.Vector3(output[t * 3 + 0], output[t * 3 + 1], output[t * 3 + 2]));
+                            } else {
+                                track.data.addFrame(input[t], new zen3d.Quaternion(output[t * 4 + 0], output[t * 4 + 1], output[t * 4 + 2], output[t * 4 + 3]));
+                            }
+                            if(endFrame < input[t]) {
+                                endFrame = input[t];
+                            }
+                        }
+
+                        tracks.push( track );
+
+					}
+
+				}
+
+			}
+
+            var name = animationDef.name !== undefined ? animationDef.name : 'animation_' + animationIndex;
+            
+            var clip = new zen3d.KeyframeClip(name);
+            clip.tracks = tracks;
+            clip.startFrame = startFrame;
+            clip.endFrame = endFrame;
+            clip.loop = true;
+
+			return clip;
+
+		} );
     }
 
     /**
@@ -1774,5 +1882,11 @@
         33648: zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT,
         10497: zen3d.WEBGL_TEXTURE_WRAP.REPEAT
     };
+
+    var PATH_PROPERTIES = {
+		scale: 'scale',
+		translation: 'position',
+		rotation: 'quaternion'
+	};
 
 })();

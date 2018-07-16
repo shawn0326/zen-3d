@@ -24,7 +24,7 @@ PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: PBRMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.roughness = source.roughness;
         this.metalness = source.metalness;

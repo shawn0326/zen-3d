@@ -6124,7 +6124,7 @@ PhongMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: PhongMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.shininess = source.shininess;
         this.specular.copy(source.specular);
@@ -6158,7 +6158,7 @@ PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: PBRMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.roughness = source.roughness;
         this.metalness = source.metalness;
@@ -6187,7 +6187,7 @@ CubeMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: CubeMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.cubeMap = source.cubeMap;
 
@@ -6217,7 +6217,7 @@ PointsMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: PointsMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.size = source.size;
         this.sizeAttenuation = source.sizeAttenuation;
@@ -6247,7 +6247,7 @@ LineMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: LineMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.lineWidth = source.lineWidth;
 
@@ -6276,7 +6276,7 @@ LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: LineLoopMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.lineWidth = source.lineWidth;
 
@@ -6309,7 +6309,7 @@ LineDashedMaterial.prototype = Object.assign(Object.create(Material.prototype), 
     constructor: LineDashedMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.lineWidth = source.lineWidth;
         this.scale = source.scale;
@@ -6340,7 +6340,7 @@ SpriteMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: SpriteMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.rotation = source.rotation;
         this.fog = source.fog;
@@ -6374,7 +6374,7 @@ ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: ShaderMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.vertexShader = source.vertexShader;
         this.fragmentShader = source.fragmentShader;
@@ -9246,9 +9246,7 @@ Object.assign(WebGLCore.prototype, {
                 }
                 var buffer = attribute.buffer;
                 var type = attribute.type;
-                if(programAttribute.format !== type) {
-                    console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
-                }
+                if(programAttribute.format !== type) ;
                 var bytesPerElement = attribute.bytesPerElement;
     
                 if(geometryAttribute.isInterleavedBufferAttribute) {
@@ -9269,7 +9267,7 @@ Object.assign(WebGLCore.prototype, {
                     }
     
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, bytesPerElement * stride, bytesPerElement * offset);
+                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, bytesPerElement * stride, bytesPerElement * offset);
                 } else {
                     gl.enableVertexAttribArray(programAttribute.location);
     
@@ -9284,7 +9282,7 @@ Object.assign(WebGLCore.prototype, {
                     }
     
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, 0, 0);
+                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, 0, 0);
                 }
             } else {
                 console.warn("WebGLCore: geometry attribute " + key + " not found!");

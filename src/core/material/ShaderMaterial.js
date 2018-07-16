@@ -25,7 +25,7 @@ ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: ShaderMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.vertexShader = source.vertexShader;
         this.fragmentShader = source.fragmentShader;

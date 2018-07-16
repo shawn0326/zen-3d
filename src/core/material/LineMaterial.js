@@ -21,7 +21,7 @@ LineMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: LineMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.lineWidth = source.lineWidth;
 

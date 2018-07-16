@@ -21,7 +21,7 @@ LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: LineLoopMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.lineWidth = source.lineWidth;
 

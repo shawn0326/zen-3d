@@ -823,7 +823,7 @@ Object.assign(WebGLCore.prototype, {
                 var buffer = attribute.buffer;
                 var type = attribute.type;
                 if(programAttribute.format !== type) {
-                    console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
+                    // console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
                 }
                 var bytesPerElement = attribute.bytesPerElement;
     
@@ -845,7 +845,7 @@ Object.assign(WebGLCore.prototype, {
                     }
     
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, bytesPerElement * stride, bytesPerElement * offset);
+                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, bytesPerElement * stride, bytesPerElement * offset);
                 } else {
                     gl.enableVertexAttribArray(programAttribute.location);
     
@@ -860,7 +860,7 @@ Object.assign(WebGLCore.prototype, {
                     }
     
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, programAttribute.format, normalized, 0, 0);
+                    gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, 0, 0);
                 }
             } else {
                 console.warn("WebGLCore: geometry attribute " + key + " not found!");

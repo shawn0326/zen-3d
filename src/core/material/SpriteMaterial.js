@@ -20,7 +20,7 @@ SpriteMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: SpriteMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.rotation = source.rotation;
         this.fog = source.fog;

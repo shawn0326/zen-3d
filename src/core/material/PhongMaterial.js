@@ -24,7 +24,7 @@ PhongMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: PhongMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.shininess = source.shininess;
         this.specular.copy(source.specular);

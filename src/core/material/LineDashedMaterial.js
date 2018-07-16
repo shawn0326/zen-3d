@@ -25,7 +25,7 @@ LineDashedMaterial.prototype = Object.assign(Object.create(Material.prototype), 
     constructor: LineDashedMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.lineWidth = source.lineWidth;
         this.scale = source.scale;

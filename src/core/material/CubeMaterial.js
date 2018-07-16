@@ -20,7 +20,7 @@ CubeMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: CubeMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.cubeMap = source.cubeMap;
 

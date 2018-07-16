@@ -22,7 +22,7 @@ PointsMaterial.prototype = Object.assign(Object.create(Material.prototype), {
     constructor: PointsMaterial,
 
     copy: function(source) {
-        Material.copy.call(this, source);
+        Material.prototype.copy.call(this, source);
 
         this.size = source.size;
         this.sizeAttenuation = source.sizeAttenuation;
