@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - gltf2</title>
+	<title>zen3d - gltf3</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -29,7 +29,7 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf2
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf3
     </div>
 
 	<script>
@@ -49,8 +49,8 @@
 
 	        var scene = new zen3d.Scene();
 
-			// var file = "resources/models/gltf/CesiumMan/glTF/CesiumMan.gltf";
-			var file = "resources/models/gltf/CesiumMan/glTF-Binary/CesiumMan.glb";
+			// var file = "resources/models/gltf/Monster/glTF/Monster.gltf";
+			var file = "resources/models/gltf/Monster/glTF-Binary/Monster.glb";
 
 			var animations = [];
 
@@ -60,11 +60,14 @@
 				// add mesh to scene
 				var object = result.scene.children[0];
 				object.children[1].castShadow = true;
+				object.scale.set( 0.4, 0.4, 0.4 );
+				object.position.set( -10, 1, 0 );
 
 				// todo skeleton need auto inverse in GLTFLoader
 				var bones = result.scene.children[0].children[0];
 				result.scene.children[0].remove(bones);
 				scene.add(bones);
+				// bones.position.set(0, 0, 0);
 				
 				result.animations.forEach(function (clip) {
 					var animation = new zen3d.KeyframeAnimation();
@@ -90,16 +93,16 @@
 
 	        var directionalLight = new zen3d.DirectionalLight();
 	        directionalLight.color.setHex(0xffffff);
-			directionalLight.position.set(5, 5, 0);
+			directionalLight.position.set(25, 25, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 0, 0));
-			directionalLight.shadow.windowSize = 5;
+			directionalLight.shadow.windowSize = 25;
 			directionalLight.shadow.bias = -0.0001;
 			directionalLight.castShadow = true;
 			scene.add(directionalLight);
 
 			var camera = new zen3d.Camera();
 			camera.gammaOutput = true;
-	        camera.position.set(4, 1.5, 3);
+	        camera.position.set(50, 20, -50);
 	        camera.lookAt(new zen3d.Vector3(0, 1, 0), new zen3d.Vector3(0, 1, 0));
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
@@ -116,7 +119,7 @@
 				controller.update();
 
 				for(var i = 0; i < animations.length; i++) {
-					animations[i].update(0.02);
+					animations[i].update(0.01);
 				}
 
 	            renderer.render(scene, camera);

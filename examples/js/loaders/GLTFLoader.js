@@ -121,9 +121,7 @@
             }
 
             if (json.extensionsUsed.indexOf(EXTENSIONS.KHR_MATERIALS_UNLIT) >= 0) {
-                // TODO
-                console.warn('GLTFLoader:: KHR_MATERIALS_UNLIT not currently supported.');
-                // extensions[EXTENSIONS.KHR_MATERIALS_UNLIT] = new GLTFMaterialsUnlitExtension(json);
+                extensions[EXTENSIONS.KHR_MATERIALS_UNLIT] = new GLTFMaterialsUnlitExtension(json);
             }
 
             if (json.extensionsUsed.indexOf(EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS) >= 0) {
@@ -366,7 +364,7 @@
 
             if (nodeDef.skin !== undefined) {
 
-                var meshes = node.isGroup === true ? node.children : [node];
+                var meshes = node.type === zen3d.OBJECT_TYPE.GROUP ? node.children : [node];
 
                 for (var i = 0, il = meshes.length; i < il; i++) {
 
@@ -1344,10 +1342,9 @@
 
         } else if (materialExtensions[EXTENSIONS.KHR_MATERIALS_UNLIT]) {
 
-            // TODO KHR_MATERIALS_UNLIT
-            // var kmuExtension = extensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ];
-            // materialType = kmuExtension.getMaterialType( materialDef );
-            // pending.push( kmuExtension.extendParams( materialParams, materialDef, parser ) );
+            var kmuExtension = extensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ];
+            materialType = kmuExtension.getMaterialType( materialDef );
+            pending.push( kmuExtension.extendParams( materialParams, materialDef, parser ) );
 
         } else if (materialDef.pbrMetallicRoughness !== undefined) {
 
@@ -1612,6 +1609,55 @@
         });
 
     };
+
+    /**
+	 * Unlit Materials Extension (pending)
+	 *
+	 * PR: https://github.com/KhronosGroup/glTF/pull/1163
+	 */
+	function GLTFMaterialsUnlitExtension( json ) {
+
+		this.name = EXTENSIONS.KHR_MATERIALS_UNLIT;
+
+	}
+
+	GLTFMaterialsUnlitExtension.prototype.getMaterialType = function ( material ) {
+
+		return zen3d.BasicMaterial;
+
+	};
+
+	GLTFMaterialsUnlitExtension.prototype.extendParams = function ( materialParams, material, parser ) {
+
+		var pending = [];
+
+		materialParams.diffuse = new zen3d.Color3( 1.0, 1.0, 1.0 );
+		materialParams.opacity = 1.0;
+
+		var metallicRoughness = material.pbrMetallicRoughness;
+
+		if ( metallicRoughness ) {
+
+			if ( Array.isArray( metallicRoughness.baseColorFactor ) ) {
+
+				var array = metallicRoughness.baseColorFactor;
+
+				materialParams.diffuse.fromArray( array );
+				materialParams.opacity = array[ 3 ];
+
+			}
+
+			if ( metallicRoughness.baseColorTexture !== undefined ) {
+
+				pending.push( parser.assignTexture( materialParams, 'diffuseMap', metallicRoughness.baseColorTexture.index ) );
+
+			}
+
+		}
+
+		return Promise.all( pending );
+
+	};
 
     /*********************************/
     /********** EXTENSIONS ***********/
