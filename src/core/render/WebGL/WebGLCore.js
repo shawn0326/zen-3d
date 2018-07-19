@@ -512,6 +512,8 @@ Object.assign(WebGLCore.prototype, {
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
             var gl = this.gl;
+
+            skeleton.updateBones();
     
             if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
                 if(skeleton.boneTexture === undefined) {
@@ -544,6 +546,9 @@ Object.assign(WebGLCore.prototype, {
                 var location = gl.getUniformLocation(programId, "boneMatrices");
                 gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
             }
+
+            uniforms["bindMatrix"].setValue(object.bindMatrix.elements);
+            uniforms["bindMatrixInverse"].setValue(object.bindMatrixInverse.elements);
         }
     },
 

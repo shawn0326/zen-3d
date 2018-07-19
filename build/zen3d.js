@@ -4709,27 +4709,11 @@
 	Bone.prototype = Object.create(Object3D.prototype);
 	Bone.prototype.constructor = Bone;
 
-	// extends from Object3D only for use the updateMatrix method
-	// so all bones should be the children of skeleton
-	// like this:
-	// Skeleton
-	//    |-- Bone
-	//    |    |-- Bone
-	//    |    |-- Bone
-	//    |         |
-	//    |         |--Bone
-	//    |         |--Bone
-	//    |
-	//    |-- Bone
-	//    |-- Bone
 	function Skeleton(bones) {
 
-	    Object3D.call(this);
-
-	    this.type = "skeleton";
-
 	    // bones in array
-	    this.bones = bones || [];
+	    bones = bones || [];
+	    this.bones = bones.slice( 0 );
 
 	    // bone matrices data
 	    this.boneMatrices = new Float32Array(16 * this.bones.length);
@@ -4741,18 +4725,13 @@
 
 	}
 
-	Skeleton.prototype = Object.assign(Object.create(Object3D.prototype), {
-
-	    constructor: Skeleton,
+	Object.assign(Skeleton.prototype, {
 
 	    updateBones: function() {
 
 	        var offsetMatrix = new Matrix4();
 
 	        return function updateBones() {
-
-	            // the world matrix of bones, is based skeleton
-	            this.updateMatrix();
 
 	            for(var i = 0; i < this.bones.length; i++) {
 	                var bone = this.bones[i];
@@ -4766,7 +4745,18 @@
 
 	        }
 
-	    }()
+	    }(),
+
+	    getBoneByName: function(name) {
+	        for ( var i = 0, il = this.bones.length; i < il; i ++ ) {
+				var bone = this.bones[ i ];
+				if ( bone.name === name ) {
+					return bone;
+				}
+			}
+
+			return undefined;
+	    }
 
 	});
 
@@ -7914,9 +7904,9 @@
 
 	var shadowMap_vert = "#ifdef USE_SHADOW\r\n\r\n    vec4 worldPosition = u_Model * vec4(transformed, 1.0);\r\n\r\n    #ifdef USE_DIRECT_LIGHT\r\n\r\n        for ( int i = 0; i < USE_DIRECT_LIGHT; i ++ ) {\r\n\r\n            vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;\r\n\r\n        }\r\n\r\n    #endif\r\n\r\n    #ifdef USE_POINT_LIGHT\r\n\r\n        // nothing\r\n\r\n    #endif\r\n\r\n    #ifdef USE_SPOT_LIGHT\r\n\r\n        for ( int i = 0; i < USE_SPOT_LIGHT; i ++ ) {\r\n\r\n            vSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * worldPosition;\r\n\r\n        }\r\n\r\n    #endif\r\n\r\n#endif";
 
-	var skinning_pars_vert = "#ifdef USE_SKINNING\r\n\r\n    attribute vec4 skinIndex;\r\n\tattribute vec4 skinWeight;\r\n\r\n    #ifdef BONE_TEXTURE\r\n        uniform sampler2D boneTexture;\r\n        uniform int boneTextureSize;\r\n\r\n        mat4 getBoneMatrix( const in float i ) {\r\n            float j = i * 4.0;\r\n            float x = mod( j, float( boneTextureSize ) );\r\n            float y = floor( j / float( boneTextureSize ) );\r\n\r\n            float dx = 1.0 / float( boneTextureSize );\r\n            float dy = 1.0 / float( boneTextureSize );\r\n\r\n            y = dy * ( y + 0.5 );\r\n\r\n            vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );\r\n            vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );\r\n            vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );\r\n            vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );\r\n\r\n            mat4 bone = mat4( v1, v2, v3, v4 );\r\n\r\n            return bone;\r\n        }\r\n    #else\r\n        uniform mat4 boneMatrices[MAX_BONES];\r\n\r\n        mat4 getBoneMatrix(const in float i) {\r\n            mat4 bone = boneMatrices[int(i)];\r\n            return bone;\r\n        }\r\n    #endif\r\n\r\n#endif";
+	var skinning_pars_vert = "#ifdef USE_SKINNING\r\n\r\n    attribute vec4 skinIndex;\r\n\tattribute vec4 skinWeight;\r\n\r\n    uniform mat4 bindMatrix;\r\n\tuniform mat4 bindMatrixInverse;\r\n\r\n    #ifdef BONE_TEXTURE\r\n        uniform sampler2D boneTexture;\r\n        uniform int boneTextureSize;\r\n\r\n        mat4 getBoneMatrix( const in float i ) {\r\n            float j = i * 4.0;\r\n            float x = mod( j, float( boneTextureSize ) );\r\n            float y = floor( j / float( boneTextureSize ) );\r\n\r\n            float dx = 1.0 / float( boneTextureSize );\r\n            float dy = 1.0 / float( boneTextureSize );\r\n\r\n            y = dy * ( y + 0.5 );\r\n\r\n            vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );\r\n            vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );\r\n            vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );\r\n            vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );\r\n\r\n            mat4 bone = mat4( v1, v2, v3, v4 );\r\n\r\n            return bone;\r\n        }\r\n    #else\r\n        uniform mat4 boneMatrices[MAX_BONES];\r\n\r\n        mat4 getBoneMatrix(const in float i) {\r\n            mat4 bone = boneMatrices[int(i)];\r\n            return bone;\r\n        }\r\n    #endif\r\n\r\n#endif";
 
-	var skinning_vert = "#ifdef USE_SKINNING\r\n\r\n    mat4 boneMatX = getBoneMatrix( skinIndex.x );\r\n    mat4 boneMatY = getBoneMatrix( skinIndex.y );\r\n    mat4 boneMatZ = getBoneMatrix( skinIndex.z );\r\n    mat4 boneMatW = getBoneMatrix( skinIndex.w );\r\n\r\n    vec4 skinVertex = vec4(transformed, 1.0);\r\n\r\n    vec4 skinned = vec4( 0.0 );\r\n\tskinned += boneMatX * skinVertex * skinWeight.x;\r\n\tskinned += boneMatY * skinVertex * skinWeight.y;\r\n\tskinned += boneMatZ * skinVertex * skinWeight.z;\r\n\tskinned += boneMatW * skinVertex * skinWeight.w;\r\n\r\n    // override\r\n    transformed = vec3(skinned.xyz / skinned.w);\r\n\r\n    #if defined(USE_NORMAL) || defined(USE_ENV_MAP)\r\n        mat4 skinMatrix = mat4( 0.0 );\r\n        skinMatrix += skinWeight.x * boneMatX;\r\n        skinMatrix += skinWeight.y * boneMatY;\r\n        skinMatrix += skinWeight.z * boneMatZ;\r\n        skinMatrix += skinWeight.w * boneMatW;\r\n\r\n        // override\r\n        objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;\r\n    #endif\r\n\r\n#endif";
+	var skinning_vert = "#ifdef USE_SKINNING\r\n\r\n    mat4 boneMatX = getBoneMatrix( skinIndex.x );\r\n    mat4 boneMatY = getBoneMatrix( skinIndex.y );\r\n    mat4 boneMatZ = getBoneMatrix( skinIndex.z );\r\n    mat4 boneMatW = getBoneMatrix( skinIndex.w );\r\n\r\n    vec4 skinVertex = bindMatrix * vec4(transformed, 1.0);\r\n\r\n    vec4 skinned = vec4( 0.0 );\r\n\tskinned += boneMatX * skinVertex * skinWeight.x;\r\n\tskinned += boneMatY * skinVertex * skinWeight.y;\r\n\tskinned += boneMatZ * skinVertex * skinWeight.z;\r\n\tskinned += boneMatW * skinVertex * skinWeight.w;\r\n\tskinned = bindMatrixInverse * skinned;\r\n\r\n    // override\r\n    transformed = skinned.xyz / skinned.w;\r\n\r\n    #if defined(USE_NORMAL) || defined(USE_ENV_MAP)\r\n        mat4 skinMatrix = mat4( 0.0 );\r\n        skinMatrix += skinWeight.x * boneMatX;\r\n        skinMatrix += skinWeight.y * boneMatY;\r\n        skinMatrix += skinWeight.z * boneMatZ;\r\n        skinMatrix += skinWeight.w * boneMatW;\r\n        skinMatrix  = bindMatrixInverse * skinMatrix * bindMatrix;\r\n\r\n        // override\r\n        objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;\r\n    #endif\r\n\r\n#endif";
 
 	var specularMap_frag = "float specularStrength;\r\n\r\n#ifdef USE_SPECULARMAP\r\n\r\n\tvec4 texelSpecular = texture2D( specularMap, v_Uv );\r\n\tspecularStrength = texelSpecular.r;\r\n\r\n#else\r\n\r\n\tspecularStrength = 1.0;\r\n\r\n#endif";
 
@@ -8942,6 +8932,8 @@
 	        if(object.skeleton && object.skeleton.bones.length > 0) {
 	            var skeleton = object.skeleton;
 	            var gl = this.gl;
+
+	            skeleton.updateBones();
 	    
 	            if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
 	                if(skeleton.boneTexture === undefined) {
@@ -8974,6 +8966,9 @@
 	                var location = gl.getUniformLocation(programId, "boneMatrices");
 	                gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
 	            }
+
+	            uniforms["bindMatrix"].setValue(object.bindMatrix.elements);
+	            uniforms["bindMatrixInverse"].setValue(object.bindMatrixInverse.elements);
 	        }
 	    },
 
@@ -10984,17 +10979,43 @@
 	    this.type = OBJECT_TYPE.SKINNED_MESH;
 
 	    this.skeleton = undefined;
+
+	    this.bindMode = 'attached';
+
+	    this.bindMatrix = new Matrix4();
+	    this.bindMatrixInverse = new Matrix4();
 	}
 
 	SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), {
 
 	    constructor: SkinnedMesh,
+	    
+	    bind: function ( skeleton, bindMatrix ) {
+
+			this.skeleton = skeleton;
+
+			if ( bindMatrix === undefined ) {
+
+				this.updateMatrix();
+
+				bindMatrix = this.worldMatrix;
+
+			}
+
+			this.bindMatrix.copy( bindMatrix );
+			this.bindMatrixInverse.getInverse( bindMatrix );
+
+		},
 
 	    updateMatrix: function() {
 	        Mesh.prototype.updateMatrix.call(this);
 
-	        if(this.skeleton) {
-	            this.skeleton.updateBones();
+	        if(this.bindMode === 'attached') {
+	            this.bindMatrixInverse.getInverse(this.worldMatrix);
+	        } else if(this.bindMode === 'detached') {
+	            this.bindMatrixInverse.getInverse(this.bindMatrix);
+	        } else {
+	            console.warn( 'zen3d.SkinnedMesh: Unrecognized bindMode: ' + this.bindMode );
 	        }
 	    },
 

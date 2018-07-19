@@ -56,18 +56,13 @@
 
 			var loader = new zen3d.GLTFLoader();
 			loader.load(file, function(result) {
-				
 				// add mesh to scene
 				var object = result.scene.children[0];
 				object.children[1].castShadow = true;
 				object.scale.set( 0.4, 0.4, 0.4 );
 				object.position.set( -10, 1, 0 );
 
-				// todo skeleton need auto inverse in GLTFLoader
-				var bones = result.scene.children[0].children[0];
-				result.scene.children[0].remove(bones);
-				scene.add(bones);
-				// bones.position.set(0, 0, 0);
+				object.children[1].frustumCulled = false;
 				
 				result.animations.forEach(function (clip) {
 					var animation = new zen3d.KeyframeAnimation();

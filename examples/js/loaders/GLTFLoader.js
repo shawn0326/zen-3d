@@ -403,9 +403,8 @@
 
                     }
 
-                    var skeleton = new zen3d.Skeleton(bones);
-                    mesh.skeleton = skeleton;
-
+                    mesh.bind(new zen3d.Skeleton(bones), mesh.worldMatrix);
+                    
                 }
 
             }

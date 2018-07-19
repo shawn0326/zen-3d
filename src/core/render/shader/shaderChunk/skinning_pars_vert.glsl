@@ -3,6 +3,9 @@
     attribute vec4 skinIndex;
 	attribute vec4 skinWeight;
 
+    uniform mat4 bindMatrix;
+	uniform mat4 bindMatrixInverse;
+
     #ifdef BONE_TEXTURE
         uniform sampler2D boneTexture;
         uniform int boneTextureSize;

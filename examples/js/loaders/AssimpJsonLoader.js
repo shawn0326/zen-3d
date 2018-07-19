@@ -17,7 +17,7 @@
         this.texturePath = this.extractUrlBase(url);
 
         var loader = new zen3d.FileLoader();
-        loader.setResponseType("json").load(url, function(json) {
+        loader.setResponseType("json").load(url, function(json) {console.log(json)
             var result = this.parse(json);
             onLoad(result.object, result.animation);
         }.bind(this), onProgress, onError);
@@ -118,11 +118,11 @@
 
         // generate skeleton
         skeleton = new zen3d.Skeleton(allbones);
-        for (var i = 0; i < rootBones.length; i++) {
-            skeleton.add(rootBones[i]);
-        }
 
-        return skeleton;
+        return {
+            skeleton: skeleton,
+            rootBones: rootBones
+        };
     }
 
     AssimpJsonLoader.prototype.parseAnimations = function(json, boneMap) {
@@ -477,7 +477,11 @@
             var material = materials[json.meshes[idx].materialindex];
             if (skeletons[idx]) {
                 mesh = new zen3d.SkinnedMesh(meshes[idx], material);
-                mesh.skeleton = skeletons[idx];
+                var rootBones = skeletons[idx].rootBones;
+                for(var j = 0, l = rootBones.length; j < l; j++) {
+                    group.add(rootBones[j]);
+                }
+                mesh.bind(skeletons[idx].skeleton, mesh.worldMatrix);
             } else {
                 mesh = new zen3d.Mesh(meshes[idx], material);
             }

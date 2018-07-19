@@ -70,7 +70,6 @@
 			}
 
 			var skeleton = new zen3d.Skeleton(bones);
-			skeleton.add(bones[0]);
 
 	        var cylinder_geometry = new zen3d.CylinderGeometry(2, 2, distance, 10, numBones);
 
@@ -104,7 +103,8 @@
 	        phong.diffuse.setHex(0xffffff);
 			phong.diffuseMap = texture;
 	        var cylinder = new zen3d.SkinnedMesh(cylinder_geometry, phong);
-			cylinder.skeleton = skeleton;
+			cylinder.bind(skeleton);
+			cylinder.add(bones[0]);
 			cylinder.euler.z = Math.PI / 2;
 			cylinder.position.x = -25;
 			scene.add(cylinder);

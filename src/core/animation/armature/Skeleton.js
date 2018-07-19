@@ -1,28 +1,10 @@
-
-import {Object3D} from '../../objects/Object3D.js';
 import {Matrix4} from '../../math/Matrix4.js';
 
-// extends from Object3D only for use the updateMatrix method
-// so all bones should be the children of skeleton
-// like this:
-// Skeleton
-//    |-- Bone
-//    |    |-- Bone
-//    |    |-- Bone
-//    |         |
-//    |         |--Bone
-//    |         |--Bone
-//    |
-//    |-- Bone
-//    |-- Bone
 function Skeleton(bones) {
 
-    Object3D.call(this);
-
-    this.type = "skeleton";
-
     // bones in array
-    this.bones = bones || [];
+    bones = bones || [];
+    this.bones = bones.slice( 0 );
 
     // bone matrices data
     this.boneMatrices = new Float32Array(16 * this.bones.length);
@@ -34,18 +16,13 @@ function Skeleton(bones) {
 
 }
 
-Skeleton.prototype = Object.assign(Object.create(Object3D.prototype), {
-
-    constructor: Skeleton,
+Object.assign(Skeleton.prototype, {
 
     updateBones: function() {
 
         var offsetMatrix = new Matrix4();
 
         return function updateBones() {
-
-            // the world matrix of bones, is based skeleton
-            this.updateMatrix();
 
             for(var i = 0; i < this.bones.length; i++) {
                 var bone = this.bones[i];
@@ -59,7 +36,18 @@ Skeleton.prototype = Object.assign(Object.create(Object3D.prototype), {
 
         }
 
-    }()
+    }(),
+
+    getBoneByName: function(name) {
+        for ( var i = 0, il = this.bones.length; i < il; i ++ ) {
+			var bone = this.bones[ i ];
+			if ( bone.name === name ) {
+				return bone;
+			}
+		}
+
+		return undefined;
+    }
 
 });
 

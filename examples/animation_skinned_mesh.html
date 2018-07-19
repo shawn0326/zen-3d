@@ -70,7 +70,6 @@
 			var bones = [bone, bone2];
 
 			var skeleton = new zen3d.Skeleton(bones);
-			skeleton.add(bone);
 
 	        var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
 
@@ -100,8 +99,9 @@
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
 			phong.diffuseMap = texture;
-	        var cube = new zen3d.SkinnedMesh(cube_geometry, phong);
-			cube.skeleton = skeleton;
+			var cube = new zen3d.SkinnedMesh(cube_geometry, phong);
+			cube.add(bone);
+			cube.bind(skeleton);
 			cube.frustumTest = false;
 			scene.add(cube);
 
