@@ -25,6 +25,7 @@
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/shaders/SkyBoxShader.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
+	<!-- <script src="./js/objects/SkeletonHelper.js"></script> -->
 </head>
 <body>
 
@@ -71,6 +72,9 @@
 				});
 
 				scene.add(object);
+
+				// var skeletonHelper = new zen3d.SkeletonHelper(scene);
+				// scene.add(skeletonHelper);
 			});
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
