@@ -126,7 +126,7 @@
     }
 
     AssimpJsonLoader.prototype.parseAnimations = function(json, boneMap) {
-        var animation = new zen3d.KeyframeAnimation();
+        var animation = new zen3d.AnimationMixer();
 
         for (var i = 0; i < json.length; i++) {
             var anim = json[i];
@@ -150,34 +150,40 @@
                 for (var k = 0; k < boneMap[boneName].length; k++) {
                     var bone = boneMap[boneName][k];
 
-                    var positionTrack = new zen3d.VectorKeyframeTrack(bone, "position");
+                    var times = [], values = [];
                     for (var k = 0; k < channel.positionkeys.length; k++) {
                         var frame = channel.positionkeys[k];
-                        positionTrack.data.addFrame(frame[0], new zen3d.Vector3(frame[1][0], frame[1][1], frame[1][2]));
+                        times.push(frame[0]);
+                        values.push(frame[1][0], frame[1][1], frame[1][2]);
                         if (frame[0] > endFrame) {
                             endFrame = frame[0];
                         }
                     }
+                    var positionTrack = new zen3d.VectorKeyframeTrack(bone, "position", times, values);
                     clip.tracks.push(positionTrack);
 
-                    var rotationTrack = new zen3d.QuaternionKeyframeTrack(bone, "quaternion");
+                    var times = [], values = [];
                     for (var k = 0; k < channel.rotationkeys.length; k++) {
                         var frame = channel.rotationkeys[k];
-                        rotationTrack.data.addFrame(frame[0], new zen3d.Quaternion(frame[1][1], frame[1][2], frame[1][3], frame[1][0]));
+                        times.push(frame[0]);
+                        values.push(frame[1][1], frame[1][2], frame[1][3], frame[1][0]);
                         if (frame[0] > endFrame) {
                             endFrame = frame[0];
                         }
                     }
+                    var rotationTrack = new zen3d.QuaternionKeyframeTrack(bone, "quaternion", times, values);
                     clip.tracks.push(rotationTrack);
 
-                    var scalingTrack = new zen3d.VectorKeyframeTrack(bone, "scale");
+                    var times = [], values = [];
                     for (var k = 0; k < channel.scalingkeys.length; k++) {
                         var frame = channel.scalingkeys[k];
-                        scalingTrack.data.addFrame(frame[0], new zen3d.Vector3(frame[1][0], frame[1][1], frame[1][2]));
+                        times.push(frame[0]);
+                        values.push(frame[1][0], frame[1][1], frame[1][2]);
                         if (frame[0] > endFrame) {
                             endFrame = frame[0];
                         }
                     }
+                    var scalingTrack = new zen3d.VectorKeyframeTrack(bone, "scale", times, values);
                     clip.tracks.push(scalingTrack);
                 }
             }

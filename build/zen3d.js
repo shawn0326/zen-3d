@@ -2380,7 +2380,7 @@
 	    }
 	});
 
-	Quaternion.prototype = Object.assign(Quaternion.prototype, {
+	Object.assign(Quaternion.prototype, {
 
 	    normalize: function(thickness) {
 	        var l = this.length();
@@ -2781,6 +2781,72 @@
 	    },
 
 	    onChangeCallback: function() {}
+
+	});
+
+	Object.assign( Quaternion, {
+
+	    slerpFlat: function ( dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ) {
+
+			// fuzz-free, array-based Quaternion SLERP operation
+
+			var x0 = src0[ srcOffset0 + 0 ],
+				y0 = src0[ srcOffset0 + 1 ],
+				z0 = src0[ srcOffset0 + 2 ],
+				w0 = src0[ srcOffset0 + 3 ],
+
+				x1 = src1[ srcOffset1 + 0 ],
+				y1 = src1[ srcOffset1 + 1 ],
+				z1 = src1[ srcOffset1 + 2 ],
+				w1 = src1[ srcOffset1 + 3 ];
+
+			if ( w0 !== w1 || x0 !== x1 || y0 !== y1 || z0 !== z1 ) {
+
+				var s = 1 - t,
+
+					cos = x0 * x1 + y0 * y1 + z0 * z1 + w0 * w1,
+
+					dir = ( cos >= 0 ? 1 : - 1 ),
+					sqrSin = 1 - cos * cos;
+
+				// Skip the Slerp for tiny steps to avoid numeric problems:
+				if ( sqrSin > Number.EPSILON ) {
+
+					var sin = Math.sqrt( sqrSin ),
+						len = Math.atan2( sin, cos * dir );
+
+					s = Math.sin( s * len ) / sin;
+					t = Math.sin( t * len ) / sin;
+
+				}
+
+				var tDir = t * dir;
+
+				x0 = x0 * s + x1 * tDir;
+				y0 = y0 * s + y1 * tDir;
+				z0 = z0 * s + z1 * tDir;
+				w0 = w0 * s + w1 * tDir;
+
+				// Normalize in case we just did a lerp:
+				if ( s === 1 - t ) {
+
+					var f = 1 / Math.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 );
+
+					x0 *= f;
+					y0 *= f;
+					z0 *= f;
+					w0 *= f;
+
+				}
+
+			}
+
+			dst[ dstOffset ] = x0;
+			dst[ dstOffset + 1 ] = y0;
+			dst[ dstOffset + 2 ] = z0;
+			dst[ dstOffset + 3 ] = w0;
+
+		}
 
 	});
 
@@ -4760,236 +4826,465 @@
 
 	});
 
-	function KeyframeData() {
-	    this._keys = [];
-	    this._values = [];
-	}
+	//// mix functions
 
-	Object.assign(KeyframeData.prototype, {
+	function select(buffer, dstOffset, srcOffset, t, stride) {
 
-	    addFrame: function(key, value) {
-	        this._keys.push(key);
-	        this._values.push(value);
-	    },
+	    if ( t >= 0.5 ) {
 
-	    removeFrame: function(key) {
-	        var index = this.keys.indexOf(key);
-	        if (index > -1) {
-	            this._keys.splice(index, 1);
-	            this._values.splice(index, 1);
+	        for ( var i = 0; i !== stride; ++ i ) {
+
+	            buffer[ dstOffset + i ] = buffer[ srcOffset + i ];
+
 	        }
-	    },
 
-	    clearFrame: function() {
-	        this._keys.length = 0;
-	        this._values.length = 0;
-	    },
-
-	    sortFrame: function() {
-	        // TODO
-	    },
-
-	    // return a frame range between two key frames
-	    // return type: {key1: 0, value1: 0, key2: 0, value2: 0}
-	    getRange: function(t, result) {
-	        var lastIndex = this._getLastKeyIndex(t);
-
-	        var key1 = this._keys[lastIndex];
-	        var key2 = this._keys[lastIndex + 1];
-	        var value1 = this._values[lastIndex];
-	        var value2 = this._values[lastIndex + 1];
-
-	        result = result || {key1: 0, value1: 0, key2: 0, value2: 0};
-
-	        result.key1 = key1;
-	        result.key2 = key2;
-	        result.value1 = value1;
-	        result.value2 = value2;
-
-	        return result;
-	    },
-
-	    _getLastKeyIndex: function(t) {
-	        var lastKeyIndex = 0;
-	        var i, l = this._keys.length;
-	        for(i = 0; i < l; i++) {
-	            if(t >= this._keys[i]) {
-	                lastKeyIndex = i;
-	            }
-	        }
-	        return lastKeyIndex;
 	    }
 
-	});
-
-	var range = {key1: 0, value1: 0, key2: 0, value2: 0};
-
-	/*
-	    * KeyframeTrack
-	    * used for number property track
-	    */
-	function KeyframeTrack(target, propertyPath) {
-
-	    this.target = undefined;
-	    this.path = undefined;
-
-	    this.bind(target, propertyPath);
-
-	    this.data = new KeyframeData();
-
-	    this._frame = 0;
-
-	    this.interpolant = true;
 	}
 
-	Object.assign(KeyframeTrack.prototype, {
+	function slerp(buffer, dstOffset, srcOffset, t) {
 
-	    bind: function(target, propertyPath) {
+	    Quaternion.slerpFlat( buffer, dstOffset, buffer, dstOffset, buffer, srcOffset, t );
+
+	}
+
+	function lerp(buffer, dstOffset, srcOffset, t, stride) {
+
+	    var s = 1 - t;
+
+	    for ( var i = 0; i !== stride; ++ i ) {
+
+	        var j = dstOffset + i;
+
+	        buffer[ j ] = buffer[ j ] * s + buffer[ srcOffset + i ] * t;
+
+	    }
+
+	}
+
+	/**
+	 * bind property and value, mixer for multiple values
+	 */
+	function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
+
+	    this.target = null;
+
+	    this.property = "";
+
+	    this.parseBinding(target, propertyPath);
+
+	    this.valueSize = valueSize;
+
+	    var bufferType = Float64Array;
+	    var mixFunction;
+
+	    switch ( typeName ) {
+
+	        case 'quaternion':
+	            mixFunction = slerp;
+	            break;
+	        case 'string':
+	        case 'bool':
+	            bufferType = Array;
+	            mixFunction = select;
+	            break;
+	        default:
+	            mixFunction = lerp;
+
+	    }
+
+	    // [result-value | new-value]
+	    this.buffer = new bufferType(valueSize * 2);
+
+	    this._mixBufferFunction = mixFunction;
+
+	    this.cumulativeWeight = 0;
+
+	    this.referenceCount = 0;
+	    this.useCount = 0;
+
+	}
+
+	Object.assign(PropertyBindingMixer.prototype, {
+
+	    parseBinding: function(target, propertyPath) {
 	        propertyPath = propertyPath.split(".");
-
+	    
 	        if (propertyPath.length > 1) {
 	            var property = target[propertyPath[0]];
-
-
+	    
+	    
 	            for (var index = 1; index < propertyPath.length - 1; index++) {
 	                property = property[propertyPath[index]];
 	            }
-
-	            this.path = propertyPath[propertyPath.length - 1];
+	    
+	            this.property = propertyPath[propertyPath.length - 1];
 	            this.target = property;
 	        } else {
-	            this.path = propertyPath[0];
+	            this.property = propertyPath[0];
 	            this.target = target;
 	        }
 	    },
 
-	    _updateValue: function(t) {
-	        this.data.getRange(t, range);
+	    /**
+	     * accumulate value 
+	     */
+	    accumulate: function(weight) {
 
-	        var key1 = range.key1;
-	        var key2 = range.key2;
-	        var value1 = range.value1;
-	        var value2 = range.value2;
+	        var buffer = this.buffer,
+	            stride = this.valueSize,
+	            offset = stride,
 
-	        if(this.interpolant) {
-	            if(value1 !== undefined && value2 !== undefined) {
-	                var ratio = (t - key1) / (key2 - key1);
-	                this.target[this.path] = (value2 - value1) * ratio + value1;
-	            } else {
-	                this.target[this.path] = value1;
+	            currentWeight = this.cumulativeWeight;
+
+	        if (currentWeight === 0) {
+
+	            for (var i = 0; i !== stride; ++i) {
+
+	                buffer[ offset + i ] = buffer[ i ];
+
 	            }
+
+	            currentWeight = weight;
+
 	        } else {
-	            this.target[this.path] = value1;
+
+	            currentWeight += weight;
+	            var mix = weight / currentWeight;
+	            this._mixBufferFunction(buffer, offset, 0, mix, stride);
+
 	        }
+
+	        this.cumulativeWeight = currentWeight;
+
+	    },
+
+	    /**
+	     * update scene graph
+	     */
+	    apply: function() {
+
+	        var buffer = this.buffer,
+	            offset = this.valueSize,
+	            weight = this.cumulativeWeight;
+
+	        this.cumulativeWeight = 0;
+
+	        // set value
+	        if(this.valueSize > 1) {
+	            this.target[this.property].fromArray(buffer, offset);
+	        } else {
+	            this.target[this.property] = buffer[offset];
+	        }
+
 	    }
 
 	});
 
-	Object.defineProperties(KeyframeTrack.prototype, {
-	    frame: {
-	        get: function() {
-	            return this._frame;
-	        },
-	        set: function(t) {
-	            // TODO should not out of range
-	            this._frame = t;
-	            this._updateValue(t);
+	function AnimationMixer() {
+
+	    this._clips = {};
+
+	    this._bindings = {};
+
+	    this._activeClips = {};
+
+	}
+
+	Object.assign(AnimationMixer.prototype, {
+
+	    add: function(clip) {
+
+	        if(this._clips[clip.name] !== undefined) {
+	            console.warn("AnimationMixer.add: already has clip: " + clip.name);
+	            return;
+	        } 
+
+	        var tracks = clip.tracks;
+
+	        for (var i = 0; i < tracks.length; i++) {
+
+	            var track = tracks[i];
+	            var trackName = track.name;
+	            var binding;
+
+	            if(!this._bindings[trackName]) {
+	                binding = new PropertyBindingMixer(track.target, track.propertyPath, track.valueTypeName, track.valueSize);
+	                this._bindings[trackName] = binding;
+	            } else {
+	                binding = this._bindings[trackName];
+	            }
+
+	            binding.referenceCount++;
+
 	        }
+
+	        this._clips[clip.name] = clip;
+
+	    },
+
+	    remove: function(clip) {
+
+	        if(!this._clips[clip.name]) {
+	            console.warn("AnimationMixer.remove: has no clip: " + clip.name);
+	            return;
+	        }
+
+	        var tracks = clip.tracks;
+
+	        for (var i = 0; i < tracks.length; i++) {
+
+	            var track = tracks[i];
+	            var trackName = track.name;
+	            var binding = this._bindings[trackName];
+
+	            if ( binding ) {
+
+	                binding.referenceCount--;
+
+	            }
+
+	            if (binding.referenceCount <= 0) {
+
+	                delete this._bindings[trackName];
+
+	            }
+
+	        }
+
+	        delete this._clips[clip.name];
+
+	    },
+
+	    play: function(name, weight) {
+
+	        if (this._activeClips[name] !== undefined) {
+	            console.warn("AnimationMixer.play: clip " + name + " is playing.");
+	            return;
+	        }
+
+	        this._activeClips[name] = (weight === undefined) ? 1 : weight;
+
+	        var clip = this._clips[name];
+
+	        if (!clip) {
+	            console.warn("AnimationMixer.stop: clip " + name + " is not found.");
+	            return;
+	        }
+
+	        clip.frame = 0;
+
+	        var tracks = clip.tracks;
+
+	        for (var i = 0; i < tracks.length; i++) {
+
+	            var track = tracks[i];
+	            var trackName = track.name;
+	            var binding = this._bindings[trackName];
+
+	            if ( binding ) {
+
+	                binding.useCount++;
+
+	            }
+
+	        }
+
+	    },
+
+	    stop: function(name) {
+
+	        if (this._activeClips[name] === undefined) {
+	            console.warn("AnimationMixer.stop: clip " + name + " is not playing.");
+	            return;
+	        }
+
+	        delete this._activeClips[name];
+
+	        var clip = this._clips[name];
+
+	        if (!clip) {
+	            console.warn("AnimationMixer.stop: clip " + name + " is not found.");
+	            return;
+	        }
+
+	        var tracks = clip.tracks;
+
+	        for (var i = 0; i < tracks.length; i++) {
+
+	            var track = tracks[i];
+	            var trackName = track.name;
+	            var binding = this._bindings[trackName];
+
+	            if ( binding && binding.useCount > 0) {
+
+	                binding.useCount--;
+
+	            }
+
+	        }
+
+	    },
+
+	    update: function(t) {
+	        
+	        for (var name in this._activeClips) {
+
+	            var clip = this._clips[name];
+	            var weight = this._activeClips[name];
+
+	            clip.update(t, this._bindings, weight);
+
+	        }
+
+	        for (var key in this._bindings) {
+
+	            if ( this._bindings[key].useCount > 0 ) {
+
+	                this._bindings[key].apply();
+
+	            }
+	            
+	        }
+
+	    },
+
+	    // set clip weight
+	    // this method can be used for cross fade
+	    setClipWeight: function(name, weight) {
+
+	        if (this._activeClips[name] === undefined) {
+	            console.warn("AnimationMixer.stop: clip " + name + " is not playing.");
+	            return;
+	        }
+
+	        this._activeClips[name] = weight;
+
+	    },
+
+	    // return all clip names of this animation
+	    getAllClipNames: function() {
+
+	        var array = [];
+
+	        for(var key in this._clips) {
+
+	            array.push(key);
+
+	        }
+
+	        return array;
+
 	    }
+
 	});
 
-	var range$1 = {key1: 0, value1: 0, key2: 0, value2: 0};
+	/**
+	 * KeyframeTrack
+	 * base class for property track
+	 */
+	function KeyframeTrack(target, propertyPath, times, values, interpolant) {
+
+	    this.target = target;
+	    this.propertyPath = propertyPath;
+
+	    this.name = this.target.uuid + "." + propertyPath;
+
+	    this.times = times;
+	    this.values = values;
+	    
+	    this.valueSize = values.length / times.length;
+
+	    this.interpolant = ( interpolant === undefined ) ? true : interpolant;
+
+	}
+
+	Object.assign(KeyframeTrack.prototype, {
+
+	    _getLastTimeIndex: function(t) {
+	        var lastTimeIndex = 0;
+	        var i, l = this.times.length;
+	        for(i = 0; i < l; i++) {
+	            if(t >= this.times[i]) {
+	                lastTimeIndex = i;
+	            }
+	        }
+	        return lastTimeIndex;
+	    },
+
+	    getValue: function(t, outBuffer) {
+
+	        var index = this._getLastTimeIndex(t),
+	            times = this.times,
+	            values = this.values,
+	            valueSize = this.valueSize;
+
+	        var key1 = times[index],
+	            key2 = times[index + 1],
+	            value1, value2;
+	        
+	        for (var i = 0; i < valueSize; i++) {
+
+	            value1 = values[index * valueSize + i];
+	            value2 = values[(index + 1) * valueSize + i];
+
+	            if (this.interpolant) {
+
+	                if ( value1 !== undefined && value2 !== undefined ) {
+	                    var ratio = (t - key1) / (key2 - key1);
+	                    outBuffer[i] = value1 * (1 - ratio) + value2 * ratio;
+	                } else {
+	                    outBuffer[i] = value1;
+	                }
+
+	            } else {
+	                outBuffer[i] = value1;
+	            }
+
+	        }
+
+	    }
+
+	});
+
+	/**
+	 * BooleanKeyframeTrack
+	 * used for boolean property track
+	 */
+	function BooleanKeyframeTrack(target, propertyPath, times, values, interpolant) {
+	    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
+	}
+
+	BooleanKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
+
+	    constructor: BooleanKeyframeTrack,
+	    
+	    valueTypeName: 'bool',
+
+	    getValue: function(t, outBuffer) {
+
+	        var index = this._getLastTimeIndex(t),
+	            key = this.times[index];
+	        
+	        outBuffer[0] = this.values[key];
+
+	    }
+
+	});
 
 	/**
 	 * ColorKeyframeTrack
-	 * used for color property track
+	 * used for vector property track
 	 */
-	function ColorKeyframeTrack(target, propertyPath) {
-	    KeyframeTrack.call(this, target, propertyPath);
+	function ColorKeyframeTrack(target, propertyPath, times, values, interpolant) {
+	    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 	}
 
 	ColorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
 	    constructor: ColorKeyframeTrack,
-
-	    _updateValue: function(t) {
-	        this.data.getRange(t, range$1);
-
-	        var key1 = range$1.key1;
-	        var key2 = range$1.key2;
-	        var value1 = range$1.value1;
-	        var value2 = range$1.value2;
-
-	        if(this.interpolant) {
-	            if(value1 !== undefined && value2 !== undefined) {
-	                var ratio = (t - key1) / (key2 - key1);
-	                this.target[this.path].lerpColors(value1, value2, ratio);
-	            } else {
-	                this.target[this.path].copy(value1);
-	            }
-	        } else {
-	            this.target[this.path].copy(value1);
-	        }
-	    }
-
-	});
-
-	function KeyframeAnimation() {
-
-	    this._clips = {};
-
-	    this._currentClipName = "";
-
-	}
-
-	Object.defineProperties(KeyframeAnimation.prototype, {
-	    currentClipName: {
-	        get: function() {
-	            return this._currentClipName;
-	        }
-	    },
-	    currentClip: {
-	        get: function() {
-	            return this._clips[this._currentClipName];
-	        }
-	    }
-	});
-
-	Object.assign(KeyframeAnimation.prototype, {
-
-	    add: function(clip) {
-	        this._clips[clip.name] = clip;
-	    },
-
-	    remove: function(clip) {
-	        delete this._clips[clip.name];
-	    },
-
-	    update: function(t) {
-	        var currentClip = this._clips[this._currentClipName];
-	        if(currentClip) {
-	            currentClip.update(t);
-	        }
-	    },
-
-	    active: function(name) {
-	        var clip = this._clips[name];
-	        if(clip) {
-	            this._currentClipName = name;
-	            clip.setFrame(clip.startFrame);// restore
-	        } else {
-	            console.warn("KeyframeAnimation: try to active a undefind clip!");
-	        }
-	    },
-
-	    // return all clip names of this animation
-	    getAllClipNames: function() {
-	        var array = [];
-	        for(var key in this._clips) {
-	            array.push(key);
-	        }
-	        return array;
-	    }
+	    
+	    valueTypeName: 'color'
 
 	});
 
@@ -5011,7 +5306,8 @@
 
 	Object.assign(KeyframeClip.prototype, {
 
-	    update: function(t) {
+	    update: function(t, bindings, weight) {
+
 	        this.frame += t;
 
 	        if(this.frame > this.endFrame) {
@@ -5021,89 +5317,119 @@
 	                this.frame = this.endFrame;
 	            }
 	        }
-
-	        this.setFrame(this.frame);
-	    },
-
-	    setFrame: function(frame) {
+	        
 	        for(var i = 0, l = this.tracks.length; i < l; i++) {
-	            this.tracks[i].frame = frame;
+
+	            var track = this.tracks[i];
+
+	            var bind = bindings[track.name];
+
+	            track.getValue(this.frame, bind.buffer);
+	            bind.accumulate(weight);
+
 	        }
 
-	        this.frame = frame;
 	    }
 
 	});
 
-	var range$2 = {key1: 0, value1: 0, key2: 0, value2: 0};
+	/**
+	 * NumberKeyframeTrack
+	 * used for vector property track
+	 */
+	function NumberKeyframeTrack(target, propertyPath, times, values, interpolant) {
+	    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
+	}
+
+	NumberKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
+
+	    constructor: NumberKeyframeTrack,
+	    
+	    valueTypeName: 'number'
+
+	});
 
 	/**
 	 * QuaternionKeyframeTrack
-	 * used for vector property track
+	 * used for quaternion property track
 	 */
-	function QuaternionKeyframeTrack(target, propertyPath) {
-	    KeyframeTrack.call(this, target, propertyPath);
+	function QuaternionKeyframeTrack(target, propertyPath, times, values, interpolant) {
+	    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 	}
 
 	QuaternionKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
 	    constructor: QuaternionKeyframeTrack,
 
-	    _updateValue: function(t) {
-	        this.data.getRange(t, range$2);
+	    valueTypeName: 'quaternion',
 
-	        var key1 = range$2.key1;
-	        var key2 = range$2.key2;
-	        var value1 = range$2.value1;
-	        var value2 = range$2.value2;
+	    getValue: function(t, outBuffer) {
 
-	        if(this.interpolant) {
-	            if(value1 !== undefined && value2 !== undefined) {
+	        var index = this._getLastTimeIndex(t),
+	            times = this.times,
+	            values = this.values,
+	            key1 = times[index],
+	            key2 = times[index + 1];
+
+	        if (this.interpolant) {
+	            if (key2 !== undefined) {
 	                var ratio = (t - key1) / (key2 - key1);
-	                this.target[this.path].slerpQuaternions(value1, value2, ratio);
+	                Quaternion.slerpFlat( outBuffer, 0, values, index * 4, values, (index + 1) * 4,  ratio );
 	            } else {
-	                this.target[this.path].copy(value1);
+	                // just copy
+	                for(var i = 0; i < 4; i++) {
+	                    outBuffer[i] = values[index * 4 + i];
+	                }
 	            }
 	        } else {
-	            this.target[this.path].copy(value1);
+	            // just copy
+	            for(var i = 0; i < 4; i++) {
+	                outBuffer[i] = values[index * 4 + i];
+	            }
 	        }
+
 	    }
 
 	});
 
-	var range$3 = {key1: 0, value1: 0, key2: 0, value2: 0};
+	/**
+	 * StringKeyframeTrack
+	 * used for boolean property track
+	 */
+	function StringKeyframeTrack(target, propertyPath, times, values, interpolant) {
+	    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
+	}
+
+	StringKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
+
+	    constructor: StringKeyframeTrack,
+	    
+	    valueTypeName: 'string',
+
+	    getValue: function(t, outBuffer) {
+
+	        var index = this._getLastTimeIndex(t),
+	            key = this.times[index];
+	        
+	        outBuffer[0] = this.values[key];
+
+	    }
+
+	});
 
 	/**
 	 * VectorKeyframeTrack
 	 * used for vector property track
 	 */
-	function VectorKeyframeTrack(target, propertyPath) {
-	    KeyframeTrack.call(this, target, propertyPath);
+	function VectorKeyframeTrack(target, propertyPath, times, values, interpolant) {
+	    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 	}
 
 	VectorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
 	    constructor: VectorKeyframeTrack,
-
-	    _updateValue: function(t) {
-	        this.data.getRange(t, range$3);
-
-	        var key1 = range$3.key1;
-	        var key2 = range$3.key2;
-	        var value1 = range$3.value1;
-	        var value2 = range$3.value2;
-
-	        if(this.interpolant) {
-	            if(value1 !== undefined && value2 !== undefined) {
-	                var ratio = (t - key1) / (key2 - key1);
-	                this.target[this.path].lerpVectors(value1, value2, ratio);
-	            } else {
-	                this.target[this.path].copy(value1);
-	            }
-	        } else {
-	            this.target[this.path].copy(value1);
-	        }
-	    }
+	    
+	    valueTypeName: 'vector'
 
 	});
 
@@ -11289,12 +11615,15 @@
 	exports.TextureDepth = TextureDepth;
 	exports.Bone = Bone;
 	exports.Skeleton = Skeleton;
+	exports.AnimationMixer = AnimationMixer;
+	exports.BooleanKeyframeTrack = BooleanKeyframeTrack;
 	exports.ColorKeyframeTrack = ColorKeyframeTrack;
-	exports.KeyframeAnimation = KeyframeAnimation;
 	exports.KeyframeClip = KeyframeClip;
-	exports.KeyframeData = KeyframeData;
 	exports.KeyframeTrack = KeyframeTrack;
+	exports.NumberKeyframeTrack = NumberKeyframeTrack;
+	exports.PropertyBindingMixer = PropertyBindingMixer;
 	exports.QuaternionKeyframeTrack = QuaternionKeyframeTrack;
+	exports.StringKeyframeTrack = StringKeyframeTrack;
 	exports.VectorKeyframeTrack = VectorKeyframeTrack;
 	exports.BufferAttribute = BufferAttribute;
 	exports.CubeGeometry = CubeGeometry;

@@ -1,37 +1,45 @@
+import {Quaternion} from '../../math/Quaternion.js';
 import {KeyframeTrack} from './KeyframeTrack.js';
-
-var range = {key1: 0, value1: 0, key2: 0, value2: 0};
 
 /**
  * QuaternionKeyframeTrack
- * used for vector property track
+ * used for quaternion property track
  */
-function QuaternionKeyframeTrack(target, propertyPath) {
-    KeyframeTrack.call(this, target, propertyPath);
+function QuaternionKeyframeTrack(target, propertyPath, times, values, interpolant) {
+    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 }
 
 QuaternionKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
     constructor: QuaternionKeyframeTrack,
 
-    _updateValue: function(t) {
-        this.data.getRange(t, range);
+    valueTypeName: 'quaternion',
 
-        var key1 = range.key1;
-        var key2 = range.key2;
-        var value1 = range.value1;
-        var value2 = range.value2;
+    getValue: function(t, outBuffer) {
 
-        if(this.interpolant) {
-            if(value1 !== undefined && value2 !== undefined) {
+        var index = this._getLastTimeIndex(t),
+            times = this.times,
+            values = this.values,
+            key1 = times[index],
+            key2 = times[index + 1];
+
+        if (this.interpolant) {
+            if (key2 !== undefined) {
                 var ratio = (t - key1) / (key2 - key1);
-                this.target[this.path].slerpQuaternions(value1, value2, ratio);
+                Quaternion.slerpFlat( outBuffer, 0, values, index * 4, values, (index + 1) * 4,  ratio );
             } else {
-                this.target[this.path].copy(value1);
+                // just copy
+                for(var i = 0; i < 4; i++) {
+                    outBuffer[i] = values[index * 4 + i];
+                }
             }
         } else {
-            this.target[this.path].copy(value1);
+            // just copy
+            for(var i = 0; i < 4; i++) {
+                outBuffer[i] = values[index * 4 + i];
+            }
         }
+
     }
 
 });

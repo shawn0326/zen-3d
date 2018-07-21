@@ -16,7 +16,8 @@ function KeyframeClip(name) {
 
 Object.assign(KeyframeClip.prototype, {
 
-    update: function(t) {
+    update: function(t, bindings, weight) {
+
         this.frame += t;
 
         if(this.frame > this.endFrame) {
@@ -26,16 +27,18 @@ Object.assign(KeyframeClip.prototype, {
                 this.frame = this.endFrame;
             }
         }
-
-        this.setFrame(this.frame);
-    },
-
-    setFrame: function(frame) {
+        
         for(var i = 0, l = this.tracks.length; i < l; i++) {
-            this.tracks[i].frame = frame;
+
+            var track = this.tracks[i];
+
+            var bind = bindings[track.name];
+
+            track.getValue(this.frame, bind.buffer);
+            bind.accumulate(weight);
+
         }
 
-        this.frame = frame;
     }
 
 });

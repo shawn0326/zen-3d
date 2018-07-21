@@ -1,79 +1,69 @@
-import {KeyframeData} from './KeyframeData.js';
+/**
+ * KeyframeTrack
+ * base class for property track
+ */
+function KeyframeTrack(target, propertyPath, times, values, interpolant) {
 
-var range = {key1: 0, value1: 0, key2: 0, value2: 0};
+    this.target = target;
+    this.propertyPath = propertyPath;
 
-/*
-    * KeyframeTrack
-    * used for number property track
-    */
-function KeyframeTrack(target, propertyPath) {
+    this.name = this.target.uuid + "." + propertyPath;
 
-    this.target = undefined;
-    this.path = undefined;
+    this.times = times;
+    this.values = values;
+    
+    this.valueSize = values.length / times.length;
 
-    this.bind(target, propertyPath);
+    this.interpolant = ( interpolant === undefined ) ? true : interpolant;
 
-    this.data = new KeyframeData();
-
-    this._frame = 0;
-
-    this.interpolant = true;
 }
 
 Object.assign(KeyframeTrack.prototype, {
 
-    bind: function(target, propertyPath) {
-        propertyPath = propertyPath.split(".");
-
-        if (propertyPath.length > 1) {
-            var property = target[propertyPath[0]];
-
-
-            for (var index = 1; index < propertyPath.length - 1; index++) {
-                property = property[propertyPath[index]];
+    _getLastTimeIndex: function(t) {
+        var lastTimeIndex = 0;
+        var i, l = this.times.length;
+        for(i = 0; i < l; i++) {
+            if(t >= this.times[i]) {
+                lastTimeIndex = i;
             }
-
-            this.path = propertyPath[propertyPath.length - 1];
-            this.target = property;
-        } else {
-            this.path = propertyPath[0];
-            this.target = target;
         }
+        return lastTimeIndex;
     },
 
-    _updateValue: function(t) {
-        this.data.getRange(t, range);
+    getValue: function(t, outBuffer) {
 
-        var key1 = range.key1;
-        var key2 = range.key2;
-        var value1 = range.value1;
-        var value2 = range.value2;
+        var index = this._getLastTimeIndex(t),
+            times = this.times,
+            values = this.values,
+            valueSize = this.valueSize;
 
-        if(this.interpolant) {
-            if(value1 !== undefined && value2 !== undefined) {
-                var ratio = (t - key1) / (key2 - key1);
-                this.target[this.path] = (value2 - value1) * ratio + value1;
+        var key1 = times[index],
+            key2 = times[index + 1],
+            value1, value2;
+        
+        for (var i = 0; i < valueSize; i++) {
+
+            value1 = values[index * valueSize + i];
+            value2 = values[(index + 1) * valueSize + i];
+
+            if (this.interpolant) {
+
+                if ( value1 !== undefined && value2 !== undefined ) {
+                    var ratio = (t - key1) / (key2 - key1);
+                    outBuffer[i] = value1 * (1 - ratio) + value2 * ratio;
+                } else {
+                    outBuffer[i] = value1;
+                }
+
             } else {
-                this.target[this.path] = value1;
+                outBuffer[i] = value1;
             }
-        } else {
-            this.target[this.path] = value1;
+
         }
+
     }
 
-});
-
-Object.defineProperties(KeyframeTrack.prototype, {
-    frame: {
-        get: function() {
-            return this._frame;
-        },
-        set: function(t) {
-            // TODO should not out of range
-            this._frame = t;
-            this._updateValue(t);
-        }
-    }
 });
 
 export {KeyframeTrack};

@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/Clock.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/shaders/SkyBoxShader.js"></script>
@@ -51,7 +52,7 @@
 
 			var file = "resources/models/gltf/BotSkinned/glTF-MaterialsUnlit/Bot_Skinned.gltf";
 
-			var animations = [];
+			var animation;
 
 			var loader = new zen3d.GLTFLoader();
 			loader.load(file, function(result) {
@@ -72,11 +73,12 @@
 				result.scene.children[0].remove(bones);
 				scene.add(bones);
 				
+				animation = new zen3d.AnimationMixer();
 				result.animations.forEach(function (clip) {
-					var animation = new zen3d.KeyframeAnimation();
+					
 					animation.add(clip);
-					animation.active(clip.name);
-					animations.push(animation);
+					animation.play(clip.name);
+
 				});
 
 				scene.add(object);
@@ -112,7 +114,7 @@
 			var controller = new zen3d.OrbitControls(camera, canvas);
 			controller.target.set(0, 1, 0);
 
-			let time = 0;
+			var clock = new zen3d.Clock();
 
 	        function loop(count) {
 
@@ -120,9 +122,7 @@
 
 				controller.update();
 
-				for(var i = 0; i < animations.length; i++) {
-					animations[i].update(0.03);
-				}
+				animation && animation.update(clock.getDelta() * 1.3);
 
 	            renderer.render(scene, camera);
 	        }

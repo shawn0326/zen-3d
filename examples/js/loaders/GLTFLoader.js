@@ -699,23 +699,17 @@
 								break;
 
                         }
-                        
-                        var track = new TypedKeyframeTrack(node, PATH_PROPERTIES[ target.path ]);
 
                         var input = new inputAccessor.array.constructor(inputAccessor.array.subarray(0, inputAccessor.array.length));
                         var output = new outputAccessor.array.constructor(outputAccessor.array.subarray(0, outputAccessor.array.length));
+                        
+                        var track = new TypedKeyframeTrack(node, PATH_PROPERTIES[ target.path ], input, output);
 
-                        for(var t = 0; t < input.length; t++) {
-                            if(isVector3) {
-                                track.data.addFrame(input[t], new zen3d.Vector3(output[t * 3 + 0], output[t * 3 + 1], output[t * 3 + 2]));
-                            } else {
-                                track.data.addFrame(input[t], new zen3d.Quaternion(output[t * 4 + 0], output[t * 4 + 1], output[t * 4 + 2], output[t * 4 + 3]));
-                            }
-                            if(endFrame < input[t]) {
-                                endFrame = input[t];
-                            }
+                        var maxTime = input[input.length - 1];
+                        if(endFrame < maxTime) {
+                            endFrame = maxTime;
                         }
-
+                        
                         tracks.push( track );
 
 					}

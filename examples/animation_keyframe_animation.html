@@ -21,6 +21,8 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+	<script src="./js/Clock.js"></script>
 </head>
 <body>
 
@@ -58,47 +60,52 @@
 			var clip1 = new zen3d.KeyframeClip("run");
 			var clip2 = new zen3d.KeyframeClip("change");
 
-			var track = new zen3d.VectorKeyframeTrack(cube, "position");
-			track.data.addFrame(0, new zen3d.Vector3(20, 0, 20));
-			track.data.addFrame(1, new zen3d.Vector3(20, 0, -20));
-			track.data.addFrame(2, new zen3d.Vector3(-20, 0, -20));
-			track.data.addFrame(3, new zen3d.Vector3(-20, 0, 20));
-			track.data.addFrame(4, new zen3d.Vector3(20, 0, 20));
+			var times = [0, 1, 2, 3, 4];
+			var track = new zen3d.VectorKeyframeTrack(cube, "position", times, [
+				20, 0, 20,
+				20, 0, -20, 
+				-20, 0, -20,
+				-20, 0, 20,
+				20, 0, 20
+			]);
 			clip1.tracks.push(track);
 
-			var track2 = new zen3d.VectorKeyframeTrack(cube, "scale");
-			track2.data.addFrame(0, new zen3d.Vector3(0.8, 0.8, 0.8));
-			track2.data.addFrame(1, new zen3d.Vector3(1.5, 0.8, 0.8));
-			track2.data.addFrame(2, new zen3d.Vector3(1.5, 1.5, 0.8));
-			track2.data.addFrame(3, new zen3d.Vector3(1.5, 0.8, 0.8));
-			track2.data.addFrame(4, new zen3d.Vector3(0.8, 0.8, 0.8));
+			var track2 = new zen3d.VectorKeyframeTrack(cube, "scale", times, [
+				0.8, 0.8, 0.8,
+				1.5, 0.8, 0.8,
+				1.5, 1.5, 0.8,
+				1.5, 0.8, 0.8,
+				0.8, 0.8, 0.8
+			]);
 			clip1.tracks.push(track2);
 
 			clip1.startFrame = 0;
 			clip1.endFrame = 4;
 			clip1.loop = true;
 
-			var track3 = new zen3d.QuaternionKeyframeTrack(cube, "quaternion");
-			track3.data.addFrame(0, new zen3d.Quaternion(1, 0, 0, 1));
-			track3.data.addFrame(1, new zen3d.Quaternion(0, 1, 0, 1));
-			track3.data.addFrame(2, new zen3d.Quaternion(0, 0, 1, 1));
-			track3.data.addFrame(3, new zen3d.Quaternion(0, 1, 0, 1));
-			track3.data.addFrame(4, new zen3d.Quaternion(1, 0, 0, 1));
+			var track3 = new zen3d.QuaternionKeyframeTrack(cube, "quaternion", times, [
+				1, 0, 0, 1,
+				0, 1, 0, 1,
+				0, 0, 1, 1,
+				0, 1, 0, 1,
+				1, 0, 0, 1
+			]);
 			clip2.tracks.push(track3);
 
-			var track4 = new zen3d.ColorKeyframeTrack(cube, "material.diffuse");
-			track4.data.addFrame(0, new zen3d.Color3(1, 1, 1));
-			track4.data.addFrame(1, new zen3d.Color3(1, 0, 0));
-			track4.data.addFrame(2, new zen3d.Color3(0, 1, 0));
-			track4.data.addFrame(3, new zen3d.Color3(0, 0, 1));
-			track4.data.addFrame(4, new zen3d.Color3(1, 1, 1));
+			var track4 = new zen3d.ColorKeyframeTrack(cube, "material.diffuse", times, [
+				1, 1, 1,
+				1, 0, 0,
+				0, 1, 0,
+				0, 0, 1,
+				1, 1, 1
+			]);
 			clip2.tracks.push(track4);
 
 			clip2.startFrame = 0;
 			clip2.endFrame = 4;
 			clip2.loop = true;
 
-			var animation = new zen3d.KeyframeAnimation();
+			var animation = new zen3d.AnimationMixer();
 			animation.add(clip1);
 			animation.add(clip2);
 
@@ -134,35 +141,35 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			// input
-
-			function toggleAnimation() {
-				if(animation.currentClip) {
-					animation.currentClip.setFrame(0);
-				}
-				if(animation.currentClipName === "run") {
-					animation.active("change");
-					console.log("run clip: change")
+			// gui
+			var params = {anim1: true, anim2: true};
+			var gui = new dat.GUI();
+			gui.add(params, "anim1").onChange(function(value) {
+				if(value) {
+					animation.play("run");
 				} else {
-					animation.active("run");
-					console.log("run clip: run")
+					animation.stop("run");
 				}
-			}
-
-			toggleAnimation();
-
-			document.onkeydown = function(e) {
-				if(e.keyCode == 83) { // 's'
-					toggleAnimation();
+			});
+			gui.add(params, "anim2").onChange(function(value) {
+				if(value) {
+					animation.play("change");
+				} else {
+					animation.stop("change");
 				}
-	        }
+			});
+
+			animation.play("run");
+			animation.play("change");
+
+			var clock = new zen3d.Clock();
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
 				// update animation
-				animation.update(0.01);
+				animation.update(clock.getDelta() * 1.3);
 
 				// rotate camera
 				// camera.position.x = 80 * Math.sin(count / 1000 * .5);

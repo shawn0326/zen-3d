@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/Clock.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 	<script src="./js/objects/SkeletonHelper.js"></script>
 </head>
@@ -63,8 +64,8 @@
 				animation = anim;
 				aniNames = animation.getAllClipNames();
 
-				anim.active(aniNames[0]);
-				anim.currentClip.endFrame = 2;
+				anim.play(aniNames[0], 1);
+				anim._clips[aniNames[0]].endFrame = 2;
 
 				scene.add(object);
 
@@ -107,14 +108,16 @@
 	        camera.position.set(0, 80, 160);
 	        camera.lookAt(new zen3d.Vector3(50, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+			scene.add(camera);
+			
+			var clock = new zen3d.Clock();
 
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
 
 				if(animation) {
-					animation.update(0.01);
+					animation.update(clock.getDelta() * 0.8);
 				}
 
 				// rotate camera

@@ -32,12 +32,15 @@ export {TextureDepth} from './texture/TextureDepth.js';
 export {Bone} from './animation/armature/Bone.js';
 export {Skeleton} from './animation/armature/Skeleton.js';
 
+export {AnimationMixer} from './animation/keyframe/AnimationMixer.js';
+export {BooleanKeyframeTrack} from './animation/keyframe/BooleanKeyframeTrack.js';
 export {ColorKeyframeTrack} from './animation/keyframe/ColorKeyframeTrack.js';
-export {KeyframeAnimation} from './animation/keyframe/KeyframeAnimation.js';
 export {KeyframeClip} from './animation/keyframe/KeyframeClip.js';
-export {KeyframeData} from './animation/keyframe/KeyframeData.js';
 export {KeyframeTrack} from './animation/keyframe/KeyframeTrack.js';
+export {NumberKeyframeTrack} from './animation/keyframe/NumberKeyframeTrack.js';
+export {PropertyBindingMixer} from './animation/keyframe/PropertyBindingMixer.js';
 export {QuaternionKeyframeTrack} from './animation/keyframe/QuaternionKeyframeTrack.js';
+export {StringKeyframeTrack} from './animation/keyframe/StringKeyframeTrack.js';
 export {VectorKeyframeTrack} from './animation/keyframe/VectorKeyframeTrack.js';
 
 export {BufferAttribute} from './geometry/BufferAttribute.js';
