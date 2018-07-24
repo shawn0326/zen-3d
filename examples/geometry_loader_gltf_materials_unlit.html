@@ -85,26 +85,14 @@
 			});
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
+	        var lambert = new zen3d.BasicMaterial();
 	        lambert.diffuse.setHex(0x888888);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 			plane.receiveShadow = true;
 	        scene.add(plane);
 
-			// var ambientLight = new zen3d.AmbientLight();
-	        // ambientLight.color.setHex(0xffffff);
-	        // scene.add(ambientLight);
-
-	        var directionalLight = new zen3d.DirectionalLight();
-	        directionalLight.color.setHex(0xffffff);
-			directionalLight.position.set(2, 7, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 0, 0));
-			directionalLight.shadow.windowSize = 5;
-			directionalLight.shadow.bias = -0.0001;
-			directionalLight.castShadow = true;
-			scene.add(directionalLight);
-
 			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
 			camera.gammaOutput = true;
 	        camera.position.set(0, 1, 5);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));

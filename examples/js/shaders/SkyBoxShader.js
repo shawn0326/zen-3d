@@ -3,7 +3,7 @@
 zen3d.SkyBoxShader = {
 
     uniforms: {
-
+        "level": 1.
     },
 
     vertexShader: [
@@ -19,10 +19,11 @@ zen3d.SkyBoxShader = {
     fragmentShader: [
         "#include <common_frag>",
         "uniform samplerCube cubeMap;",
+        "uniform float level;",
         "varying vec3 v_ModelPos;",
         "void main() {",
             "#include <begin_frag>",
-            "outColor *= textureCube(cubeMap, v_ModelPos);",
+            "outColor *= textureCube(cubeMap, v_ModelPos, level);",
             // "outColor = vec4(1., 0., 0., 1.);",
             "#include <end_frag>",
         "}"

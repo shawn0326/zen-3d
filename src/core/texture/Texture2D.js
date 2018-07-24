@@ -32,6 +32,23 @@ Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), {
 
     constructor: Texture2D,
 
+    copy: function(source) {
+        TextureBase.prototype.copy.call(this, source);
+
+        this.image = source.image;
+        this.mipmaps = source.mipmaps.slice(0);
+        
+        this.offset.copy( source.offset );
+		this.repeat.copy( source.repeat );
+		this.center.copy( source.center );
+        this.rotation = source.rotation;
+        
+        this.matrixAutoUpdate = source.matrixAutoUpdate;
+        this.matrix.copy( source.matrix );
+
+        return this;
+    },
+
     updateMatrix: function() {
         this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
     }

@@ -3653,6 +3653,29 @@
 
 	    constructor: TextureBase,
 
+	    clone: function() {
+	        return new this.constructor().copy( this );
+	    },
+
+	    copy: function( source ) {
+	        this.textureType = source.textureType;
+	        this.border = source.border;
+	        this.pixelFormat = source.pixelFormat;
+	        this.pixelType = source.pixelType;
+	        this.magFilter = source.magFilter;
+	        this.minFilter = source.minFilter;
+	        this.wrapS = source.wrapS;
+	        this.wrapT = source.wrapT;
+	        this.anisotropy = source.anisotropy;
+	        this.generateMipmaps = source.generateMipmaps;
+	        this.encoding = source.encoding;
+	        this.flipY = source.flipY;
+
+	        this.version = source.version;
+
+	        return this;
+	    },
+
 	    dispose: function() {
 	        this.dispatchEvent({type: 'dispose'});
 
@@ -4368,6 +4391,23 @@
 
 	    constructor: Texture2D,
 
+	    copy: function(source) {
+	        TextureBase.prototype.copy.call(this, source);
+
+	        this.image = source.image;
+	        this.mipmaps = source.mipmaps.slice(0);
+	        
+	        this.offset.copy( source.offset );
+			this.repeat.copy( source.repeat );
+			this.center.copy( source.center );
+	        this.rotation = source.rotation;
+	        
+	        this.matrixAutoUpdate = source.matrixAutoUpdate;
+	        this.matrix.copy( source.matrix );
+
+	        return this;
+	    },
+
 	    updateMatrix: function() {
 	        this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
 	    }
@@ -4419,7 +4459,17 @@
 
 	TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), {
 
-	    constructor: TextureCube
+	    constructor: TextureCube,
+
+	    copy: function(source) {
+
+	        TextureBase.prototype.copy.call(this, source);
+
+	        this.images = source.images.slice(0);
+
+	        return this;
+
+	    }
 
 	});
 
@@ -6838,6 +6888,8 @@
 	    var ext = getExtension(gl, "GL_OES_standard_derivatives");
 	    // WEBGL_depth_texture
 	    var ext = getExtension(gl, "WEBGL_depth_texture");
+	    // draw elements support uint
+	    var ext = getExtension(gl, 'OES_element_index_uint');
 	}
 
 	function createTexture(gl, type, target, count) {
@@ -8208,11 +8260,11 @@
 
 	var normal_frag = "#ifdef USE_NORMAL\r\n    #ifdef DOUBLE_SIDED\r\n    \tfloat flipNormal = ( float( gl_FrontFacing ) * 2.0 - 1.0 );\r\n    #else\r\n    \tfloat flipNormal = 1.0;\r\n    #endif\r\n    #ifdef FLAT_SHADED\r\n        // Workaround for Adreno/Nexus5 not able able to do dFdx( vViewPosition ) ...\r\n    \tvec3 fdx = vec3( dFdx( v_modelPos.x ), dFdx( v_modelPos.y ), dFdx( v_modelPos.z ) );\r\n    \tvec3 fdy = vec3( dFdy( v_modelPos.x ), dFdy( v_modelPos.y ), dFdy( v_modelPos.z ) );\r\n    \tvec3 N = normalize( cross( fdx, fdy ) );\r\n    #else\r\n        vec3 N = normalize(v_Normal) * flipNormal;\r\n    #endif\r\n    #ifdef USE_NORMAL_MAP\r\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\r\n        // for now, uv coord is flip Y\r\n        mat3 tspace = tsn(N, -v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\r\n        // mat3 tspace = tbn(normalize(v_Normal), v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\r\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\r\n    #elif defined(USE_BUMPMAP)\r\n        N = perturbNormalArb(-v_modelPos, N, dHdxy_fwd(v_Uv));\r\n    #endif\r\n#endif";
 
-	var normal_pars_frag = "#ifdef USE_NORMAL\r\n    varying vec3 v_Normal;\r\n#endif";
+	var normal_pars_frag = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    varying vec3 v_Normal;\r\n#endif";
 
-	var normal_pars_vert = "#ifdef USE_NORMAL\r\n    //attribute vec3 a_Normal;\r\n    varying vec3 v_Normal;\r\n#endif";
+	var normal_pars_vert = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    //attribute vec3 a_Normal;\r\n    varying vec3 v_Normal;\r\n#endif";
 
-	var normal_vert = "#ifdef USE_NORMAL\r\n    v_Normal = (transpose(inverse(u_Model)) * vec4(objectNormal, 1.0)).xyz;\r\n\r\n    #ifdef FLIP_SIDED\r\n    \tv_Normal = - v_Normal;\r\n    #endif\r\n#endif";
+	var normal_vert = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    v_Normal = (transpose(inverse(u_Model)) * vec4(objectNormal, 1.0)).xyz;\r\n\r\n    #ifdef FLIP_SIDED\r\n    \tv_Normal = - v_Normal;\r\n    #endif\r\n#endif";
 
 	var packing = "const float PackUpscale = 256. / 255.; // fraction -> 0..1 (including 1)\r\nconst float UnpackDownscale = 255. / 256.; // 0..1 -> fraction (excluding 1)\r\n\r\nconst vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256.,  256. );\r\nconst vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );\r\n\r\nconst float ShiftRight8 = 1. / 256.;\r\n\r\nvec4 packDepthToRGBA( const in float v ) {\r\n\r\n    vec4 r = vec4( fract( v * PackFactors ), v );\r\n    r.yzw -= r.xyz * ShiftRight8; // tidy overflow\r\n    return r * PackUpscale;\r\n\r\n}\r\n\r\nfloat unpackRGBAToDepth( const in vec4 v ) {\r\n\r\n    return dot( v, UnpackFactors );\r\n\r\n}";
 
@@ -8527,6 +8579,7 @@
 	        ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
 	        props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
 	        props.useShadow ? '#define USE_SHADOW' : '',
+	        props.flatShading ? '#define FLAT_SHADED' : '',
 	        props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
 	        props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
 	        props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
@@ -9219,6 +9272,7 @@
 	     */
 	    draw: function(geometry, material, group) {
 	        var gl = this.gl;
+	        var properties = this.properties;
 	    
 	        var useIndexBuffer = geometry.index !== null;
 	    
@@ -9232,12 +9286,15 @@
 	        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
 	    
 	        if(useIndexBuffer) {
+	            var indexProperty = properties.get(geometry.index);
+	            var bytesPerElement = indexProperty.bytesPerElement;
+	            var type = indexProperty.type;
 	            if(geometry.isInstancedGeometry) {
 	                if(geometry.maxInstancedCount > 0) {
-	                    angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2, geometry.maxInstancedCount);
+	                    angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
 	                }
 	            } else {
-	                gl.drawElements(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+	                gl.drawElements(material.drawMode, drawCount, type, drawStart * bytesPerElement);
 	            }
 	        } else {
 	            if(geometry.isInstancedGeometry) {

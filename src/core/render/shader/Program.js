@@ -129,6 +129,7 @@ function createProgram(gl, props, defines) {
         ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
         props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
         props.useShadow ? '#define USE_SHADOW' : '',
+        props.flatShading ? '#define FLAT_SHADED' : '',
         props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
         props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
         props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',

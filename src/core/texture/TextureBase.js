@@ -40,6 +40,29 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
 
     constructor: TextureBase,
 
+    clone: function() {
+        return new this.constructor().copy( this );
+    },
+
+    copy: function( source ) {
+        this.textureType = source.textureType;
+        this.border = source.border;
+        this.pixelFormat = source.pixelFormat;
+        this.pixelType = source.pixelType;
+        this.magFilter = source.magFilter;
+        this.minFilter = source.minFilter;
+        this.wrapS = source.wrapS;
+        this.wrapT = source.wrapT;
+        this.anisotropy = source.anisotropy;
+        this.generateMipmaps = source.generateMipmaps;
+        this.encoding = source.encoding;
+        this.flipY = source.flipY;
+
+        this.version = source.version;
+
+        return this;
+    },
+
     dispose: function() {
         this.dispatchEvent({type: 'dispose'});
 

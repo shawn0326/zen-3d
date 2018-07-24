@@ -473,6 +473,7 @@ Object.assign(WebGLCore.prototype, {
      */
     draw: function(geometry, material, group) {
         var gl = this.gl;
+        var properties = this.properties;
     
         var useIndexBuffer = geometry.index !== null;
     
@@ -486,12 +487,15 @@ Object.assign(WebGLCore.prototype, {
         var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
     
         if(useIndexBuffer) {
+            var indexProperty = properties.get(geometry.index);
+            var bytesPerElement = indexProperty.bytesPerElement;
+            var type = indexProperty.type;
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2, geometry.maxInstancedCount);
+                    angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
                 }
             } else {
-                gl.drawElements(material.drawMode, drawCount, gl.UNSIGNED_SHORT, drawStart * 2);
+                gl.drawElements(material.drawMode, drawCount, type, drawStart * bytesPerElement);
             }
         } else {
             if(geometry.isInstancedGeometry) {

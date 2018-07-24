@@ -67,6 +67,8 @@ function WebGLCapabilities(gl) {
     var ext = getExtension(gl, "GL_OES_standard_derivatives");
     // WEBGL_depth_texture
     var ext = getExtension(gl, "WEBGL_depth_texture");
+    // draw elements support uint
+    var ext = getExtension(gl, 'OES_element_index_uint');
 }
 
 export {WebGLCapabilities};

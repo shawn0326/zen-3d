@@ -19,7 +19,17 @@ function TextureCube() {
 
 TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), {
 
-    constructor: TextureCube
+    constructor: TextureCube,
+
+    copy: function(source) {
+
+        TextureBase.prototype.copy.call(this, source);
+
+        this.images = source.images.slice(0);
+
+        return this;
+
+    }
 
 });
 

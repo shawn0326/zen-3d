@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - gltf</title>
+	<title>zen3d - gltf uv transform</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -21,15 +21,14 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/Clock.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
-	<script src="./js/shaders/SkyBoxShader.js"></script>
-	<script src="./js/objects/SkyBox.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf uv transform
     </div>
 
 	<script>
@@ -45,66 +44,46 @@
 			canvas.style.height = height + "px";
 			document.body.appendChild( canvas );
 
-	        var renderer = new zen3d.Renderer(canvas);
+			var renderer = new zen3d.Renderer(canvas);
 
 	        var scene = new zen3d.Scene();
 
-			var file = "resources/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
-
-			var cube_texture = zen3d.TextureCube.fromSrc([
-				"resources/Bridge2/posx.jpg",
-			    "resources/Bridge2/negx.jpg",
-			    "resources/Bridge2/posy.jpg",
-			    "resources/Bridge2/negy.jpg",
-			    "resources/Bridge2/posz.jpg",
-			    "resources/Bridge2/negz.jpg"
-			]);
-			var sky_box = new zen3d.SkyBox(cube_texture);
-			sky_box.level = 4;
-
-			let objectMaterial;
+			var file = "resources/models/gltf/TextureTransformTest/glTF/TextureTransformTest.gltf";
 
 			var loader = new zen3d.GLTFLoader();
 			loader.load(file, function(result) {
-				console.log(result);
+
+				result.scene.traverse(function(obj) {
+					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+						obj.frustumCulled = false;
+						obj.material.side = zen3d.DRAW_SIDE.DOUBLE;
+					}
+				});
+
 				// add mesh to scene
-				let object = result.scene.children[0];
+				for(var i = 0; i < result.scene.children.length; i++) {
+					scene.add(result.scene.children[i]);
+					
+				}
 
-				objectMaterial = object.material;
-
-				objectMaterial.envMap = cube_texture;
-				objectMaterial.envMapIntensity = 1;
-
-				object.scale.set(10, 10, 10);
-				object.euler.z = -Math.PI / 6;
-
-				scene.add(object);
 			});
 
-			// top light
-			var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.color.setHex(0xbbbbff);
-			directionalLight.euler.set(Math.PI / 2, 0, 0);
-			directionalLight.intensity = 0.5;
-	        scene.add(directionalLight);
-
-			// bottom light
-			var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.color.setHex(0x444422);
-			directionalLight.euler.set(-Math.PI / 2, 0, 0);
-			directionalLight.intensity = 0.5;
-	        scene.add(directionalLight);
+			var ambientLight = new zen3d.AmbientLight();
+	        ambientLight.color.setHex(0xffffff);
+	        scene.add(ambientLight);
 
 			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
 			camera.gammaOutput = true;
-	        camera.position.set(-15, 10, 45);
+	        camera.position.set(0, 0, 8);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
-			camera.add(sky_box);
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
 			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.enablePan = false;
+			controller.target.set(0, 0, 0);
+
+			var clock = new zen3d.Clock();
 
 	        function loop(count) {
 
@@ -121,7 +100,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
 				renderer.backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
 

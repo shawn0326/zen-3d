@@ -135,6 +135,10 @@
                 console.warn('GLTFLoader:: no draco loader.');
                 extensions[EXTENSIONS.KHR_DRACO_MESH_COMPRESSION] = new GLTFDracoMeshCompressionExtension();
             }
+
+            if (json.extensionsUsed.indexOf(EXTENSIONS.KHR_TEXTURE_TRANSFORM) >= 0) {
+                extensions[EXTENSIONS.KHR_TEXTURE_TRANSFORM] = new GLTFTextureTransformExtension();
+            }
         }
 
         console.time('GLTFLoader');
@@ -1324,6 +1328,9 @@
         var materialParams = {};
         var materialExtensions = materialDef.extensions || {};
 
+        var textureExtensions = {};
+        var textureExtensionsSupports = {"baseColorTexture": "diffuseMap", "emissiveTexture": "emissiveMap"};
+
         var pending = [];
 
         if (materialExtensions[EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS]) {
@@ -1337,7 +1344,7 @@
 
             var kmuExtension = extensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ];
             materialType = kmuExtension.getMaterialType( materialDef );
-            pending.push( kmuExtension.extendParams( materialParams, materialDef, parser ) );
+            pending.push( kmuExtension.extendParams( materialParams, materialDef, parser, textureExtensions ) );
 
         } else if (materialDef.pbrMetallicRoughness !== undefined) {
 
@@ -1363,6 +1370,10 @@
             if (metallicRoughness.baseColorTexture !== undefined) {
 
                 pending.push(parser.assignTexture(materialParams, 'diffuseMap', metallicRoughness.baseColorTexture.index));
+
+                if(metallicRoughness.baseColorTexture.extensions) {
+                    textureExtensions["baseColorTexture"] = metallicRoughness.baseColorTexture.extensions;
+                }
 
             }
 
@@ -1450,6 +1461,10 @@
 
             pending.push(parser.assignTexture(materialParams, 'emissiveMap', materialDef.emissiveTexture.index));
 
+            if(materialDef.emissiveTexture.extensions) {
+                textureExtensions["emissiveTexture"] = materialDef.emissiveTexture.extensions;
+            }
+
         }
 
         return Promise.all(pending).then(function() {
@@ -1483,10 +1498,35 @@
             // }
 
             // emissiveTexture and baseColorTexture use sRGB encoding.
-            if (material.map) material.map.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+            if (material.diffuseMap) material.diffuseMap.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
             if (material.emissiveMap) material.emissiveMap.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
 
             if (materialDef.extras) material.userData = materialDef.extras;
+
+            // texture extensions
+            for(var key in textureExtensionsSupports) {
+                if(textureExtensions[key]) {
+
+                    var map = material[textureExtensionsSupports[key]].clone();
+    
+                    // KHR_TEXTURE_TRANSFORM
+                    var extDef = textureExtensions[key][EXTENSIONS.KHR_TEXTURE_TRANSFORM];
+                    if(extDef) {
+                        if(extDef.offset) {
+                            map.offset.set(extDef.offset[0], extDef.offset[1]);
+                        }
+                        if(extDef.rotation) {
+                            map.rotation = extDef.rotation;
+                        }
+                        if(extDef.scale) {
+                            map.repeat.set(extDef.scale[0], extDef.scale[1]);
+                        }
+                    }
+
+                    material[textureExtensionsSupports[key]] = map;
+    
+                }
+            }
 
             return material;
 
@@ -1620,7 +1660,7 @@
 
 	};
 
-	GLTFMaterialsUnlitExtension.prototype.extendParams = function ( materialParams, material, parser ) {
+	GLTFMaterialsUnlitExtension.prototype.extendParams = function ( materialParams, material, parser, textureExtensions ) {
 
 		var pending = [];
 
@@ -1642,7 +1682,11 @@
 
 			if ( metallicRoughness.baseColorTexture !== undefined ) {
 
-				pending.push( parser.assignTexture( materialParams, 'diffuseMap', metallicRoughness.baseColorTexture.index ) );
+                pending.push( parser.assignTexture( materialParams, 'diffuseMap', metallicRoughness.baseColorTexture.index ) );
+                
+                if(metallicRoughness.baseColorTexture.extensions) {
+                    textureExtensions["baseColorTexture"] = metallicRoughness.baseColorTexture.extensions;
+                }
 
 			}
 
@@ -1661,7 +1705,8 @@
         KHR_DRACO_MESH_COMPRESSION: 'KHR_draco_mesh_compression',
         KHR_LIGHTS: 'KHR_lights',
         KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS: 'KHR_materials_pbrSpecularGlossiness',
-        KHR_MATERIALS_UNLIT: 'KHR_materials_unlit'
+        KHR_MATERIALS_UNLIT: 'KHR_materials_unlit',
+        KHR_TEXTURE_TRANSFORM: 'KHR_texture_transform'
     };
 
     /**
@@ -1824,6 +1869,16 @@
             });
         });
     };
+
+    /**
+     * Texture Transform Extension
+     * 
+     * https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_texture_transform
+     * 
+     */
+    function GLTFTextureTransformExtension() {
+        this.name = EXTENSIONS.KHR_TEXTURE_TRANSFORM;
+    }
 
     /*********************************/
     /********** WEBGL CONSTANTS ***********/
