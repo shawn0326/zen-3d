@@ -165,8 +165,7 @@
 	    LINE_LOOP: "line_loop",
 	    LINE_SEGMENTS: "line_segments",
 	    CANVAS2D: "canvas2d",
-	    SPRITE: "sprite",
-	    PARTICLE: "particle"
+	    SPRITE: "sprite"
 	};
 
 	/**
@@ -187,7 +186,6 @@
 	    LAMBERT: "lambert",
 	    PHONG: "phong",
 	    PBR: "pbr",
-	    CUBE: "cube",
 	    POINT: "point",
 	    LINE: "line",
 	    LINE_LOOP: "lineloop",
@@ -196,8 +194,7 @@
 	    SPRITE: "sprite",
 	    SHADER: "shader",
 	    DEPTH: "depth",
-	    DISTANCE: "distance",
-	    PARTICLE: "particle"
+	    DISTANCE: "distance"
 	};
 
 	/**
@@ -402,22 +399,6 @@
 	    TRIANGLE_STRIP: 5,
 	    TRIANGLE_FAN: 6
 	};
-
-	var RENDER_LAYER = {
-	    DEFAULT: "default",
-	    TRANSPARENT: "transparent",
-	    CANVAS2D: "canvas2d",
-	    SPRITE: "sprite",
-	    PARTICLE: "particle"
-	};
-
-	var LAYER_RENDER_LIST = [
-	    RENDER_LAYER.DEFAULT,
-	    RENDER_LAYER.TRANSPARENT,
-	    RENDER_LAYER.CANVAS2D,
-	    RENDER_LAYER.SPRITE,
-	    RENDER_LAYER.PARTICLE
-	];
 
 	/**
 	 * EventDispatcher Class
@@ -6541,34 +6522,6 @@
 	});
 
 	/**
-	 * CubeMaterial
-	 * @class
-	 */
-	function CubeMaterial() {
-	    Material.call(this);
-
-	    this.type = MATERIAL_TYPE.CUBE;
-
-	    this.side = DRAW_SIDE.BACK;
-
-	    this.cubeMap = null;
-	}
-
-	CubeMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-	    constructor: CubeMaterial,
-
-	    copy: function(source) {
-	        Material.prototype.copy.call(this, source);
-
-	        this.cubeMap = source.cubeMap;
-
-	        return this;
-	    }
-
-	});
-
-	/**
 	 * PointsMaterial
 	 * @class
 	 */
@@ -6791,31 +6744,6 @@
 	DistanceMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
 	    constructor: DistanceMaterial
-
-	});
-
-	/**
-	 * ParticleMaterial
-	 * @class
-	 */
-	function ParticleMaterial() {
-	    Material.call(this);
-
-	    this.type = MATERIAL_TYPE.PARTICLE;
-
-	    this.transparent = true;
-
-	    this.blending = BLEND_TYPE.ADD;
-
-	    this.depthTest = true;
-	    this.depthWrite = false;
-
-	    this.drawMode = DRAW_MODE.POINTS;
-	}
-
-	ParticleMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-	    constructor: ParticleMaterial
 
 	});
 
@@ -8380,10 +8308,6 @@
 
 	var canvas2d_vert = "#include <common_vert>\r\nattribute vec2 a_Uv;\r\nvarying vec2 v_Uv;\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <pvm_vert>\r\n    v_Uv = a_Uv;\r\n}";
 
-	var cube_frag = "#include <common_frag>\r\nuniform samplerCube cubeMap;\r\nvarying vec3 v_ModelPos;\r\nvoid main() {\r\n    #include <begin_frag>\r\n    outColor *= textureCube(cubeMap, v_ModelPos);\r\n    #include <end_frag>\r\n}";
-
-	var cube_vert = "#include <common_vert>\r\nvarying vec3 v_ModelPos;\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <pvm_vert>\r\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\r\n}";
-
 	var depth_frag = "#include <common_frag>\r\n#include <diffuseMap_pars_frag>\r\n\r\n#include <uv_pars_frag>\r\n\r\n#include <packing>\r\n\r\nvoid main() {\r\n    #if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)\r\n        vec4 texelColor = texture2D( texture, v_Uv );\r\n\r\n        float alpha = texelColor.a * u_Opacity;\r\n        if(alpha < ALPHATEST) discard;\r\n    #endif\r\n    \r\n    #ifdef DEPTH_PACKING_RGBA\r\n        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\r\n    #else\r\n        gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), u_Opacity );\r\n    #endif\r\n}";
 
 	var depth_vert = "#include <common_vert>\r\n#include <skinning_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n}";
@@ -8403,10 +8327,6 @@
 	var normaldepth_frag = "#include <common_frag>\r\n#include <diffuseMap_pars_frag>\r\n\r\n#include <uv_pars_frag>\r\n\r\n#define USE_NORMAL\r\n\r\n#include <packing>\r\n#include <normal_pars_frag>\r\n\r\nvoid main() {\r\n    #if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)\r\n        vec4 texelColor = texture2D( texture, v_Uv );\r\n\r\n        float alpha = texelColor.a * u_Opacity;\r\n        if(alpha < ALPHATEST) discard;\r\n    #endif\r\n    vec4 packedNormalDepth;\r\n    packedNormalDepth.xyz = normalize(v_Normal) * 0.5 + 0.5;\r\n    packedNormalDepth.w = gl_FragCoord.z;\r\n    gl_FragColor = packedNormalDepth;\r\n}";
 
 	var normaldepth_vert = "#include <common_vert>\r\n\r\n#define USE_NORMAL\r\n\r\n#include <skinning_pars_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <normal_vert>\r\n    #include <pvm_vert>\r\n}";
-
-	var particle_frag = "float scaleLinear(float value, vec2 valueDomain) {\r\n    return (value - valueDomain.x) / (valueDomain.y - valueDomain.x);\r\n}\r\n\r\nfloat scaleLinear(float value, vec2 valueDomain, vec2 valueRange) {\r\n    return mix(valueRange.x, valueRange.y, scaleLinear(value, valueDomain));\r\n}\r\n\r\nvarying vec4 vColor;\r\nvarying float lifeLeft;\r\n\r\nuniform sampler2D tSprite;\r\n\r\nvoid main() {\r\n\r\n    float alpha = 0.;\r\n\r\n    if( lifeLeft > .995 ) {\r\n        alpha = scaleLinear( lifeLeft, vec2(1., .995), vec2(0., 1.));\r\n        //mix( 0., 1., ( lifeLeft - .95 ) * 100. ) * .75;\r\n    } else {\r\n        alpha = lifeLeft * .75;\r\n    }\r\n\r\n    vec4 tex = texture2D( tSprite, gl_PointCoord );\r\n\r\n    gl_FragColor = vec4( vColor.rgb * tex.a, alpha * tex.a );\r\n}";
-
-	var particle_vert = "const vec4 bitSh = vec4(256. * 256. * 256., 256. * 256., 256., 1.);\r\nconst vec4 bitMsk = vec4(0.,vec3(1./256.0));\r\nconst vec4 bitShifts = vec4(1.) / bitSh;\r\n\r\n#define FLOAT_MAX\t1.70141184e38\r\n#define FLOAT_MIN\t1.17549435e-38\r\n\r\nlowp vec4 encode_float(highp float v) {\r\n    highp float av = abs(v);\r\n\r\n    //Handle special cases\r\n    if(av < FLOAT_MIN) {\r\n        return vec4(0.0, 0.0, 0.0, 0.0);\r\n    } else if(v > FLOAT_MAX) {\r\n        return vec4(127.0, 128.0, 0.0, 0.0) / 255.0;\r\n    } else if(v < -FLOAT_MAX) {\r\n        return vec4(255.0, 128.0, 0.0, 0.0) / 255.0;\r\n    }\r\n\r\n    highp vec4 c = vec4(0,0,0,0);\r\n\r\n    //Compute exponent and mantissa\r\n    highp float e = floor(log2(av));\r\n    highp float m = av * pow(2.0, -e) - 1.0;\r\n\r\n    //Unpack mantissa\r\n    c[1] = floor(128.0 * m);\r\n    m -= c[1] / 128.0;\r\n    c[2] = floor(32768.0 * m);\r\n    m -= c[2] / 32768.0;\r\n    c[3] = floor(8388608.0 * m);\r\n\r\n    //Unpack exponent\r\n    highp float ebias = e + 127.0;\r\n    c[0] = floor(ebias / 2.0);\r\n    ebias -= c[0] * 2.0;\r\n    c[1] += floor(ebias) * 128.0;\r\n\r\n    //Unpack sign bit\r\n    c[0] += 128.0 * step(0.0, -v);\r\n\r\n    //Scale back to range\r\n    return c / 255.0;\r\n}\r\n\r\nvec4 pack(const in float depth)\r\n{\r\n    const vec4 bit_shift = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0);\r\n    const vec4 bit_mask\t= vec4(0.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);\r\n    vec4 res = mod(depth*bit_shift*vec4(255), vec4(256))/vec4(255);\r\n    res -= res.xxyz * bit_mask;\r\n    return res;\r\n}\r\n\r\nfloat unpack(const in vec4 rgba_depth)\r\n{\r\n    const vec4 bit_shift = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);\r\n    float depth = dot(rgba_depth, bit_shift);\r\n    return depth;\r\n}\r\n\r\nuniform float uTime;\r\nuniform float uScale;\r\nuniform sampler2D tNoise;\r\n\r\nuniform mat4 u_Projection;\r\nuniform mat4 u_View;\r\nuniform mat4 u_Model;\r\n\r\nattribute vec4 particlePositionsStartTime;\r\nattribute vec4 particleVelColSizeLife;\r\n\r\nvarying vec4 vColor;\r\nvarying float lifeLeft;\r\n\r\nvoid main() {\r\n\r\n    // unpack things from our attributes\r\n    vColor = encode_float( particleVelColSizeLife.y );\r\n\r\n    // convert our velocity back into a value we can use\r\n    vec4 velTurb = encode_float( particleVelColSizeLife.x );\r\n    vec3 velocity = vec3( velTurb.xyz );\r\n    float turbulence = velTurb.w;\r\n\r\n    vec3 newPosition;\r\n\r\n    float timeElapsed = uTime - particlePositionsStartTime.a;\r\n\r\n    lifeLeft = 1. - (timeElapsed / particleVelColSizeLife.w);\r\n\r\n    gl_PointSize = ( uScale * particleVelColSizeLife.z ) * lifeLeft;\r\n\r\n    velocity.x = ( velocity.x - .5 ) * 3.;\r\n    velocity.y = ( velocity.y - .5 ) * 3.;\r\n    velocity.z = ( velocity.z - .5 ) * 3.;\r\n\r\n    newPosition = particlePositionsStartTime.xyz + ( velocity * 10. ) * ( uTime - particlePositionsStartTime.a );\r\n\r\n    vec3 noise = texture2D( tNoise, vec2( newPosition.x * .015 + (uTime * .05), newPosition.y * .02 + (uTime * .015) )).rgb;\r\n    vec3 noiseVel = ( noise.rgb - .5 ) * 30.;\r\n\r\n    newPosition = mix(newPosition, newPosition + vec3(noiseVel * ( turbulence * 5. ) ), (timeElapsed / particleVelColSizeLife.a) );\r\n\r\n    if( velocity.y > 0. && velocity.y < .05 ) {\r\n        lifeLeft = 0.;\r\n    }\r\n\r\n    if( velocity.x < -1.45 ) {\r\n        lifeLeft = 0.;\r\n    }\r\n\r\n    if( timeElapsed > 0. ) {\r\n        gl_Position = u_Projection * u_View * u_Model * vec4( newPosition, 1.0 );\r\n    } else {\r\n        gl_Position = u_Projection * u_View * u_Model * vec4( particlePositionsStartTime.xyz, 1.0 );\r\n        lifeLeft = 0.;\r\n        gl_PointSize = 0.;\r\n    }\r\n}";
 
 	var pbr_frag = "#include <common_frag>\r\n\r\n// if no light> this will not active\r\nuniform float u_Metalness;\r\n#ifdef USE_METALNESSMAP\r\n\tuniform sampler2D metalnessMap;\r\n#endif\r\n\r\nuniform float u_Roughness;\r\n#ifdef USE_ROUGHNESSMAP\r\n\tuniform sampler2D roughnessMap;\r\n#endif\r\n\r\nuniform vec3 emissive;\r\n\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <normalMap_pars_frag>\r\n#include <bumpMap_pars_frag>\r\n#include <envMap_pars_frag>\r\n#include <aoMap_pars_frag>\r\n#include <light_pars_frag>\r\n#include <normal_pars_frag>\r\n#include <viewModelPos_pars_frag>\r\n#include <bsdfs>\r\n#include <shadowMap_pars_frag>\r\n#include <fog_pars_frag>\r\n#include <emissiveMap_pars_frag>\r\n#include <clippingPlanes_pars_frag>\r\nvoid main() {\r\n    #include <clippingPlanes_frag>\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <normal_frag>\r\n    #include <specularMap_frag>\r\n\r\n    float roughnessFactor = u_Roughness;\r\n    #ifdef USE_ROUGHNESSMAP\r\n    \tvec4 texelRoughness = texture2D( roughnessMap, v_Uv );\r\n    \t// reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture\r\n    \troughnessFactor *= texelRoughness.g;\r\n    #endif\r\n\r\n    float metalnessFactor = u_Metalness;\r\n    #ifdef USE_METALNESSMAP\r\n    \tvec4 texelMetalness = texture2D( metalnessMap, v_Uv );\r\n    \t// reads channel B, compatible with a combined OcclusionRoughnessMetallic (RGB) texture\r\n    \tmetalnessFactor *= texelMetalness.b;\r\n    #endif\r\n\r\n    #include <light_frag>\r\n    #include <shadowMap_frag>\r\n\r\n    vec3 totalEmissiveRadiance = emissive;\r\n    #include <emissiveMap_frag>\r\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\r\n\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
@@ -8429,8 +8349,6 @@
 	    basic_vert: basic_vert,
 	    canvas2d_frag: canvas2d_frag,
 	    canvas2d_vert: canvas2d_vert,
-	    cube_frag: cube_frag,
-	    cube_vert: cube_vert,
 	    depth_frag: depth_frag,
 	    depth_vert: depth_vert,
 	    distance_frag: distance_frag,
@@ -8441,8 +8359,6 @@
 	    linedashed_vert: linedashed_vert,
 	    normaldepth_frag: normaldepth_frag,
 	    normaldepth_vert: normaldepth_vert,
-	    particle_frag: particle_frag,
-	    particle_vert: particle_vert,
 	    pbr_frag: pbr_frag,
 	    pbr_vert: pbr_vert,
 	    phong_frag: phong_frag,
@@ -9170,10 +9086,6 @@
 	            if(object.type === OBJECT_TYPE.SPRITE) {
 	                this.uploadSpriteUniform(uniforms, object, camera, scene.fog);
 	            }
-	            
-	            if(object.type === OBJECT_TYPE.PARTICLE) {
-	                this.uploadParticlesUniform(uniforms, object, camera);
-	            }
 	    
 	            if (material.acceptLight && scene.lights) {
 	                this.uploadLights(uniforms, scene.lights, object.receiveShadow, camera);
@@ -9562,28 +9474,6 @@
 	        var slot = this.allocTexUnit();
 	        this.texture.setTexture2D(material.diffuseMap, slot);
 	        uniforms.map.setValue(slot);
-	    },
-
-	    uploadParticlesUniform: function(uniforms, particle, camera) {
-	        var gl = this.gl;
-	        var state = this.state;
-	        var geometry = particle.geometry;
-	        var material = particle.material;
-	    
-	        uniforms.uTime.setValue(particle.time);
-	        uniforms.uScale.setValue(1);
-	    
-	        uniforms.u_Projection.setValue(camera.projectionMatrix.elements);
-	        uniforms.u_View.setValue(camera.viewMatrix.elements);
-	        uniforms.u_Model.setValue(particle.worldMatrix.elements);
-	    
-	        var slot = this.allocTexUnit();
-	        this.texture.setTexture2D(particle.particleNoiseTex, slot);
-	        uniforms.tNoise.setValue(slot);
-	    
-	        var slot = this.allocTexUnit();
-	        this.texture.setTexture2D(particle.particleSpriteTex, slot);
-	        uniforms.tSprite.setValue(slot);
 	    },
 
 	    /**
@@ -11489,163 +11379,6 @@
 	Sprite.prototype = Object.create(Object3D.prototype);
 	Sprite.prototype.constructor = Sprite;
 
-	// construct a couple small arrays used for packing variables into floats etc
-	var UINT8_VIEW = new Uint8Array(4);
-	var FLOAT_VIEW = new Float32Array(UINT8_VIEW.buffer);
-
-	function decodeFloat(x, y, z, w) {
-	    UINT8_VIEW[0] = Math.floor(w);
-	    UINT8_VIEW[1] = Math.floor(z);
-	    UINT8_VIEW[2] = Math.floor(y);
-	    UINT8_VIEW[3] = Math.floor(x);
-	    return FLOAT_VIEW[0];
-	}
-
-	/*
-	 * a particle container
-	 * reference three.js - flimshaw - Charlie Hoey - http://charliehoey.com
-	 */
-	function ParticleContainer(options) {
-	    Object3D.call(this);
-
-	    var options = options || {};
-
-	    this.maxParticleCount = options.maxParticleCount || 10000;
-	    this.particleNoiseTex = options.particleNoiseTex || null;
-	    this.particleSpriteTex = options.particleSpriteTex || null;
-
-	    this.geometry = new Geometry();
-
-	    var vertices = [];
-	    for(var i = 0; i < this.maxParticleCount; i++) {
-	        vertices[i * 8 + 0] = 100                        ; //x
-	        vertices[i * 8 + 1] = 0                          ; //y
-	        vertices[i * 8 + 2] = 0                          ; //z
-	        vertices[i * 8 + 3] = 0.0                        ; //startTime
-	        vertices[i * 8 + 4] = decodeFloat(128, 128, 0, 0); //vel
-	        vertices[i * 8 + 5] = decodeFloat(0, 254, 0, 254); //color
-	        vertices[i * 8 + 6] = 1.0                        ; //size
-	        vertices[i * 8 + 7] = 0.0                        ; //lifespan
-	    }
-	    var buffer = new InterleavedBuffer(new Float32Array(vertices), 8);
-	    buffer.dynamic = true;
-	    var attribute;
-	    attribute = new InterleavedBufferAttribute(buffer, 3, 0);
-	    this.geometry.addAttribute("a_Position", attribute);
-	    attribute = new InterleavedBufferAttribute(buffer, 4, 0);
-	    this.geometry.addAttribute("particlePositionsStartTime", attribute);
-	    attribute = new InterleavedBufferAttribute(buffer, 4, 4);
-	    this.geometry.addAttribute("particleVelColSizeLife", attribute);
-
-	    this.particleCursor = 0;
-	    this.time = 0;
-
-	    this.type = OBJECT_TYPE.PARTICLE;
-
-	    this.material = new ParticleMaterial();
-	    
-	    this.frustumCulled = false;
-	}
-
-	ParticleContainer.prototype = Object.assign(Object.create(Object3D.prototype), {
-
-	    constructor: ParticleContainer,
-
-	    spawn: function() {
-
-	        var position = new Vector3();
-	        var velocity = new Vector3();
-	        var positionRandomness = 0;
-	        var velocityRandomness = 0;
-	        var color = new Color3();
-	        var colorRandomness = 0;
-	        var lifetime = 0;
-	        var size = 0;
-	        var sizeRandomness = 0;
-
-	        var maxVel = 2;
-	        var maxSource = 250;
-
-	        return function spawn(options) {
-	            var options = options || {};
-
-	            position = options.position !== undefined ? position.copy(options.position) : position.set(0., 0., 0.);
-	            velocity = options.velocity !== undefined ? velocity.copy(options.velocity) : velocity.set(0., 0., 0.);
-	            positionRandomness = options.positionRandomness !== undefined ? options.positionRandomness : 0.0;
-	            velocityRandomness = options.velocityRandomness !== undefined ? options.velocityRandomness : 0.0;
-	            color = options.color !== undefined ? color.copy(options.color) : color.setRGB(1, 1, 1);
-	            colorRandomness = options.colorRandomness !== undefined ? options.colorRandomness : 1.0;
-	            turbulence = options.turbulence !== undefined ? options.turbulence : 1.0;
-	            lifetime = options.lifetime !== undefined ? options.lifetime : 5.0;
-	            size = options.size !== undefined ? options.size : 10;
-	            sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0.0;
-	    
-	            var cursor = this.particleCursor;
-	            var particlePositionsStartTimeAttribute = this.geometry.getAttribute("particlePositionsStartTime");
-	            var buffer = particlePositionsStartTimeAttribute.data;
-	            var vertices = buffer.array;
-	            var vertexSize = buffer.stride;
-	    
-	            vertices[cursor * vertexSize + 0] = position.x + (Math.random() - 0.5) * positionRandomness; //x
-	            vertices[cursor * vertexSize + 1] = position.y + (Math.random() - 0.5) * positionRandomness; //y
-	            vertices[cursor * vertexSize + 2] = position.z + (Math.random() - 0.5) * positionRandomness; //z
-	            vertices[cursor * vertexSize + 3] = this.time + (Math.random() - 0.5) * 2e-2; //startTime
-	    
-	            var velX = velocity.x + (Math.random() - 0.5) * velocityRandomness;
-	            var velY = velocity.y + (Math.random() - 0.5) * velocityRandomness;
-	            var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
-	    
-	            // convert turbulence rating to something we can pack into a vec4
-	            var turbulence = Math.floor(turbulence * 254);
-	    
-	            // clamp our value to between 0. and 1.
-	            velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
-	            velY = Math.floor(maxSource * ((velY - -maxVel) / (maxVel - -maxVel)));
-	            velZ = Math.floor(maxSource * ((velZ - -maxVel) / (maxVel - -maxVel)));
-	    
-	            vertices[cursor * vertexSize + 4] = decodeFloat(velX, velY, velZ, turbulence); //velocity
-	    
-	            var r = color.r * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-	            var g = color.g * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-	            var b = color.b * 254 + (Math.random() - 0.5) * colorRandomness * 254;
-	            if(r > 254) r = 254;
-	            if(r < 0) r = 0;
-	            if(g > 254) g = 254;
-	            if(g < 0) g = 0;
-	            if(b > 254) b = 254;
-	            if(b < 0) b = 0;
-	            vertices[cursor * vertexSize + 5] = decodeFloat(r, g, b, 254); //color
-	    
-	            vertices[cursor * vertexSize + 6] = size + (Math.random() - 0.5) * sizeRandomness; //size
-	    
-	            vertices[cursor * vertexSize + 7] = lifetime; //lifespan
-	    
-	            this.particleCursor++;
-	    
-	            if(this.particleCursor >= this.maxParticleCount) {
-	                this.particleCursor = 0;
-	                buffer.version++;
-	                buffer.updateRange.offset = 0;
-	                buffer.updateRange.count = -1;
-	            } else {
-	                buffer.version++;
-	                if(buffer.updateRange.count > -1) {
-	                    buffer.updateRange.count = this.particleCursor * vertexSize - buffer.updateRange.offset;
-	                } else {
-	                    buffer.updateRange.offset = cursor * vertexSize;
-	                    buffer.updateRange.count = vertexSize;
-	                }
-	            }
-	        }
-	        
-	    }(),
-
-	    update: function(time) {
-	        this.time = time;
-	    }
-
-	});
-
 	exports.EventDispatcher = EventDispatcher;
 	exports.Raycaster = Raycaster;
 	exports.Euler = Euler;
@@ -11698,7 +11431,6 @@
 	exports.LambertMaterial = LambertMaterial;
 	exports.PhongMaterial = PhongMaterial;
 	exports.PBRMaterial = PBRMaterial;
-	exports.CubeMaterial = CubeMaterial;
 	exports.PointsMaterial = PointsMaterial;
 	exports.LineMaterial = LineMaterial;
 	exports.LineLoopMaterial = LineLoopMaterial;
@@ -11707,7 +11439,6 @@
 	exports.ShaderMaterial = ShaderMaterial;
 	exports.DepthMaterial = DepthMaterial;
 	exports.DistanceMaterial = DistanceMaterial;
-	exports.ParticleMaterial = ParticleMaterial;
 	exports.WebGLCapabilities = WebGLCapabilities;
 	exports.WebGLState = WebGLState;
 	exports.WebGLProperties = WebGLProperties;
@@ -11749,7 +11480,6 @@
 	exports.Points = Points;
 	exports.Line = Line;
 	exports.Sprite = Sprite;
-	exports.ParticleContainer = ParticleContainer;
 	exports.FileLoader = FileLoader;
 	exports.ImageLoader = ImageLoader;
 	exports.TGALoader = TGALoader;
@@ -11784,8 +11514,6 @@
 	exports.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
 	exports.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
 	exports.DRAW_MODE = DRAW_MODE;
-	exports.RENDER_LAYER = RENDER_LAYER;
-	exports.LAYER_RENDER_LIST = LAYER_RENDER_LIST;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

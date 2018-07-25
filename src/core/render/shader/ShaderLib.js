@@ -2,8 +2,6 @@ import basic_frag from './shaderLib/basic_frag.glsl';
 import basic_vert from './shaderLib/basic_vert.glsl';
 import canvas2d_frag from './shaderLib/canvas2d_frag.glsl';
 import canvas2d_vert from './shaderLib/canvas2d_vert.glsl';
-import cube_frag from './shaderLib/cube_frag.glsl';
-import cube_vert from './shaderLib/cube_vert.glsl';
 import depth_frag from './shaderLib/depth_frag.glsl';
 import depth_vert from './shaderLib/depth_vert.glsl';
 import distance_frag from './shaderLib/distance_frag.glsl';
@@ -14,8 +12,6 @@ import linedashed_frag from './shaderLib/linedashed_frag.glsl';
 import linedashed_vert from './shaderLib/linedashed_vert.glsl';
 import normaldepth_frag from './shaderLib/normaldepth_frag.glsl';
 import normaldepth_vert from './shaderLib/normaldepth_vert.glsl';
-import particle_frag from './shaderLib/particle_frag.glsl';
-import particle_vert from './shaderLib/particle_vert.glsl';
 import pbr_frag from './shaderLib/pbr_frag.glsl';
 import pbr_vert from './shaderLib/pbr_vert.glsl';
 import phong_frag from './shaderLib/phong_frag.glsl';
@@ -30,8 +26,6 @@ export var ShaderLib = {
     basic_vert: basic_vert,
     canvas2d_frag: canvas2d_frag,
     canvas2d_vert: canvas2d_vert,
-    cube_frag: cube_frag,
-    cube_vert: cube_vert,
     depth_frag: depth_frag,
     depth_vert: depth_vert,
     distance_frag: distance_frag,
@@ -42,8 +36,6 @@ export var ShaderLib = {
     linedashed_vert: linedashed_vert,
     normaldepth_frag: normaldepth_frag,
     normaldepth_vert: normaldepth_vert,
-    particle_frag: particle_frag,
-    particle_vert: particle_vert,
     pbr_frag: pbr_frag,
     pbr_vert: pbr_vert,
     phong_frag: phong_frag,

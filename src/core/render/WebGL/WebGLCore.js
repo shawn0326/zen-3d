@@ -371,10 +371,6 @@ Object.assign(WebGLCore.prototype, {
             if(object.type === OBJECT_TYPE.SPRITE) {
                 this.uploadSpriteUniform(uniforms, object, camera, scene.fog);
             }
-            
-            if(object.type === OBJECT_TYPE.PARTICLE) {
-                this.uploadParticlesUniform(uniforms, object, camera);
-            }
     
             if (material.acceptLight && scene.lights) {
                 this.uploadLights(uniforms, scene.lights, object.receiveShadow, camera);
@@ -763,28 +759,6 @@ Object.assign(WebGLCore.prototype, {
         var slot = this.allocTexUnit();
         this.texture.setTexture2D(material.diffuseMap, slot);
         uniforms.map.setValue(slot);
-    },
-
-    uploadParticlesUniform: function(uniforms, particle, camera) {
-        var gl = this.gl;
-        var state = this.state;
-        var geometry = particle.geometry;
-        var material = particle.material;
-    
-        uniforms.uTime.setValue(particle.time);
-        uniforms.uScale.setValue(1);
-    
-        uniforms.u_Projection.setValue(camera.projectionMatrix.elements);
-        uniforms.u_View.setValue(camera.viewMatrix.elements);
-        uniforms.u_Model.setValue(particle.worldMatrix.elements);
-    
-        var slot = this.allocTexUnit();
-        this.texture.setTexture2D(particle.particleNoiseTex, slot);
-        uniforms.tNoise.setValue(slot);
-    
-        var slot = this.allocTexUnit();
-        this.texture.setTexture2D(particle.particleSpriteTex, slot);
-        uniforms.tSprite.setValue(slot);
     },
 
     /**

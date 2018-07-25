@@ -13,8 +13,7 @@ export var OBJECT_TYPE = {
     LINE_LOOP: "line_loop",
     LINE_SEGMENTS: "line_segments",
     CANVAS2D: "canvas2d",
-    SPRITE: "sprite",
-    PARTICLE: "particle"
+    SPRITE: "sprite"
 };
 
 /**
@@ -35,7 +34,6 @@ export var MATERIAL_TYPE = {
     LAMBERT: "lambert",
     PHONG: "phong",
     PBR: "pbr",
-    CUBE: "cube",
     POINT: "point",
     LINE: "line",
     LINE_LOOP: "lineloop",
@@ -44,8 +42,7 @@ export var MATERIAL_TYPE = {
     SPRITE: "sprite",
     SHADER: "shader",
     DEPTH: "depth",
-    DISTANCE: "distance",
-    PARTICLE: "particle"
+    DISTANCE: "distance"
 };
 
 /**
@@ -250,19 +247,3 @@ export var DRAW_MODE = {
     TRIANGLE_STRIP: 5,
     TRIANGLE_FAN: 6
 }
-
-export var RENDER_LAYER = {
-    DEFAULT: "default",
-    TRANSPARENT: "transparent",
-    CANVAS2D: "canvas2d",
-    SPRITE: "sprite",
-    PARTICLE: "particle"
-}
-
-export var LAYER_RENDER_LIST = [
-    RENDER_LAYER.DEFAULT,
-    RENDER_LAYER.TRANSPARENT,
-    RENDER_LAYER.CANVAS2D,
-    RENDER_LAYER.SPRITE,
-    RENDER_LAYER.PARTICLE
-];
