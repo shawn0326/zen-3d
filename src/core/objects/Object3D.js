@@ -77,6 +77,9 @@ Object.defineProperties(Object3D.prototype, {
 
 Object.assign(Object3D.prototype, {
 
+    onBeforeRender: function () {},
+	onAfterRender: function () {},
+
     /**
      * add child to object3d
      */

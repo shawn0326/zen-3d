@@ -164,8 +164,7 @@
 	    LINE: "line",
 	    LINE_LOOP: "line_loop",
 	    LINE_SEGMENTS: "line_segments",
-	    CANVAS2D: "canvas2d",
-	    SPRITE: "sprite"
+	    CANVAS2D: "canvas2d"
 	};
 
 	/**
@@ -191,7 +190,6 @@
 	    LINE_LOOP: "lineloop",
 	    LINE_DASHED: "linedashed",
 	    CANVAS2D: "canvas2d",
-	    SPRITE: "sprite",
 	    SHADER: "shader",
 	    DEPTH: "depth",
 	    DISTANCE: "distance"
@@ -4625,6 +4623,9 @@
 
 	Object.assign(Object3D.prototype, {
 
+	    onBeforeRender: function () {},
+		onAfterRender: function () {},
+
 	    /**
 	     * add child to object3d
 	     */
@@ -6647,35 +6648,6 @@
 	});
 
 	/**
-	 * SpriteMaterial
-	 * @class
-	 */
-	function SpriteMaterial() {
-	    Material.call(this);
-
-	    this.type = MATERIAL_TYPE.SPRITE;
-
-	    this.rotation = 0;
-
-	    this.fog = false;
-	}
-
-	SpriteMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-	    constructor: SpriteMaterial,
-
-	    copy: function(source) {
-	        Material.prototype.copy.call(this, source);
-
-	        this.rotation = source.rotation;
-	        this.fog = source.fog;
-
-	        return this;
-	    }
-
-	});
-
-	/**
 	 * ShaderMaterial
 	 * @class
 	 */
@@ -8340,10 +8312,6 @@
 
 	var point_vert = "#include <common_vert>\r\nuniform float u_PointSize;\r\nuniform float u_PointScale;\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <pvm_vert>\r\n    vec4 mvPosition = u_View * u_Model * vec4(transformed, 1.0);\r\n    #ifdef USE_SIZEATTENUATION\r\n        gl_PointSize = u_PointSize * ( u_PointScale / - mvPosition.z );\r\n    #else\r\n        gl_PointSize = u_PointSize;\r\n    #endif\r\n}";
 
-	var sprite_frag = "uniform vec3 color;\r\nuniform sampler2D map;\r\nuniform float opacity;\r\n\r\nuniform int fogType;\r\nuniform vec3 fogColor;\r\nuniform float fogDensity;\r\nuniform float fogNear;\r\nuniform float fogFar;\r\nuniform float alphaTest;\r\n\r\nvarying vec2 vUV;\r\n\r\nvoid main() {\r\n\r\n    vec4 texture = texture2D( map, vUV );\r\n\r\n    if ( texture.a < alphaTest ) discard;\r\n\r\n    gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );\r\n\r\n    if ( fogType > 0 ) {\r\n\r\n        float depth = gl_FragCoord.z / gl_FragCoord.w;\r\n        float fogFactor = 0.0;\r\n\r\n        if ( fogType == 1 ) {\r\n\r\n            fogFactor = smoothstep( fogNear, fogFar, depth );\r\n\r\n        } else {\r\n            \r\n            fogFactor = exp2( - fogDensity * fogDensity * depth * depth * LOG2 );\r\n            fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );\r\n\r\n        }\r\n\r\n        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\r\n\r\n    }\r\n\r\n}";
-
-	var sprite_vert = "uniform mat4 modelMatrix;\r\nuniform mat4 viewMatrix;\r\nuniform mat4 projectionMatrix;\r\nuniform float rotation;\r\nuniform vec2 scale;\r\nuniform vec2 uvOffset;\r\nuniform vec2 uvScale;\r\n\r\nattribute vec2 position;\r\nattribute vec2 uv;\r\n\r\nvarying vec2 vUV;\r\n\r\nvoid main() {\r\n\r\n    vUV = uvOffset + uv * uvScale;\r\n\r\n    vec2 alignedPosition = position * scale;\r\n\r\n    vec2 rotatedPosition;\r\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\r\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\r\n\r\n    vec4 finalPosition;\r\n\r\n    finalPosition = viewMatrix * modelMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );\r\n    finalPosition.xy += rotatedPosition;\r\n    finalPosition = projectionMatrix * finalPosition;\r\n\r\n    gl_Position = finalPosition;\r\n\r\n}";
-
 	var ShaderLib = {
 	    basic_frag: basic_frag,
 	    basic_vert: basic_vert,
@@ -8364,9 +8332,7 @@
 	    phong_frag: phong_frag,
 	    phong_vert: phong_vert,
 	    point_frag: point_frag,
-	    point_vert: point_vert,
-	    sprite_frag: sprite_frag,
-	    sprite_vert: sprite_vert
+	    point_vert: point_vert
 	};
 
 	var programMap = {};
@@ -8788,11 +8754,6 @@
 	var pointShadowMaps = [];
 	var spotShadowMaps = [];
 
-	var scale = []; // for sprite scale upload
-	var spritePosition = new Vector3();
-	var spriteRotation = new Quaternion();
-	var spriteScale = new Vector3();
-
 	Object.assign(WebGLCore.prototype, {
 
 	    /**
@@ -8881,6 +8842,8 @@
 	            var material = getMaterial.call(this, renderItem);
 	            var geometry = renderItem.geometry;
 	            var group = renderItem.group;
+
+	            object.onBeforeRender();
 	    
 	            var program = getProgram(this, camera, material, object, scene);
 	            state.setProgram(program);
@@ -9083,10 +9046,6 @@
 	                this.uploadSkeleton(uniforms, object, program.id);
 	            }
 	    
-	            if(object.type === OBJECT_TYPE.SPRITE) {
-	                this.uploadSpriteUniform(uniforms, object, camera, scene.fog);
-	            }
-	    
 	            if (material.acceptLight && scene.lights) {
 	                this.uploadLights(uniforms, scene.lights, object.receiveShadow, camera);
 	            }
@@ -9135,6 +9094,9 @@
 	    
 	            // reset used tex Unit
 	            this._usedTextureUnits = 0;
+
+	            object.onAfterRender();
+
 	        }
 	    },
 
@@ -9407,73 +9369,6 @@
 	            var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
 	            gl.uniformMatrix4fv(spotShadowMatrix.location, false, lights.spotShadowMatrix);
 	        }
-	    },
-
-	    uploadSpriteUniform: function(uniforms, sprite, camera, fog) {
-	        var gl = this.gl;
-	        var state = this.state;
-	        var geometry = sprite.geometry;
-	        var material = sprite.material;
-	    
-	        uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
-	    
-	        var sceneFogType = 0;
-	        if (fog) {
-	            uniforms.fogColor.setValue(fog.color.r, fog.color.g, fog.color.b);
-	    
-	            if (fog.fogType === FOG_TYPE.NORMAL) {
-	                uniforms.fogNear.setValue(fog.near);
-	                uniforms.fogFar.setValue(fog.far);
-	    
-	                uniforms.fogType.setValue(1);
-	                sceneFogType = 1;
-	            } else if (fog.fogType === FOG_TYPE.EXP2) {
-	                uniforms.fogDensity.setValue(fog.density);
-	                uniforms.fogType.setValue(2);
-	                sceneFogType = 2;
-	            }
-	        } else {
-	            uniforms.fogType.setValue(0);
-	            sceneFogType = 0;
-	        }
-	    
-	        uniforms.alphaTest.setValue(0);
-	        uniforms.viewMatrix.setValue(camera.viewMatrix.elements);
-	        uniforms.modelMatrix.setValue(sprite.worldMatrix.elements);
-	    
-	        sprite.worldMatrix.decompose(spritePosition, spriteRotation, spriteScale);
-	    
-	        scale[0] = spriteScale.x;
-	        scale[1] = spriteScale.y;
-	    
-	        var fogType = 0;
-	    
-	        if (fog && material.fog) {
-	            fogType = sceneFogType;
-	        }
-	    
-	        uniforms.fogType.setValue(fogType);
-	    
-	        if (material.diffuseMap !== null) {
-	            // TODO offset
-	            // uniforms.uvOffset.setValue(uniforms.uvOffset, material.diffuseMap.offset.x, material.diffuseMap.offset.y);
-	            // uniforms.uvScale.setValue(uniforms.uvScale, material.diffuseMap.repeat.x, material.diffuseMap.repeat.y);
-	            uniforms.uvOffset.setValue(0, 0);
-	            uniforms.uvScale.setValue(1, 1);
-	        } else {
-	            uniforms.uvOffset.setValue(0, 0);
-	            uniforms.uvScale.setValue(1, 1);
-	        }
-	    
-	        uniforms.opacity.setValue(material.opacity);
-	        uniforms.color.setValue(material.diffuse.r, material.diffuse.g, material.diffuse.b);
-	    
-	        uniforms.rotation.setValue(material.rotation);
-	        uniforms.scale.setValue(scale[0], scale[1]);
-	    
-	        var slot = this.allocTexUnit();
-	        this.texture.setTexture2D(material.diffuseMap, slot);
-	        uniforms.map.setValue(slot);
 	    },
 
 	    /**
@@ -11342,43 +11237,6 @@
 
 	});
 
-	// all sprites used one shared geometry
-	var sharedGeometry = new Geometry();
-	var array = new Float32Array([
-	    -0.5, -0.5, 0, 0,
-	    0.5, -0.5, 1, 0,
-	    0.5, 0.5, 1, 1,
-	    -0.5, 0.5, 0, 1
-	]);
-	var buffer = new InterleavedBuffer(array, 4);
-	sharedGeometry.addAttribute("position", new InterleavedBufferAttribute(buffer, 2, 0));
-	sharedGeometry.addAttribute("uv", new InterleavedBufferAttribute(buffer, 2, 2));
-	sharedGeometry.setIndex([
-	    0, 1, 2,
-	    0, 2, 3
-	]);
-	sharedGeometry.computeBoundingBox();
-	sharedGeometry.computeBoundingSphere();
-
-	/**
-	 * Sprite
-	 * @class
-	 */
-	function Sprite(material) {
-	    Object3D.call(this);
-
-	    this.geometry = sharedGeometry;
-
-	    this.material = (material !== undefined) ? material : new SpriteMaterial();
-
-	    this.type = OBJECT_TYPE.SPRITE;
-	}
-
-	Sprite.geometry = sharedGeometry;
-
-	Sprite.prototype = Object.create(Object3D.prototype);
-	Sprite.prototype.constructor = Sprite;
-
 	exports.EventDispatcher = EventDispatcher;
 	exports.Raycaster = Raycaster;
 	exports.Euler = Euler;
@@ -11435,7 +11293,6 @@
 	exports.LineMaterial = LineMaterial;
 	exports.LineLoopMaterial = LineLoopMaterial;
 	exports.LineDashedMaterial = LineDashedMaterial;
-	exports.SpriteMaterial = SpriteMaterial;
 	exports.ShaderMaterial = ShaderMaterial;
 	exports.DepthMaterial = DepthMaterial;
 	exports.DistanceMaterial = DistanceMaterial;
@@ -11479,7 +11336,6 @@
 	exports.SkinnedMesh = SkinnedMesh;
 	exports.Points = Points;
 	exports.Line = Line;
-	exports.Sprite = Sprite;
 	exports.FileLoader = FileLoader;
 	exports.ImageLoader = ImageLoader;
 	exports.TGALoader = TGALoader;

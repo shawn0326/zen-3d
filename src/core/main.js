@@ -64,7 +64,6 @@ export {PointsMaterial} from './material/PointsMaterial.js';
 export {LineMaterial} from './material/LineMaterial.js';
 export {LineLoopMaterial} from './material/LineLoopMaterial.js';
 export {LineDashedMaterial} from './material/LineDashedMaterial.js';
-export {SpriteMaterial} from './material/SpriteMaterial.js';
 export {ShaderMaterial} from './material/ShaderMaterial.js';
 export {DepthMaterial} from './material/DepthMaterial.js';
 export {DistanceMaterial} from './material/DistanceMaterial.js';
@@ -111,7 +110,6 @@ export {Mesh} from './objects/Mesh.js';
 export {SkinnedMesh} from './objects/SkinnedMesh.js';
 export {Points} from './objects/Points.js';
 export {Line} from './objects/Line.js';
-export {Sprite} from './objects/Sprite.js';
 
 export {FileLoader} from './loader/FileLoader.js';
 export {ImageLoader} from './loader/ImageLoader.js';

@@ -21,6 +21,8 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/objects/Sprite.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
@@ -59,7 +61,6 @@
 				sprite.material.diffuse.setHSL(Math.random(), Math.random(), Math.random());
 				sprite.material.transparent = true;
 				sprite.material.blending = zen3d.BLEND_TYPE.ADD;
-				sprite.material.fog = true;
 
 				sprite.position.x = (Math.random() - 0.5) * 10;
 				sprite.position.y = (Math.random() - 0.5) * 10;
@@ -70,9 +71,9 @@
 				sprites.push(sprite);
 			}
 
-			var sphere_geometry = new zen3d.SphereGeometry(0.5, 8, 4);
+			var sphere_geometry = new zen3d.SphereGeometry(0.5, 4, 2);
 	        var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffcccc);
+	        basic.diffuse.setHex(0x00cccc);
 	        var sphere = new zen3d.Mesh(sphere_geometry, basic);
 			scene.add(sphere);
 
@@ -80,7 +81,9 @@
 	        camera.position.set(0, 0, 10);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(75 / 180 * Math.PI, width / height, 1, 2000);
-	        scene.add(camera);
+			scene.add(camera);
+			
+			var controller = new zen3d.OrbitControls(camera, canvas);
 
 	        function loop(count) {
 
@@ -89,12 +92,14 @@
 				var time = Date.now() * 0.00005;
 
 				// rotate camera
-				camera.position.x = 10 * Math.sin(count / 8000);
-				camera.position.z = 10 * Math.cos(count / 8000);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+				// camera.position.x = 10 * Math.sin(count / 8000);
+				// camera.position.z = 10 * Math.cos(count / 8000);
+				// camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				controller.update();
 
 				for(var i = 0; i < sprites.length; i++) {
-					sprites[i].material.rotation = count / 1000 * 2;
+					sprites[i].rotation = count / 1000 * 2;
 
 					var scale = Math.cos(count / 100 + i * 10) * 0.5 + 0.7;
 					sprites[i].scale.set(scale, scale, 1);

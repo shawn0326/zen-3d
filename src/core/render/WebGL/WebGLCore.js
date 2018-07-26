@@ -73,11 +73,6 @@ var directShadowMaps = [];
 var pointShadowMaps = [];
 var spotShadowMaps = [];
 
-var scale = []; // for sprite scale upload
-var spritePosition = new Vector3();
-var spriteRotation = new Quaternion();
-var spriteScale = new Vector3();
-
 Object.assign(WebGLCore.prototype, {
 
     /**
@@ -166,6 +161,8 @@ Object.assign(WebGLCore.prototype, {
             var material = getMaterial.call(this, renderItem);
             var geometry = renderItem.geometry;
             var group = renderItem.group;
+
+            object.onBeforeRender();
     
             var program = getProgram(this, camera, material, object, scene);
             state.setProgram(program);
@@ -368,10 +365,6 @@ Object.assign(WebGLCore.prototype, {
                 this.uploadSkeleton(uniforms, object, program.id);
             }
     
-            if(object.type === OBJECT_TYPE.SPRITE) {
-                this.uploadSpriteUniform(uniforms, object, camera, scene.fog);
-            }
-    
             if (material.acceptLight && scene.lights) {
                 this.uploadLights(uniforms, scene.lights, object.receiveShadow, camera);
             }
@@ -420,6 +413,9 @@ Object.assign(WebGLCore.prototype, {
     
             // reset used tex Unit
             this._usedTextureUnits = 0;
+
+            object.onAfterRender();
+
         }
     },
 
@@ -692,73 +688,6 @@ Object.assign(WebGLCore.prototype, {
             var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
             gl.uniformMatrix4fv(spotShadowMatrix.location, false, lights.spotShadowMatrix);
         }
-    },
-
-    uploadSpriteUniform: function(uniforms, sprite, camera, fog) {
-        var gl = this.gl;
-        var state = this.state;
-        var geometry = sprite.geometry;
-        var material = sprite.material;
-    
-        uniforms.projectionMatrix.setValue(camera.projectionMatrix.elements);
-    
-        var sceneFogType = 0;
-        if (fog) {
-            uniforms.fogColor.setValue(fog.color.r, fog.color.g, fog.color.b);
-    
-            if (fog.fogType === FOG_TYPE.NORMAL) {
-                uniforms.fogNear.setValue(fog.near);
-                uniforms.fogFar.setValue(fog.far);
-    
-                uniforms.fogType.setValue(1);
-                sceneFogType = 1;
-            } else if (fog.fogType === FOG_TYPE.EXP2) {
-                uniforms.fogDensity.setValue(fog.density);
-                uniforms.fogType.setValue(2);
-                sceneFogType = 2;
-            }
-        } else {
-            uniforms.fogType.setValue(0);
-            sceneFogType = 0;
-        }
-    
-        uniforms.alphaTest.setValue(0);
-        uniforms.viewMatrix.setValue(camera.viewMatrix.elements);
-        uniforms.modelMatrix.setValue(sprite.worldMatrix.elements);
-    
-        sprite.worldMatrix.decompose(spritePosition, spriteRotation, spriteScale);
-    
-        scale[0] = spriteScale.x;
-        scale[1] = spriteScale.y;
-    
-        var fogType = 0;
-    
-        if (fog && material.fog) {
-            fogType = sceneFogType;
-        }
-    
-        uniforms.fogType.setValue(fogType);
-    
-        if (material.diffuseMap !== null) {
-            // TODO offset
-            // uniforms.uvOffset.setValue(uniforms.uvOffset, material.diffuseMap.offset.x, material.diffuseMap.offset.y);
-            // uniforms.uvScale.setValue(uniforms.uvScale, material.diffuseMap.repeat.x, material.diffuseMap.repeat.y);
-            uniforms.uvOffset.setValue(0, 0);
-            uniforms.uvScale.setValue(1, 1);
-        } else {
-            uniforms.uvOffset.setValue(0, 0);
-            uniforms.uvScale.setValue(1, 1);
-        }
-    
-        uniforms.opacity.setValue(material.opacity);
-        uniforms.color.setValue(material.diffuse.r, material.diffuse.g, material.diffuse.b);
-    
-        uniforms.rotation.setValue(material.rotation);
-        uniforms.scale.setValue(scale[0], scale[1]);
-    
-        var slot = this.allocTexUnit();
-        this.texture.setTexture2D(material.diffuseMap, slot);
-        uniforms.map.setValue(slot);
     },
 
     /**

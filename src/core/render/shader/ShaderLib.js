@@ -18,8 +18,6 @@ import phong_frag from './shaderLib/phong_frag.glsl';
 import phong_vert from './shaderLib/phong_vert.glsl';
 import point_frag from './shaderLib/point_frag.glsl';
 import point_vert from './shaderLib/point_vert.glsl';
-import sprite_frag from './shaderLib/sprite_frag.glsl';
-import sprite_vert from './shaderLib/sprite_vert.glsl';
 
 export var ShaderLib = {
     basic_frag: basic_frag,
@@ -41,7 +39,5 @@ export var ShaderLib = {
     phong_frag: phong_frag,
     phong_vert: phong_vert,
     point_frag: point_frag,
-    point_vert: point_vert,
-    sprite_frag: sprite_frag,
-    sprite_vert: sprite_vert
+    point_vert: point_vert
 }

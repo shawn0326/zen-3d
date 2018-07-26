@@ -12,8 +12,7 @@ export var OBJECT_TYPE = {
     LINE: "line",
     LINE_LOOP: "line_loop",
     LINE_SEGMENTS: "line_segments",
-    CANVAS2D: "canvas2d",
-    SPRITE: "sprite"
+    CANVAS2D: "canvas2d"
 };
 
 /**
@@ -39,7 +38,6 @@ export var MATERIAL_TYPE = {
     LINE_LOOP: "lineloop",
     LINE_DASHED: "linedashed",
     CANVAS2D: "canvas2d",
-    SPRITE: "sprite",
     SHADER: "shader",
     DEPTH: "depth",
     DISTANCE: "distance"
