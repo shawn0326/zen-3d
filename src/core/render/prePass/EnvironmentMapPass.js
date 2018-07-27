@@ -38,7 +38,6 @@ EnvironmentMapPass.prototype.render = function(glCore, scene) {
 
         glCore.texture.setRenderTarget(this.renderTarget);
 
-        glCore.state.clearColor(0, 0, 0, 0);
         glCore.clear(true, true, true);
 
         glCore.render(scene, this.camera);

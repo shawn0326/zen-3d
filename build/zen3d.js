@@ -9676,7 +9676,6 @@
 
 	        glCore.texture.setRenderTarget(this.renderTarget);
 
-	        glCore.state.clearColor(0, 0, 0, 0);
 	        glCore.clear(true, true, true);
 
 	        glCore.render(scene, this.camera);
@@ -9690,6 +9689,8 @@
 	    this.depthMaterial.packToRGBA = true;
 
 	    this.distanceMaterial = new DistanceMaterial();
+
+	    this.oldClearColor = new Vector4();
 	}
 
 	Object.assign(ShadowMapPass.prototype, {
@@ -9704,6 +9705,9 @@
 	        if(useStencil) {
 	            state.disable(gl.STENCIL_TEST);
 	        }
+
+	        this.oldClearColor.copy(state.currentClearColor);
+	        state.clearColor(1, 1, 1, 1);
 
 	        var lights = scene.lights.shadows;
 	        for (var i = 0; i < lights.length; i++) {
@@ -9728,7 +9732,6 @@
 
 	                glCore.texture.setRenderTarget(shadowTarget);
 
-	                state.clearColor(1, 1, 1, 1);
 	                glCore.clear(true, true);
 
 	                var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
@@ -9759,6 +9762,8 @@
 	        if(useStencil) {
 	            state.enable(gl.STENCIL_TEST);
 	        }
+
+	        state.clearColor(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
 	    }
 
 	});
@@ -10627,7 +10632,6 @@
 	    this.glCore.texture.setRenderTarget(renderTarget);
 
 	    if (this.autoClear || forceClear) {
-	        this.glCore.state.clearColor(0, 0, 0, 0);
 	        this.glCore.clear(true, true, true);
 	    }
 

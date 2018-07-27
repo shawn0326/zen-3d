@@ -1,12 +1,15 @@
 import {DepthMaterial} from '../../material/DepthMaterial.js';
 import {DistanceMaterial} from '../../material/DistanceMaterial.js';
 import {LIGHT_TYPE} from '../../const.js';
+import { Vector4 } from '../../math/Vector4.js';
 
 function ShadowMapPass() {
     this.depthMaterial = new DepthMaterial();
     this.depthMaterial.packToRGBA = true;
 
     this.distanceMaterial = new DistanceMaterial();
+
+    this.oldClearColor = new Vector4();
 }
 
 Object.assign(ShadowMapPass.prototype, {
@@ -21,6 +24,9 @@ Object.assign(ShadowMapPass.prototype, {
         if(useStencil) {
             state.disable(gl.STENCIL_TEST);
         }
+
+        this.oldClearColor.copy(state.currentClearColor);
+        state.clearColor(1, 1, 1, 1);
 
         var lights = scene.lights.shadows;
         for (var i = 0; i < lights.length; i++) {
@@ -45,7 +51,6 @@ Object.assign(ShadowMapPass.prototype, {
 
                 glCore.texture.setRenderTarget(shadowTarget);
 
-                state.clearColor(1, 1, 1, 1);
                 glCore.clear(true, true);
 
                 var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
@@ -76,6 +81,8 @@ Object.assign(ShadowMapPass.prototype, {
         if(useStencil) {
             state.enable(gl.STENCIL_TEST);
         }
+
+        state.clearColor(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
     }
 
 });

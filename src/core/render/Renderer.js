@@ -61,7 +61,6 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
     this.glCore.texture.setRenderTarget(renderTarget);
 
     if (this.autoClear || forceClear) {
-        this.glCore.state.clearColor(0, 0, 0, 0);
         this.glCore.clear(true, true, true);
     }
 
