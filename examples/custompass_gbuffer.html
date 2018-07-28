@@ -23,6 +23,7 @@
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./js/shaders/ColorShader.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
@@ -51,6 +52,8 @@
 				var monkey = object.getObjectByName("Suzanne").children[0];
 				monkey.castShadow = true;
 				monkey.receiveShadow = true;
+				monkey.material.diffuse.setRGB(1, 1, 1);
+				monkey.material.specular.setRGB(1, 0, 0);
 				object.scale.set(10, 10, 10);
 				object.position.y = 2;
 				scene.add(object);
@@ -58,7 +61,8 @@
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
+			lambert.diffuse.setHex(0xffffff);
+			lambert.emissive.setRGB(1, 0, 0);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 	        scene.add(plane);
@@ -118,22 +122,19 @@
 			var distanceMaterial = new zen3d.DistanceMaterial();
 			// depthMaterial.packToRGBA = false;
 
+			var colorMaterial = new zen3d.ShaderMaterial(
+				zen3d.ColorShader.vertexShader,
+				zen3d.ColorShader.fragmentShader,
+				{
+					specular: [1, 1, 1],
+        			shininess: 30
+				}
+			);
+
 			// gui
 			var params = {type: "BEAUTY"};
 			var gui = new dat.GUI();
-			gui.add(params, "type", ["BEAUTY", "DEPTH", "NORMAL"]).onChange(function(val) {
-				switch(val) {
-					case "BEAUTY":
-						scene.overrideMaterial = null;
-						break;
-					case "DEPTH":
-						scene.overrideMaterial = depthMaterial;
-						break;
-					case "NORMAL":
-						scene.overrideMaterial = normalDepthMaterial;
-						break;
-				}
-			});
+			gui.add(params, "type", ["BEAUTY", "DEPTH", "NORMAL", "COLOR"]);
 
 	        function loop(count) {
 
@@ -149,10 +150,70 @@
 
 				glCore.texture.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0.2, 0.2, 0.2, 1);
+				glCore.state.clearColor(0, 0, 0, 1);
             	glCore.clear(true, true, true);
 
-				glCore.render(scene, camera);
+				var renderList = scene.updateRenderList(camera);
+				
+				switch (params.type) {
+					case "BEAUTY":
+						// scene.overrideMaterial = null;
+						glCore.renderPass(renderList.opaque, camera, {
+							scene: scene,
+							getMaterial: function(renderable) {
+								return scene.overrideMaterial || renderable.material;
+							}
+						});
+						break;
+					case "DEPTH":
+						// scene.overrideMaterial = depthMaterial;
+						glCore.renderPass(renderList.opaque, camera, {
+							scene: scene,
+							getMaterial: function(renderable) {
+								return depthMaterial;
+							}
+						});
+						break;
+					case "NORMAL":
+						// scene.overrideMaterial = normalDepthMaterial;
+						glCore.renderPass(renderList.opaque, camera, {
+							scene: scene,
+							getMaterial: function(renderable) {
+								return normalDepthMaterial;
+							}
+						});
+						break;
+					case "COLOR":
+						// scene.overrideMaterial = colorMaterial;
+						glCore.renderPass(renderList.opaque, camera, {
+							scene: scene,
+							getMaterial: function(renderable) {
+								colorMaterial.diffuse.copy(renderable.material.diffuse);
+								colorMaterial.diffuseMap = renderable.material.diffuseMap;
+								colorMaterial.emissive.copy(renderable.material.emissive);
+								
+								if(renderable.material.specular !== undefined) {
+									colorMaterial.uniforms["specular"][0] = renderable.material.specular.r;
+									colorMaterial.uniforms["specular"][1] = renderable.material.specular.g;
+									colorMaterial.uniforms["specular"][2] = renderable.material.specular.b;
+								} else {
+									colorMaterial.uniforms["specular"][0] = 1;
+									colorMaterial.uniforms["specular"][1] = 1;
+									colorMaterial.uniforms["specular"][2] = 1;
+								}
+								
+								if(renderable.material.shininess !== undefined) {
+									colorMaterial.uniforms["shininess"] = colorMaterial.shininess;
+								} else {
+									colorMaterial.uniforms["shininess"] = 30;
+								}
+								
+								return colorMaterial;
+							}
+						});
+						break;
+				}
+				
 
 	        }
 

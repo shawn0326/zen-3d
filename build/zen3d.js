@@ -8696,10 +8696,14 @@
 	var helpVector3 = new Vector3();
 	var helpVector4 = new Vector4();
 
-	var defaultGetMaterial = function(renderable) {
+	function defaultGetMaterial(renderable) {
 	    return renderable.material;
-	};
+	}
+	function defaultIfRender(renderable) {
+	    return true;
+	}
 
+	function noop() {}
 	var getClippingPlanesData = function() {
 	    var planesData;
 	    var plane = new Plane();
@@ -8816,6 +8820,8 @@
 	     * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
 	     * @param {Object} [config]?
 	     * @param {Function} [config.getMaterial]? Get renderable material.
+	     * @param {Function} [config.beforeRender] Before render each renderable.
+	     * @param {Function} [config.afterRender] After render each renderable
 	     * @param {Function} [config.ifRender]? If render the renderable.
 	     * @param {zen3d.Scene} [config.scene]? Rendering scene, have some rendering context.
 	     */
@@ -8826,15 +8832,17 @@
 	        var state = this.state;
 	    
 	        var getMaterial = config.getMaterial || defaultGetMaterial;
+	        var beforeRender = config.beforeRender || noop;
+	        var afterRender = config.afterRender || noop;
+	        var ifRender = config.ifRender || defaultIfRender;
 	        var scene = config.scene || {};
-	        
-	        var targetWidth = state.currentRenderTarget.width;
-	        var targetHeight = state.currentRenderTarget.height;
+
+	        var currentRenderTarget = state.currentRenderTarget;
 	    
 	        for (var i = 0, l = renderList.length; i < l; i++) {
 	            var renderItem = renderList[i];
 	    
-	            if(config.ifRender && !config.ifRender(renderItem)) {
+	            if(!ifRender(renderItem)) {
 	                continue;
 	            }
 	            
@@ -8843,7 +8851,8 @@
 	            var geometry = renderItem.geometry;
 	            var group = renderItem.group;
 
-	            object.onBeforeRender();
+	            object.onBeforeRender(renderItem, material);
+	            beforeRender.call(this, renderItem, material);
 	    
 	            var program = getProgram(this, camera, material, object, scene);
 	            state.setProgram(program);
@@ -8861,6 +8870,23 @@
 	            var uniforms = program.uniforms;
 	            for (var key in uniforms) {
 	                var uniform = uniforms[key];
+
+	                // upload custom uniforms
+	                if(material.uniforms && material.uniforms[key] !== undefined) {
+	                    if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D) {
+	                        var slot = this.allocTexUnit();
+	                        this.texture.setTexture2D(material.uniforms[key], slot);
+	                        uniform.setValue(slot);
+	                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE) {
+	                        var slot = this.allocTexUnit();
+	                        this.texture.setTextureCube(material.uniforms[key], slot);
+	                        uniform.setValue(slot);
+	                    } else {
+	                        uniform.set(material.uniforms[key]);
+	                    }
+	                    continue;
+	                }
+
 	                switch (key) {
 	    
 	                    // pvm matrix
@@ -8994,7 +9020,7 @@
 	                        uniform.setValue(material.size);
 	                        break;
 	                    case "u_PointScale":
-	                        var scale = targetHeight * 0.5; // three.js do this
+	                        var scale = currentRenderTarget.height * 0.5; // three.js do this
 	                        uniform.setValue(scale);
 	                        break;
 	                    case "dashSize":
@@ -9023,20 +9049,6 @@
 	                        }
 	                        break;
 	                    default:
-	                        // upload custom uniforms
-	                        if(material.uniforms && material.uniforms[key] !== undefined) {
-	                            if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D) {
-	                                var slot = this.allocTexUnit();
-	                                this.texture.setTexture2D(material.uniforms[key], slot);
-	                                uniform.setValue(slot);
-	                            } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE) {
-	                                var slot = this.allocTexUnit();
-	                                this.texture.setTextureCube(material.uniforms[key], slot);
-	                                uniform.setValue(slot);
-	                            } else {
-	                                uniform.set(material.uniforms[key]);
-	                            }
-	                        }
 	                        break;
 	                }
 	            }
@@ -9054,10 +9066,10 @@
 	            this.setStates(material, frontFaceCW);
 	    
 	            var viewport = helpVector4.set(
-	                state.currentRenderTarget.width, 
-	                state.currentRenderTarget.height,
-	                state.currentRenderTarget.width, 
-	                state.currentRenderTarget.height
+	                currentRenderTarget.width, 
+	                currentRenderTarget.height,
+	                currentRenderTarget.width, 
+	                currentRenderTarget.height
 	            ).multiply(camera.rect);
 	    
 	            viewport.z -= viewport.x;
@@ -9095,7 +9107,8 @@
 	            // reset used tex Unit
 	            this._usedTextureUnits = 0;
 
-	            object.onAfterRender();
+	            afterRender(this, renderItem);
+	            object.onAfterRender(renderItem); 
 
 	        }
 	    },
