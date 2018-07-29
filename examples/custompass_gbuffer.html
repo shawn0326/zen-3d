@@ -23,7 +23,8 @@
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
-	<script src="./js/shaders/ColorShader.js"></script>
+	<script src="./js/shaders/CopyShader.js"></script>
+	<script src="./js/shaders/DeferredShader.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
@@ -97,8 +98,31 @@
 
 			var controller = new zen3d.OrbitControls(camera, canvas);
 
-			// custom pass
 			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+			var normalDepthRenderTarget = new zen3d.RenderTarget2D(width, height);
+			normalDepthRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			normalDepthRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			normalDepthRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			normalDepthRenderTarget.texture.generateMipmaps = false;
+
+			var colorRenderTarget = new zen3d.RenderTarget2D(width, height);
+			colorRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			colorRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			colorRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			colorRenderTarget.texture.generateMipmaps = false;
+
+			var emissiveRenderTarget = new zen3d.RenderTarget2D(width, height);
+			emissiveRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			emissiveRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			emissiveRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			emissiveRenderTarget.texture.generateMipmaps = false;
+
+			var directionalLightRenderTarget = new zen3d.RenderTarget2D(width, height);
+			directionalLightRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			directionalLightRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			directionalLightRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			directionalLightRenderTarget.texture.generateMipmaps = false;
 
 			var gl = canvas.getContext("webgl", {
 				antialias: true, // antialias
@@ -111,30 +135,30 @@
 			var shadowMapPass = new zen3d.ShadowMapPass();
 
 			var normalDepthMaterial = new zen3d.ShaderMaterial(
-				zen3d.ShaderLib.normaldepth_vert,
-				zen3d.ShaderLib.normaldepth_frag,
+				zen3d.DeferredShader.normalDepth.vertexShader,
+				zen3d.DeferredShader.normalDepth.fragmentShader,
 				{}
 			);
 
-			var depthMaterial = new zen3d.DepthMaterial();
-			// depthMaterial.packToRGBA = true;
-
-			var distanceMaterial = new zen3d.DistanceMaterial();
-			// depthMaterial.packToRGBA = false;
-
 			var colorMaterial = new zen3d.ShaderMaterial(
-				zen3d.ColorShader.vertexShader,
-				zen3d.ColorShader.fragmentShader,
+				zen3d.DeferredShader.color.vertexShader,
+				zen3d.DeferredShader.color.fragmentShader,
 				{
 					specular: [1, 1, 1],
         			shininess: 30
 				}
 			);
 
+			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
+			var emissiveLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.emissiveLight);
+			var directionalLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.directionalLight);
+
 			// gui
-			var params = {type: "BEAUTY"};
+			var params = {type: "FORWARD"};
 			var gui = new dat.GUI();
-			gui.add(params, "type", ["BEAUTY", "DEPTH", "NORMAL", "COLOR"]);
+			gui.add(params, "type", ["FORWARD", "NORMAL", "COLOR", "EMISSIVE", "LIGHT"]);
+
+			var direction = new zen3d.Vector3();
 
 	        function loop(count) {
 
@@ -144,75 +168,176 @@
 
 				// do render pass
 				scene.updateMatrix();
-				scene.updateLights();
-
-				shadowMapPass.render(glCore, scene);
-
-				glCore.texture.setRenderTarget(backRenderTarget);
-
-				glCore.state.clearColor(0, 0, 0, 1);
-            	glCore.clear(true, true, true);
 
 				var renderList = scene.updateRenderList(camera);
-				
-				switch (params.type) {
-					case "BEAUTY":
-						// scene.overrideMaterial = null;
-						glCore.renderPass(renderList.opaque, camera, {
-							scene: scene,
-							getMaterial: function(renderable) {
-								return scene.overrideMaterial || renderable.material;
+
+				if ( params.type === "FORWARD" ) {
+
+					scene.updateLights();
+
+					shadowMapPass.render(glCore, scene);
+
+					glCore.texture.setRenderTarget(backRenderTarget);
+
+					glCore.state.clearColor(0, 0, 0, 1);
+					glCore.clear(true, true, true);
+
+					glCore.renderPass(renderList.opaque, camera, {
+						scene: scene,
+						getMaterial: function(renderable) {
+							return scene.overrideMaterial || renderable.material;
+						}
+					});
+
+				} else {
+
+					// render normalDepth texture
+
+					glCore.texture.setRenderTarget(normalDepthRenderTarget);
+
+					glCore.state.clearColor(0, 0, 0, 0);
+					glCore.clear(true, true, true);
+
+					glCore.renderPass(renderList.opaque, camera, {
+						scene: scene,
+						getMaterial: function(renderable) {
+							return normalDepthMaterial;
+						}
+					});
+
+					// render color texture
+
+					glCore.texture.setRenderTarget(colorRenderTarget);
+
+					glCore.state.clearColor(0, 0, 0, 0);
+					glCore.clear(true, true, true);
+
+					glCore.renderPass(renderList.opaque, camera, {
+						scene: scene,
+						getMaterial: function(renderable) {
+							colorMaterial.diffuse.copy(renderable.material.diffuse);
+							colorMaterial.diffuseMap = renderable.material.diffuseMap;
+							colorMaterial.emissive.copy(renderable.material.emissive);
+							
+							if(renderable.material.specular !== undefined) {
+								colorMaterial.uniforms["specular"][0] = renderable.material.specular.r;
+								colorMaterial.uniforms["specular"][1] = renderable.material.specular.g;
+								colorMaterial.uniforms["specular"][2] = renderable.material.specular.b;
+							} else {
+								colorMaterial.uniforms["specular"][0] = 1;
+								colorMaterial.uniforms["specular"][1] = 1;
+								colorMaterial.uniforms["specular"][2] = 1;
 							}
-						});
-						break;
-					case "DEPTH":
-						// scene.overrideMaterial = depthMaterial;
-						glCore.renderPass(renderList.opaque, camera, {
-							scene: scene,
-							getMaterial: function(renderable) {
-								return depthMaterial;
+							
+							if(renderable.material.shininess !== undefined) {
+								colorMaterial.uniforms["shininess"] = colorMaterial.shininess;
+							} else {
+								colorMaterial.uniforms["shininess"] = 30;
 							}
-						});
-						break;
-					case "NORMAL":
-						// scene.overrideMaterial = normalDepthMaterial;
-						glCore.renderPass(renderList.opaque, camera, {
-							scene: scene,
-							getMaterial: function(renderable) {
-								return normalDepthMaterial;
-							}
-						});
-						break;
-					case "COLOR":
-						// scene.overrideMaterial = colorMaterial;
-						glCore.renderPass(renderList.opaque, camera, {
-							scene: scene,
-							getMaterial: function(renderable) {
-								colorMaterial.diffuse.copy(renderable.material.diffuse);
-								colorMaterial.diffuseMap = renderable.material.diffuseMap;
-								colorMaterial.emissive.copy(renderable.material.emissive);
-								
-								if(renderable.material.specular !== undefined) {
-									colorMaterial.uniforms["specular"][0] = renderable.material.specular.r;
-									colorMaterial.uniforms["specular"][1] = renderable.material.specular.g;
-									colorMaterial.uniforms["specular"][2] = renderable.material.specular.b;
-								} else {
-									colorMaterial.uniforms["specular"][0] = 1;
-									colorMaterial.uniforms["specular"][1] = 1;
-									colorMaterial.uniforms["specular"][2] = 1;
-								}
-								
-								if(renderable.material.shininess !== undefined) {
-									colorMaterial.uniforms["shininess"] = colorMaterial.shininess;
-								} else {
-									colorMaterial.uniforms["shininess"] = 30;
-								}
-								
-								return colorMaterial;
-							}
-						});
-						break;
+							
+							return colorMaterial;
+						}
+					});
+
+					// render emissive light
+
+					glCore.texture.setRenderTarget(emissiveRenderTarget);
+
+					glCore.state.clearColor(0, 0, 0, 0);
+					glCore.clear(true, true, true);
+
+					emissiveLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
+					emissiveLightPass.uniforms["viewWidth"] = width;
+					emissiveLightPass.uniforms["viewHeight"] = height;
+					emissiveLightPass.render(glCore);
+
+					// render direction light
+
+					glCore.texture.setRenderTarget(directionalLightRenderTarget);
+
+					glCore.state.clearColor(0, 0, 0, 0);
+					glCore.clear(true, true, true);
+
+					directionalLightPass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
+					directionalLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
+					directionalLightPass.uniforms["viewWidth"] = width;
+					directionalLightPass.uniforms["viewHeight"] = height;
+					directionalLightPass.uniforms["lightColor"] = [directionalLight.color.r, directionalLight.color.g, directionalLight.color.b];
+					directionalLight.getWorldDirection(direction);
+					directionalLightPass.uniforms["lightDirectionVS"] = [-direction.x, -direction.y, -direction.z];
+					directionalLightPass.uniforms["lightIntensity"] = directionalLight.intensity;
+
+					directionalLightPass.render(glCore);
+
+					// output
+
+					glCore.texture.setRenderTarget(backRenderTarget);
+
+					glCore.state.clearColor(0, 0, 0, 1);
+					glCore.clear(true, true, true);
+
+					if ( params.type === "NORMAL" ) {
+						copyPass.uniforms["tDiffuse"] = normalDepthRenderTarget.texture;//console.log( normalDepthRenderTarget.texture)
+					} else if ( params.type === "COLOR" ) {
+						copyPass.uniforms["tDiffuse"] = colorRenderTarget.texture;
+					} else if ( params.type === "EMISSIVE" ) {
+						copyPass.uniforms["tDiffuse"] = emissiveRenderTarget.texture;
+					} else if ( params.type === "LIGHT" ) {
+						copyPass.uniforms["tDiffuse"] = directionalLightRenderTarget.texture;
+					}
+					
+					copyPass.render(glCore);
+
 				}
+				
+				// switch (params.type) {
+				// 	case "FORWARD":
+				// 		glCore.renderPass(renderList.opaque, camera, {
+				// 			scene: scene,
+				// 			getMaterial: function(renderable) {
+				// 				return scene.overrideMaterial || renderable.material;
+				// 			}
+				// 		});
+				// 		break;
+				// 	case "NORMAL":
+				// 		glCore.renderPass(renderList.opaque, camera, {
+				// 			scene: scene,
+				// 			getMaterial: function(renderable) {
+				// 				return normalDepthMaterial;
+				// 			}
+				// 		});
+				// 		break;
+				// 	case "COLOR":
+				// 		glCore.renderPass(renderList.opaque, camera, {
+				// 			scene: scene,
+				// 			getMaterial: function(renderable) {
+				// 				colorMaterial.diffuse.copy(renderable.material.diffuse);
+				// 				colorMaterial.diffuseMap = renderable.material.diffuseMap;
+				// 				colorMaterial.emissive.copy(renderable.material.emissive);
+								
+				// 				if(renderable.material.specular !== undefined) {
+				// 					colorMaterial.uniforms["specular"][0] = renderable.material.specular.r;
+				// 					colorMaterial.uniforms["specular"][1] = renderable.material.specular.g;
+				// 					colorMaterial.uniforms["specular"][2] = renderable.material.specular.b;
+				// 				} else {
+				// 					colorMaterial.uniforms["specular"][0] = 1;
+				// 					colorMaterial.uniforms["specular"][1] = 1;
+				// 					colorMaterial.uniforms["specular"][2] = 1;
+				// 				}
+								
+				// 				if(renderable.material.shininess !== undefined) {
+				// 					colorMaterial.uniforms["shininess"] = colorMaterial.shininess;
+				// 				} else {
+				// 					colorMaterial.uniforms["shininess"] = 30;
+				// 				}
+								
+				// 				return colorMaterial;
+				// 			}
+				// 		});
+				// 		break;
+				// 	case "EMISSIVE":
+				// 		break;
+				// }
 				
 
 	        }
