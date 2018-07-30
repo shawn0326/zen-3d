@@ -83,7 +83,7 @@
 
             "vec2 xy = texCoord * 2.0 - 1.0;",
             "vec4 vertexPositionProjected = vec4( xy, depth, 1.0 );",
-            "vec4 vertexPositionVS = matProjInverse * vertexPositionProjected;",
+            "vec4 vertexPositionVS = matProjViewInverse * vertexPositionProjected;",
             "vertexPositionVS.xyz /= vertexPositionVS.w;",
             "vertexPositionVS.w = 1.0;"
     
@@ -275,7 +275,10 @@
                 lightIntensity: 1,
 
                 viewWidth: 800,
-                viewHeight: 600
+                viewHeight: 600,
+
+                matProjViewInverse: new Float32Array(16),
+                cameraPos: [0, 0, 0]
 
             },
     
@@ -307,18 +310,12 @@
                 "uniform vec3 lightDirectionVS;",
                 "uniform float lightIntensity;",
 
-                // "uniform mat4 matProjInverse;",
-                "uniform mat4 u_Projection;", // not this camera
-                "uniform mat4 u_View;", // not this camera
-                "#include <inverse>",
-
-                "uniform vec3 u_CameraPosition;", // not this camera
+                "uniform mat4 matProjViewInverse;",
+                "uniform vec3 cameraPos;",
 
                 DeferredShaderChunk.unpackFloat,
 
                 "void main() {",
-
-                    "mat4 matProjInverse = inverse(u_Projection * u_View);",
 
                     DeferredShaderChunk.computeTextureCoord,
                     DeferredShaderChunk.unpackNormalDepth,
@@ -326,7 +323,7 @@
                     DeferredShaderChunk.unpackColor,
 
                     "vec3 lightVector = normalize( lightDirectionVS );",
-                    "vec3 viewVector = normalize( u_CameraPosition - vertexPositionVS.xyz );",
+                    "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
 
                     DeferredShaderChunk.computeSpecular,
 
