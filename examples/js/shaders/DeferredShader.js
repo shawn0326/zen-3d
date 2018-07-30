@@ -92,7 +92,7 @@
         // TODO: calculate schlick
         computeSpecular: [
 
-            "vec3 halfVector = normalize( lightVector - normalize( vertexPositionVS.xyz ) );",
+            "vec3 halfVector = normalize( lightVector + viewVector );",
             "float dotNormalHalf = max( dot( normal, halfVector ), 0.0 );",
             "float specular = 0.31830988618 * ( shininess * 0.5 + 1.0 ) * pow( dotNormalHalf, shininess );"
 
@@ -308,14 +308,17 @@
                 "uniform float lightIntensity;",
 
                 // "uniform mat4 matProjInverse;",
-                "uniform mat4 u_Projection;",
+                "uniform mat4 u_Projection;", // not this camera
+                "uniform mat4 u_View;", // not this camera
                 "#include <inverse>",
+
+                "uniform vec3 u_CameraPosition;", // not this camera
 
                 DeferredShaderChunk.unpackFloat,
 
                 "void main() {",
 
-                    "mat4 matProjInverse = inverse( u_Projection );",
+                    "mat4 matProjInverse = inverse(u_Projection * u_View);",
 
                     DeferredShaderChunk.computeTextureCoord,
                     DeferredShaderChunk.unpackNormalDepth,
@@ -323,10 +326,11 @@
                     DeferredShaderChunk.unpackColor,
 
                     "vec3 lightVector = normalize( lightDirectionVS );",
+                    "vec3 viewVector = normalize( u_CameraPosition - vertexPositionVS.xyz );",
 
                     DeferredShaderChunk.computeSpecular,
 
-                    "const float attenuation = 1.0;",
+                    "const float attenuation = 1.0 / PI;",
 
                     DeferredShaderChunk.combine,
 

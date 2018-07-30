@@ -51,27 +51,28 @@
 			var loader = new zen3d.AssimpJsonLoader();
 			loader.load(monkey, function(object) {
 				var monkey = object.getObjectByName("Suzanne").children[0];
-				monkey.castShadow = true;
-				monkey.receiveShadow = true;
+				// monkey.castShadow = true;
+				// monkey.receiveShadow = true;
 				monkey.material.diffuse.setRGB(1, 1, 1);
-				monkey.material.specular.setRGB(1, 0, 0);
+				// monkey.material.specular.setRGB(0, 0, 0);
 				object.scale.set(10, 10, 10);
 				object.position.y = 2;
 				scene.add(object);
 			});
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-			lambert.diffuse.setHex(0xffffff);
-			lambert.emissive.setRGB(1, 0, 0);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        var material = new zen3d.PhongMaterial();
+			material.diffuse.setHex(0xffffff);
+			// material.emissive.setRGB(1, 0, 0);
+			// material.specular.setRGB(0, 0, 0);
+	        var plane = new zen3d.Mesh(plane_geometry, material);
 	        plane.position.y = -10;
 	        scene.add(plane);
 
-			var ambientLight = new zen3d.AmbientLight();
-			ambientLight.color.setHex(0xffffff);
-			ambientLight.intensity = 0.5;
-	        scene.add(ambientLight);
+			// var ambientLight = new zen3d.AmbientLight();
+			// ambientLight.color.setHex(0xffffff);
+			// ambientLight.intensity = 0.5;
+	        // scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight();
 			directionalLight.intensity = 0.8;
@@ -89,8 +90,8 @@
 			directionalLight.shadow.mapSize.set(1024, 1024);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = false;
-			camera.gammaOutput = true;
+			// camera.gammaInput = false;
+			// camera.gammaOutput = true;
 	        camera.position.set(30, 50, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
@@ -124,6 +125,11 @@
 			directionalLightRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			directionalLightRenderTarget.texture.generateMipmaps = false;
 
+			var resultRenderTarget = new zen3d.RenderTarget2D(width, height);
+			resultRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			resultRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			resultRenderTarget.texture.generateMipmaps = false;
+
 			var gl = canvas.getContext("webgl", {
 				antialias: true, // antialias
 				alpha: false, // effect performance, default false
@@ -151,7 +157,12 @@
 
 			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
 			var emissiveLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.emissiveLight);
+			emissiveLightPass.material.depthWrite = false;
 			var directionalLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.directionalLight);
+			directionalLightPass.material.transparent = true;
+			directionalLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
+			directionalLightPass.material.depthWrite = false;
+			directionalLightPass.material.depthTest = false;
 
 			// gui
 			var params = {type: "FORWARD"};
@@ -224,13 +235,13 @@
 								colorMaterial.uniforms["specular"][1] = renderable.material.specular.g;
 								colorMaterial.uniforms["specular"][2] = renderable.material.specular.b;
 							} else {
-								colorMaterial.uniforms["specular"][0] = 1;
-								colorMaterial.uniforms["specular"][1] = 1;
-								colorMaterial.uniforms["specular"][2] = 1;
+								colorMaterial.uniforms["specular"][0] = 0;
+								colorMaterial.uniforms["specular"][1] = 0;
+								colorMaterial.uniforms["specular"][2] = 0;
 							}
 							
 							if(renderable.material.shininess !== undefined) {
-								colorMaterial.uniforms["shininess"] = colorMaterial.shininess;
+								colorMaterial.uniforms["shininess"] = renderable.material.shininess;
 							} else {
 								colorMaterial.uniforms["shininess"] = 30;
 							}
@@ -241,7 +252,7 @@
 
 					// render emissive light
 
-					glCore.texture.setRenderTarget(emissiveRenderTarget);
+					glCore.texture.setRenderTarget(resultRenderTarget);
 
 					glCore.state.clearColor(0, 0, 0, 0);
 					glCore.clear(true, true, true);
@@ -253,21 +264,27 @@
 
 					// render direction light
 
-					glCore.texture.setRenderTarget(directionalLightRenderTarget);
+					if(params.type === "LIGHT") {
 
-					glCore.state.clearColor(0, 0, 0, 0);
-					glCore.clear(true, true, true);
+						glCore.texture.setRenderTarget(resultRenderTarget);
 
-					directionalLightPass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
-					directionalLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
-					directionalLightPass.uniforms["viewWidth"] = width;
-					directionalLightPass.uniforms["viewHeight"] = height;
-					directionalLightPass.uniforms["lightColor"] = [directionalLight.color.r, directionalLight.color.g, directionalLight.color.b];
-					directionalLight.getWorldDirection(direction);
-					directionalLightPass.uniforms["lightDirectionVS"] = [-direction.x, -direction.y, -direction.z];
-					directionalLightPass.uniforms["lightIntensity"] = directionalLight.intensity;
+						// glCore.state.clearColor(0, 0, 0, 0);
+						// glCore.clear(true, true, true);
 
-					directionalLightPass.render(glCore);
+						directionalLightPass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
+						directionalLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
+						directionalLightPass.uniforms["viewWidth"] = width;
+						directionalLightPass.uniforms["viewHeight"] = height;
+						directionalLightPass.uniforms["lightColor"] = [directionalLight.color.r, directionalLight.color.g, directionalLight.color.b];
+						directionalLight.getWorldDirection(direction);
+						console.log(-direction.x, -direction.y, -direction.z)
+						// direction.multiplyScalar(-1);
+						directionalLightPass.uniforms["lightDirectionVS"] = [-direction.x, -direction.y, -direction.z];
+						directionalLightPass.uniforms["lightIntensity"] = directionalLight.intensity;
+
+						directionalLightPass.render(glCore);
+
+					}
 
 					// output
 
@@ -281,9 +298,9 @@
 					} else if ( params.type === "COLOR" ) {
 						copyPass.uniforms["tDiffuse"] = colorRenderTarget.texture;
 					} else if ( params.type === "EMISSIVE" ) {
-						copyPass.uniforms["tDiffuse"] = emissiveRenderTarget.texture;
+						copyPass.uniforms["tDiffuse"] = resultRenderTarget.texture;
 					} else if ( params.type === "LIGHT" ) {
-						copyPass.uniforms["tDiffuse"] = directionalLightRenderTarget.texture;
+						copyPass.uniforms["tDiffuse"] = resultRenderTarget.texture;
 					}
 					
 					copyPass.render(glCore);
