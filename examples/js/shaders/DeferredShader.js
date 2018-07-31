@@ -44,7 +44,7 @@
 
             "vec4 packedNormalDepth;",
             "packedNormalDepth.xyz = normal * 0.5 + 0.5;",
-            "packedNormalDepth.w = gl_FragCoord.z;"
+            "packedNormalDepth.w = position.z / position.w;"
     
         ].join( "\n" ),
     
@@ -120,12 +120,14 @@
                 "#include <skinning_pars_vert>",
                 "#include <normal_pars_vert>",
                 "#include <uv_pars_vert>",
+                "varying vec4 vPosition;",
                 "void main() {",
                     "#include <uv_vert>",
                     "#include <begin_vert>",
                     "#include <skinning_vert>",
                     "#include <normal_vert>",
                     "#include <pvm_vert>",
+                    "vPosition = gl_Position;", // need this, but not gl_FragCoord.z / gl_FragCoord.w ?
                 "}"
 
             ].join( "\n" ),
@@ -142,6 +144,8 @@
                 "#include <packing>",
                 "#include <normal_pars_frag>",
 
+                "varying vec4 vPosition;",
+
                 "void main() {",
                     "#if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)",
                         "vec4 texelColor = texture2D( texture, v_Uv );",
@@ -151,6 +155,7 @@
                     "#endif",
 
                     "vec3 normal = normalize(v_Normal);",
+                    "vec4 position = vPosition;",
 
                     DeferredShaderChunk.packNormalDepth,
                     

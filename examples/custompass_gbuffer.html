@@ -75,17 +75,16 @@
 	        // scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.intensity = 0.8;
-	        directionalLight.color.setHex(0xffffff);
+			directionalLight.intensity = 0.4;
+	        directionalLight.color.setHex(0xffff00);
 			directionalLight.position.set(-30, 30, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			scene.add(directionalLight);
 
 			var pointLight = new zen3d.PointLight();
-			pointLight.position.set(10, 30, 10);
+			pointLight.position.set(30, 30, 30);
 			pointLight.color.setHex(0x00ffff);
-			pointLight.decay = 2; 
-			pointLight.distance = 300;
+			pointLight.decay = 2;
 			scene.add(pointLight);
 
 			var camera = new zen3d.Camera();
