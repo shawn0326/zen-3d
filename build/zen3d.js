@@ -4694,9 +4694,9 @@
 	    },
 
 	    /*
-	        * get world direction
-	        * must call after world matrix updated
-	        */
+	     * get world direction
+	     * must call after world matrix updated
+	     */
 	    getWorldDirection: function() {
 
 	        var position = new Vector3();

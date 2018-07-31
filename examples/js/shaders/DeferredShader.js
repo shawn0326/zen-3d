@@ -335,6 +335,87 @@
     
             ].join( '\n' )
 
+        },
+
+        pointLight: {
+
+            uniforms: {
+
+                samplerNormalDepth: null,
+                samplerColor: null,
+
+                lightColor: [0, 0, 0],
+                lightPositionVS: [0, 1, 0],
+                lightIntensity: 1,
+                lightRadius: 1,
+
+                viewWidth: 800,
+                viewHeight: 600,
+
+                matProjViewInverse: new Float32Array(16),
+                cameraPos: [0, 0, 0]
+
+            },
+
+            vertexShader: [
+
+                "attribute vec3 a_Position;",
+
+                "uniform mat4 u_Projection;",
+                "uniform mat4 u_View;",
+                "uniform mat4 u_Model;",
+
+                "void main() {",
+
+                    "gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+
+                "}"
+    
+            ].join( '\n' ),
+
+            fragmentShader: [
+
+                "uniform sampler2D samplerNormalDepth;",
+                "uniform sampler2D samplerColor;",
+    
+                "uniform float viewHeight;",
+                "uniform float viewWidth;",
+    
+                "uniform vec3 lightColor;",
+                "uniform vec3 lightPositionVS;",
+                "uniform float lightIntensity;",
+                "uniform float lightRadius;",
+
+                "uniform mat4 matProjViewInverse;",
+                "uniform vec3 cameraPos;",
+
+                DeferredShaderChunk.unpackFloat,
+
+                "void main() {",
+
+                    DeferredShaderChunk.computeTextureCoord,
+                    DeferredShaderChunk.unpackNormalDepth,
+                    DeferredShaderChunk.computeVertexPositionVS,
+
+                    "vec3 lightVector = lightPositionVS - vertexPositionVS.xyz;",
+                    "float distance = length( lightVector );",
+
+                    "if ( distance > lightRadius ) discard;",
+
+                    "lightVector = normalize( lightVector );",
+                    "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
+
+                    DeferredShaderChunk.unpackColor,
+                    DeferredShaderChunk.computeSpecular,
+
+                    "float attenuation = saturate( -distance / lightRadius + 1.0 ) / PI;",
+
+                    DeferredShaderChunk.combine,
+
+                "}"
+
+            ].join( '\n' )
+
         }
 
     };

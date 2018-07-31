@@ -52,17 +52,15 @@
 			var loader = new zen3d.AssimpJsonLoader();
 			loader.load(monkey, function(object) {
 				var monkey = object.getObjectByName("Suzanne").children[0];
-				// monkey.castShadow = true;
-				// monkey.receiveShadow = true;
 				monkey.material.diffuse.setRGB(1, 1, 1);
-				monkey.material.specular.setRGB(1, 0, 0);
+				// monkey.material.specular.setRGB(1, 0, 0);
 				monkey.material.emissive.setRGB(0.1, 0, 0);
 				object.scale.set(10, 10, 10);
 				object.position.y = 2;
 				scene.add(object);
 			});
 
-			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+			var plane_geometry = new zen3d.PlaneGeometry(500, 500);
 	        var material = new zen3d.PhongMaterial();
 			material.diffuse.setHex(0xffffff);
 			// material.emissive.setRGB(1, 0, 0);
@@ -81,15 +79,14 @@
 	        directionalLight.color.setHex(0xffffff);
 			directionalLight.position.set(-30, 30, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			directionalLight.shadow.windowSize = 100;
-			directionalLight.shadow.bias = -0.04;
-			directionalLight.shadow.radius = 1;
-			directionalLight.shadow.cameraFar = 200;
 			scene.add(directionalLight);
 
-			plane.receiveShadow = true;
-			directionalLight.castShadow = true;
-			directionalLight.shadow.mapSize.set(1024, 1024);
+			var pointLight = new zen3d.PointLight();
+			pointLight.position.set(10, 30, 10);
+			pointLight.color.setHex(0x00ffff);
+			pointLight.decay = 2; 
+			pointLight.distance = 300;
+			scene.add(pointLight);
 
 			var camera = new zen3d.Camera();
 	        camera.position.set(30, 50, 100);
@@ -157,13 +154,21 @@
 
 			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
 			var fxaaPass = new zen3d.ShaderPostPass(zen3d.FXAAShader);
+
 			var emissiveLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.emissiveLight);
 			emissiveLightPass.material.depthWrite = false;
+
 			var directionalLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.directionalLight);
 			directionalLightPass.material.transparent = true;
 			directionalLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
 			directionalLightPass.material.depthWrite = false;
 			directionalLightPass.material.depthTest = false;
+
+			var pointLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.pointLight);
+			pointLightPass.material.transparent = true;
+			pointLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
+			pointLightPass.material.depthWrite = false;
+			pointLightPass.material.depthTest = false;
 
 			// gui
 			var params = {type: "FORWARD", fxaa: true};
@@ -294,13 +299,35 @@
 
 							directionalLightPass.uniforms["lightColor"] = [directionalLight.color[0], directionalLight.color[1], directionalLight.color[2]];
 							directionalLightPass.uniforms["lightDirectionVS"] = [-directionalLight.direction[0], -directionalLight.direction[1], -directionalLight.direction[2]];
-							directionalLightPass.uniforms["lightIntensity"] = 1;
 
 							directionalLightPass.render(glCore);
 
 						}
 
-						// todo support point lights
+						// point
+						// TODO unknow error
+						pointLightPass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
+						pointLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
+						pointLightPass.uniforms["viewWidth"] = width;
+						pointLightPass.uniforms["viewHeight"] = height;
+						matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+						pointLightPass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
+						cameraPos.setFromMatrixPosition(camera.worldMatrix);
+						pointLightPass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
+
+						var pointLights = scene.lights.point;
+
+						for (var i = 0; i < pointLights.length; i++) {
+
+							var pointLight = pointLights[i];
+
+							pointLightPass.uniforms["lightColor"] = [pointLight.color[0], pointLight.color[1], pointLight.color[2]];
+							pointLightPass.uniforms["lightPositionVS"] = [pointLight.position[0], pointLight.position[1], pointLight.position[2]];
+							pointLightPass.uniforms["lightRadius"] = pointLight.distance;
+
+							pointLightPass.render(glCore);
+
+						}
 
 						// todo support spot lights
 
