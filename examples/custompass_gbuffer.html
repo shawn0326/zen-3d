@@ -21,6 +21,9 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/objects/DirectionalLightHelper.js"></script>
+	<script src="./js/objects/PointLightHelper.js"></script>
+	<script src="./js/objects/SpotLightHelper.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/shaders/CopyShader.js"></script>
@@ -46,6 +49,7 @@
 			document.body.appendChild( canvas );
 
 			var scene = new zen3d.Scene();
+			console.log(scene);
 
 			var monkey = "resources/models/assimp/monkey/monkey.json";
 
@@ -75,17 +79,36 @@
 	        // scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.intensity = 0.4;
 	        directionalLight.color.setHex(0xffff00);
 			directionalLight.position.set(-30, 30, 0);
+			directionalLight.intensity = 0.4;
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			scene.add(directionalLight);
+
+			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
+			directionalLight.add(directionalLightHelper);
 
 			var pointLight = new zen3d.PointLight();
 			pointLight.position.set(30, 30, 30);
 			pointLight.color.setHex(0x00ffff);
 			pointLight.decay = 2;
 			scene.add(pointLight);
+
+			var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
+			pointLight.add(pointLightHelper);
+
+			var spotLight = new zen3d.SpotLight();
+	        spotLight.color.setHex(0x00ff00);
+			spotLight.angle = Math.PI / 6;
+			spotLight.position.set(0, 40, -40);
+			spotLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			spotLight.penumbra = 0.2;
+			spotLight.distance = 400;
+			spotLight.shadow.bias = -0.003;
+			scene.add(spotLight);
+			
+			var spotLightHelper = new zen3d.SpotLightHelper(spotLight);
+			spotLight.add(spotLightHelper);
 
 			var camera = new zen3d.Camera();
 	        camera.position.set(30, 50, 100);
@@ -108,18 +131,6 @@
 			colorRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			colorRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			colorRenderTarget.texture.generateMipmaps = false;
-
-			var emissiveRenderTarget = new zen3d.RenderTarget2D(width, height);
-			emissiveRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			emissiveRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			emissiveRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
-			emissiveRenderTarget.texture.generateMipmaps = false;
-
-			var directionalLightRenderTarget = new zen3d.RenderTarget2D(width, height);
-			directionalLightRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			directionalLightRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			directionalLightRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
-			directionalLightRenderTarget.texture.generateMipmaps = false;
 
 			var resultRenderTarget = new zen3d.RenderTarget2D(width, height);
 			resultRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
@@ -169,11 +180,48 @@
 			pointLightPass.material.depthWrite = false;
 			pointLightPass.material.depthTest = false;
 
+			var spotLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader.spotLight);
+			spotLightPass.material.transparent = true;
+			spotLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
+			spotLightPass.material.depthWrite = false;
+			spotLightPass.material.depthTest = false;
+
+			function setLightVisibility() {
+				if (params.directionalLight) {
+					if (scene.children.indexOf(directionalLight) < 0) {
+						scene.add(directionalLight);
+					}
+				} else {
+					scene.remove(directionalLight);
+				}
+				if(params.pointLight) {
+					if (scene.children.indexOf(pointLight) < 0) {
+						scene.add(pointLight);
+					}
+				} else {
+					scene.remove(pointLight);
+				}
+				if(params.spotLight) {
+					if (scene.children.indexOf(spotLight) < 0) {
+						scene.add(spotLight);
+					}
+				} else {
+					scene.remove(spotLight);
+				}
+			}
+
 			// gui
-			var params = {type: "FORWARD", fxaa: true};
+			var params = {type: "FORWARD", fxaa: true, directionalLight: true, pointLight: true, spotLight: true};
 			var gui = new dat.GUI();
 			gui.add(params, "type", ["FORWARD", "DEFERRED", "NORMAL", "COLOR", "EMISSIVE"]);
 			gui.add(params, "fxaa");
+			var lightFolder = gui.addFolder("lights");
+			lightFolder.add(params, "directionalLight").onChange(setLightVisibility);
+			lightFolder.add(params, "pointLight").onChange(setLightVisibility);
+			lightFolder.add(params, "spotLight").onChange(setLightVisibility);
+			lightFolder.open();
+
+			setLightVisibility();
 
 			var direction = new zen3d.Vector3();
 			var matProjViewInverse = new zen3d.Matrix4();
@@ -184,6 +232,10 @@
 				requestAnimationFrame(loop);
 
 				controller.update();
+
+				directionalLightHelper.update();
+				pointLightHelper.update();
+				spotLightHelper.update();
 
 				// do render pass
 				scene.updateMatrix();
@@ -219,7 +271,19 @@
 					glCore.renderPass(renderList.opaque, camera, {
 						scene: scene,
 						getMaterial: function(renderable) {
+							if(!renderable.geometry.attributes["a_Normal"]) {
+								normalDepthMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
+							} else {
+								normalDepthMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+							}
 							return normalDepthMaterial;
+						},
+						ifRender: function(renderable) {
+							// todo support more object type
+							if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
+								return false;
+							}
+							return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
 						}
 					});
 
@@ -254,6 +318,13 @@
 							}
 							
 							return colorMaterial;
+						},
+						ifRender: function(renderable) {
+							// todo support more object type
+							if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
+								return false;
+							}
+							return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
 						}
 					});
 
@@ -291,8 +362,9 @@
 						directionalLightPass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
 
 						var directionalLights = scene.lights.directional;
+						var directsNum = scene.lights.directsNum;
 
-						for (var i = 0; i < directionalLights.length; i++) {
+						for (var i = 0; i < directsNum; i++) {
 
 							var directionalLight = directionalLights[i];
 
@@ -304,7 +376,6 @@
 						}
 
 						// point
-						// TODO unknow error
 						pointLightPass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
 						pointLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
 						pointLightPass.uniforms["viewWidth"] = width;
@@ -315,8 +386,9 @@
 						pointLightPass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
 
 						var pointLights = scene.lights.point;
+						var pointsNum = scene.lights.pointsNum;
 
-						for (var i = 0; i < pointLights.length; i++) {
+						for (var i = 0; i < pointsNum; i++) {
 
 							var pointLight = pointLights[i];
 
@@ -329,6 +401,30 @@
 						}
 
 						// todo support spot lights
+						spotLightPass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
+						spotLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
+						spotLightPass.uniforms["viewWidth"] = width;
+						spotLightPass.uniforms["viewHeight"] = height;
+						matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+						spotLightPass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
+						cameraPos.setFromMatrixPosition(camera.worldMatrix);
+						spotLightPass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
+
+						var spotLights = scene.lights.spot;
+						var spotsNum = scene.lights.spotsNum;
+
+						for (var i = 0; i < spotsNum; i++) {
+
+							var spotLight = spotLights[i];
+
+							spotLightPass.uniforms["lightColor"] = [spotLight.color[0], spotLight.color[1], spotLight.color[2]];
+							spotLightPass.uniforms["lightPositionVS"] = [spotLight.position[0], spotLight.position[1], spotLight.position[2]];
+							spotLightPass.uniforms["lightDirectionVS"] = [-spotLight.direction[0], -spotLight.direction[1], -spotLight.direction[2]];
+							spotLightPass.uniforms["lightConeCos"] = spotLight.coneCos;
+
+							spotLightPass.render(glCore);
+
+						}
 
 					}
 
@@ -418,6 +514,9 @@
 				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
 
 				backRenderTarget.resize(width, height);
+				normalDepthRenderTarget.resize(width, height);
+				colorRenderTarget.resize(width, height);
+				resultRenderTarget.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();

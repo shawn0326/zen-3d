@@ -421,6 +421,111 @@
 
             ].join( '\n' )
 
+        },
+
+        spotLight: {
+
+            uniforms: {
+
+                samplerNormalDepth: null,
+                samplerColor: null,
+
+                lightColor: [0, 0, 0],
+                lightDirectionVS: [0, 1, 0],
+                lightPositionVS: [0, 0, 0],
+                lightIntensity: 1,
+                lightConeCos: 1,
+
+                viewWidth: 800,
+                viewHeight: 600,
+
+                matProjViewInverse: new Float32Array(16),
+                cameraPos: [0, 0, 0]
+
+            },
+
+            vertexShader: [
+
+                "attribute vec3 a_Position;",
+
+                "uniform mat4 u_Projection;",
+                "uniform mat4 u_View;",
+                "uniform mat4 u_Model;",
+
+                "void main() {",
+
+                    "gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+
+                "}"
+    
+            ].join( '\n' ),
+
+            fragmentShader: [
+
+                "uniform sampler2D samplerNormalDepth;",
+                "uniform sampler2D samplerColor;",
+
+                "uniform float viewHeight;",
+                "uniform float viewWidth;",
+
+                "uniform vec3 lightColor;",
+                "uniform vec3 lightPositionVS;",
+                "uniform vec3 lightDirectionVS;",
+                "uniform float lightConeCos;",
+                "uniform float lightIntensity;",
+
+                "uniform mat4 matProjViewInverse;",
+                "uniform vec3 cameraPos;",
+
+                DeferredShaderChunk.unpackFloat,
+
+                "void main() {",
+
+                    DeferredShaderChunk.computeTextureCoord,
+                    DeferredShaderChunk.unpackNormalDepth,
+                    DeferredShaderChunk.computeVertexPositionVS,
+                    DeferredShaderChunk.unpackColor,
+
+                    "vec3 lightVector = normalize( lightPositionVS.xyz - vertexPositionVS.xyz );",
+
+                    "float rho = dot( lightDirectionVS, lightVector );",
+                    "float rhoMax = lightConeCos;",
+
+                    "if ( rho <= rhoMax ) discard;",
+
+                    "float theta = rhoMax + 0.0001;",
+                    "float phi = rhoMax + 0.05;",
+                    "float falloff = 4.0;",
+
+                    "float spot = 0.0;",
+
+                    "if ( rho >= phi ) {",
+
+                        "spot = 1.0;",
+
+                    "} else if ( rho <= theta ) {",
+
+                        "spot = 0.0;",
+
+                    "} else { ",
+
+                        "spot = pow( ( rho - theta ) / ( phi - theta ), falloff );",
+
+                    "}",
+
+                    "diffuseColor *= spot;",
+                    "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
+                   
+                    DeferredShaderChunk.computeSpecular,
+
+                    "float attenuation = 1.0 / PI;",
+
+                    DeferredShaderChunk.combine,
+
+                "}"
+
+            ].join( '\n' )
+
         }
 
     };
