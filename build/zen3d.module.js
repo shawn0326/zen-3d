@@ -4595,6 +4595,8 @@ function Object3D() {
     // frustum test
     this.frustumCulled = true;
 
+    this.visible = true;
+
     this.userData = {};
 }
 
@@ -10230,6 +10232,10 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), {
 
     _doUpdateRenderList: function(object, camera, renderList) {
 
+        if (!object.visible) {
+            return;
+        }
+
         if (!!object.geometry && !!object.material) { // renderable
             renderList.add(object, camera);
         }
@@ -10247,6 +10253,10 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), {
     },
 
     _doUpdateLights: function(object) {
+
+        if (!object.visible) {
+            return;
+        }
 
         if (OBJECT_TYPE.LIGHT === object.type) { // light
             this.lights.add(object);
