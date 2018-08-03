@@ -6369,6 +6369,8 @@
 	    this.depthTest = true;
 	    this.depthWrite = true;
 
+	    this.colorWrite = true;
+
 	    // alpha test
 	    this.alphaTest = 0;
 
@@ -9097,6 +9099,12 @@
 	            // reset used tex Unit
 	            this._usedTextureUnits = 0;
 
+	            // Ensure depth buffer writing is enabled so it can be cleared on next render
+
+	            state.enable(gl.DEPTH_TEST);
+	            state.depthMask( true );
+	            state.colorMask( true );
+
 	            object.onAfterRender();
 
 	        }
@@ -9121,10 +9129,12 @@
 	        // set depth test
 	        if (material.depthTest) {
 	            state.enable(gl.DEPTH_TEST);
-	            state.depthMask(material.depthWrite);
 	        } else {
 	            state.disable(gl.DEPTH_TEST);
 	        }
+
+	        state.depthMask( material.depthWrite );
+	        state.colorMask( material.colorWrite );
 	    
 	        // set draw side
 	        state.setCullFace(

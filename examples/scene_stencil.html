@@ -134,15 +134,12 @@
 
 				renderer.glCore.state.stencilFunc(gl.ALWAYS, 1, 1);
 				renderer.glCore.state.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-				renderer.glCore.state.colorMask(false);
 
 				renderer.render(stencilScene, camera, undefined, false);
 				
-				renderer.glCore.state.colorMask(true);
 				renderer.glCore.state.stencilFunc(gl.LEQUAL, 1, 1);
 				renderer.glCore.state.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
-				renderer.glCore.state.depthMask(true);
 				renderer.glCore.clear(false, true, false);
 
 				directionalLight.color.setHex(0xffaaaa);

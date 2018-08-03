@@ -58,6 +58,8 @@ function Material() {
     this.depthTest = true;
     this.depthWrite = true;
 
+    this.colorWrite = true;
+
     // alpha test
     this.alphaTest = 0;
 
