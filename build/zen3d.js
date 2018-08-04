@@ -4601,6 +4601,8 @@
 	    // frustum test
 	    this.frustumCulled = true;
 
+	    this.visible = true;
+
 	    this.userData = {};
 	}
 
@@ -6366,6 +6368,8 @@
 	    // depth test
 	    this.depthTest = true;
 	    this.depthWrite = true;
+
+	    this.colorWrite = true;
 
 	    // alpha test
 	    this.alphaTest = 0;
@@ -9107,6 +9111,12 @@
 	            // reset used tex Unit
 	            this._usedTextureUnits = 0;
 
+	            // Ensure depth buffer writing is enabled so it can be cleared on next render
+
+	            state.enable(gl.DEPTH_TEST);
+	            state.depthMask( true );
+	            state.colorMask( true );
+
 	            afterRender(this, renderItem);
 	            object.onAfterRender(renderItem); 
 
@@ -9132,10 +9142,12 @@
 	        // set depth test
 	        if (material.depthTest) {
 	            state.enable(gl.DEPTH_TEST);
-	            state.depthMask(material.depthWrite);
 	        } else {
 	            state.disable(gl.DEPTH_TEST);
 	        }
+
+	        state.depthMask( material.depthWrite );
+	        state.colorMask( material.colorWrite );
 	    
 	        // set draw side
 	        state.setCullFace(
@@ -10249,6 +10261,10 @@
 
 	    _doUpdateRenderList: function(object, camera, renderList) {
 
+	        if (!object.visible) {
+	            return;
+	        }
+
 	        if (!!object.geometry && !!object.material) { // renderable
 	            renderList.add(object, camera);
 	        }
@@ -10266,6 +10282,10 @@
 	    },
 
 	    _doUpdateLights: function(object) {
+
+	        if (!object.visible) {
+	            return;
+	        }
 
 	        if (OBJECT_TYPE.LIGHT === object.type) { // light
 	            this.lights.add(object);

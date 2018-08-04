@@ -55,6 +55,8 @@ function Object3D() {
     // frustum test
     this.frustumCulled = true;
 
+    this.visible = true;
+
     this.userData = {};
 }
 
