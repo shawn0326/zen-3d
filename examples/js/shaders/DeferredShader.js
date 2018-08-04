@@ -34,6 +34,33 @@
     
         ].join( "\n" ),
 
+        // Refer to http://aras-p.info/texts/CompactNormalStorage.html
+        packNormal: [
+
+            "vec2 normal_to_vec2( vec3 normal ) {",
+
+            "	return normal.xy / sqrt( normal.z * 8.0 + 8.0 ) + 0.5;",
+
+            "}"
+
+        ].join( "\n" ),
+
+        unpackVector2: [
+
+            "vec3 vec2_to_normal( vec2 data ) {",
+
+            "	vec2 fenc = data * 4.0 - 2.0;",
+            "	float f = dot( fenc, fenc );",
+            "	float g = sqrt( 1.0 - f / 4.0 );",
+            "	vec3 normal;",
+            "	normal.xy = fenc * g;",
+            "	normal.z = 1.0 - f / 2.0;",
+            "	return normal;",
+
+            "}"
+
+        ].join( "\n" ),
+
         computeTextureCoord: [
 
             "vec2 texCoord = gl_FragCoord.xy / vec2( viewWidth, viewHeight );"
@@ -59,6 +86,27 @@
     
         ].join( "\n" ),
 
+        packNormalDepthShininess: [
+
+            "vec4 packedNormalDepthShininess;",
+            "packedNormalDepthShininess.xy = normal_to_vec2( normal );",
+            "packedNormalDepthShininess.z = shininess;",
+            "packedNormalDepthShininess.w = position.z / position.w;"
+    
+        ].join( "\n" ),
+    
+        unpackNormalDepthShininess: [
+    
+            "vec4 normalDepthMap = texture2D( samplerNormalDepthShininess, texCoord );",
+            "float depth = normalDepthMap.w;",
+    
+            "if ( depth == 0.0 ) discard;",
+    
+            "vec3 normal = vec2_to_normal( normalDepthMap.xy );",
+            "float shininess = normalDepthMap.z;"
+    
+        ].join( "\n" ),
+
         packColor: [
 
             "vec4 packedColor;",
@@ -76,6 +124,14 @@
             "vec3 emissiveColor = float_to_vec3( colorMap.y );",
             "vec3 specularColor = float_to_vec3( colorMap.z );",
             "float shininess = colorMap.w;"
+    
+        ].join( "\n" ),
+
+        packLight: [
+
+            "vec4 packedLight;",
+            "packedLight.xyz = lightIntensity * lightColor * max( dot( lightVector, normal ), 0.0 ) * attenuation;",
+            "packedLight.w = lightIntensity * specular * max( dot( lightVector, normal ), 0.0 ) * attenuation;"
     
         ].join( "\n" ),
 
@@ -526,6 +582,259 @@
 
             ].join( '\n' )
 
+        },
+
+        normalDepthShininess: {
+
+            uniforms: {
+
+                shininess: 30
+
+            },
+
+            vertexShader: [
+
+                "#include <common_vert>",
+
+                "#define USE_NORMAL",
+
+                "#include <skinning_pars_vert>",
+                "#include <normal_pars_vert>",
+                "#include <uv_pars_vert>",
+                "varying vec4 vPosition;",
+                "void main() {",
+                    "#include <uv_vert>",
+                    "#include <begin_vert>",
+                    "#include <skinning_vert>",
+                    "#include <normal_vert>",
+                    "#include <pvm_vert>",
+                    "vPosition = gl_Position;", // need this, but not gl_FragCoord.z / gl_FragCoord.w ?
+                "}"
+
+            ].join( '\n' ),
+
+            fragmentShader: [
+
+                "#include <common_frag>",
+                "#include <diffuseMap_pars_frag>",
+
+                "#include <uv_pars_frag>",
+
+                "#define USE_NORMAL",
+
+                "#include <packing>",
+                "#include <normal_pars_frag>",
+
+                "varying vec4 vPosition;",
+
+                "uniform float shininess;",
+
+                DeferredShaderChunk.packNormal,
+
+                "void main() {",
+                    "#if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)",
+                        "vec4 texelColor = texture2D( texture, v_Uv );",
+
+                        "float alpha = texelColor.a * u_Opacity;",
+                        "if(alpha < ALPHATEST) discard;",
+                    "#endif",
+
+                    "vec3 normal = normalize(v_Normal);",
+                    "vec4 position = vPosition;",
+
+                    DeferredShaderChunk.packNormalDepthShininess,
+                    
+                    "gl_FragColor = packedNormalDepthShininess;",
+                "}"
+                
+            ].join( '\n' )
+
+        },
+
+        pointLightPre: {
+
+            uniforms: {
+
+                samplerNormalDepthShininess: null,
+
+                lightColor: [0, 0, 0],
+                lightPositionVS: [0 , 0, 0],
+                lightIntensity: 1,
+                lightRadius: 1,
+
+                viewWidth: 800,
+                viewHeight: 600,
+
+                matProjViewInverse: new Float32Array(16),
+                cameraPos: [0, 0, 0]
+
+            },
+
+            vertexShader: [
+
+                "attribute vec3 a_Position;",
+
+                "uniform mat4 u_Projection;",
+                "uniform mat4 u_View;",
+                "uniform mat4 u_Model;",
+
+                "void main() {",
+
+                    "gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+
+                "}"
+    
+            ].join( '\n' ),
+
+            fragmentShader: [
+
+                "uniform sampler2D samplerNormalDepthShininess;",
+
+                "uniform float viewHeight;",
+                "uniform float viewWidth;",
+
+                "uniform vec3 lightColor;",
+                "uniform vec3 lightPositionVS;",
+                "uniform float lightIntensity;",
+                "uniform float lightRadius;",
+
+                "uniform mat4 matProjViewInverse;",
+                "uniform vec3 cameraPos;",
+
+                DeferredShaderChunk.unpackFloat,
+                DeferredShaderChunk.unpackVector2,
+
+                "void main() {",
+
+                    DeferredShaderChunk.computeTextureCoord,
+                    DeferredShaderChunk.unpackNormalDepthShininess,
+                    DeferredShaderChunk.computeVertexPositionVS,
+
+                    "vec3 lightVector = lightPositionVS - vertexPositionVS.xyz;",
+                    "float distance = length( lightVector );",
+
+                    "if ( distance > lightRadius ) discard;",
+
+                    "lightVector = normalize( lightVector );",
+
+                    DeferredShaderChunk.computeSpecular,
+
+                    "float attenuation = saturate( -distance / lightRadius + 1.0 ) / PI;",
+
+                    DeferredShaderChunk.packLight,
+
+                    "gl_FragColor = packedLight;",
+
+                "}"
+
+            ].join( '\n' )
+
+        },
+
+        spotLightPre: {
+
+            uniforms: {
+
+                samplerNormalDepth: null,
+
+                lightColor: [0, 0, 0],
+                lightDirectionVS: [0, 1, 0],
+                lightPositionVS: [0, 0, 0],
+                lightIntensity: 1,
+                lightConeCos: 1,
+
+                viewWidth: 800,
+                viewHeight: 600,
+
+                matProjViewInverse: new Float32Array(16),
+                cameraPos: [0, 0, 0]
+
+            },
+
+            vertexShader: [
+
+                "attribute vec3 a_Position;",
+
+                "uniform mat4 u_Projection;",
+                "uniform mat4 u_View;",
+                "uniform mat4 u_Model;",
+
+                "void main() {",
+
+                    "gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+
+                "}"
+    
+            ].join( '\n' ),
+
+            fragmentShader: [
+
+                "uniform sampler2D samplerNormalDepthShininess;",
+
+                "uniform float viewHeight;",
+                "uniform float viewWidth;",
+
+                "uniform vec3 lightColor;",
+                "uniform vec3 lightPositionVS;",
+                "uniform vec3 lightDirectionVS;",
+                "uniform float lightConeCos;",
+                "uniform float lightIntensity;",
+
+                "uniform mat4 matProjViewInverse;",
+                "uniform vec3 cameraPos;",
+
+                DeferredShaderChunk.unpackFloat,
+                DeferredShaderChunk.unpackVector2,
+
+                "void main() {",
+
+                    DeferredShaderChunk.computeTextureCoord,
+                    DeferredShaderChunk.unpackNormalDepthShininess,
+                    DeferredShaderChunk.computeVertexPositionVS,
+
+                    "vec3 lightVector = normalize( lightPositionVS.xyz - vertexPositionVS.xyz );",
+
+                    "float rho = dot( lightDirectionVS, lightVector );",
+                    "float rhoMax = lightConeCos;",
+
+                    "if ( rho <= rhoMax ) discard;",
+
+                    "float theta = rhoMax + 0.0001;",
+                    "float phi = rhoMax + 0.05;",
+                    "float falloff = 4.0;",
+
+                    "float spot = 0.0;",
+
+                    "if ( rho >= phi ) {",
+
+                        "spot = 1.0;",
+
+                    "} else if ( rho <= theta ) {",
+
+                        "spot = 0.0;",
+
+                    "} else { ",
+
+                        "spot = pow( ( rho - theta ) / ( phi - theta ), falloff );",
+
+                    "}",
+
+                    DeferredShaderChunk.computeSpecular,
+
+                    "const float attenuation = 1.0 / PI;",
+
+                    DeferredShaderChunk.packLight,
+
+                    "gl_FragColor = spot * packedLight;",
+
+			    "}"
+
+            ].join( "\n" )
+
+        },
+
+        directionalLightPre: {
+            
         }
 
     };

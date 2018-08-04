@@ -153,6 +153,12 @@
 				{}
 			);
 
+			var normalDepthShininessMaterial = new zen3d.ShaderMaterial(
+				zen3d.DeferredShader.normalDepthShininess.vertexShader,
+				zen3d.DeferredShader.normalDepthShininess.fragmentShader,
+				{}
+			);
+
 			var colorMaterial = new zen3d.ShaderMaterial(
 				zen3d.DeferredShader.color.vertexShader,
 				zen3d.DeferredShader.color.fragmentShader,
@@ -211,10 +217,11 @@
 			}
 
 			// gui
-			var params = {type: "FORWARD", fxaa: true, directionalLight: true, pointLight: true, spotLight: true};
+			var params = {type: "FORWARD", preLight: true, fxaa: true, directionalLight: true, pointLight: true, spotLight: true};
 			var gui = new dat.GUI();
 			gui.add(params, "type", ["FORWARD", "DEFERRED", "NORMAL", "COLOR", "EMISSIVE"]);
 			gui.add(params, "fxaa");
+			gui.add(params, "preLight");
 			var lightFolder = gui.addFolder("lights");
 			lightFolder.add(params, "directionalLight").onChange(setLightVisibility);
 			lightFolder.add(params, "pointLight").onChange(setLightVisibility);
@@ -263,29 +270,64 @@
 
 					// render normalDepth texture
 
-					glCore.texture.setRenderTarget(normalDepthRenderTarget);
+					if (params.preLight) {
 
-					glCore.state.clearColor(0, 0, 0, 0);
-					glCore.clear(true, true, true);
+						glCore.texture.setRenderTarget(normalDepthRenderTarget);
 
-					glCore.renderPass(renderList.opaque, camera, {
-						scene: scene,
-						getMaterial: function(renderable) {
-							if(!renderable.geometry.attributes["a_Normal"]) {
-								normalDepthMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
-							} else {
-								normalDepthMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+						glCore.state.clearColor(0, 0, 0, 0);
+						glCore.clear(true, true, true);
+
+						glCore.renderPass(renderList.opaque, camera, {
+							scene: scene,
+							getMaterial: function(renderable) {
+								if(!renderable.geometry.attributes["a_Normal"]) {
+									normalDepthShininessMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
+								} else {
+									normalDepthShininessMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+								}
+								if(renderable.material.shininess !== undefined) {
+									normalDepthShininessMaterial.uniforms["shininess"] = renderable.material.shininess;
+								} else {
+									normalDepthShininessMaterial.uniforms["shininess"] = 30;
+								}
+								return normalDepthShininessMaterial;
+							},
+							ifRender: function(renderable) {
+								// todo support more object type
+								if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
+									return false;
+								}
+								return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
 							}
-							return normalDepthMaterial;
-						},
-						ifRender: function(renderable) {
-							// todo support more object type
-							if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
-								return false;
+						});
+
+					} else {
+
+						glCore.texture.setRenderTarget(normalDepthRenderTarget);
+
+						glCore.state.clearColor(0, 0, 0, 0);
+						glCore.clear(true, true, true);
+
+						glCore.renderPass(renderList.opaque, camera, {
+							scene: scene,
+							getMaterial: function(renderable) {
+								if(!renderable.geometry.attributes["a_Normal"]) {
+									normalDepthMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
+								} else {
+									normalDepthMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+								}
+								return normalDepthMaterial;
+							},
+							ifRender: function(renderable) {
+								// todo support more object type
+								if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
+									return false;
+								}
+								return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
 							}
-							return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
-						}
-					});
+						});
+
+					}
 
 					// render color texture
 
