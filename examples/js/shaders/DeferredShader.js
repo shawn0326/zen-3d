@@ -131,7 +131,7 @@
 
             "vec4 packedLight;",
             "packedLight.xyz = lightIntensity * lightColor * max( dot( lightVector, normal ), 0.0 ) * attenuation;",
-            "packedLight.w = lightIntensity * specular * max( dot( lightVector, normal ), 0.0 ) * attenuation;"
+            "packedLight.w = lightIntensity * specular * max( dot( lightVector, normal ), 0.0 );"
     
         ].join( "\n" ),
 
@@ -716,6 +716,7 @@
                     "if ( distance > lightRadius ) discard;",
 
                     "lightVector = normalize( lightVector );",
+                    "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
 
                     DeferredShaderChunk.computeSpecular,
 
@@ -819,6 +820,8 @@
 
                     "}",
 
+                    "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
+
                     DeferredShaderChunk.computeSpecular,
 
                     "const float attenuation = 1.0 / PI;",
@@ -834,7 +837,148 @@
         },
 
         directionalLightPre: {
+
+            uniforms: {
+
+                samplerNormalDepthShininess: null,
+
+                lightColor: [0, 0, 0],
+                lightDirectionVS: [0, 1, 0],
+                lightIntensity: 1,
+
+                viewWidth: 800,
+                viewHeight: 600,
+
+                matProjViewInverse: new Float32Array(16),
+                cameraPos: [0, 0, 0]
+
+            },
+
+            vertexShader: [
+
+                "attribute vec3 a_Position;",
+
+                "uniform mat4 u_Projection;",
+                "uniform mat4 u_View;",
+                "uniform mat4 u_Model;",
+
+                "void main() {",
+
+                    "gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+
+                "}"
+
+            ].join( '\n' ),
+
+            fragmentShader: [
+
+                "uniform sampler2D samplerNormalDepthShininess;",
+
+                "uniform float viewHeight;",
+                "uniform float viewWidth;",
+
+                "uniform vec3 lightColor;",
+                "uniform vec3 lightDirectionVS;",
+                "uniform float lightIntensity;",
+
+                "uniform mat4 matProjViewInverse;",
+                "uniform vec3 cameraPos;",
+
+                DeferredShaderChunk.unpackFloat,
+                DeferredShaderChunk.unpackVector2,
+
+                "void main() {",
+
+                    DeferredShaderChunk.computeTextureCoord,
+                    DeferredShaderChunk.unpackNormalDepthShininess,
+                    DeferredShaderChunk.computeVertexPositionVS,
+
+                    "vec3 lightVector = normalize( lightDirectionVS );",
+                    "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
+
+                    DeferredShaderChunk.computeSpecular,
+
+                    "const float attenuation = 1.0 / PI;",
+
+                    DeferredShaderChunk.packLight,
+
+                    "gl_FragColor = packedLight;",
+
+                "}"
+
+            ].join( '\n' )
             
+        },
+
+        reconstruction: {
+
+            uniforms: {
+
+                samplerLight: null,
+
+                specular: [0, 0, 0],
+                shininess: 30,
+
+                viewWidth: 800,
+                viewHeight: 600
+
+            },
+        
+            vertexShader: [
+                "#include <common_vert>",
+                "#include <uv_pars_vert>",
+                "#include <color_pars_vert>",
+                "#include <envMap_pars_vert>",
+                "#include <skinning_pars_vert>",
+                "void main() {",
+                    "#include <begin_vert>",
+                    "#include <skinning_vert>",
+                    "#include <pvm_vert>",
+                    "#include <uv_vert>",
+                    "#include <color_vert>",
+                "}"
+            ].join( "\n" ),
+
+            fragmentShader: [
+
+                "uniform sampler2D samplerLight;",
+
+                "uniform vec3 u_Color;",
+                "uniform vec3 emissive;",
+                "uniform vec3 specular;",
+                "uniform float shininess;",
+
+                "uniform float viewHeight;",
+                "uniform float viewWidth;",
+
+                "#include <uv_pars_frag>",
+                "#include <diffuseMap_pars_frag>",
+
+                DeferredShaderChunk.unpackFloat,
+
+                "void main() {",
+
+			        "vec4 outColor = vec4( u_Color, 1.0 );",
+			        "vec3 emissiveColor = emissive;",
+                    "vec3 specularColor = specular;",
+                    
+                    DeferredShaderChunk.computeTextureCoord,
+
+                    "vec4 light = texture2D( samplerLight, texCoord );",
+
+                    "#include <diffuseMap_frag>",
+                    "vec4 diffuseColor = outColor;",
+
+                    "vec3 diffuseFinal = diffuseColor.rgb * light.rgb;",
+                    "vec3 emissiveFinal = emissiveColor;",
+                    "vec3 specularFinal = specularColor * light.rgb * light.a;",
+
+                    "gl_FragColor = vec4( diffuseFinal + emissiveFinal + specularFinal, 1.0 );",
+
+			    "}"
+
+            ].join( "\n" )
+
         }
 
     };
