@@ -90,7 +90,7 @@ var files = {
 	],
 	"custompass": [
 		"custompass_car",
-		"custompass_gbuffer",
+		"custompass_deferred",
 		"custompass_ssao",
 		"custompass_taa",
 		"custompass_bloom"

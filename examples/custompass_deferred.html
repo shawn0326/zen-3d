@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - custom pass gbuffer</title>
+	<title>zen3d - custom pass deferred</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -34,7 +34,7 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass gbuffer
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass deferred
     </div>
 
 	<script>
@@ -58,7 +58,7 @@
 				var monkey = object.getObjectByName("Suzanne").children[0];
 				monkey.material.diffuse.setRGB(1, 1, 1);
 				// monkey.material.specular.setRGB(1, 0, 0);
-				monkey.material.emissive.setRGB(0.1, 0, 0);
+				monkey.material.emissive.setRGB(0.2, 0, 0);
 				object.scale.set(10, 10, 10);
 				object.position.y = 2;
 				scene.add(object);
@@ -133,16 +133,10 @@
 			colorRenderTarget.texture.generateMipmaps = false;
 
 			var resultRenderTarget = new zen3d.RenderTarget2D(width, height);
-			resultRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			resultRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			resultRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			resultRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			resultRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			// resultRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			resultRenderTarget.texture.generateMipmaps = false;
-
-			var resultRenderTarget2 = new zen3d.RenderTarget2D(width, height);
-			resultRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			resultRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			resultRenderTarget2.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
-			resultRenderTarget2.texture.generateMipmaps = false;
 
 			var gl = canvas.getContext("webgl", {
 				antialias: true, // antialias
@@ -259,11 +253,11 @@
 			}
 
 			// gui
-			var params = {type: "DEFERRED", preLight: true, fxaa: true, directionalLight: true, pointLight: true, spotLight: true};
+			var params = {render: "prelight-deferred", pass: "result", fxaa: true, directionalLight: true, pointLight: true, spotLight: true};
 			var gui = new dat.GUI();
-			gui.add(params, "type", ["FORWARD", "DEFERRED", "NORMAL", "COLOR", "EMISSIVE"]);
+			gui.add(params, "render", ["forward", "deferred", "prelight-deferred"]);
+			gui.add(params, "pass", ["normalDepth(Shininess)", "color(light)", "result"]);
 			gui.add(params, "fxaa");
-			gui.add(params, "preLight");
 			var lightFolder = gui.addFolder("lights");
 			lightFolder.add(params, "directionalLight").onChange(setLightVisibility);
 			lightFolder.add(params, "pointLight").onChange(setLightVisibility);
@@ -292,7 +286,7 @@
 
 				var renderList = scene.updateRenderList(camera);
 
-				if ( params.type === "FORWARD" ) {
+				if ( params.render === "forward" ) {
 
 					shadowMapPass.render(glCore, scene);
 
@@ -321,7 +315,7 @@
 						scene: scene,
 						getMaterial: function(renderable) {
 
-							if (params.preLight) {
+							if (params.render == "prelight-deferred") {
 
 								if(!renderable.geometry.attributes["a_Normal"]) {
 									normalDepthShininessMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
@@ -356,7 +350,7 @@
 						}
 					});
 
-					if(!params.preLight) {
+					if(params.render == "deferred") {
 
 						// render color texture
 
@@ -401,14 +395,15 @@
 
 					}
 
-					// render emissive light
 
-					glCore.texture.setRenderTarget(resultRenderTarget);
+					if (params.render == "deferred") {
 
-					glCore.state.clearColor(0, 0, 0, 0);
-					glCore.clear(true, true, true);
+						// render emissive light
 
-					if(!params.preLight) {
+						glCore.texture.setRenderTarget(resultRenderTarget);
+
+						glCore.state.clearColor(0, 0, 0, 0);
+						glCore.clear(true, true, true);
 
 						emissiveLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
 						emissiveLightPass.uniforms["viewWidth"] = width;
@@ -416,122 +411,123 @@
 						emissiveLightPass.render(glCore);
 
 					}
+					
 
 					// todo support ambient light
 
 					// render lights
 
-					if(params.type === "DEFERRED") {
+					if (params.render == "prelight-deferred") {
 
-						glCore.texture.setRenderTarget(resultRenderTarget);
+						glCore.texture.setRenderTarget(colorRenderTarget);
 
-						// glCore.state.clearColor(0, 0, 0, 0);
-						// glCore.clear(true, true, true);
-
-						// directional
-						var pass = params.preLight ? directionalLightPrePass : directionalLightPass;
-						if (!params.preLight) {
-							pass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
-							pass.uniforms["samplerColor"] = colorRenderTarget.texture;
-						} else {
-							pass.uniforms["samplerNormalDepthShininess"] = normalDepthRenderTarget.texture;
-						}
-						pass.uniforms["viewWidth"] = width;
-						pass.uniforms["viewHeight"] = height;
-						matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
-						pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
-						cameraPos.setFromMatrixPosition(camera.worldMatrix);
-						pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
-
-						var directionalLights = scene.lights.directional;
-						var directsNum = scene.lights.directsNum;
-
-						for (var i = 0; i < directsNum; i++) {
-
-							var directionalLight = directionalLights[i];
-
-							pass.uniforms["lightColor"] = [directionalLight.color[0], directionalLight.color[1], directionalLight.color[2]];
-							pass.uniforms["lightDirectionVS"] = [-directionalLight.direction[0], -directionalLight.direction[1], -directionalLight.direction[2]];
-
-							pass.render(glCore);
-
-						}
-
-						// point
-						var pass = params.preLight ? pointLightPrePass : pointLightPass;
-						if (!params.preLight) {
-							pass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
-							pass.uniforms["samplerColor"] = colorRenderTarget.texture;
-						} else {
-							pass.uniforms["samplerNormalDepthShininess"] = normalDepthRenderTarget.texture;
-						}
-						pass.uniforms["viewWidth"] = width;
-						pass.uniforms["viewHeight"] = height;
-						matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
-						pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
-						cameraPos.setFromMatrixPosition(camera.worldMatrix);
-						pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
-
-						var pointLights = scene.lights.point;
-						var pointsNum = scene.lights.pointsNum;
-
-						for (var i = 0; i < pointsNum; i++) {
-
-							var pointLight = pointLights[i];
-
-							pass.uniforms["lightColor"] = [pointLight.color[0], pointLight.color[1], pointLight.color[2]];
-							pass.uniforms["lightPositionVS"] = [pointLight.position[0], pointLight.position[1], pointLight.position[2]];
-							pass.uniforms["lightRadius"] = pointLight.distance;
-
-							pass.render(glCore);
-
-						}
-
-						// spot lights
-						var pass = params.preLight ? spotLightPrePass : spotLightPass;
-						if (!params.preLight) {
-							pass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
-							pass.uniforms["samplerColor"] = colorRenderTarget.texture;
-						} else {
-							pass.uniforms["samplerNormalDepthShininess"] = normalDepthRenderTarget.texture;
-						}
-						pass.uniforms["viewWidth"] = width;
-						pass.uniforms["viewHeight"] = height;
-						matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
-						pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
-						cameraPos.setFromMatrixPosition(camera.worldMatrix);
-						pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
-
-						var spotLights = scene.lights.spot;
-						var spotsNum = scene.lights.spotsNum;
-
-						for (var i = 0; i < spotsNum; i++) {
-
-							var spotLight = spotLights[i];
-
-							pass.uniforms["lightColor"] = [spotLight.color[0], spotLight.color[1], spotLight.color[2]];
-							pass.uniforms["lightPositionVS"] = [spotLight.position[0], spotLight.position[1], spotLight.position[2]];
-							pass.uniforms["lightDirectionVS"] = [-spotLight.direction[0], -spotLight.direction[1], -spotLight.direction[2]];
-							pass.uniforms["lightConeCos"] = spotLight.coneCos;
-
-							pass.render(glCore);
-
-						}
+						glCore.state.clearColor(0, 0, 0, 0);
+						glCore.clear(true, true, true);
 
 					}
 
-					if (params.preLight) {
+					// directional
+					var pass = params.render == "prelight-deferred" ? directionalLightPrePass : directionalLightPass;
+					if (params.render !== "prelight-deferred") {
+						pass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
+						pass.uniforms["samplerColor"] = colorRenderTarget.texture;
+					} else {
+						pass.uniforms["samplerNormalDepthShininess"] = normalDepthRenderTarget.texture;
+					}
+					pass.uniforms["viewWidth"] = width;
+					pass.uniforms["viewHeight"] = height;
+					matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+					pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
+					cameraPos.setFromMatrixPosition(camera.worldMatrix);
+					pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
+
+					var directionalLights = scene.lights.directional;
+					var directsNum = scene.lights.directsNum;
+
+					for (var i = 0; i < directsNum; i++) {
+
+						var directionalLight = directionalLights[i];
+
+						pass.uniforms["lightColor"] = [directionalLight.color[0], directionalLight.color[1], directionalLight.color[2]];
+						pass.uniforms["lightDirectionVS"] = [-directionalLight.direction[0], -directionalLight.direction[1], -directionalLight.direction[2]];
+
+						pass.render(glCore);
+
+					}
+
+					// point
+					var pass = params.render == "prelight-deferred" ? pointLightPrePass : pointLightPass;
+					if (params.render !== "prelight-deferred") {
+						pass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
+						pass.uniforms["samplerColor"] = colorRenderTarget.texture;
+					} else {
+						pass.uniforms["samplerNormalDepthShininess"] = normalDepthRenderTarget.texture;
+					}
+					pass.uniforms["viewWidth"] = width;
+					pass.uniforms["viewHeight"] = height;
+					matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+					pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
+					cameraPos.setFromMatrixPosition(camera.worldMatrix);
+					pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
+
+					var pointLights = scene.lights.point;
+					var pointsNum = scene.lights.pointsNum;
+
+					for (var i = 0; i < pointsNum; i++) {
+
+						var pointLight = pointLights[i];
+
+						pass.uniforms["lightColor"] = [pointLight.color[0], pointLight.color[1], pointLight.color[2]];
+						pass.uniforms["lightPositionVS"] = [pointLight.position[0], pointLight.position[1], pointLight.position[2]];
+						pass.uniforms["lightRadius"] = pointLight.distance;
+
+						pass.render(glCore);
+
+					}
+
+					// spot lights
+					var pass = params.render == "prelight-deferred" ? spotLightPrePass : spotLightPass;
+					if (params.render !== "prelight-deferred") {
+						pass.uniforms["samplerNormalDepth"] = normalDepthRenderTarget.texture;
+						pass.uniforms["samplerColor"] = colorRenderTarget.texture;
+					} else {
+						pass.uniforms["samplerNormalDepthShininess"] = normalDepthRenderTarget.texture;
+					}
+					pass.uniforms["viewWidth"] = width;
+					pass.uniforms["viewHeight"] = height;
+					matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+					pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
+					cameraPos.setFromMatrixPosition(camera.worldMatrix);
+					pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
+
+					var spotLights = scene.lights.spot;
+					var spotsNum = scene.lights.spotsNum;
+
+					for (var i = 0; i < spotsNum; i++) {
+
+						var spotLight = spotLights[i];
+
+						pass.uniforms["lightColor"] = [spotLight.color[0], spotLight.color[1], spotLight.color[2]];
+						pass.uniforms["lightPositionVS"] = [spotLight.position[0], spotLight.position[1], spotLight.position[2]];
+						pass.uniforms["lightDirectionVS"] = [-spotLight.direction[0], -spotLight.direction[1], -spotLight.direction[2]];
+						pass.uniforms["lightConeCos"] = spotLight.coneCos;
+
+						pass.render(glCore);
+
+					}
+
+					if (params.render == "prelight-deferred") {
 
 						// reconstruction
 
-						glCore.texture.setRenderTarget(resultRenderTarget2);
+						glCore.texture.setRenderTarget(resultRenderTarget);
 
 						glCore.state.clearColor(0, 0, 0, 1);
 						glCore.clear(true, true, true);
 
 						reconstructionMaterial.uniforms["viewWidth"] = width;
 						reconstructionMaterial.uniforms["viewHeight"] = height;
-						reconstructionMaterial.uniforms["samplerLight"] = resultRenderTarget.texture;
+						reconstructionMaterial.uniforms["samplerLight"] = colorRenderTarget.texture;
 						glCore.renderPass(renderList.opaque, camera, {
 							scene: scene,
 							getMaterial: function(renderable) {
@@ -577,14 +573,12 @@
 
 					var pass = params.fxaa ? fxaaPass : copyPass;
 
-					if ( params.type === "NORMAL" ) {
+					if ( params.pass === "normalDepth(Shininess)" ) {
 						pass.uniforms["tDiffuse"] = normalDepthRenderTarget.texture;
-					} else if ( params.type === "COLOR" ) {
+					} else if ( params.pass === "color(light)" ) {
 						pass.uniforms["tDiffuse"] = colorRenderTarget.texture;
-					} else if ( params.type === "EMISSIVE" ) {
+					} else if ( params.pass === "result" ) {
 						pass.uniforms["tDiffuse"] = resultRenderTarget.texture;
-					} else if ( params.type === "DEFERRED" ) {
-						pass.uniforms["tDiffuse"] = params.preLight ? resultRenderTarget2.texture : resultRenderTarget.texture;
 					}
 
 					fxaaPass.uniforms["resolution"] = [1 / width, 1 / height];
