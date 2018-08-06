@@ -17,7 +17,7 @@ zen3d.BlurShader = {
 		'depthTex': null,
 		'projection': new Float32Array(16),
         'viewInverseTranspose': new Float32Array(16),
-		'depthRange': 0.05
+		'depthRange': 1
 	},
 
     vertexShader: [
@@ -121,7 +121,8 @@ zen3d.BlurShader = {
 				"#if DEPTHTEX_ENABLED == 1",
 					"float d = getLinearDepth(coord);",
 					// PENDING Better equation?
-					"w *= (1.0 - smoothstep(abs(centerDepth - d) / depthRange, 0.0, 1.0));",
+					// "w *= (1.0 - smoothstep(abs(centerDepth - d) / depthRange, 0.0, 1.0));",
+					"w *= (1.0 - smoothstep(0.0, 1.0, abs(centerDepth - d) / depthRange));",
 				"#endif",
 
 				"weightAll += w;",

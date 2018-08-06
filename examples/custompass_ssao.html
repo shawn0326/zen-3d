@@ -172,7 +172,7 @@
 			blurPass.uniforms["textureSize"][1] = height;
 
 			blurPass.uniforms["blurSize"] = 2;
-			blurPass.uniforms["depthRange"] = 0.2;
+			blurPass.uniforms["depthRange"] = 1;
 
 			blurPass.material.defines["NORMALTEX_ENABLED"] = 1;
 			blurPass.material.defines["DEPTHTEX_ENABLED"] = 1;
@@ -210,7 +210,7 @@
 			gui.add(ssaoPass.uniforms, "bias").min(0).max(5);
 
 			gui.add(blurPass.uniforms, "blurSize").min(0).max(2);
-			gui.add(blurPass.uniforms, "depthRange").min(0).max(1);
+			gui.add(blurPass.uniforms, "depthRange").min(0).max(3);
 
 	        function loop(count) {
 
