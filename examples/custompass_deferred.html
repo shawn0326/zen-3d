@@ -65,7 +65,7 @@
 			});
 
 			var plane_geometry = new zen3d.PlaneGeometry(500, 500);
-	        var material = new zen3d.PhongMaterial();
+	        var material = new zen3d.LambertMaterial();
 			material.diffuse.setHex(0xffffff);
 			// material.emissive.setRGB(1, 0, 0);
 			// material.specular.setRGB(0, 0, 0);
@@ -426,6 +426,9 @@
 
 					}
 
+					matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+					cameraPos.setFromMatrixPosition(camera.worldMatrix);
+
 					// directional
 					var pass = params.render == "prelight-deferred" ? directionalLightPrePass : directionalLightPass;
 					if (params.render !== "prelight-deferred") {
@@ -436,9 +439,7 @@
 					}
 					pass.uniforms["viewWidth"] = width;
 					pass.uniforms["viewHeight"] = height;
-					matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
 					pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
-					cameraPos.setFromMatrixPosition(camera.worldMatrix);
 					pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
 
 					var directionalLights = scene.lights.directional;
@@ -465,9 +466,7 @@
 					}
 					pass.uniforms["viewWidth"] = width;
 					pass.uniforms["viewHeight"] = height;
-					matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
 					pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
-					cameraPos.setFromMatrixPosition(camera.worldMatrix);
 					pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
 
 					var pointLights = scene.lights.point;
@@ -480,6 +479,7 @@
 						pass.uniforms["lightColor"] = [pointLight.color[0], pointLight.color[1], pointLight.color[2]];
 						pass.uniforms["lightPositionVS"] = [pointLight.position[0], pointLight.position[1], pointLight.position[2]];
 						pass.uniforms["lightRadius"] = pointLight.distance;
+						pass.uniforms["lightDecay"] = pointLight.decay;
 
 						pass.render(glCore);
 
@@ -495,9 +495,7 @@
 					}
 					pass.uniforms["viewWidth"] = width;
 					pass.uniforms["viewHeight"] = height;
-					matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
 					pass.uniforms["matProjViewInverse"].set(matProjViewInverse.elements);
-					cameraPos.setFromMatrixPosition(camera.worldMatrix);
 					pass.uniforms["cameraPos"] = [cameraPos.x, cameraPos.y, cameraPos.z];
 
 					var spotLights = scene.lights.spot;
@@ -511,6 +509,9 @@
 						pass.uniforms["lightPositionVS"] = [spotLight.position[0], spotLight.position[1], spotLight.position[2]];
 						pass.uniforms["lightDirectionVS"] = [-spotLight.direction[0], -spotLight.direction[1], -spotLight.direction[2]];
 						pass.uniforms["lightConeCos"] = spotLight.coneCos;
+						pass.uniforms["lightPenumbraCos"] = spotLight.penumbraCos;
+						pass.uniforms["lightRadius"] = spotLight.distance;
+						pass.uniforms["lightDecay"] = spotLight.decay;
 
 						pass.render(glCore);
 
@@ -531,34 +532,31 @@
 						glCore.renderPass(renderList.opaque, camera, {
 							scene: scene,
 							getMaterial: function(renderable) {
-								reconstructionMaterial.diffuse.copy(renderable.material.diffuse);
-								reconstructionMaterial.diffuseMap = renderable.material.diffuseMap;
-								reconstructionMaterial.emissive.copy(renderable.material.emissive);
-								
-								if(renderable.material.specular !== undefined) {
-									reconstructionMaterial.uniforms["specular"][0] = renderable.material.specular.r;
-									reconstructionMaterial.uniforms["specular"][1] = renderable.material.specular.g;
-									reconstructionMaterial.uniforms["specular"][2] = renderable.material.specular.b;
+								if (renderable.material.acceptLight) {
+									reconstructionMaterial.diffuse.copy(renderable.material.diffuse);
+									reconstructionMaterial.diffuseMap = renderable.material.diffuseMap;
+									reconstructionMaterial.emissive.copy(renderable.material.emissive);
+									
+									if(renderable.material.specular !== undefined) {
+										reconstructionMaterial.uniforms["specular"][0] = renderable.material.specular.r;
+										reconstructionMaterial.uniforms["specular"][1] = renderable.material.specular.g;
+										reconstructionMaterial.uniforms["specular"][2] = renderable.material.specular.b;
+									} else {
+										reconstructionMaterial.uniforms["specular"][0] = 0;
+										reconstructionMaterial.uniforms["specular"][1] = 0;
+										reconstructionMaterial.uniforms["specular"][2] = 0;
+									}
+									
+									if(renderable.material.shininess !== undefined) {
+										reconstructionMaterial.uniforms["shininess"] = renderable.material.shininess;
+									} else {
+										reconstructionMaterial.uniforms["shininess"] = 30;
+									}
+									
+									return reconstructionMaterial;
 								} else {
-									reconstructionMaterial.uniforms["specular"][0] = 0;
-									reconstructionMaterial.uniforms["specular"][1] = 0;
-									reconstructionMaterial.uniforms["specular"][2] = 0;
+									return renderable.material;
 								}
-								
-								if(renderable.material.shininess !== undefined) {
-									reconstructionMaterial.uniforms["shininess"] = renderable.material.shininess;
-								} else {
-									reconstructionMaterial.uniforms["shininess"] = 30;
-								}
-								
-								return reconstructionMaterial;
-							},
-							ifRender: function(renderable) {
-								// todo support more object type
-								if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
-									return false;
-								}
-								return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
 							}
 						});
 
@@ -601,7 +599,6 @@
 				normalDepthRenderTarget.resize(width, height);
 				colorRenderTarget.resize(width, height);
 				resultRenderTarget.resize(width, height);
-				resultRenderTarget2.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();

@@ -145,7 +145,7 @@
     
         ].join( "\n" ),
 
-        // TODO: calculate schlick
+        // TODO: calculate schlick, #include <bsdfs>
         computeSpecular: [
 
             "vec3 halfVector = normalize( lightVector + viewVector );",
@@ -407,8 +407,9 @@
 
                 lightColor: [0, 0, 0],
                 lightPositionVS: [0, 1, 0],
-                lightIntensity: 1,
                 lightRadius: 1,
+                lightDecay: 1,
+                lightIntensity: 1,
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -444,8 +445,9 @@
     
                 "uniform vec3 lightColor;",
                 "uniform vec3 lightPositionVS;",
-                "uniform float lightIntensity;",
                 "uniform float lightRadius;",
+                "uniform float lightDecay;",
+                "uniform float lightIntensity;",
 
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
@@ -469,7 +471,7 @@
                     DeferredShaderChunk.unpackColor,
                     DeferredShaderChunk.computeSpecular,
 
-                    "float attenuation = saturate( -distance / lightRadius + 1.0 ) / PI;",
+                    "float attenuation = pow(clamp(1. - distance / lightRadius, 0.0, 1.0), lightDecay) / PI;",
 
                     DeferredShaderChunk.combine,
 
@@ -489,8 +491,11 @@
                 lightColor: [0, 0, 0],
                 lightDirectionVS: [0, 1, 0],
                 lightPositionVS: [0, 0, 0],
-                lightIntensity: 1,
                 lightConeCos: 1,
+                lightPenumbraCos: 1,
+                lightRadius: 1,
+                lightDecay: 1,
+                lightIntensity: 1,
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -528,6 +533,9 @@
                 "uniform vec3 lightPositionVS;",
                 "uniform vec3 lightDirectionVS;",
                 "uniform float lightConeCos;",
+                "uniform float lightPenumbraCos;",
+                "uniform float lightRadius;",
+                "uniform float lightDecay;",
                 "uniform float lightIntensity;",
 
                 "uniform mat4 matProjViewInverse;",
@@ -542,32 +550,20 @@
                     DeferredShaderChunk.computeVertexPositionVS,
                     DeferredShaderChunk.unpackColor,
 
-                    "vec3 lightVector = normalize( lightPositionVS.xyz - vertexPositionVS.xyz );",
+                    "vec3 lightVector = lightPositionVS.xyz - vertexPositionVS.xyz;",
+                    "float distance = length( lightVector );",
 
-                    "float rho = dot( lightDirectionVS, lightVector );",
-                    "float rhoMax = lightConeCos;",
+                    "lightVector = normalize( lightVector );",
 
-                    "if ( rho <= rhoMax ) discard;",
+                    "float angleCos = dot( lightDirectionVS, lightVector );",
 
-                    "float theta = rhoMax + 0.0001;",
-                    "float phi = rhoMax + 0.05;",
-                    "float falloff = 4.0;",
+                    "if ( angleCos <= lightConeCos ) discard;",
+                    "if ( distance > lightRadius ) discard;",
 
-                    "float spot = 0.0;",
+                    "float spotEffect = smoothstep( lightConeCos, lightPenumbraCos, angleCos );",
+                    "float dist = pow(clamp(1. - distance / lightRadius, 0.0, 1.0), lightDecay);",
 
-                    "if ( rho >= phi ) {",
-
-                        "spot = 1.0;",
-
-                    "} else if ( rho <= theta ) {",
-
-                        "spot = 0.0;",
-
-                    "} else { ",
-
-                        "spot = pow( ( rho - theta ) / ( phi - theta ), falloff );",
-
-                    "}",
+                    "float spot = dist * spotEffect;",
 
                     "diffuseColor *= spot;",
                     "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
@@ -658,9 +654,10 @@
                 samplerNormalDepthShininess: null,
 
                 lightColor: [0, 0, 0],
-                lightPositionVS: [0 , 0, 0],
-                lightIntensity: 1,
+                lightPositionVS: [0, 0, 0],
                 lightRadius: 1,
+                lightDecay: 1,
+                lightIntensity: 1,
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -695,8 +692,9 @@
 
                 "uniform vec3 lightColor;",
                 "uniform vec3 lightPositionVS;",
-                "uniform float lightIntensity;",
                 "uniform float lightRadius;",
+                "uniform float lightDecay;",
+                "uniform float lightIntensity;",
 
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
@@ -720,7 +718,7 @@
 
                     DeferredShaderChunk.computeSpecular,
 
-                    "float attenuation = saturate( -distance / lightRadius + 1.0 ) / PI;",
+                    "float attenuation = pow(clamp(1. - distance / lightRadius, 0.0, 1.0), lightDecay) / PI;",
 
                     DeferredShaderChunk.packLight,
 
@@ -741,8 +739,11 @@
                 lightColor: [0, 0, 0],
                 lightDirectionVS: [0, 1, 0],
                 lightPositionVS: [0, 0, 0],
-                lightIntensity: 1,
                 lightConeCos: 1,
+                lightPenumbraCos: 1,
+                lightRadius: 1,
+                lightDecay: 1,
+                lightIntensity: 1,
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -779,6 +780,9 @@
                 "uniform vec3 lightPositionVS;",
                 "uniform vec3 lightDirectionVS;",
                 "uniform float lightConeCos;",
+                "uniform float lightPenumbraCos;",
+                "uniform float lightRadius;",
+                "uniform float lightDecay;",
                 "uniform float lightIntensity;",
 
                 "uniform mat4 matProjViewInverse;",
@@ -793,32 +797,20 @@
                     DeferredShaderChunk.unpackNormalDepthShininess,
                     DeferredShaderChunk.computeVertexPositionVS,
 
-                    "vec3 lightVector = normalize( lightPositionVS.xyz - vertexPositionVS.xyz );",
+                    "vec3 lightVector = lightPositionVS.xyz - vertexPositionVS.xyz;",
+                    "float distance = length( lightVector );",
 
-                    "float rho = dot( lightDirectionVS, lightVector );",
-                    "float rhoMax = lightConeCos;",
+                    "lightVector = normalize( lightVector );",
 
-                    "if ( rho <= rhoMax ) discard;",
+                    "float angleCos = dot( lightDirectionVS, lightVector );",
 
-                    "float theta = rhoMax + 0.0001;",
-                    "float phi = rhoMax + 0.05;",
-                    "float falloff = 4.0;",
+                    "if ( angleCos <= lightConeCos ) discard;",
+                    "if ( distance > lightRadius ) discard;",
 
-                    "float spot = 0.0;",
+                    "float spotEffect = smoothstep( lightConeCos, lightPenumbraCos, angleCos );",
+                    "float dist = pow(clamp(1. - distance / lightRadius, 0.0, 1.0), lightDecay);",
 
-                    "if ( rho >= phi ) {",
-
-                        "spot = 1.0;",
-
-                    "} else if ( rho <= theta ) {",
-
-                        "spot = 0.0;",
-
-                    "} else { ",
-
-                        "spot = pow( ( rho - theta ) / ( phi - theta ), falloff );",
-
-                    "}",
+                    "float spot = dist * spotEffect;",
 
                     "vec3 viewVector = normalize( cameraPos - vertexPositionVS.xyz );",
 
