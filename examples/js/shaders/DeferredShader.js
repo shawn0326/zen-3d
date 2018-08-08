@@ -145,12 +145,12 @@
     
         ].join( "\n" ),
 
-        // TODO: calculate schlick, #include <bsdfs>
+        // TODO: calculate schlick
         computeSpecular: [
 
             "vec3 halfVector = normalize( lightVector + viewVector );",
             "float dotNormalHalf = max( dot( normal, halfVector ), 0.0 );",
-            "float specular = 0.31830988618 * ( shininess * 0.5 + 1.0 ) * pow( dotNormalHalf, shininess );"
+            "float specular = D_BlinnPhong(shininess, dotNormalHalf);"
 
         ].join( "\n" ),
 
@@ -360,6 +360,8 @@
             ].join( '\n' ),
 
             fragmentShader: [
+
+                "#include <bsdfs>",
     
                 "uniform sampler2D samplerNormalDepth;",
                 "uniform sampler2D samplerColor;",
@@ -436,6 +438,8 @@
             ].join( '\n' ),
 
             fragmentShader: [
+
+                "#include <bsdfs>",
 
                 "uniform sampler2D samplerNormalDepth;",
                 "uniform sampler2D samplerColor;",
@@ -522,6 +526,8 @@
             ].join( '\n' ),
 
             fragmentShader: [
+
+                "#include <bsdfs>",
 
                 "uniform sampler2D samplerNormalDepth;",
                 "uniform sampler2D samplerColor;",
@@ -685,6 +691,8 @@
 
             fragmentShader: [
 
+                "#include <bsdfs>",
+
                 "uniform sampler2D samplerNormalDepthShininess;",
 
                 "uniform float viewHeight;",
@@ -771,6 +779,8 @@
 
             fragmentShader: [
 
+                "#include <bsdfs>",
+
                 "uniform sampler2D samplerNormalDepthShininess;",
 
                 "uniform float viewHeight;",
@@ -830,6 +840,12 @@
 
         directionalLightPre: {
 
+            defines: {
+
+                "SHADOW": 0
+
+            },
+
             uniforms: {
 
                 samplerNormalDepthShininess: null,
@@ -837,6 +853,12 @@
                 lightColor: [0, 0, 0],
                 lightDirectionVS: [0, 1, 0],
                 lightIntensity: 1,
+
+                shadowMatrix: new Float32Array(16),
+                shadowMap: null,
+                shadowBias: 0,
+                shadowRadius: 1,
+                shadowMapSize: [1024, 1024],
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -864,6 +886,8 @@
 
             fragmentShader: [
 
+                "#include <bsdfs>",
+
                 "uniform sampler2D samplerNormalDepthShininess;",
 
                 "uniform float viewHeight;",
@@ -872,6 +896,20 @@
                 "uniform vec3 lightColor;",
                 "uniform vec3 lightDirectionVS;",
                 "uniform float lightIntensity;",
+
+                "#if SHADOW == 1",
+
+                    "uniform sampler2D shadowMap;",
+                    "uniform mat4 shadowMatrix;",
+
+                    "uniform float shadowBias;",
+                    "uniform float shadowRadius;",
+                    "uniform vec2 shadowMapSize;",
+                    
+                    "#include <packing>",
+                    "#include <shadow>",
+
+                "#endif",
 
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
@@ -890,7 +928,11 @@
 
                     DeferredShaderChunk.computeSpecular,
 
-                    "const float attenuation = 1.0 / PI;",
+                    "float attenuation = 1.0 / PI;",
+
+                    "#if SHADOW == 1",
+                        "attenuation *= getShadow(shadowMap, shadowMatrix * vertexPositionVS, shadowBias, shadowRadius, shadowMapSize);",
+                    "#endif",
 
                     DeferredShaderChunk.packLight,
 

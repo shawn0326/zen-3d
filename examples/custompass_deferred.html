@@ -59,17 +59,27 @@
 				monkey.material.diffuse.setRGB(1, 1, 1);
 				// monkey.material.specular.setRGB(1, 0, 0);
 				monkey.material.emissive.setRGB(0.2, 0, 0);
+				monkey.castShadow = true;
 				object.scale.set(10, 10, 10);
 				object.position.y = 2;
 				scene.add(object);
 			});
+
+			var material = new zen3d.BasicMaterial();
+			material.diffuse.setRGB(0, 1, 1);
+			material.transparent = true;
+			material.opacity = 0.3;
+			var cube = new zen3d.Mesh(new zen3d.CubeGeometry(5, 5, 5), material);
+			cube.position.set(20, 0, 0);
+			scene.add(cube);
 
 			var plane_geometry = new zen3d.PlaneGeometry(500, 500);
 	        var material = new zen3d.LambertMaterial();
 			material.diffuse.setHex(0xffffff);
 			// material.emissive.setRGB(1, 0, 0);
 			// material.specular.setRGB(0, 0, 0);
-	        var plane = new zen3d.Mesh(plane_geometry, material);
+			var plane = new zen3d.Mesh(plane_geometry, material);
+			plane.receiveShadow = true;
 	        plane.position.y = -10;
 	        scene.add(plane);
 
@@ -83,6 +93,9 @@
 			directionalLight.position.set(-30, 30, 0);
 			directionalLight.intensity = 0.4;
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			directionalLight.castShadow = true;
+			directionalLight.shadow.bias = -0.03;
+			directionalLight.shadow.windowSize = 50;
 			scene.add(directionalLight);
 
 			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
@@ -286,9 +299,9 @@
 
 				var renderList = scene.updateRenderList(camera);
 
-				if ( params.render === "forward" ) {
+				shadowMapPass.render(glCore, scene);
 
-					shadowMapPass.render(glCore, scene);
+				if ( params.render === "forward" ) {
 
 					glCore.texture.setRenderTarget(backRenderTarget);
 
@@ -296,10 +309,11 @@
 					glCore.clear(true, true, true);
 
 					glCore.renderPass(renderList.opaque, camera, {
-						scene: scene,
-						getMaterial: function(renderable) {
-							return scene.overrideMaterial || renderable.material;
-						}
+						scene: scene
+					});
+
+					glCore.renderPass(renderList.transparent, camera, {
+						scene: scene
 					});
 
 				} else {
@@ -452,6 +466,19 @@
 						pass.uniforms["lightColor"] = [directionalLight.color[0], directionalLight.color[1], directionalLight.color[2]];
 						pass.uniforms["lightDirectionVS"] = [-directionalLight.direction[0], -directionalLight.direction[1], -directionalLight.direction[2]];
 
+						if(directionalLight.shadow) {
+							pass.material.defines["SHADOW"] = 1;
+							pass.uniforms["shadowBias"] = directionalLight.shadowBias;
+							pass.uniforms["shadowRadius"] = directionalLight.shadowRadius;
+							pass.uniforms["shadowMapSize"][0] = directionalLight.shadowMapSize[0];
+							pass.uniforms["shadowMapSize"][1] = directionalLight.shadowMapSize[1];
+
+							pass.uniforms["shadowMap"] = scene.lights.directionalShadowMap[i];
+							pass.uniforms["shadowMatrix"].set(scene.lights.directionalShadowMatrix, i * 16);
+						} else {
+							pass.material.defines["SHADOW"] = 0;
+						}
+
 						pass.render(glCore);
 
 					}
@@ -558,6 +585,16 @@
 									return renderable.material;
 								}
 							}
+						});
+
+					}
+
+					// prelight-deferred support transparent objects
+					if (params.render == "prelight-deferred") {
+
+						// render transparent objects forward
+						glCore.renderPass(renderList.transparent, camera, {
+							scene: scene
 						});
 
 					}
