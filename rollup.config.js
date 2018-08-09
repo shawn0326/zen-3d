@@ -23,6 +23,9 @@ function glsl() {
 
 }
 
+const INDENT = '\t';
+const BANNER = '/* github.com/shawn0326/zen-3d */';
+
 export default {
 	input: 'src/core/main.js',
 	plugins: [
@@ -34,12 +37,14 @@ export default {
 			format: 'umd',
 			name: 'zen3d',
 			file: 'build/zen3d.js',
-			indent: '\t'
+			indent: INDENT,
+			banner: BANNER
 		},
 		{
 			format: 'es',
 			file: 'build/zen3d.module.js',
-			indent: '\t'
+			indent: INDENT,
+			banner: BANNER
 		}
 	]
 };
