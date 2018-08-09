@@ -105,6 +105,8 @@
 			pointLight.position.set(30, 30, 30);
 			pointLight.color.setHex(0x00ffff);
 			pointLight.decay = 2;
+			pointLight.castShadow = true;
+			pointLight.shadow.bias = -0.003;
 			scene.add(pointLight);
 
 			var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
@@ -117,7 +119,9 @@
 			spotLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			spotLight.penumbra = 0.2;
 			spotLight.distance = 400;
+			spotLight.castShadow = true;
 			spotLight.shadow.bias = -0.003;
+			spotLight.shadow.windowSize = 50;
 			scene.add(spotLight);
 			
 			var spotLightHelper = new zen3d.SpotLightHelper(spotLight);
@@ -241,43 +245,17 @@
 			spotLightPrePass.material.depthTest = false;
 			spotLightPrePass.material.premultipliedAlpha = true;
 
-			function setLightVisibility() {
-				if (params.directionalLight) {
-					if (scene.children.indexOf(directionalLight) < 0) {
-						scene.add(directionalLight);
-					}
-				} else {
-					scene.remove(directionalLight);
-				}
-				if(params.pointLight) {
-					if (scene.children.indexOf(pointLight) < 0) {
-						scene.add(pointLight);
-					}
-				} else {
-					scene.remove(pointLight);
-				}
-				if(params.spotLight) {
-					if (scene.children.indexOf(spotLight) < 0) {
-						scene.add(spotLight);
-					}
-				} else {
-					scene.remove(spotLight);
-				}
-			}
-
 			// gui
-			var params = {render: "prelight-deferred", pass: "result", fxaa: true, directionalLight: true, pointLight: true, spotLight: true};
+			var params = {render: "prelight-deferred", pass: "result", fxaa: false, directionalLight: true, pointLight: true, spotLight: true};
 			var gui = new dat.GUI();
 			gui.add(params, "render", ["forward", "deferred", "prelight-deferred"]);
 			gui.add(params, "pass", ["normalDepth(Shininess)", "color(light)", "result"]);
 			gui.add(params, "fxaa");
 			var lightFolder = gui.addFolder("lights");
-			lightFolder.add(params, "directionalLight").onChange(setLightVisibility);
-			lightFolder.add(params, "pointLight").onChange(setLightVisibility);
-			lightFolder.add(params, "spotLight").onChange(setLightVisibility);
+			lightFolder.add(directionalLight, "visible").name("directionalLight");
+			lightFolder.add(pointLight, "visible").name("pointLight");
+			lightFolder.add(spotLight, "visible").name("spotLight");
 			lightFolder.open();
-
-			setLightVisibility();
 
 			var direction = new zen3d.Vector3();
 			var matProjViewInverse = new zen3d.Matrix4();
@@ -508,6 +486,21 @@
 						pass.uniforms["lightRadius"] = pointLight.distance;
 						pass.uniforms["lightDecay"] = pointLight.decay;
 
+						if(pointLight.shadow) {
+							pass.material.defines["SHADOW"] = 1;
+							pass.uniforms["shadowBias"] = pointLight.shadowBias;
+							pass.uniforms["shadowRadius"] = pointLight.shadowRadius;
+							pass.uniforms["shadowMapSize"][0] = pointLight.shadowMapSize[0];
+							pass.uniforms["shadowMapSize"][1] = pointLight.shadowMapSize[1];
+
+							pass.uniforms["shadowMap"] = scene.lights.pointShadowMap[i];
+
+							pass.uniforms["shadowCameraNear"] = pointLight.shadowCameraNear;
+							pass.uniforms["shadowCameraFar"] = pointLight.shadowCameraFar;
+						} else {
+							pass.material.defines["SHADOW"] = 0;
+						}
+
 						pass.render(glCore);
 
 					}
@@ -539,6 +532,19 @@
 						pass.uniforms["lightPenumbraCos"] = spotLight.penumbraCos;
 						pass.uniforms["lightRadius"] = spotLight.distance;
 						pass.uniforms["lightDecay"] = spotLight.decay;
+
+						if(spotLight.shadow) {
+							pass.material.defines["SHADOW"] = 1;
+							pass.uniforms["shadowBias"] = spotLight.shadowBias;
+							pass.uniforms["shadowRadius"] = spotLight.shadowRadius;
+							pass.uniforms["shadowMapSize"][0] = spotLight.shadowMapSize[0];
+							pass.uniforms["shadowMapSize"][1] = spotLight.shadowMapSize[1];
+
+							pass.uniforms["shadowMap"] = scene.lights.spotShadowMap[i];
+							pass.uniforms["shadowMatrix"].set(scene.lights.spotShadowMatrix, i * 16);
+						} else {
+							pass.material.defines["SHADOW"] = 0;
+						}
 
 						pass.render(glCore);
 

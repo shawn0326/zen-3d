@@ -326,6 +326,12 @@
 
         directionalLight: {
 
+            defines: {
+
+                "SHADOW": 0
+
+            },
+
             uniforms: {
 
                 samplerNormalDepth: null,
@@ -334,6 +340,12 @@
                 lightColor: [0, 0, 0],
                 lightDirectionVS: [0, 1, 0],
                 lightIntensity: 1,
+
+                shadowMatrix: new Float32Array(16),
+                shadowMap: null,
+                shadowBias: 0,
+                shadowRadius: 1,
+                shadowMapSize: [1024, 1024],
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -373,6 +385,20 @@
                 "uniform vec3 lightDirectionVS;",
                 "uniform float lightIntensity;",
 
+                "#if SHADOW == 1",
+
+                    "uniform sampler2D shadowMap;",
+                    "uniform mat4 shadowMatrix;",
+
+                    "uniform float shadowBias;",
+                    "uniform float shadowRadius;",
+                    "uniform vec2 shadowMapSize;",
+                    
+                    "#include <packing>",
+                    "#include <shadow>",
+
+                "#endif",
+
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
 
@@ -390,7 +416,11 @@
 
                     DeferredShaderChunk.computeSpecular,
 
-                    "const float attenuation = 1.0 / PI;",
+                    "float attenuation = 1.0 / PI;",
+
+                    "#if SHADOW == 1",
+                        "attenuation *= getShadow(shadowMap, shadowMatrix * vertexPositionVS, shadowBias, shadowRadius, shadowMapSize);",
+                    "#endif",
 
                     DeferredShaderChunk.combine,
 
@@ -402,6 +432,12 @@
 
         pointLight: {
 
+            defines: {
+
+                "SHADOW": 0
+
+            },
+
             uniforms: {
 
                 samplerNormalDepth: null,
@@ -412,6 +448,13 @@
                 lightRadius: 1,
                 lightDecay: 1,
                 lightIntensity: 1,
+
+                shadowMap: null,
+                shadowBias: 0,
+                shadowRadius: 1,
+                shadowMapSize: [1024, 1024],
+                shadowCameraNear: 1,
+                shadowCameraFar: 100,
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -453,6 +496,22 @@
                 "uniform float lightDecay;",
                 "uniform float lightIntensity;",
 
+                "#if SHADOW == 1",
+
+                    "uniform samplerCube shadowMap;",
+
+                    "uniform float shadowBias;",
+                    "uniform float shadowRadius;",
+                    "uniform vec2 shadowMapSize;",
+
+                    "uniform float shadowCameraNear;",
+                    "uniform float shadowCameraFar;",
+                    
+                    "#include <packing>",
+                    "#include <shadow>",
+
+                "#endif",
+
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
 
@@ -477,6 +536,10 @@
 
                     "float attenuation = pow(clamp(1. - distance / lightRadius, 0.0, 1.0), lightDecay) / PI;",
 
+                    "#if SHADOW == 1",
+                        "attenuation *= getPointShadow(shadowMap, vertexPositionVS.xyz - lightPositionVS, shadowBias, shadowRadius, shadowMapSize, shadowCameraNear, shadowCameraFar);",
+                    "#endif",
+
                     DeferredShaderChunk.combine,
 
                 "}"
@@ -486,6 +549,12 @@
         },
 
         spotLight: {
+
+            defines: {
+
+                "SHADOW": 0
+
+            },
 
             uniforms: {
 
@@ -500,6 +569,12 @@
                 lightRadius: 1,
                 lightDecay: 1,
                 lightIntensity: 1,
+
+                shadowMatrix: new Float32Array(16),
+                shadowMap: null,
+                shadowBias: 0,
+                shadowRadius: 1,
+                shadowMapSize: [1024, 1024],
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -544,6 +619,20 @@
                 "uniform float lightDecay;",
                 "uniform float lightIntensity;",
 
+                "#if SHADOW == 1",
+
+                    "uniform sampler2D shadowMap;",
+                    "uniform mat4 shadowMatrix;",
+
+                    "uniform float shadowBias;",
+                    "uniform float shadowRadius;",
+                    "uniform vec2 shadowMapSize;",
+                    
+                    "#include <packing>",
+                    "#include <shadow>",
+
+                "#endif",
+
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
 
@@ -577,6 +666,10 @@
                     DeferredShaderChunk.computeSpecular,
 
                     "float attenuation = 1.0 / PI;",
+
+                    "#if SHADOW == 1",
+                        "attenuation *= getShadow(shadowMap, shadowMatrix * vertexPositionVS, shadowBias, shadowRadius, shadowMapSize);",
+                    "#endif",
 
                     DeferredShaderChunk.combine,
 
@@ -655,6 +748,12 @@
 
         pointLightPre: {
 
+            defines: {
+
+                "SHADOW": 0
+
+            },
+
             uniforms: {
 
                 samplerNormalDepthShininess: null,
@@ -664,6 +763,13 @@
                 lightRadius: 1,
                 lightDecay: 1,
                 lightIntensity: 1,
+
+                shadowMap: null,
+                shadowBias: 0,
+                shadowRadius: 1,
+                shadowMapSize: [1024, 1024],
+                shadowCameraNear: 1,
+                shadowCameraFar: 100,
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -704,6 +810,22 @@
                 "uniform float lightDecay;",
                 "uniform float lightIntensity;",
 
+                "#if SHADOW == 1",
+
+                    "uniform samplerCube shadowMap;",
+
+                    "uniform float shadowBias;",
+                    "uniform float shadowRadius;",
+                    "uniform vec2 shadowMapSize;",
+
+                    "uniform float shadowCameraNear;",
+                    "uniform float shadowCameraFar;",
+                    
+                    "#include <packing>",
+                    "#include <shadow>",
+
+                "#endif",
+
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
 
@@ -728,6 +850,10 @@
 
                     "float attenuation = pow(clamp(1. - distance / lightRadius, 0.0, 1.0), lightDecay) / PI;",
 
+                    "#if SHADOW == 1",
+                        "attenuation *= getPointShadow(shadowMap, vertexPositionVS.xyz - lightPositionVS, shadowBias, shadowRadius, shadowMapSize, shadowCameraNear, shadowCameraFar);",
+                    "#endif",
+
                     DeferredShaderChunk.packLight,
 
                     "gl_FragColor = packedLight;",
@@ -739,6 +865,12 @@
         },
 
         spotLightPre: {
+
+            defines: {
+
+                "SHADOW": 0
+
+            },
 
             uniforms: {
 
@@ -752,6 +884,12 @@
                 lightRadius: 1,
                 lightDecay: 1,
                 lightIntensity: 1,
+
+                shadowMatrix: new Float32Array(16),
+                shadowMap: null,
+                shadowBias: 0,
+                shadowRadius: 1,
+                shadowMapSize: [1024, 1024],
 
                 viewWidth: 800,
                 viewHeight: 600,
@@ -795,6 +933,20 @@
                 "uniform float lightDecay;",
                 "uniform float lightIntensity;",
 
+                "#if SHADOW == 1",
+
+                    "uniform sampler2D shadowMap;",
+                    "uniform mat4 shadowMatrix;",
+
+                    "uniform float shadowBias;",
+                    "uniform float shadowRadius;",
+                    "uniform vec2 shadowMapSize;",
+                    
+                    "#include <packing>",
+                    "#include <shadow>",
+
+                "#endif",
+
                 "uniform mat4 matProjViewInverse;",
                 "uniform vec3 cameraPos;",
 
@@ -826,7 +978,11 @@
 
                     DeferredShaderChunk.computeSpecular,
 
-                    "const float attenuation = 1.0 / PI;",
+                    "float attenuation = 1.0 / PI;",
+
+                    "#if SHADOW == 1",
+                        "attenuation *= getShadow(shadowMap, shadowMatrix * vertexPositionVS, shadowBias, shadowRadius, shadowMapSize);",
+                    "#endif",
 
                     DeferredShaderChunk.packLight,
 
