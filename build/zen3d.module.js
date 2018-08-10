@@ -4599,6 +4599,9 @@ function Object3D() {
     this.visible = true;
 
     this.userData = {};
+
+    // render from lowest to highest
+    this.renderOrder = 0;
 }
 
 Object.defineProperties(Object3D.prototype, {
@@ -8774,9 +8777,9 @@ Object.assign(WebGLCore.prototype, {
      * Render opaque and transparent objects
      * @param {zen3d.Scene} scene 
      * @param {zen3d.Camera} camera 
-     * @param {boolean} renderUI? default is false.
+     * @param {boolean} updateRenderList? default is false.
      */
-    render: function(scene, camera, renderUI, updateRenderList) {
+    render: function(scene, camera, updateRenderList) {
         updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
         var renderList;
         if(updateRenderList) {
@@ -8798,15 +8801,7 @@ Object.assign(WebGLCore.prototype, {
                 return scene.overrideMaterial || renderable.material;
             }
         });
-    
-        if(!!renderUI) {
-            this.renderPass(renderList.ui, camera, {
-                scene: scene,
-                getMaterial: function(renderable) {
-                    return scene.overrideMaterial || renderable.material;
-                }
-            });
-        }
+
     },
 
     /**
@@ -10070,38 +10065,45 @@ var helpVector3$2 = new Vector3();
 var helpSphere = new Sphere();
 
 var sortFrontToBack = function(a, b) {
-    return a.z - b.z;
+    if (a.renderOrder !== b.renderOrder) {
+        return a.renderOrder - b.renderOrder;
+    } else {
+        return a.z - b.z;
+    }
 };
 
 var sortBackToFront = function(a, b) {
-    return b.z - a.z;
+    if (a.renderOrder !== b.renderOrder) {
+        return a.renderOrder - b.renderOrder;
+    } else {
+        return b.z - a.z;
+    }
 };
 
 function RenderList() {
-    this.opaque = [];
-    this.transparent = [];
-    this.ui = [];
 
-    this._opaqueCount = 0;
-    this._transparentCount = 0;
-    this._uiCount = 0;
-}
+    var renderItems = [];
+	var renderItemsIndex = 0;
 
-Object.assign(RenderList.prototype, {
+    var opaque = [];
+    var opaqueCount = 0;
+    var transparent = [];
+    var transparentCount = 0;
 
-    startCount: function () {
-        this._opaqueCount = 0;
-        this._transparentCount = 0;
-        this._uiCount = 0;
-    },
+    function startCount() {
+        renderItemsIndex = 0;
 
-    add: function (object, camera) {
+        opaqueCount = 0;
+        transparentCount = 0;
+    }
+
+    function add(object, camera) {
 
         // frustum test
         if(object.frustumCulled && camera.frustumCulled) {
             helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
             var frustumTest = camera.frustum.intersectsSphere(helpSphere);
-            if(!frustumTest) {
+            if(!frustumTest) { // only test bounding sphere
                 return;
             }
         }
@@ -10110,20 +10112,6 @@ Object.assign(RenderList.prototype, {
         helpVector3$2.setFromMatrixPosition(object.worldMatrix);
         helpVector3$2.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-        if(OBJECT_TYPE.CANVAS2D === object.type) { // for ui
-
-            var renderable = {
-                object: object,
-                geometry: object.geometry,
-                material: object.material,
-                z: helpVector3$2.z
-            };
-
-            this.ui[this._uiCount++] = renderable;
-
-            return;
-        }
-
         if(Array.isArray(object.material)){
             var groups = object.geometry.groups;
 
@@ -10131,55 +10119,70 @@ Object.assign(RenderList.prototype, {
                 var group = groups[i];
                 var groupMaterial = object.material[group.materialIndex];
                 if(groupMaterial) {
-
-                    var renderable = {
-                        object: object,
-                        geometry: object.geometry,
-                        material: groupMaterial,
-                        z: helpVector3$2.z,
-                        group: group
-                    };
-
-                    if(groupMaterial.transparent) {
-                        this.transparent[this._transparentCount++] = renderable;
-                    } else {
-                        this.opaque[this._opaqueCount++] = renderable;
-                    }
-
+                    _doAdd(object, object.geometry, groupMaterial, helpVector3$2.z, group);
                 }
             }
         } else {
-
-            var renderable = {
-                object: object,
-                geometry: object.geometry,
-                material: object.material,
-                z: helpVector3$2.z
-            };
-
-            if(object.material.transparent) {
-                this.transparent[this._transparentCount++] = renderable;
-            } else {
-                this.opaque[this._opaqueCount++] = renderable;
-            }
-
+            _doAdd(object, object.geometry, object.material, helpVector3$2.z);
         }
 
-    },
-
-    endCount: function () {
-        this.transparent.length = this._transparentCount;
-        this.opaque.length = this._opaqueCount;
-        this.ui.length = this._uiCount;
-    },
-
-    sort: function() {
-        this.opaque.sort(sortFrontToBack); // need sort?
-        this.transparent.sort(sortBackToFront);
-        // TODO canvas2d object should render in order?
     }
 
-});
+    function _doAdd(object, geometry, material, z, group) {
+
+        var renderable = renderItems[renderItemsIndex];
+
+        if (renderable === undefined) {
+            renderable = {
+                object: object,
+                geometry: geometry,
+                material: material,
+                z: z,
+                renderOrder: object.renderOrder,
+                group: group
+            };
+            renderItems[ renderItemsIndex ] = renderable;
+        } else {
+            renderable.object = object;
+            renderable.geometry = geometry;
+            renderable.material = material;
+            renderable.z = z;
+            renderable.renderOrder = object.renderOrder;
+            renderable.group = group;
+        }
+        
+        if (material.transparent) {
+            transparent[transparentCount] = renderable;
+            transparentCount++;
+        } else {
+            opaque[opaqueCount] = renderable;
+            opaqueCount++;
+        }
+
+        renderItemsIndex ++;
+
+    }
+
+    function endCount() {
+        opaque.length = opaqueCount;
+        transparent.length = transparentCount;
+    }
+
+    function sort() {
+        opaque.sort(sortFrontToBack);
+        transparent.sort(sortBackToFront);
+    }
+
+    return {
+        opaque: opaque,
+        transparent: transparent,
+        startCount: startCount,
+        add: add,
+        endCount: endCount,
+        sort: sort
+    };
+
+}
 
 /**
  * Scene
@@ -10651,7 +10654,7 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
     }
 
     performance.startCounter("renderList", 60);
-    this.glCore.render(scene, camera, true);
+    this.glCore.render(scene, camera);
     performance.endCounter("renderList");
 
     if (!!renderTarget.texture) {
@@ -11256,4 +11259,4 @@ Line.prototype = Object.assign(Object.create(Object3D.prototype), {
 
 });
 
-export { Triangle, InterleavedBuffer, RenderTargetCube, RenderTargetBase, PBRMaterial, SpotLight, InstancedInterleavedBuffer, ShaderPostPass, Light, LightShadow, Scene, Sphere, LineDashedMaterial, Material, ImageLoader, Matrix3, KeyframeClip, Object3D, FogExp2, InstancedBufferAttribute, TextureBase, InstancedGeometry, PointLight, Line, ColorKeyframeTrack, CubeGeometry, PlaneGeometry, PointLightShadow, StringKeyframeTrack, TextureDepth, LambertMaterial, RenderTarget2D, DirectionalLightShadow, Raycaster, TGALoader, Box2, Points, ShaderChunk, SkinnedMesh, QuaternionKeyframeTrack, SphereGeometry, AmbientLight, LightCache, TextureCube, Vector3, BasicMaterial, PointsMaterial, DirectionalLight, Color3, KeyframeTrack, WebGLProgram, DepthMaterial, Texture2D, BufferAttribute, FileLoader, RenderTargetBack, Group, BooleanKeyframeTrack, Ray, PropertyBindingMixer, EventDispatcher, WebGLTexture, SpotLightShadow, WebGLState, VectorKeyframeTrack, Euler, DistanceMaterial, WebGLProperties, Camera, AnimationMixer, WebGLCore, ShaderMaterial, Vector4, RenderList, Plane, Fog, Quaternion, Box3, PhongMaterial, WebGLCapabilities, EnvironmentMapPass, Mesh, Spherical, WebGLGeometry, NumberKeyframeTrack, TextureData, Skeleton, Bone, Vector2, ShadowMapPass, Renderer, WebGLAttribute, ShaderLib, LineLoopMaterial, Frustum, CylinderGeometry, Curve, WebGLUniform, Geometry, Matrix4, LineMaterial, InterleavedBufferAttribute, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, WEBGL_BUFFER_USAGE, SHADING_TYPE, BLEND_TYPE, WEBGL_PIXEL_FORMAT, DRAW_MODE, WEBGL_TEXTURE_TYPE, WEBGL_TEXTURE_FILTER, DRAW_SIDE, ENVMAP_COMBINE_TYPE, OBJECT_TYPE, FOG_TYPE, WEBGL_PIXEL_TYPE, BLEND_FACTOR, WEBGL_UNIFORM_TYPE, LIGHT_TYPE, BLEND_EQUATION, WEBGL_TEXTURE_WRAP, CULL_FACE_TYPE, WEBGL_ATTRIBUTE_TYPE, TEXEL_ENCODING_TYPE, SHADOW_TYPE, MATERIAL_TYPE };
+export { SpotLight, WebGLGeometry, SpotLightShadow, Line, Skeleton, Euler, LineDashedMaterial, InterleavedBufferAttribute, PlaneGeometry, Plane, DepthMaterial, Bone, StringKeyframeTrack, TextureBase, ShaderPostPass, BooleanKeyframeTrack, Sphere, DistanceMaterial, Box3, PointsMaterial, ShaderChunk, Ray, FogExp2, Points, PhongMaterial, BufferAttribute, RenderList, WebGLProgram, Box2, Color3, DirectionalLight, InstancedBufferAttribute, WebGLCapabilities, ShaderMaterial, Fog, LineMaterial, RenderTargetCube, InstancedInterleavedBuffer, Light, Camera, LambertMaterial, InstancedGeometry, CubeGeometry, KeyframeTrack, ShaderLib, TextureDepth, PropertyBindingMixer, WebGLUniform, KeyframeClip, Scene, Geometry, RenderTargetBack, Vector3, Group, Renderer, PointLightShadow, WebGLAttribute, LineLoopMaterial, FileLoader, LightCache, Curve, PointLight, TextureData, Spherical, PBRMaterial, CylinderGeometry, QuaternionKeyframeTrack, RenderTargetBase, ImageLoader, TextureCube, AnimationMixer, Frustum, Triangle, Material, Matrix4, Mesh, WebGLState, Raycaster, WebGLProperties, Matrix3, Object3D, EnvironmentMapPass, ColorKeyframeTrack, SphereGeometry, NumberKeyframeTrack, LightShadow, Quaternion, BasicMaterial, ShadowMapPass, VectorKeyframeTrack, InterleavedBuffer, WebGLCore, TGALoader, RenderTarget2D, Texture2D, WebGLTexture, EventDispatcher, Vector4, SkinnedMesh, Vector2, AmbientLight, DirectionalLightShadow, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, LIGHT_TYPE, BLEND_TYPE, WEBGL_PIXEL_TYPE, SHADOW_TYPE, FOG_TYPE, MATERIAL_TYPE, ENVMAP_COMBINE_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_BUFFER_USAGE, CULL_FACE_TYPE, WEBGL_TEXTURE_TYPE, DRAW_MODE, BLEND_FACTOR, WEBGL_ATTRIBUTE_TYPE, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, DRAW_SIDE, BLEND_EQUATION, OBJECT_TYPE, SHADING_TYPE, TEXEL_ENCODING_TYPE };

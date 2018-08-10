@@ -88,6 +88,9 @@ function Canvas2D(width, height, isScreenCanvas, screenMatchMode) {
 
     this.frustumCulled = false;
 
+    // higher render order than other
+    this.renderOrder = 10000;
+
     this.geometry = new zen3d.Geometry();
     this.buffer = new zen3d.InterleavedBuffer(new Float32Array(), 5);
     this.buffer.dynamic = true;

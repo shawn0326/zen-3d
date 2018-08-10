@@ -94,9 +94,9 @@ Object.assign(WebGLCore.prototype, {
      * Render opaque and transparent objects
      * @param {zen3d.Scene} scene 
      * @param {zen3d.Camera} camera 
-     * @param {boolean} renderUI? default is false.
+     * @param {boolean} updateRenderList? default is false.
      */
-    render: function(scene, camera, renderUI, updateRenderList) {
+    render: function(scene, camera, updateRenderList) {
         updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
         var renderList;
         if(updateRenderList) {
@@ -118,15 +118,7 @@ Object.assign(WebGLCore.prototype, {
                 return scene.overrideMaterial || renderable.material;
             }
         });
-    
-        if(!!renderUI) {
-            this.renderPass(renderList.ui, camera, {
-                scene: scene,
-                getMaterial: function(renderable) {
-                    return scene.overrideMaterial || renderable.material;
-                }
-            });
-        }
+
     },
 
     /**

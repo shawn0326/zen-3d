@@ -65,7 +65,7 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
     }
 
     performance.startCounter("renderList", 60);
-    this.glCore.render(scene, camera, true);
+    this.glCore.render(scene, camera);
     performance.endCounter("renderList");
 
     if (!!renderTarget.texture) {

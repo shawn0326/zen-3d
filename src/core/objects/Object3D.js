@@ -58,6 +58,9 @@ function Object3D() {
     this.visible = true;
 
     this.userData = {};
+
+    // render from lowest to highest
+    this.renderOrder = 0;
 }
 
 Object.defineProperties(Object3D.prototype, {

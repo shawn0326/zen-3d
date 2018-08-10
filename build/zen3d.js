@@ -4605,6 +4605,9 @@
 	    this.visible = true;
 
 	    this.userData = {};
+
+	    // render from lowest to highest
+	    this.renderOrder = 0;
 	}
 
 	Object.defineProperties(Object3D.prototype, {
@@ -8780,9 +8783,9 @@
 	     * Render opaque and transparent objects
 	     * @param {zen3d.Scene} scene 
 	     * @param {zen3d.Camera} camera 
-	     * @param {boolean} renderUI? default is false.
+	     * @param {boolean} updateRenderList? default is false.
 	     */
-	    render: function(scene, camera, renderUI, updateRenderList) {
+	    render: function(scene, camera, updateRenderList) {
 	        updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
 	        var renderList;
 	        if(updateRenderList) {
@@ -8804,15 +8807,7 @@
 	                return scene.overrideMaterial || renderable.material;
 	            }
 	        });
-	    
-	        if(!!renderUI) {
-	            this.renderPass(renderList.ui, camera, {
-	                scene: scene,
-	                getMaterial: function(renderable) {
-	                    return scene.overrideMaterial || renderable.material;
-	                }
-	            });
-	        }
+
 	    },
 
 	    /**
@@ -10076,38 +10071,45 @@
 	var helpSphere = new Sphere();
 
 	var sortFrontToBack = function(a, b) {
-	    return a.z - b.z;
+	    if (a.renderOrder !== b.renderOrder) {
+	        return a.renderOrder - b.renderOrder;
+	    } else {
+	        return a.z - b.z;
+	    }
 	};
 
 	var sortBackToFront = function(a, b) {
-	    return b.z - a.z;
+	    if (a.renderOrder !== b.renderOrder) {
+	        return a.renderOrder - b.renderOrder;
+	    } else {
+	        return b.z - a.z;
+	    }
 	};
 
 	function RenderList() {
-	    this.opaque = [];
-	    this.transparent = [];
-	    this.ui = [];
 
-	    this._opaqueCount = 0;
-	    this._transparentCount = 0;
-	    this._uiCount = 0;
-	}
+	    var renderItems = [];
+		var renderItemsIndex = 0;
 
-	Object.assign(RenderList.prototype, {
+	    var opaque = [];
+	    var opaqueCount = 0;
+	    var transparent = [];
+	    var transparentCount = 0;
 
-	    startCount: function () {
-	        this._opaqueCount = 0;
-	        this._transparentCount = 0;
-	        this._uiCount = 0;
-	    },
+	    function startCount() {
+	        renderItemsIndex = 0;
 
-	    add: function (object, camera) {
+	        opaqueCount = 0;
+	        transparentCount = 0;
+	    }
+
+	    function add(object, camera) {
 
 	        // frustum test
 	        if(object.frustumCulled && camera.frustumCulled) {
 	            helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
 	            var frustumTest = camera.frustum.intersectsSphere(helpSphere);
-	            if(!frustumTest) {
+	            if(!frustumTest) { // only test bounding sphere
 	                return;
 	            }
 	        }
@@ -10116,20 +10118,6 @@
 	        helpVector3$2.setFromMatrixPosition(object.worldMatrix);
 	        helpVector3$2.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-	        if(OBJECT_TYPE.CANVAS2D === object.type) { // for ui
-
-	            var renderable = {
-	                object: object,
-	                geometry: object.geometry,
-	                material: object.material,
-	                z: helpVector3$2.z
-	            };
-
-	            this.ui[this._uiCount++] = renderable;
-
-	            return;
-	        }
-
 	        if(Array.isArray(object.material)){
 	            var groups = object.geometry.groups;
 
@@ -10137,55 +10125,70 @@
 	                var group = groups[i];
 	                var groupMaterial = object.material[group.materialIndex];
 	                if(groupMaterial) {
-
-	                    var renderable = {
-	                        object: object,
-	                        geometry: object.geometry,
-	                        material: groupMaterial,
-	                        z: helpVector3$2.z,
-	                        group: group
-	                    };
-
-	                    if(groupMaterial.transparent) {
-	                        this.transparent[this._transparentCount++] = renderable;
-	                    } else {
-	                        this.opaque[this._opaqueCount++] = renderable;
-	                    }
-
+	                    _doAdd(object, object.geometry, groupMaterial, helpVector3$2.z, group);
 	                }
 	            }
 	        } else {
-
-	            var renderable = {
-	                object: object,
-	                geometry: object.geometry,
-	                material: object.material,
-	                z: helpVector3$2.z
-	            };
-
-	            if(object.material.transparent) {
-	                this.transparent[this._transparentCount++] = renderable;
-	            } else {
-	                this.opaque[this._opaqueCount++] = renderable;
-	            }
-
+	            _doAdd(object, object.geometry, object.material, helpVector3$2.z);
 	        }
 
-	    },
-
-	    endCount: function () {
-	        this.transparent.length = this._transparentCount;
-	        this.opaque.length = this._opaqueCount;
-	        this.ui.length = this._uiCount;
-	    },
-
-	    sort: function() {
-	        this.opaque.sort(sortFrontToBack); // need sort?
-	        this.transparent.sort(sortBackToFront);
-	        // TODO canvas2d object should render in order?
 	    }
 
-	});
+	    function _doAdd(object, geometry, material, z, group) {
+
+	        var renderable = renderItems[renderItemsIndex];
+
+	        if (renderable === undefined) {
+	            renderable = {
+	                object: object,
+	                geometry: geometry,
+	                material: material,
+	                z: z,
+	                renderOrder: object.renderOrder,
+	                group: group
+	            };
+	            renderItems[ renderItemsIndex ] = renderable;
+	        } else {
+	            renderable.object = object;
+	            renderable.geometry = geometry;
+	            renderable.material = material;
+	            renderable.z = z;
+	            renderable.renderOrder = object.renderOrder;
+	            renderable.group = group;
+	        }
+	        
+	        if (material.transparent) {
+	            transparent[transparentCount] = renderable;
+	            transparentCount++;
+	        } else {
+	            opaque[opaqueCount] = renderable;
+	            opaqueCount++;
+	        }
+
+	        renderItemsIndex ++;
+
+	    }
+
+	    function endCount() {
+	        opaque.length = opaqueCount;
+	        transparent.length = transparentCount;
+	    }
+
+	    function sort() {
+	        opaque.sort(sortFrontToBack);
+	        transparent.sort(sortBackToFront);
+	    }
+
+	    return {
+	        opaque: opaque,
+	        transparent: transparent,
+	        startCount: startCount,
+	        add: add,
+	        endCount: endCount,
+	        sort: sort
+	    };
+
+	}
 
 	/**
 	 * Scene
@@ -10657,7 +10660,7 @@
 	    }
 
 	    performance.startCounter("renderList", 60);
-	    this.glCore.render(scene, camera, true);
+	    this.glCore.render(scene, camera);
 	    performance.endCounter("renderList");
 
 	    if (!!renderTarget.texture) {
@@ -11262,108 +11265,108 @@
 
 	});
 
-	exports.Triangle = Triangle;
-	exports.InterleavedBuffer = InterleavedBuffer;
-	exports.RenderTargetCube = RenderTargetCube;
-	exports.RenderTargetBase = RenderTargetBase;
-	exports.PBRMaterial = PBRMaterial;
 	exports.SpotLight = SpotLight;
-	exports.InstancedInterleavedBuffer = InstancedInterleavedBuffer;
-	exports.ShaderPostPass = ShaderPostPass;
-	exports.Light = Light;
-	exports.LightShadow = LightShadow;
-	exports.Scene = Scene;
-	exports.Sphere = Sphere;
-	exports.LineDashedMaterial = LineDashedMaterial;
-	exports.Material = Material;
-	exports.ImageLoader = ImageLoader;
-	exports.Matrix3 = Matrix3;
-	exports.KeyframeClip = KeyframeClip;
-	exports.Object3D = Object3D;
-	exports.FogExp2 = FogExp2;
-	exports.InstancedBufferAttribute = InstancedBufferAttribute;
-	exports.TextureBase = TextureBase;
-	exports.InstancedGeometry = InstancedGeometry;
-	exports.PointLight = PointLight;
-	exports.Line = Line;
-	exports.ColorKeyframeTrack = ColorKeyframeTrack;
-	exports.CubeGeometry = CubeGeometry;
-	exports.PlaneGeometry = PlaneGeometry;
-	exports.PointLightShadow = PointLightShadow;
-	exports.StringKeyframeTrack = StringKeyframeTrack;
-	exports.TextureDepth = TextureDepth;
-	exports.LambertMaterial = LambertMaterial;
-	exports.RenderTarget2D = RenderTarget2D;
-	exports.DirectionalLightShadow = DirectionalLightShadow;
-	exports.Raycaster = Raycaster;
-	exports.TGALoader = TGALoader;
-	exports.Box2 = Box2;
-	exports.Points = Points;
-	exports.ShaderChunk = ShaderChunk;
-	exports.SkinnedMesh = SkinnedMesh;
-	exports.QuaternionKeyframeTrack = QuaternionKeyframeTrack;
-	exports.SphereGeometry = SphereGeometry;
-	exports.AmbientLight = AmbientLight;
-	exports.LightCache = LightCache;
-	exports.TextureCube = TextureCube;
-	exports.Vector3 = Vector3;
-	exports.BasicMaterial = BasicMaterial;
-	exports.PointsMaterial = PointsMaterial;
-	exports.DirectionalLight = DirectionalLight;
-	exports.Color3 = Color3;
-	exports.KeyframeTrack = KeyframeTrack;
-	exports.WebGLProgram = WebGLProgram;
-	exports.DepthMaterial = DepthMaterial;
-	exports.Texture2D = Texture2D;
-	exports.BufferAttribute = BufferAttribute;
-	exports.FileLoader = FileLoader;
-	exports.RenderTargetBack = RenderTargetBack;
-	exports.Group = Group;
-	exports.BooleanKeyframeTrack = BooleanKeyframeTrack;
-	exports.Ray = Ray;
-	exports.PropertyBindingMixer = PropertyBindingMixer;
-	exports.EventDispatcher = EventDispatcher;
-	exports.WebGLTexture = WebGLTexture;
-	exports.SpotLightShadow = SpotLightShadow;
-	exports.WebGLState = WebGLState;
-	exports.VectorKeyframeTrack = VectorKeyframeTrack;
-	exports.Euler = Euler;
-	exports.DistanceMaterial = DistanceMaterial;
-	exports.WebGLProperties = WebGLProperties;
-	exports.Camera = Camera;
-	exports.AnimationMixer = AnimationMixer;
-	exports.WebGLCore = WebGLCore;
-	exports.ShaderMaterial = ShaderMaterial;
-	exports.Vector4 = Vector4;
-	exports.RenderList = RenderList;
-	exports.Plane = Plane;
-	exports.Fog = Fog;
-	exports.Quaternion = Quaternion;
-	exports.Box3 = Box3;
-	exports.PhongMaterial = PhongMaterial;
-	exports.WebGLCapabilities = WebGLCapabilities;
-	exports.EnvironmentMapPass = EnvironmentMapPass;
-	exports.Mesh = Mesh;
-	exports.Spherical = Spherical;
 	exports.WebGLGeometry = WebGLGeometry;
-	exports.NumberKeyframeTrack = NumberKeyframeTrack;
-	exports.TextureData = TextureData;
+	exports.SpotLightShadow = SpotLightShadow;
+	exports.Line = Line;
 	exports.Skeleton = Skeleton;
-	exports.Bone = Bone;
-	exports.Vector2 = Vector2;
-	exports.ShadowMapPass = ShadowMapPass;
-	exports.Renderer = Renderer;
-	exports.WebGLAttribute = WebGLAttribute;
-	exports.ShaderLib = ShaderLib;
-	exports.LineLoopMaterial = LineLoopMaterial;
-	exports.Frustum = Frustum;
-	exports.CylinderGeometry = CylinderGeometry;
-	exports.Curve = Curve;
-	exports.WebGLUniform = WebGLUniform;
-	exports.Geometry = Geometry;
-	exports.Matrix4 = Matrix4;
-	exports.LineMaterial = LineMaterial;
+	exports.Euler = Euler;
+	exports.LineDashedMaterial = LineDashedMaterial;
 	exports.InterleavedBufferAttribute = InterleavedBufferAttribute;
+	exports.PlaneGeometry = PlaneGeometry;
+	exports.Plane = Plane;
+	exports.DepthMaterial = DepthMaterial;
+	exports.Bone = Bone;
+	exports.StringKeyframeTrack = StringKeyframeTrack;
+	exports.TextureBase = TextureBase;
+	exports.ShaderPostPass = ShaderPostPass;
+	exports.BooleanKeyframeTrack = BooleanKeyframeTrack;
+	exports.Sphere = Sphere;
+	exports.DistanceMaterial = DistanceMaterial;
+	exports.Box3 = Box3;
+	exports.PointsMaterial = PointsMaterial;
+	exports.ShaderChunk = ShaderChunk;
+	exports.Ray = Ray;
+	exports.FogExp2 = FogExp2;
+	exports.Points = Points;
+	exports.PhongMaterial = PhongMaterial;
+	exports.BufferAttribute = BufferAttribute;
+	exports.RenderList = RenderList;
+	exports.WebGLProgram = WebGLProgram;
+	exports.Box2 = Box2;
+	exports.Color3 = Color3;
+	exports.DirectionalLight = DirectionalLight;
+	exports.InstancedBufferAttribute = InstancedBufferAttribute;
+	exports.WebGLCapabilities = WebGLCapabilities;
+	exports.ShaderMaterial = ShaderMaterial;
+	exports.Fog = Fog;
+	exports.LineMaterial = LineMaterial;
+	exports.RenderTargetCube = RenderTargetCube;
+	exports.InstancedInterleavedBuffer = InstancedInterleavedBuffer;
+	exports.Light = Light;
+	exports.Camera = Camera;
+	exports.LambertMaterial = LambertMaterial;
+	exports.InstancedGeometry = InstancedGeometry;
+	exports.CubeGeometry = CubeGeometry;
+	exports.KeyframeTrack = KeyframeTrack;
+	exports.ShaderLib = ShaderLib;
+	exports.TextureDepth = TextureDepth;
+	exports.PropertyBindingMixer = PropertyBindingMixer;
+	exports.WebGLUniform = WebGLUniform;
+	exports.KeyframeClip = KeyframeClip;
+	exports.Scene = Scene;
+	exports.Geometry = Geometry;
+	exports.RenderTargetBack = RenderTargetBack;
+	exports.Vector3 = Vector3;
+	exports.Group = Group;
+	exports.Renderer = Renderer;
+	exports.PointLightShadow = PointLightShadow;
+	exports.WebGLAttribute = WebGLAttribute;
+	exports.LineLoopMaterial = LineLoopMaterial;
+	exports.FileLoader = FileLoader;
+	exports.LightCache = LightCache;
+	exports.Curve = Curve;
+	exports.PointLight = PointLight;
+	exports.TextureData = TextureData;
+	exports.Spherical = Spherical;
+	exports.PBRMaterial = PBRMaterial;
+	exports.CylinderGeometry = CylinderGeometry;
+	exports.QuaternionKeyframeTrack = QuaternionKeyframeTrack;
+	exports.RenderTargetBase = RenderTargetBase;
+	exports.ImageLoader = ImageLoader;
+	exports.TextureCube = TextureCube;
+	exports.AnimationMixer = AnimationMixer;
+	exports.Frustum = Frustum;
+	exports.Triangle = Triangle;
+	exports.Material = Material;
+	exports.Matrix4 = Matrix4;
+	exports.Mesh = Mesh;
+	exports.WebGLState = WebGLState;
+	exports.Raycaster = Raycaster;
+	exports.WebGLProperties = WebGLProperties;
+	exports.Matrix3 = Matrix3;
+	exports.Object3D = Object3D;
+	exports.EnvironmentMapPass = EnvironmentMapPass;
+	exports.ColorKeyframeTrack = ColorKeyframeTrack;
+	exports.SphereGeometry = SphereGeometry;
+	exports.NumberKeyframeTrack = NumberKeyframeTrack;
+	exports.LightShadow = LightShadow;
+	exports.Quaternion = Quaternion;
+	exports.BasicMaterial = BasicMaterial;
+	exports.ShadowMapPass = ShadowMapPass;
+	exports.VectorKeyframeTrack = VectorKeyframeTrack;
+	exports.InterleavedBuffer = InterleavedBuffer;
+	exports.WebGLCore = WebGLCore;
+	exports.TGALoader = TGALoader;
+	exports.RenderTarget2D = RenderTarget2D;
+	exports.Texture2D = Texture2D;
+	exports.WebGLTexture = WebGLTexture;
+	exports.EventDispatcher = EventDispatcher;
+	exports.Vector4 = Vector4;
+	exports.SkinnedMesh = SkinnedMesh;
+	exports.Vector2 = Vector2;
+	exports.AmbientLight = AmbientLight;
+	exports.DirectionalLightShadow = DirectionalLightShadow;
 	exports.generateUUID = generateUUID;
 	exports.isMobile = isMobile;
 	exports.isWeb = isWeb;
@@ -11373,28 +11376,28 @@
 	exports.nextPowerOfTwo = nextPowerOfTwo;
 	exports.cloneUniforms = cloneUniforms;
 	exports.halton = halton;
-	exports.WEBGL_BUFFER_USAGE = WEBGL_BUFFER_USAGE;
-	exports.SHADING_TYPE = SHADING_TYPE;
-	exports.BLEND_TYPE = BLEND_TYPE;
-	exports.WEBGL_PIXEL_FORMAT = WEBGL_PIXEL_FORMAT;
-	exports.DRAW_MODE = DRAW_MODE;
-	exports.WEBGL_TEXTURE_TYPE = WEBGL_TEXTURE_TYPE;
-	exports.WEBGL_TEXTURE_FILTER = WEBGL_TEXTURE_FILTER;
-	exports.DRAW_SIDE = DRAW_SIDE;
-	exports.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
-	exports.OBJECT_TYPE = OBJECT_TYPE;
-	exports.FOG_TYPE = FOG_TYPE;
-	exports.WEBGL_PIXEL_TYPE = WEBGL_PIXEL_TYPE;
-	exports.BLEND_FACTOR = BLEND_FACTOR;
-	exports.WEBGL_UNIFORM_TYPE = WEBGL_UNIFORM_TYPE;
 	exports.LIGHT_TYPE = LIGHT_TYPE;
-	exports.BLEND_EQUATION = BLEND_EQUATION;
-	exports.WEBGL_TEXTURE_WRAP = WEBGL_TEXTURE_WRAP;
-	exports.CULL_FACE_TYPE = CULL_FACE_TYPE;
-	exports.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
-	exports.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
+	exports.BLEND_TYPE = BLEND_TYPE;
+	exports.WEBGL_PIXEL_TYPE = WEBGL_PIXEL_TYPE;
 	exports.SHADOW_TYPE = SHADOW_TYPE;
+	exports.FOG_TYPE = FOG_TYPE;
 	exports.MATERIAL_TYPE = MATERIAL_TYPE;
+	exports.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
+	exports.WEBGL_TEXTURE_FILTER = WEBGL_TEXTURE_FILTER;
+	exports.WEBGL_PIXEL_FORMAT = WEBGL_PIXEL_FORMAT;
+	exports.WEBGL_BUFFER_USAGE = WEBGL_BUFFER_USAGE;
+	exports.CULL_FACE_TYPE = CULL_FACE_TYPE;
+	exports.WEBGL_TEXTURE_TYPE = WEBGL_TEXTURE_TYPE;
+	exports.DRAW_MODE = DRAW_MODE;
+	exports.BLEND_FACTOR = BLEND_FACTOR;
+	exports.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
+	exports.WEBGL_TEXTURE_WRAP = WEBGL_TEXTURE_WRAP;
+	exports.WEBGL_UNIFORM_TYPE = WEBGL_UNIFORM_TYPE;
+	exports.DRAW_SIDE = DRAW_SIDE;
+	exports.BLEND_EQUATION = BLEND_EQUATION;
+	exports.OBJECT_TYPE = OBJECT_TYPE;
+	exports.SHADING_TYPE = SHADING_TYPE;
+	exports.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
