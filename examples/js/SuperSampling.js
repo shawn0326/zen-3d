@@ -1,6 +1,6 @@
 (function() {
     
-    var SuperSampling = function(width, height, samplingSize) {
+    function SuperSampling(width, height, samplingSize) {
 
         this._samplingSize = samplingSize || 30;
 

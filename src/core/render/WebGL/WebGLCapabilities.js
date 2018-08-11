@@ -69,6 +69,8 @@ function WebGLCapabilities(gl) {
     var ext = getExtension(gl, "WEBGL_depth_texture");
     // draw elements support uint
     var ext = getExtension(gl, 'OES_element_index_uint');
+    // use half float
+    var ext = getExtension(gl, 'OES_texture_half_float');
 }
 
 export {WebGLCapabilities};

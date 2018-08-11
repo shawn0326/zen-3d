@@ -183,7 +183,7 @@
                     "#include <skinning_vert>",
                     "#include <normal_vert>",
                     "#include <pvm_vert>",
-                    "vPosition = gl_Position;", // need this, but not gl_FragCoord.z / gl_FragCoord.w ?
+                    "vPosition = gl_Position;",
                 "}"
 
             ].join( "\n" ),

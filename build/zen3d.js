@@ -297,7 +297,7 @@
 	    INT: 0x1404,
 	    UNSIGNED_INT: 0x1405,
 	    FLOAT: 0x1406,
-	    HALF_FLOAT: 0x140B,
+	    HALF_FLOAT: 36193,
 	    UNSIGNED_INT_24_8: 0x84FA,
 	    UNSIGNED_SHORT_4_4_4_4:	0x8033,
 	    UNSIGNED_SHORT_5_5_5_1: 0x8034,
@@ -6798,6 +6798,8 @@
 	    var ext = getExtension(gl, "WEBGL_depth_texture");
 	    // draw elements support uint
 	    var ext = getExtension(gl, 'OES_element_index_uint');
+	    // use half float
+	    var ext = getExtension(gl, 'OES_texture_half_float');
 	}
 
 	function createTexture(gl, type, target, count) {
