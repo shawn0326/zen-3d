@@ -39,6 +39,7 @@ import packing from './shaderChunk/packing.glsl';
 import pointlight_pars_frag from './shaderChunk/pointlight_pars_frag.glsl';
 import premultipliedAlpha_frag from './shaderChunk/premultipliedAlpha_frag.glsl';
 import pvm_vert from './shaderChunk/pvm_vert.glsl';
+import shadow from './shaderChunk/shadow.glsl';
 import shadowMap_frag from './shaderChunk/shadowMap_frag.glsl';
 import shadowMap_pars_frag from './shaderChunk/shadowMap_pars_frag.glsl';
 import shadowMap_pars_vert from './shaderChunk/shadowMap_pars_vert.glsl';
@@ -100,6 +101,7 @@ export var ShaderChunk = {
     pointlight_pars_frag: pointlight_pars_frag,
     premultipliedAlpha_frag: premultipliedAlpha_frag,
     pvm_vert: pvm_vert,
+    shadow: shadow,
     shadowMap_frag: shadowMap_frag,
     shadowMap_pars_frag: shadowMap_pars_frag,
     shadowMap_pars_vert: shadowMap_pars_vert,
