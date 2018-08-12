@@ -1,5 +1,16 @@
 (function() {
 
+    var debugTypes = {
+        normal: 0,
+        depth: 1,
+        position: 2,
+        glossiness: 3,
+        metalness: 4,
+        albedo: 5
+    };
+
+    var helpMatrix4 = new zen3d.Matrix4();
+
     function GBuffer(width, height) {
 
         this._renderTarget1 = new zen3d.RenderTarget2D(width, height);
@@ -8,7 +19,7 @@
         this._renderTarget1.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT;
         this._renderTarget1.texture.generateMipmaps = false;
         this._renderTarget1.depthTexture = new zen3d.TextureDepth(width, height);
-        this._renderTarget1.depthTexture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+        this._renderTarget1.depthTexture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8; // higher precision for depth
         this._renderTarget1.depthTexture.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
 
         this._renderTarget2 = new zen3d.RenderTarget2D(width, height);
@@ -16,9 +27,23 @@
         this._renderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
         this._renderTarget2.texture.generateMipmaps = false;
 
-        this._normalGlossinessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.normalGlossiness);
+        this._normalGlossinessMaterial = new zen3d.ShaderMaterial(
+            zen3d.GBufferShader.normalGlossiness.vertexShader,
+            zen3d.GBufferShader.normalGlossiness.fragmentShader,
+            {
+                roughness: 0.5
+            }
+        );
 
-        this._albedoMetalnessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.albedoMetalness);
+        this._albedoMetalnessMaterial = new zen3d.ShaderMaterial(
+            zen3d.GBufferShader.albedoMetalness.vertexShader,
+            zen3d.GBufferShader.albedoMetalness.fragmentShader,
+            {
+                metalness: 0.5
+            }
+        );
+
+        this._debugPass = new zen3d.ShaderPostPass(zen3d.GBufferShader.debug);
 
     }
 
@@ -96,6 +121,8 @@
                     } else {
                         albedoMetalnessMaterial.uniforms["metalness"] = 0.5;
                     }
+
+                    return albedoMetalnessMaterial;
                 },
                 ifRender: function(renderable) {
                     // todo support more object type
@@ -108,8 +135,30 @@
 
         },
 
+        /**
+         * Debug output of gBuffer. Use `type` parameter to choos the debug output type, which can be:
+         *
+         * + 'normal'
+         * + 'depth'
+         * + 'position'
+         * + 'glossiness'
+         * + 'metalness'
+         * + 'albedo'
+         *
+         * @param {zen3d.GLCore} renderer
+         * @param {zen3d.Camera} camera
+         * @param {string} [type='normal']
+         */
         renderDebug: function(glCore, camera, type) {
-            // TODO debug
+            this._debugPass.uniforms["normalGlossinessTexture"] = this.getNormalGlossinessTexture();
+            this._debugPass.uniforms["depthTexture"] = this.getDepthTexture();
+            this._debugPass.uniforms["albedoMetalnessTexture"] = this.getAlbedoMetalnessTexture();
+            this._debugPass.uniforms["debug"] = debugTypes[type] || 0;
+            this._debugPass.uniforms["viewWidth"] = glCore.state.currentRenderTarget.width;
+            this._debugPass.uniforms["viewHeight"] = glCore.state.currentRenderTarget.height;
+            helpMatrix4.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+            this._debugPass.uniforms["matProjViewInverse"].set(helpMatrix4.elements);
+            this._debugPass.render(glCore);
         },
 
         /**

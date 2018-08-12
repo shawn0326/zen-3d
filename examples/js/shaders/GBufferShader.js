@@ -23,7 +23,6 @@
                 "#include <skinning_pars_vert>",
                 "#include <normal_pars_vert>",
                 "#include <uv_pars_vert>",
-                "varying vec4 vPosition;",
                 "void main() {",
                     "#include <uv_vert>",
                     "#include <begin_vert>",
@@ -58,11 +57,11 @@
 
                     "vec3 normal = normalize(v_Normal);",
 
-                    "vec4 packedNormalRoughness;",
-                    "packedNormalRoughness.xyz = normal * 0.5 + 0.5;",
-                    "packedNormalRoughness.w = roughness;",
+                    "vec4 packedNormalGlossiness;",
+                    "packedNormalGlossiness.xyz = normal * 0.5 + 0.5;",
+                    "packedNormalGlossiness.w = 1. - roughness;",
                     
-                    "gl_FragColor = packedNormalRoughness;",
+                    "gl_FragColor = packedNormalGlossiness;",
                 "}"
         
             ].join( "\n" )
@@ -104,13 +103,119 @@
         
                     "vec4 outColor = vec4( u_Color, 1.0 );",
                     "#include <diffuseMap_frag>",
-                    "vec4 diffuseColor = outColor.xyz * outColor.a;",
+                    "vec3 diffuseColor = outColor.xyz * outColor.a;",
 
                     "gl_FragColor = vec4( diffuseColor.xyz, metalness );",
         
                 "}"
         
             ].join( "\n" )
+
+        },
+
+        debug: {
+
+            uniforms: {
+
+                normalGlossinessTexture: null,
+                depthTexture: null,
+                albedoMetalnessTexture: null,
+
+                debug: 0,
+
+                viewWidth: 800,
+                viewHeight: 600,
+
+                matProjViewInverse: new Float32Array(16)
+
+            },
+
+            vertexShader: [
+
+                "attribute vec3 a_Position;",
+
+                "uniform mat4 u_Projection;",
+                "uniform mat4 u_View;",
+                "uniform mat4 u_Model;",
+
+                "void main() {",
+
+                    "gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+
+                "}"
+    
+            ].join( '\n' ),
+
+            fragmentShader: [
+
+                "uniform sampler2D normalGlossinessTexture;",
+                "uniform sampler2D depthTexture;",
+                "uniform sampler2D albedoMetalnessTexture;",
+
+                // DEBUG
+                // - 0: normal
+                // - 1: depth
+                // - 2: position
+                // - 3: glossiness
+                // - 4: metalness
+                // - 5: albedo
+                // - 6: velocity
+                "uniform int debug;",
+
+                "uniform float viewHeight;",
+                "uniform float viewWidth;",
+
+                "uniform mat4 matProjViewInverse;",
+
+                "void main() {",
+
+                    "vec2 texCoord = gl_FragCoord.xy / vec2( viewWidth, viewHeight );",
+
+                    "vec4 texel1 = texture2D(normalGlossinessTexture, texCoord);",
+                    "vec4 texel3 = texture2D(albedoMetalnessTexture, texCoord);",
+
+                    // Is empty
+                    "if (dot(texel1.rgb, vec3(1.0)) == 0.0) {",
+                        "discard;",
+                    "}",
+
+                    "float glossiness = texel1.a;",
+                    "float metalness = texel3.a;",
+
+                    "vec3 N = texel1.rgb * 2.0 - 1.0;",
+
+                    // Depth buffer range is 0.0 - 1.0
+                    "float z = texture2D(depthTexture, texCoord).r * 2.0 - 1.0;",
+
+                    "vec2 xy = texCoord * 2.0 - 1.0;",
+
+                    "vec4 projectedPos = vec4(xy, z, 1.0);",
+                    "vec4 p4 = matProjViewInverse * projectedPos;",
+
+                    "vec3 position = p4.xyz / p4.w;",
+
+                    "vec3 albedo = texel3.rgb;",
+
+                    "vec3 diffuseColor = albedo * (1.0 - metalness);",
+                    "vec3 specularColor = mix(vec3(0.04), albedo, metalness);",
+
+                    "if (debug == 0) {",
+                        "gl_FragColor = vec4(N, 1.0);",
+                    "} else if (debug == 1) {",
+                        "gl_FragColor = vec4(vec3(z), 1.0);",
+                    "} else if (debug == 2) {",
+                        "gl_FragColor = vec4(position, 1.0);",
+                    "} else if (debug == 3) {",
+                        "gl_FragColor = vec4(vec3(glossiness), 1.0);",
+                    "} else if (debug == 4) {",
+                        "gl_FragColor = vec4(vec3(metalness), 1.0);",
+                    "} else {",
+                        "gl_FragColor = vec4(albedo, 1.0);",
+                    "}",
+
+                "}"
+
+            ].join( '\n' )
 
         }
 
