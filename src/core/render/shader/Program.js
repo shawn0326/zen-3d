@@ -118,6 +118,9 @@ function createProgram(gl, props, defines) {
 
         defines,
 
+        props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
+        props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
+
         (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
         (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
         (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',

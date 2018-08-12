@@ -92,6 +92,12 @@
                         normalGlossinessMaterial.uniforms["roughness"] = 0.5;
                     }
 
+                    if (renderable.material.roughnessMap) {
+                        normalGlossinessMaterial.roughnessMap = renderable.material.roughnessMap;
+                    } else {
+                        normalGlossinessMaterial.roughnessMap = null;
+                    }
+
                     return normalGlossinessMaterial;
                 },
                 ifRender: function(renderable) {
@@ -120,6 +126,12 @@
                         albedoMetalnessMaterial.uniforms["metalness"] = renderable.material.metalness;
                     } else {
                         albedoMetalnessMaterial.uniforms["metalness"] = 0.5;
+                    }
+
+                    if (renderable.material.metalnessMap) {
+                        albedoMetalnessMaterial.metalnessMap = renderable.material.metalnessMap;
+                    } else {
+                        albedoMetalnessMaterial.metalnessMap = null;
                     }
 
                     return albedoMetalnessMaterial;
