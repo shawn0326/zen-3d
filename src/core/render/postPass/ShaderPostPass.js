@@ -4,22 +4,7 @@ import {Vector3} from '../../math/Vector3.js';
 import {PlaneGeometry} from '../../geometry/PlaneGeometry.js';
 import {ShaderMaterial} from '../../material/ShaderMaterial.js';
 import {Mesh} from '../../objects/Mesh.js';
-
-function cloneUniforms(uniforms_src) {
-    var uniforms_dst = {};
-
-    for(var name in uniforms_src) {
-        var uniform_src = uniforms_src[name];
-        // TODO zen3d object clone
-        if ( Array.isArray( uniform_src ) ) {
-            uniforms_dst[name] = uniform_src.slice();
-        } else {
-            uniforms_dst[name] = uniform_src;
-        }
-    }
-
-    return uniforms_dst;
-}
+import {cloneUniforms} from '../../base.js';
 
 function ShaderPostPass(shader) {
     var scene = new Scene();
