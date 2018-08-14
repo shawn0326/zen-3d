@@ -6660,19 +6660,21 @@
 	 * ShaderMaterial
 	 * @class
 	 */
-	function ShaderMaterial(vertexShader, fragmentShader, uniforms) {
+	function ShaderMaterial(shader) {
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.SHADER;
 
-	    this.vertexShader = vertexShader || "";
+	    this.vertexShader = shader.vertexShader || "";
 
-	    this.fragmentShader = fragmentShader || "";
+	    this.fragmentShader = shader.fragmentShader || "";
 
 	    this.defines = {};
+	    // copy defines
+	    Object.assign( this.defines, shader.defines ); 
 
 	    // uniforms should match fragment shader
-	    this.uniforms = uniforms || {};
+	    this.uniforms = cloneUniforms(shader.uniforms);
 	}
 
 	ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
@@ -10467,9 +10469,8 @@
 	    scene.add(camera);
 
 	    var geometry = new PlaneGeometry(2, 2, 1, 1);
-	    this.uniforms = cloneUniforms(shader.uniforms);
-	    var material = this.material = new ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
-	    Object.assign( material.defines, shader.defines ); // copy defines
+	    var material = this.material = new ShaderMaterial(shader);
+	    this.uniforms = material.uniforms;
 	    var plane = new Mesh(geometry, material);
 	    plane.frustumCulled = false;
 	    scene.add(plane);

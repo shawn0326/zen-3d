@@ -100,11 +100,10 @@
 			});
 			var glCore = new zen3d.WebGLCore(gl);
 
-			var normalDepthMaterial = new zen3d.ShaderMaterial(
-				zen3d.ShaderLib.normaldepth_vert,
-				zen3d.ShaderLib.normaldepth_frag,
-				{}
-			);
+			var normalDepthMaterial = new zen3d.ShaderMaterial({
+				vertexShader: zen3d.ShaderLib.normaldepth_vert,
+				fragmentShader: zen3d.ShaderLib.normaldepth_frag
+			});
 
 			var depthMaterial = new zen3d.DepthMaterial();
 			depthMaterial.packToRGBA = true;

@@ -27,6 +27,15 @@
 
     var SpriteShader = {
 
+        uniforms: {
+
+            rotation: 0,
+            spriteScale: [1, 1],
+            uvOffset: [0, 0],
+            uvScale: [1, 1]
+
+        },
+
         vertexShader: [
 
             "attribute vec2 position;",
@@ -118,16 +127,7 @@
      */
     function Sprite() {
 
-        var material = new ShaderMaterial(
-            SpriteShader.vertexShader,
-            SpriteShader.fragmentShader,
-            {
-                rotation: 0,
-                spriteScale: [1, 1],
-                uvOffset: [0, 0],
-                uvScale: [1, 1]
-            }
-        );
+        var material = new ShaderMaterial(SpriteShader);
 
         Mesh.call(this, sharedGeometry, material);
 

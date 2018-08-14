@@ -99,8 +99,20 @@
 			var fragmentShader1 = document.getElementById('fragmentShader1').textContent;
 			var fragmentShader2 = document.getElementById('fragmentShader2').textContent;
 
-			var material1 = new zen3d.ShaderMaterial(vertexShader, fragmentShader1, {time: 10});
-			var material2 = new zen3d.ShaderMaterial(vertexShader, fragmentShader2, {time: 10});
+			var shader1 = {
+				vertexShader: vertexShader,
+				fragmentShader: fragmentShader1,
+				uniforms: {time: 10}
+			};
+
+			var shader2 = {
+				vertexShader: vertexShader,
+				fragmentShader: fragmentShader2,
+				uniforms: {time: 10}
+			};
+
+			var material1 = new zen3d.ShaderMaterial(shader1);
+			var material2 = new zen3d.ShaderMaterial(shader2);
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 	        var sphere = new zen3d.Mesh(sphere_geometry, material2);

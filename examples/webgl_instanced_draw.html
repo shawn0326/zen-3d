@@ -86,13 +86,13 @@
 			var texture = new zen3d.Texture2D.fromSrc("resources/crate_color8.tga");
 			texture.anisotropy = 16;
 			
-			var shaderMaterial = new zen3d.ShaderMaterial(
-				document.getElementById( 'vertexShader' ).textContent,
-				document.getElementById( 'fragmentShader' ).textContent,
-				{
+			var shaderMaterial = new zen3d.ShaderMaterial({
+				vertexShader: document.getElementById( 'vertexShader' ).textContent,
+				fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+				uniforms: {
 					map: texture
 				}
-			);
+			});
 
 			var instances = 5000;
 

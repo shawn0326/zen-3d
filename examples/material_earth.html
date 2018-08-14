@@ -29,35 +29,44 @@
     </div>
 
 	<script>
-		var vertexShader = [
-			'attribute vec3 a_Position;',
-			'attribute vec3 a_Normal;',
-			'varying vec3 v_Normal;',
+		var glowShader = {
 
-			'#include <transpose>',
-			'#include <inverse>',
+			uniforms: {
+				c: 0.34,
+				p: 9.17//9.17
+			},
 
-			'uniform mat4 u_Projection;',
-			'uniform mat4 u_View;',
-			'uniform mat4 u_Model;',
+			vertexShader: [
+				'attribute vec3 a_Position;',
+				'attribute vec3 a_Normal;',
+				'varying vec3 v_Normal;',
 
-			'void main() {',
-				'vec3 transformed = vec3(a_Position);',
-				'vec3 objectNormal = vec3(a_Normal);',
-				'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(objectNormal, 1.0)).xyz;',
-				'gl_Position = u_Projection * u_View * u_Model * vec4(transformed, 1.0);',
-			'}'
-		].join('\n');
+				'#include <transpose>',
+				'#include <inverse>',
 
-		var fragmentShader = [
-			'uniform float c;',
-			'uniform float p;',
-			'varying vec3 v_Normal;',
-			'void main() {',
-				'float intensity = pow(abs(c - dot(normalize(v_Normal), vec3( 0.0, 0.0, 1.0 ) )), p );',
-				'gl_FragColor = vec4( 0.2, 0.58, 0.9, 0.3 ) * intensity;',
-			'}'
-			].join('\n');
+				'uniform mat4 u_Projection;',
+				'uniform mat4 u_View;',
+				'uniform mat4 u_Model;',
+
+				'void main() {',
+					'vec3 transformed = vec3(a_Position);',
+					'vec3 objectNormal = vec3(a_Normal);',
+					'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(objectNormal, 1.0)).xyz;',
+					'gl_Position = u_Projection * u_View * u_Model * vec4(transformed, 1.0);',
+				'}'
+			].join('\n'),
+
+			fragmentShader: [
+				'uniform float c;',
+				'uniform float p;',
+				'varying vec3 v_Normal;',
+				'void main() {',
+					'float intensity = pow(abs(c - dot(normalize(v_Normal), vec3( 0.0, 0.0, 1.0 ) )), p );',
+					'gl_FragColor = vec4( 0.2, 0.58, 0.9, 0.3 ) * intensity;',
+				'}'
+			].join('\n')
+
+		};
 	</script>
 
 	<script>
@@ -109,10 +118,7 @@
 			cloud_mat.blending = zen3d.BLEND_TYPE.ADD;
 			cloud_mat.premultipliedAlpha = true;
 
-			var glow_mat = new zen3d.ShaderMaterial(vertexShader, fragmentShader, {
-				c: 0.34,
-				p: 9.17//9.17
-			});
+			var glow_mat = new zen3d.ShaderMaterial(glowShader);
 			glow_mat.side = zen3d.DRAW_SIDE.BACK;
 			glow_mat.transparent = true;
 			glow_mat.blending = zen3d.BLEND_TYPE.ADD;

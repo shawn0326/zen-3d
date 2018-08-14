@@ -12,11 +12,7 @@
             console.error("zen3d.SkyBox required zen3d.SkyBoxShader");
         }
 
-        var material = new zen3d.ShaderMaterial(
-            SkyBoxShader.vertexShader, 
-            SkyBoxShader.fragmentShader,
-            zen3d.cloneUniforms(SkyBoxShader.uniforms)
-        );
+        var material = new zen3d.ShaderMaterial(SkyBoxShader);
         material.side = zen3d.DRAW_SIDE.BACK;
         material.cubeMap = cubeTexture;
         this.material = material;

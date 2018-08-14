@@ -4,7 +4,6 @@ import {Vector3} from '../../math/Vector3.js';
 import {PlaneGeometry} from '../../geometry/PlaneGeometry.js';
 import {ShaderMaterial} from '../../material/ShaderMaterial.js';
 import {Mesh} from '../../objects/Mesh.js';
-import {cloneUniforms} from '../../base.js';
 
 function ShaderPostPass(shader) {
     var scene = new Scene();
@@ -17,9 +16,8 @@ function ShaderPostPass(shader) {
     scene.add(camera);
 
     var geometry = new PlaneGeometry(2, 2, 1, 1);
-    this.uniforms = cloneUniforms(shader.uniforms);
-    var material = this.material = new ShaderMaterial(shader.vertexShader, shader.fragmentShader, this.uniforms);
-    Object.assign( material.defines, shader.defines ); // copy defines
+    var material = this.material = new ShaderMaterial(shader);
+    this.uniforms = material.uniforms;
     var plane = new Mesh(geometry, material);
     plane.frustumCulled = false;
     scene.add(plane);

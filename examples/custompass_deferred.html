@@ -165,40 +165,13 @@
 
 			var shadowMapPass = new zen3d.ShadowMapPass();
 
-			var normalDepthMaterial = new zen3d.ShaderMaterial(
-				zen3d.DeferredShader.normalDepth.vertexShader,
-				zen3d.DeferredShader.normalDepth.fragmentShader,
-				{}
-			);
+			var normalDepthMaterial = new zen3d.ShaderMaterial(zen3d.DeferredShader.normalDepth);
 
-			var normalDepthShininessMaterial = new zen3d.ShaderMaterial(
-				zen3d.DeferredShader.normalDepthShininess.vertexShader,
-				zen3d.DeferredShader.normalDepthShininess.fragmentShader,
-				{}
-			);
+			var normalDepthShininessMaterial = new zen3d.ShaderMaterial(zen3d.DeferredShader.normalDepthShininess);
 
-			var colorMaterial = new zen3d.ShaderMaterial(
-				zen3d.DeferredShader.color.vertexShader,
-				zen3d.DeferredShader.color.fragmentShader,
-				{
-					specular: [1, 1, 1],
-        			shininess: 30
-				}
-			);
+			var colorMaterial = new zen3d.ShaderMaterial(zen3d.DeferredShader.color);
 
-			var reconstructionMaterial = new zen3d.ShaderMaterial(
-				zen3d.DeferredShader.reconstruction.vertexShader,
-				zen3d.DeferredShader.reconstruction.fragmentShader,
-				{
-					samplerLight: null,
-
-					specular: [0, 0, 0],
-					shininess: 30,
-
-					viewWidth: 800,
-					viewHeight: 600
-				}
-			);
+			var reconstructionMaterial = new zen3d.ShaderMaterial(zen3d.DeferredShader.reconstruction);
 
 			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
 			var fxaaPass = new zen3d.ShaderPostPass(zen3d.FXAAShader);

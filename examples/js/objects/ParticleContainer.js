@@ -23,6 +23,13 @@
 
     var GPUParticleShader = {
 
+        uniforms: {
+            tSprite: null,
+            tNoise: null,
+            uTime: 0,
+            uScale: 1
+        },
+
 		vertexShader: [
 
             "const vec4 bitSh = vec4(256. * 256. * 256., 256. * 256., 256., 1.);",
@@ -221,16 +228,9 @@
     
         this.particleCursor = 0;
     
-        this.material = new ShaderMaterial(
-            GPUParticleShader.vertexShader, 
-            GPUParticleShader.fragmentShader, 
-            {
-                tSprite: this.particleSpriteTex,
-                tNoise: this.particleNoiseTex,
-                uTime: 0,
-                uScale: 1
-            }
-        );
+        this.material = new ShaderMaterial(GPUParticleShader);
+        this.material.uniforms["tSprite"] = this.particleSpriteTex;
+        this.material.uniforms["tNoise"] = this.particleNoiseTex;
         this.material.transparent = true;
         this.material.blending = BLEND_TYPE.ADD;
         this.material.depthTest = true;

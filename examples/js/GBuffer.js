@@ -27,21 +27,9 @@
         this._renderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
         this._renderTarget2.texture.generateMipmaps = false;
 
-        this._normalGlossinessMaterial = new zen3d.ShaderMaterial(
-            zen3d.GBufferShader.normalGlossiness.vertexShader,
-            zen3d.GBufferShader.normalGlossiness.fragmentShader,
-            {
-                roughness: 0.5
-            }
-        );
+        this._normalGlossinessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.normalGlossiness);
 
-        this._albedoMetalnessMaterial = new zen3d.ShaderMaterial(
-            zen3d.GBufferShader.albedoMetalness.vertexShader,
-            zen3d.GBufferShader.albedoMetalness.fragmentShader,
-            {
-                metalness: 0.5
-            }
-        );
+        this._albedoMetalnessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.albedoMetalness);
 
         this._debugPass = new zen3d.ShaderPostPass(zen3d.GBufferShader.debug);
 
