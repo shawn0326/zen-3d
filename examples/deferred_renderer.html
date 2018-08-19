@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - deferred renderer</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+
+	<script src="./js/loaders/GLTFLoader.js"></script>
+	<script src="./js/objects/DirectionalLightHelper.js"></script>
+	<script src="./js/objects/PointLightHelper.js"></script>
+	<script src="./js/objects/SpotLightHelper.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+	
+	<script src="./js/shaders/GBufferShader.js"></script>
+	<script src="./js/shaders/DeferredShader2.js"></script>
+	<script src="./js/shaders/CopyShader.js"></script>
+	<script src="./js/shaders/FXAAShader.js"></script>
+
+	<script src="./js/GBuffer.js"></script>
+	<script src="./js/renderers/DeferredRenderer.js"></script>
+
+	<script src="./files/dat.gui.min.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - deferred renderer
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+			var scene = new zen3d.Scene();
+
+			var file = "resources/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
+
+			var loader = new zen3d.GLTFLoader();
+			loader.load(file, function(result) {
+				console.log(result);
+				// add mesh to scene
+				let object = result.scene.children[0];
+				console.log(object)
+
+				object.castShadow = true;
+
+				object.position.set(0, 5, 0);
+				object.scale.set(15, 15, 15);
+				object.euler.z = -Math.PI / 6;
+
+				scene.add(object);
+			});
+
+			var material = new zen3d.BasicMaterial();
+			material.diffuse.setRGB(0, 1, 1);
+			material.transparent = true;
+			material.opacity = 0.3;
+			var cube = new zen3d.Mesh(new zen3d.CubeGeometry(5, 5, 5), material);
+			cube.position.set(20, 0, 0);
+			scene.add(cube);
+
+			var plane_geometry = new zen3d.PlaneGeometry(500, 500);
+	        var material = new zen3d.LambertMaterial();
+			material.diffuse.setHex(0xffffff);
+			material.roughness = 0.8;
+			// material.emissive.setRGB(1, 0, 0);
+			// material.specular.setRGB(0, 0, 0);
+			var plane = new zen3d.Mesh(plane_geometry, material);
+			plane.receiveShadow = true;
+	        plane.position.y = -10;
+	        scene.add(plane);
+
+			// var ambientLight = new zen3d.AmbientLight();
+			// ambientLight.color.setHex(0xffffff);
+			// ambientLight.intensity = 0.5;
+	        // scene.add(ambientLight);
+
+	        var directionalLight = new zen3d.DirectionalLight();
+	        directionalLight.color.setHex(0xffff00);
+			directionalLight.position.set(-30, 30, 0);
+			directionalLight.intensity = 0.4;
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			directionalLight.castShadow = true;
+			directionalLight.shadow.bias = -0.03;
+			directionalLight.shadow.windowSize = 50;
+			scene.add(directionalLight);
+
+			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
+			directionalLight.add(directionalLightHelper);
+
+			var pointLight = new zen3d.PointLight();
+			pointLight.position.set(30, 30, 30);
+			pointLight.color.setHex(0x00ffff);
+			pointLight.decay = 2;
+			pointLight.castShadow = true;
+			pointLight.shadow.bias = -0.003;
+			scene.add(pointLight);
+
+			var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
+			pointLight.add(pointLightHelper);
+
+			var spotLight = new zen3d.SpotLight();
+	        spotLight.color.setHex(0x00ff00);
+			spotLight.angle = Math.PI / 6;
+			spotLight.position.set(0, 40, -40);
+			spotLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			spotLight.penumbra = 0.2;
+			spotLight.distance = 400;
+			spotLight.castShadow = true;
+			spotLight.shadow.bias = -0.003;
+			spotLight.shadow.windowSize = 50;
+			scene.add(spotLight);
+			
+			var spotLightHelper = new zen3d.SpotLightHelper(spotLight);
+			spotLight.add(spotLightHelper);
+
+			var camera = new zen3d.Camera();
+	        camera.position.set(30, 50, 100);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+	        scene.add(camera);
+
+			var controller = new zen3d.OrbitControls(camera, canvas);
+
+			var renderer = new zen3d.DeferredRenderer(canvas);
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+
+				controller.update();
+
+				directionalLightHelper.update();
+				pointLightHelper.update();
+				spotLightHelper.update();
+
+				renderer.render(scene, camera);
+
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+
+				renderer.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

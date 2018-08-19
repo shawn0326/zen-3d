@@ -96,6 +96,9 @@ var files = {
 		"custompass_taa",
 		"custompass_bloom"
 	],
+	"deferred": [
+		"deferred_renderer"
+	],
 	"webgl": [
 		"webgl_clippingplanes",
 		"webgl_instanced_draw"
