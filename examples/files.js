@@ -97,7 +97,8 @@ var files = {
 		"custompass_bloom"
 	],
 	"deferred": [
-		"deferred_renderer"
+		"deferred_renderer",
+		"deferred_lights"
 	],
 	"webgl": [
 		"webgl_clippingplanes",
