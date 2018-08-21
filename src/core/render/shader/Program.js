@@ -113,6 +113,8 @@ function createProgram(gl, props, defines) {
 
         'precision ' + props.precision + ' float;',
         'precision ' + props.precision + ' int;',
+        // depth texture may have precision problem on iOS device.
+        'precision ' + props.precision + ' sampler2D;',
 
         '#define SHADER_NAME ' + props.materialType,
 
@@ -158,6 +160,8 @@ function createProgram(gl, props, defines) {
 
         'precision ' + props.precision + ' float;',
         'precision ' + props.precision + ' int;',
+        // depth texture may have precision problem on iOS device.
+        'precision ' + props.precision + ' sampler2D;',
 
         '#define SHADER_NAME ' + props.materialType,
         

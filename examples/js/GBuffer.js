@@ -33,6 +33,10 @@
 
         this._debugPass = new zen3d.ShaderPostPass(zen3d.GBufferShader.debug);
 
+        this.enableNormalGlossiness = true;
+
+        this.enableAlbedoMetalness = true;
+
     }
 
     Object.assign(GBuffer.prototype, {
@@ -51,87 +55,96 @@
 
         update: function(glCore, scene, camera) {
 
-            var normalGlossinessMaterial = this._normalGlossinessMaterial;
-            var albedoMetalnessMaterial = this._albedoMetalnessMaterial;
-
             // TODO Use MRT if support
 
             var renderList = scene.getRenderList(camera);
 
             // render normalDepthRenderTarget
 
-            glCore.texture.setRenderTarget(this._renderTarget1);
+            if (this.enableNormalGlossiness) {
 
-            glCore.state.clearColor(0, 0, 0, 0);
-            glCore.clear(true, true, true);
+                var normalGlossinessMaterial = this._normalGlossinessMaterial;
 
-            glCore.renderPass(renderList.opaque, camera, {
-                scene: scene,
-                getMaterial: function(renderable) {
-                    if(!renderable.geometry.attributes["a_Normal"]) {
-                        normalGlossinessMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
-                    } else {
-                        normalGlossinessMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+                glCore.texture.setRenderTarget(this._renderTarget1);
+
+                glCore.state.clearColor(0, 0, 0, 0);
+                glCore.clear(true, true, true);
+
+                glCore.renderPass(renderList.opaque, camera, {
+                    scene: scene,
+                    getMaterial: function(renderable) {
+                        if(!renderable.geometry.attributes["a_Normal"]) {
+                            normalGlossinessMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
+                        } else {
+                            normalGlossinessMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+                        }
+
+                        if (renderable.material.roughness !== undefined) {
+                            normalGlossinessMaterial.uniforms["roughness"] = renderable.material.roughness;
+                        } else {
+                            normalGlossinessMaterial.uniforms["roughness"] = 0.5;
+                        }
+
+                        if (renderable.material.roughnessMap) {
+                            normalGlossinessMaterial.roughnessMap = renderable.material.roughnessMap;
+                        } else {
+                            normalGlossinessMaterial.roughnessMap = null;
+                        }
+
+                        return normalGlossinessMaterial;
+                    },
+                    ifRender: function(renderable) {
+                        // todo support more object type
+                        if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
+                            return false;
+                        }
+                        return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
                     }
+                });
 
-                    if (renderable.material.roughness !== undefined) {
-                        normalGlossinessMaterial.uniforms["roughness"] = renderable.material.roughness;
-                    } else {
-                        normalGlossinessMaterial.uniforms["roughness"] = 0.5;
-                    }
-
-                    if (renderable.material.roughnessMap) {
-                        normalGlossinessMaterial.roughnessMap = renderable.material.roughnessMap;
-                    } else {
-                        normalGlossinessMaterial.roughnessMap = null;
-                    }
-
-                    return normalGlossinessMaterial;
-                },
-                ifRender: function(renderable) {
-                    // todo support more object type
-                    if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
-                        return false;
-                    }
-                    return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
-                }
-            });
+            }
 
             // render albedoMetalnessRenderTarget
 
-            glCore.texture.setRenderTarget(this._renderTarget2);
+            if (this.enableAlbedoMetalness) {
 
-            glCore.state.clearColor(0, 0, 0, 0);
-            glCore.clear(true, true, true);
+                var albedoMetalnessMaterial = this._albedoMetalnessMaterial;
 
-            glCore.renderPass(renderList.opaque, camera, {
-                scene: scene,
-                getMaterial: function(renderable) {
-                    albedoMetalnessMaterial.diffuse.copy(renderable.material.diffuse);
-                    albedoMetalnessMaterial.diffuseMap = renderable.material.diffuseMap;
-                    
-                    if (renderable.material.metalness !== undefined) {
-                        albedoMetalnessMaterial.uniforms["metalness"] = renderable.material.metalness;
-                    } else {
-                        albedoMetalnessMaterial.uniforms["metalness"] = 0.5;
+                glCore.texture.setRenderTarget(this._renderTarget2);
+    
+                glCore.state.clearColor(0, 0, 0, 0);
+                glCore.clear(true, true, true);
+    
+                glCore.renderPass(renderList.opaque, camera, {
+                    scene: scene,
+                    getMaterial: function(renderable) {
+                        albedoMetalnessMaterial.diffuse.copy(renderable.material.diffuse);
+                        albedoMetalnessMaterial.diffuseMap = renderable.material.diffuseMap;
+                        
+                        if (renderable.material.metalness !== undefined) {
+                            albedoMetalnessMaterial.uniforms["metalness"] = renderable.material.metalness;
+                        } else {
+                            albedoMetalnessMaterial.uniforms["metalness"] = 0.5;
+                        }
+    
+                        if (renderable.material.metalnessMap) {
+                            albedoMetalnessMaterial.metalnessMap = renderable.material.metalnessMap;
+                        } else {
+                            albedoMetalnessMaterial.metalnessMap = null;
+                        }
+    
+                        return albedoMetalnessMaterial;
+                    },
+                    ifRender: function(renderable) {
+                        // todo support more object type
+                        if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
+                            return false;
+                        }
+                        return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
                     }
+                });
 
-                    if (renderable.material.metalnessMap) {
-                        albedoMetalnessMaterial.metalnessMap = renderable.material.metalnessMap;
-                    } else {
-                        albedoMetalnessMaterial.metalnessMap = null;
-                    }
-
-                    return albedoMetalnessMaterial;
-                },
-                ifRender: function(renderable) {
-                    // todo support more object type
-                    if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
-                        return false;
-                    }
-                    return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
-                }
-            });
+            }
 
         },
 
