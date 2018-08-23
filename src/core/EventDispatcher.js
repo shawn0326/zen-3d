@@ -1,15 +1,22 @@
 /**
- * EventDispatcher Class
- **/
+ * JavaScript events for custom objects.
+ * @constructor
+ */
 function EventDispatcher() {
+
     this.eventMap = {};
+
 }
 
 Object.assign(EventDispatcher.prototype, {
 
     /**
-     * add a event listener
-     **/
+     * Adds a listener to an event type.
+     * @memberof EventDispatcher#
+     * @param {string} type - The type of event to listen to.
+     * @param {function} listener - The function that gets called when the event is fired.
+     * @param {Object} [thisObject = this] - The Object of calling listener method.
+     */
     addEventListener: function(type, listener, thisObject) {
         var list = this.eventMap[type];
 
@@ -21,8 +28,12 @@ Object.assign(EventDispatcher.prototype, {
     },
 
     /**
-     * remove a event listener
-     **/
+     * Removes a listener from an event type.
+     * @memberof EventDispatcher#
+     * @param {string} type - The type of the listener that gets removed.
+     * @param {function} listener - The listener function that gets removed.
+     * @param {Object} [thisObject = this] thisObject - The Object of calling listener method.
+     */
     removeEventListener: function(type, listener, thisObject) {
         var list = this.eventMap[type];
 
@@ -40,8 +51,10 @@ Object.assign(EventDispatcher.prototype, {
     },
 
     /**
-     * dispatch a event
-     **/
+     * Fire an event type.
+     * @memberof EventDispatcher#
+     * @param {Object} event - The event that gets fired.
+     */
     dispatchEvent: function(event) {
         event.target = this;
         this.notifyListener(event);
@@ -49,7 +62,10 @@ Object.assign(EventDispatcher.prototype, {
 
     /**
      * notify listener
-     **/
+     * @private
+     * @memberof EventDispatcher#
+     * @param {Object} event - The event that gets fired.
+     */
     notifyListener: function(event) {
         var list = this.eventMap[event.type];
 

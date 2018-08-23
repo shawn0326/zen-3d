@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: material/ShaderMaterial.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,59 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: material/ShaderMaterial.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {MATERIAL_TYPE} from '../const.js';
+import {Material} from './Material.js';
+import {cloneUniforms} from '../base.js';
 
+/**
+ * ShaderMaterial
+ * @class
+ */
+function ShaderMaterial(shader) {
+    Material.call(this);
 
-    <h3> </h3>
+    this.type = MATERIAL_TYPE.SHADER;
 
+    this.vertexShader = shader.vertexShader || "";
 
+    this.fragmentShader = shader.fragmentShader || "";
 
+    this.defines = {};
+    // copy defines
+    Object.assign( this.defines, shader.defines ); 
 
+    // uniforms should match fragment shader
+    this.uniforms = cloneUniforms(shader.uniforms);
+}
 
+ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+    constructor: ShaderMaterial,
 
+    copy: function(source) {
+        Material.prototype.copy.call(this, source);
 
+        this.vertexShader = source.vertexShader;
+        this.fragmentShader = source.fragmentShader;
 
+        return this;
+    }
 
-    
+});
 
-
-
-
-
+export {ShaderMaterial};
+</code></pre>
+        </article>
+    </section>
 
 
 

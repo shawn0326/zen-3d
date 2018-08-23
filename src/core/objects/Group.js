@@ -2,8 +2,10 @@ import {OBJECT_TYPE} from '../const.js';
 import {Object3D} from './Object3D.js';
 
 /**
- * Group
- * @class
+ * This is almost identical to an {@link Object3D}. 
+ * Its purpose is to make working with groups of objects syntactically clearer.
+ * @constructor
+ * @extends Object3D
  */
 function Group() {
     Object3D.call(this);

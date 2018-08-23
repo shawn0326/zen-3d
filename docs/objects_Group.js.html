@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: objects/Group.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,37 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: objects/Group.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {OBJECT_TYPE} from '../const.js';
+import {Object3D} from './Object3D.js';
 
+/**
+ * This is almost identical to an {@link Object3D}. 
+ * Its purpose is to make working with groups of objects syntactically clearer.
+ * @constructor
+ * @extends Object3D
+ */
+function Group() {
+    Object3D.call(this);
 
-    <h3> </h3>
+    this.type = OBJECT_TYPE.GROUP;
+}
 
+Group.prototype = Object.create(Object3D.prototype);
+Group.prototype.constructor = Group;
 
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
+export {Group};
+</code></pre>
+        </article>
+    </section>
 
 
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: render/RenderTarget2D.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,36 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: render/RenderTarget2D.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {RenderTargetBase} from './RenderTargetBase.js';
+import {Texture2D} from '../texture/Texture2D.js';
 
+/**
+ * RenderTarget2D Class
+ * @class
+ */
+function RenderTarget2D(width, height) {
+    RenderTargetBase.call(this, width, height);
 
-    <h3> </h3>
+    this.texture = new Texture2D();
 
+    this.depthTexture = null;
+}
 
+RenderTarget2D.prototype = Object.create(RenderTargetBase.prototype);
+RenderTarget2D.prototype.constructor = RenderTarget2D;
 
-
-
-
-
-
-
-
-    
-
-
-
-
-
+export {RenderTarget2D};</code></pre>
+        </article>
+    </section>
 
 
 

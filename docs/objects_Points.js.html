@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: objects/Points.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,38 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: objects/Points.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {OBJECT_TYPE} from '../const.js';
+import {Object3D} from './Object3D.js';
 
+/**
+ * Points
+ * @class
+ */
+function Points(geometry, material) {
+    Object3D.call(this);
 
-    <h3> </h3>
+    this.geometry = geometry;
 
+    this.material = material;
 
+    this.type = OBJECT_TYPE.POINT;
+}
 
+Points.prototype = Object.create(Object3D.prototype);
+Points.prototype.constructor = Points;
 
-
-
-
-
-
-
-    
-
-
-
-
-
+export {Points};</code></pre>
+        </article>
+    </section>
 
 
 

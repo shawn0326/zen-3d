@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: material/LambertMaterial.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,39 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: material/LambertMaterial.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {MATERIAL_TYPE} from '../const.js';
+import {Material} from './Material.js';
 
+/**
+ * LambertMaterial
+ * @class
+ */
+function LambertMaterial() {
+    Material.call(this);
 
-    <h3> </h3>
+    this.type = MATERIAL_TYPE.LAMBERT;
 
+    this.acceptLight = true;
+}
 
+LambertMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+    constructor: LambertMaterial
 
+});
 
-
-
-
-
-
-    
-
-
-
-
-
+export {LambertMaterial};</code></pre>
+        </article>
+    </section>
 
 
 

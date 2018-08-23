@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: material/LineMaterial.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,51 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: material/LineMaterial.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {MATERIAL_TYPE, DRAW_MODE} from '../const.js';
+import {Material} from './Material.js';
 
+/**
+ * LineMaterial
+ * @class
+ */
+function LineMaterial() {
+    Material.call(this);
 
-    <h3> </h3>
+    this.type = MATERIAL_TYPE.LINE;
 
+    // chrome bug on MacOS: gl.lineWidth no effect
+    this.lineWidth = 1;
 
+    this.drawMode = DRAW_MODE.LINES;
+}
 
+LineMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
+    constructor: LineMaterial,
 
+    copy: function(source) {
+        Material.prototype.copy.call(this, source);
 
+        this.lineWidth = source.lineWidth;
 
+        return this;
+    }
 
+});
 
-
-    
-
-
-
-
-
+export {LineMaterial};
+</code></pre>
+        </article>
+    </section>
 
 
 

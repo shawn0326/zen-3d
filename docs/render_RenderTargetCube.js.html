@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: render/RenderTargetCube.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,36 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: render/RenderTargetCube.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {RenderTargetBase} from './RenderTargetBase.js';
+import {TextureCube} from '../texture/TextureCube.js';
 
+/**
+ * RenderTargetCube Class
+ * @class
+ */
+function RenderTargetCube(width, height) {
+    RenderTargetBase.call(this, width, height);
 
-    <h3> </h3>
+    this.texture = new TextureCube();
 
+    this.activeCubeFace = 0; // PX 0, NX 1, PY 2, NY 3, PZ 4, NZ 5
+}
 
+RenderTargetCube.prototype = Object.create(RenderTargetBase.prototype);
+RenderTargetCube.prototype.constructor = RenderTargetCube;
 
-
-
-
-
-
-
-
-    
-
-
-
-
-
+export {RenderTargetCube};</code></pre>
+        </article>
+    </section>
 
 
 

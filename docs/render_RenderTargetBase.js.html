@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: render/RenderTargetBase.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,59 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: render/RenderTargetBase.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {generateUUID} from '../base.js';
+import {EventDispatcher} from '../EventDispatcher.js';
 
+/**
+ * RenderTargetBase Class
+ * @class
+ */
+function RenderTargetBase(width, height) {
+    EventDispatcher.call(this);
 
-    <h3> </h3>
+    this.uuid = generateUUID();
 
+    this.width = width;
+    this.height = height;
 
+    this.depthBuffer = true;
+    this.stencilBuffer = true;
+}
 
+RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
 
+    constructor: RenderTargetBase,
 
+    /**
+     * resize render target
+     */
+    resize: function(width, height) {
+        if(this.width !== width || this.height !== height) {
+            this.dispose();
+        }
 
+        this.width = width;
+        this.height = height;
+    },
 
+    dispose: function() {
+        this.dispatchEvent({type: 'dispose'});
+    }
 
+});
 
-
-    
-
-
-
-
-
+export {RenderTargetBase};</code></pre>
+        </article>
+    </section>
 
 
 

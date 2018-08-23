@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: loader/ImageLoader.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,69 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: loader/ImageLoader.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * ImageLoader
+ * @class
+ * Loader for image
+ */
+function ImageLoader() {
+    this.crossOrigin = undefined;
+    this.path = undefined;
+}
 
+Object.assign(ImageLoader.prototype, {
 
-    <h3> </h3>
+    load: function(url, onLoad, onProgress, onError) {
+        if (url === undefined) url = '';
+        if (this.path !== undefined) url = this.path + url;
 
+        var image = document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
 
+        image.addEventListener('load', function() {
+            if (onLoad) onLoad(this);
+        }, false);
 
+        // image.addEventListener('progress', function(event) {
+        //     if (onProgress) onProgress(event);
+        // }, false);
 
+        image.addEventListener('error', function(event) {
+            if (onError) onError(event);
+        }, false);
 
+        if (url.substr(0, 5) !== 'data:') {
+            if (this.crossOrigin !== undefined) image.crossOrigin = this.crossOrigin;
+        }
 
+        image.src = url;
 
+        return image;
+    },
 
+    setCrossOrigin: function(value) {
+        this.crossOrigin = value;
+        return this;
+    },
 
+    setPath: function(value) {
+        this.path = value;
+        return this;
+    }
 
-    
+});
 
-
-
-
-
+export {ImageLoader};</code></pre>
+        </article>
+    </section>
 
 
 

@@ -22,23 +22,155 @@
     
 
 
+
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>(function(win) {
-    /**
-     * zen3d as a global namespace
-     * @namespace
-     */
-    win.zen3d = zen3d || {};
+            <pre class="prettyprint source linenums"><code>/**
+ * generate uuid
+ */
+export var generateUUID = (function () {
 
-})(window);
+    // http://www.broofa.com/Tools/Math.uuid.htm
 
-/** This is a description of the foo function. */
-var foo = function() {
+    var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split( '' );
+    var uuid = new Array( 36 );
+    var rnd = 0, r;
 
-};
-</code></pre>
+    return function generateUUID() {
+
+        for ( var i = 0; i &lt; 36; i ++ ) {
+
+            if ( i === 8 || i === 13 || i === 18 || i === 23 ) {
+
+                uuid[ i ] = '-';
+
+            } else if ( i === 14 ) {
+
+                uuid[ i ] = '4';
+
+            } else {
+
+                if ( rnd &lt;= 0x02 ) rnd = 0x2000000 + ( Math.random() * 0x1000000 ) | 0;
+                r = rnd &amp; 0xf;
+                rnd = rnd >> 4;
+                uuid[ i ] = chars[ ( i === 19 ) ? ( r &amp; 0x3 ) | 0x8 : r ];
+
+            }
+
+        }
+
+        return uuid.join( '' );
+
+    };
+
+})();
+
+/**
+ * is mobile
+ */
+export var isMobile = (function () {
+    if (!window.navigator) {
+        return true;
+    }
+    var ua = navigator.userAgent.toLowerCase();
+    return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
+})();
+
+/**
+ * is web
+ */
+export var isWeb = (function () {
+    return !!document;
+})();
+
+/**
+ * create checker board pixels
+ */
+export function createCheckerBoardPixels(width, height, blockSize) {
+    var pixelArray = new Uint8Array(width * height * 4);
+
+    // white and blasck
+    var colors = [[255, 255, 255, 255], [0, 0, 0, 255]];
+
+    blockSize = blockSize || 5;
+
+    var colorIndex = 0;
+
+    for(var y = 0; y &lt; height; y++) {
+        for(var x = 0; x &lt; width; x++) {
+
+            if(x == 0) {
+                colorIndex = 1;
+            } else if((x % blockSize) == 0) {
+                colorIndex = (colorIndex + 1) % 2;
+            }
+
+            if ((y % blockSize) == 0 &amp;&amp; x == 0) {
+                var tmp = colors[0];
+                colors[0] = colors[1];
+                colors[1] = tmp;
+            }
+
+            pixelArray[(y * (width * 4) + x * 4) + 0] = colors[colorIndex][0];
+            pixelArray[(y * (width * 4) + x * 4) + 1] = colors[colorIndex][1];
+            pixelArray[(y * (width * 4) + x * 4) + 2] = colors[colorIndex][2];
+            pixelArray[(y * (width * 4) + x * 4) + 3] = colors[colorIndex][3];
+        }
+    }
+
+    return pixelArray;
+}
+
+export function isPowerOfTwo(value) {
+    return ( value &amp; ( value - 1 ) ) === 0 &amp;&amp; value !== 0;
+}
+
+export function nearestPowerOfTwo( value ) {
+    return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
+}
+
+export function nextPowerOfTwo( value ) {
+    value --;
+    value |= value >> 1;
+    value |= value >> 2;
+    value |= value >> 4;
+    value |= value >> 8;
+    value |= value >> 16;
+    value ++;
+
+    return value;
+}
+
+export function cloneUniforms(uniforms_src) {
+    var uniforms_dst = {};
+
+    for(var name in uniforms_src) {
+        var uniform_src = uniforms_src[name];
+        // TODO zen3d object clone
+        if ( Array.isArray( uniform_src ) ) {
+            uniforms_dst[name] = uniform_src.slice();
+        } else {
+            uniforms_dst[name] = uniform_src;
+        }
+    }
+
+    return uniforms_dst;
+}
+
+// Generate halton sequence
+// https://en.wikipedia.org/wiki/Halton_sequence
+export function halton(index, base) {
+    var result = 0;
+    var f = 1 / base;
+    var i = index;
+    while (i > 0) {
+        result = result + f * (i % base);
+        i = Math.floor(i / base);
+        f = f / base;
+    }
+    return result;
+}</code></pre>
         </article>
     </section>
 
@@ -48,13 +180,13 @@ var foo = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="_.html">undefined</a></li></ul><h3>Namespaces</h3><ul><li><a href="win.zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="EventDispatcher.html">EventDispatcher</a></li></ul><h3>Global</h3><ul><li><a href="global.html#BLEND_EQUATION">BLEND_EQUATION</a></li><li><a href="global.html#BLEND_FACTOR">BLEND_FACTOR</a></li><li><a href="global.html#BLEND_TYPE">BLEND_TYPE</a></li><li><a href="global.html#createCheckerBoardPixels">createCheckerBoardPixels</a></li><li><a href="global.html#CULL_FACE_TYPE">CULL_FACE_TYPE</a></li><li><a href="global.html#DRAW_SIDE">DRAW_SIDE</a></li><li><a href="global.html#FOG_TYPE">FOG_TYPE</a></li><li><a href="global.html#generateUUID">generateUUID</a></li><li><a href="global.html#isMobile">isMobile</a></li><li><a href="global.html#isWeb">isWeb</a></li><li><a href="global.html#LIGHT_TYPE">LIGHT_TYPE</a></li><li><a href="global.html#MATERIAL_TYPE">MATERIAL_TYPE</a></li><li><a href="global.html#OBJECT_TYPE">OBJECT_TYPE</a></li><li><a href="global.html#SHADING_TYPE">SHADING_TYPE</a></li><li><a href="global.html#WEBGL_PIXEL_FORMAT">WEBGL_PIXEL_FORMAT</a></li><li><a href="global.html#WEBGL_PIXEL_TYPE">WEBGL_PIXEL_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></li><li><a href="global.html#WEBGL_TEXTURE_TYPE">WEBGL_TEXTURE_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></li></ul>
 </nav>
 
-<br clear="both">
+<br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sun Aug 14 2016 14:57:30 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Aug 23 2018 23:32:37 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>
