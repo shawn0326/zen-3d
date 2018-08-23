@@ -79,6 +79,17 @@
                             normalGlossinessMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
                         }
 
+                        // ignore if alpha < 0.99
+                        if(renderable.material.diffuseMap) { 
+                            normalGlossinessMaterial.defines["USE_DIFFUSE_MAP"] = "";
+                            normalGlossinessMaterial.defines["ALPHATEST"] = 0.999;
+                            normalGlossinessMaterial.diffuseMap = renderable.material.diffuseMap;
+                        } else {
+                            normalGlossinessMaterial.defines["USE_DIFFUSE_MAP"] = false;
+                            normalGlossinessMaterial.defines["ALPHATEST"] = false;
+                            normalGlossinessMaterial.diffuseMap = null;
+                        }
+
                         if (renderable.material.roughness !== undefined) {
                             normalGlossinessMaterial.uniforms["roughness"] = renderable.material.roughness;
                         } else {
