@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>Points<span class="signature">()</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>Points<span class="signature">(geometry, material)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -41,7 +41,7 @@
     
 
     
-    <h4 class="name" id="Points"><span class="type-signature"></span>new Points<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Points"><span class="type-signature"></span>new Points<span class="signature">(geometry, material)</span><span class="type-signature"></span></h4>
     
 
     
@@ -49,7 +49,8 @@
 
 
 <div class="description">
-    Points
+    A class for displaying points. 
+The points are rendered using gl.POINTS.
 </div>
 
 
@@ -58,6 +59,78 @@
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>geometry</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Geometry.html">Geometry</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">— an instance of <a href="Geometry.html">Geometry</a>.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>material</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Material.html">Material</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">a single or an array of <a href="Material.html">Material</a>.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -93,7 +166,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Points.js.html">objects/Points.js</a>, <a href="objects_Points.js.html#line8">line 8</a>
+        <a href="objects_Points.js.html">objects/Points.js</a>, <a href="objects_Points.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -125,6 +198,15 @@
     </div>
 
     
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li><a href="Object3D.html">Object3D</a></li>
+    </ul>
+
 
     
 
@@ -138,6 +220,3396 @@
 
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="castShadow"><span class="type-signature"></span>castShadow<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Whether the object gets rendered into shadow map.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#castShadow">Object3D#castShadow</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line105">line 105</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="children"><span class="type-signature"></span>children<span class="type-signature"> :Array.&lt;<a href="Object3D.html">Object3D</a>></span></h4>
+
+
+
+
+<div class="description">
+    Object's parent in the scene graph. 
+An object can have at most one parent.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;<a href="Object3D.html">Object3D</a>></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#children">Object3D#children</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line91">line 91</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="euler"><span class="type-signature"></span>euler<span class="type-signature"> :<a href="Euler.html">Euler</a></span></h4>
+
+
+
+
+<div class="description">
+    Object's local rotation as an <a href="Euler.html">Euler</a>, in radians.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="Euler.html">Euler</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#euler">Object3D#euler</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>Euler(0, 0, 0)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line55">line 55</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="frustumCulled"><span class="type-signature"></span>frustumCulled<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 
+Otherwise the object gets rendered every frame even if it isn't visible.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#frustumCulled">Object3D#frustumCulled</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line127">line 127</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="matrix"><span class="type-signature"></span>matrix<span class="type-signature"> :<a href="Matrix4.html">Matrix4</a></span></h4>
+
+
+
+
+<div class="description">
+    The local transform matrix.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="Matrix4.html">Matrix4</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#matrix">Object3D#matrix</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line77">line 77</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="name"><span class="type-signature"></span>name<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    Optional name of the object (doesn't need to be unique).
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#name">Object3D#name</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>""</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line27">line 27</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="parent"><span class="type-signature"></span>parent<span class="type-signature"> :<a href="Object3D.html">Object3D</a></span></h4>
+
+
+
+
+<div class="description">
+    Object's parent in the scene graph. 
+An object can have at most one parent.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#parent">Object3D#parent</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line98">line 98</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="position"><span class="type-signature"></span>position<span class="type-signature"> :<a href="Vector3.html">Vector3</a></span></h4>
+
+
+
+
+<div class="description">
+    A Vector3 representing the object's local position.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="Vector3.html">Vector3</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#position">Object3D#position</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>Vector3(0, 0, 0)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line41">line 41</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="quaternion"><span class="type-signature"></span>quaternion<span class="type-signature"> :<a href="Quaternion.html">Quaternion</a></span></h4>
+
+
+
+
+<div class="description">
+    Object's local rotation as a <a href="Quaternion.html">Quaternion</a>.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="Quaternion.html">Quaternion</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#quaternion">Object3D#quaternion</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>Quaternion(0, 0, 0, 1)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line62">line 62</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="receiveShadow"><span class="type-signature"></span>receiveShadow<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Whether the material receives shadows.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#receiveShadow">Object3D#receiveShadow</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line112">line 112</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="renderOrder"><span class="type-signature"></span>renderOrder<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently. 
+Sorting is from lowest to highest renderOrder.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#renderOrder">Object3D#renderOrder</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>0</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line142">line 142</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="scale"><span class="type-signature"></span>scale<span class="type-signature"> :<a href="Vector3.html">Vector3</a></span></h4>
+
+
+
+
+<div class="description">
+    The object's local scale.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="Vector3.html">Vector3</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#scale">Object3D#scale</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>Vector3(1, 1, 1)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line48">line 48</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="shadowType"><span class="type-signature"></span>shadowType<span class="type-signature"> :SHADOW_TYPE</span></h4>
+
+
+
+
+<div class="description">
+    Defines shadow map type.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">SHADOW_TYPE</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#shadowType">Object3D#shadowType</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>SHADOW_TYPE.PCF_SOFT</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line119">line 119</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="type"><span class="type-signature"></span>type<span class="type-signature"> :OBJECT_TYPE</span></h4>
+
+
+
+
+<div class="description">
+    Type of the object.
+Set by Subclass.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">OBJECT_TYPE</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Object3D.html#type">Object3D#type</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line34">line 34</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="userData"><span class="type-signature"></span>userData<span class="type-signature"> :Object</span></h4>
+
+
+
+
+<div class="description">
+    An object that can be used to store custom data about the <a href="Object3D.html">Object3D</a>. 
+It should not hold references to functions as these will not be cloned.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#userData">Object3D#userData</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>{}</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line150">line 150</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="uuid"><span class="type-signature"></span>uuid<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    UUID of this object instance. 
+This gets automatically assigned, so this shouldn't be edited.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#uuid">Object3D#uuid</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="visible"><span class="type-signature"></span>visible<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Object gets rendered if true.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#visible">Object3D#visible</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line134">line 134</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="worldMatrix"><span class="type-signature"></span>worldMatrix<span class="type-signature"> :<a href="Matrix4.html">Matrix4</a></span></h4>
+
+
+
+
+<div class="description">
+    The global transform of the object. 
+If the Object3D has no parent, then it's identical to the local transform <a href="Object3D.html#matrix">Object3D#matrix</a>.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="Matrix4.html">Matrix4</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#worldMatrix">Object3D#worldMatrix</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line84">line 84</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="add"><span class="type-signature"></span>add<span class="signature">(object)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Add object as child of this object.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>object</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#add">Object3D#add</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line174">line 174</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="clone"><span class="type-signature"></span>clone<span class="signature">(recursive<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="Object3D.html">Object3D</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Returns a clone of this object and optionally all descendants.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>recursive</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">if true, descendants of the object are also cloned.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#clone">Object3D#clone</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line328">line 328</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">(source, recursive<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="Object3D.html">Object3D</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Copy the given object into this object.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>source</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The object to be copied.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>recursive</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">if true, descendants of the object are also copied.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#copy">Object3D#copy</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line339">line 339</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getObjectByName"><span class="type-signature"></span>getObjectByName<span class="signature">(name)</span><span class="type-signature"> &rarr; {<a href="Object3D.html">Object3D</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Searches through the object's children and returns the first with a matching name.
+Note that for most objects the name is an empty string by default. 
+You will have to set it manually to make use of this method.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">String to match to the children's <a href="Object3D.html#name">Object3D#name</a> property.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#getObjectByName">Object3D#getObjectByName</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line200">line 200</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getObjectByProperty"><span class="type-signature"></span>getObjectByProperty<span class="signature">(name, value)</span><span class="type-signature"> &rarr; {<a href="Object3D.html">Object3D</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Searches through the object's children and returns the first with a property that matches the value given.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the property name to search for.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">value of the given property.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#getObjectByProperty">Object3D#getObjectByProperty</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line211">line 211</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getWorldDirection"><span class="type-signature"></span>getWorldDirection<span class="signature">(optionalTarget=<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="Vector3.html">Vector3</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Returns a vector representing the direction of object's positive z-axis in world space.
+This call must be after <a href="Object3D.html#updateMatrix">Object3D#updateMatrix</a>.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>optionalTarget=</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Vector3.html">Vector3</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">— the result will be copied into this Vector3.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#getWorldDirection">Object3D#getWorldDirection</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line258">line 258</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - the result.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Vector3.html">Vector3</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="lookAt"><span class="type-signature"></span>lookAt<span class="signature">(target, up)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Rotates the object to face a point in local space.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>target</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Vector3.html">Vector3</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A vector representing a position in local space.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>up</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Vector3.html">Vector3</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">— A vector representing the up direction in local space.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#lookAt">Object3D#lookAt</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line284">line 284</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="onAfterRender"><span class="type-signature"></span>onAfterRender<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    An optional callback that is executed immediately after the Object3D is rendered.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#onAfterRender">Object3D#onAfterRender</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line167">line 167</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="onBeforeRender"><span class="type-signature"></span>onBeforeRender<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    An optional callback that is executed immediately before the Object3D is rendered.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#onBeforeRender">Object3D#onBeforeRender</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line160">line 160</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="raycast"><span class="type-signature">(abstract) </span>raycast<span class="signature">(raycaster, intersects)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Method to get intersections between a casted ray and this object.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>raycaster</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Raycaster</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The Raycaster instance.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>intersects</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">output intersects array.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#raycast">Object3D#raycast</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line304">line 304</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="remove"><span class="type-signature"></span>remove<span class="signature">(object)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Remove object as child of this object.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>object</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Object3D.html">Object3D</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#remove">Object3D#remove</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line184">line 184</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="traverse"><span class="type-signature"></span>traverse<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Executes the callback on this object and all descendants.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A function with as first argument an object3D object.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#traverse">Object3D#traverse</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line313">line 313</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="updateMatrix"><span class="type-signature"></span>updateMatrix<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Update the local transform.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Object3D.html#updateMatrix">Object3D#updateMatrix</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line234">line 234</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     
@@ -153,13 +3625,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li></ul><h3>Global</h3><ul><li><a href="global.html#add">add</a></li><li><a href="global.html#getObjectByName">getObjectByName</a></li><li><a href="global.html#getObjectByProperty">getObjectByProperty</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#raycast">raycast</a></li><li><a href="global.html#remove">remove</a></li><li><a href="global.html#resize">resize</a></li><li><a href="global.html#rotation">rotation</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#updateMatrix">updateMatrix</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li></ul><h3>Global</h3><ul><li><a href="global.html#resize">resize</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#transform">transform</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Aug 24 2018 00:02:47 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Sep 06 2018 18:21:26 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

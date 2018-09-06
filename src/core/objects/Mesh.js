@@ -9,24 +9,41 @@ import {Vector2} from '../math/Vector2.js';
 import {Triangle} from '../math/Triangle.js';
 
 /**
- * Mesh
- * @class
+ * Class representing triangular polygon mesh based objects. 
+ * Also serves as a base for other classes such as {@link SkinnedMesh}.
+ * @constructor
+ * @extends Object3D
+ * @param {Geometry} geometry — an instance of {@link Geometry}.
+ * @param {Material} material - a single or an array of {@link Material}.
  */
 function Mesh(geometry, material) {
+
     Object3D.call(this);
 
+    /**
+     * an instance of {@link Geometry}.
+     * @type {Geometry}
+     */
     this.geometry = geometry;
 
+    /**
+     * a single or an array of {@link Material}.
+     * @type {Material|Material[]}
+     */
     this.material = material;
 
     this.type = OBJECT_TYPE.MESH;
+
 }
 
 Mesh.prototype = Object.assign(Object.create(Object3D.prototype), {
 
     constructor: Mesh,
 
-    // override
+    /**
+     * @memberof Mesh#
+     * @override
+     */
     raycast: function() {
         var sphere = new Sphere();
         var box = new Box3();
@@ -140,6 +157,10 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), {
         }
     }(),
 
+    /**
+     * @memberof Mesh#
+     * @override
+     */
     clone: function() {
         return new this.constructor( this.geometry, this.material ).copy( this );
     }

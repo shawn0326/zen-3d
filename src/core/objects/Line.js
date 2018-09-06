@@ -2,8 +2,12 @@ import {OBJECT_TYPE} from '../const.js';
 import {Object3D} from './Object3D.js';
 
 /**
- * Line
- * @class
+ * A continuous line.
+ * The line is rendered using gl.LINES.
+ * @constructor
+ * @extends Object3D
+ * @param {Geometry} geometry — an instance of {@link Geometry}.
+ * @param {Material} material - a single or an array of {@link Material}.
  */
 function Line(geometry, material) {
     Object3D.call(this);
@@ -20,9 +24,10 @@ Line.prototype = Object.assign(Object.create(Object3D.prototype), {
     constructor: Line,
 
     /**
-     * raycast
+     * @memberof Line#
+     * @override
      */
-    raycast: function() {
+    raycast: function(raycaster, intersects) {
         // TODO
     }
 

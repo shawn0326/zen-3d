@@ -20,30 +20,49 @@ function Object3D() {
     this.uuid = generateUUID();
 
     /**
-     * Optional name of the object (doesn't need to be unique). 
-     * Default is an empty string.
+     * Optional name of the object (doesn't need to be unique).
      * @type {string}
+     * @default ""
      */
     this.name = "";
 
     /**
      * Type of the object.
-     * Set by Subclass
+     * Set by Subclass.
      * @type {OBJECT_TYPE} 
      */
     this.type = "";
 
-    // position
+    /**
+     * A Vector3 representing the object's local position.
+     * @type {Vector3} 
+     * @default Vector3(0, 0, 0)
+     */
     this.position = new Vector3();
-    // scale
+
+    /**
+     * The object's local scale.
+     * @type {Vector3} 
+     * @default Vector3(1, 1, 1)
+     */
     this.scale = new Vector3(1, 1, 1);
 
-    // euler rotate
-    var euler = this.euler = new Euler();
-    // quaternion rotate
-    var quaternion = this.quaternion = new Quaternion();
+    /**
+     * Object's local rotation as an {@link Euler}, in radians.
+     * @type {Euler} 
+     * @default Euler(0, 0, 0)
+     */
+    this.euler = new Euler();
+
+    /**
+     * Object's local rotation as a {@link Quaternion}.
+     * @type {Quaternion}
+     * @default Quaternion(0, 0, 0, 1)
+     */
+    this.quaternion = new Quaternion();
 
     // bind euler and quaternion
+    var euler = this.euler, quaternion = this.quaternion;
     euler.onChange(function() {
         quaternion.setFromEuler(euler, false);
     });
@@ -51,65 +70,106 @@ function Object3D() {
         euler.setFromQuaternion(quaternion, undefined, false);
     });
 
-    // transform matrix
+    /**
+     * The local transform matrix.
+     * @type {Matrix4}
+     */
     this.matrix = new Matrix4();
-    // world transform matrix
+
+    /**
+     * The global transform of the object. 
+     * If the Object3D has no parent, then it's identical to the local transform {@link Object3D#matrix}.
+     * @type {Matrix4}
+     */
     this.worldMatrix = new Matrix4();
 
-    // children
+    /**
+     * Object's parent in the scene graph. 
+     * An object can have at most one parent.
+     * @type {Object3D[]}
+     */
     this.children = new Array();
-    // parent
+
+    /**
+     * Object's parent in the scene graph. 
+     * An object can have at most one parent.
+     * @type {Object3D}
+     */
     this.parent = null;
 
-    // shadow
+    /**
+     * Whether the object gets rendered into shadow map.
+     * @type {boolean}
+     * @default false
+     */
     this.castShadow = false;
+
+    /**
+     * Whether the material receives shadows.
+     * @type {boolean}
+     * @default false
+     */
     this.receiveShadow = false;
+
+    /**
+     * Defines shadow map type.
+     * @type {SHADOW_TYPE}
+     * @default SHADOW_TYPE.PCF_SOFT
+     */
     this.shadowType = SHADOW_TYPE.PCF_SOFT;
 
-    // frustum test
+    /**
+     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 
+     * Otherwise the object gets rendered every frame even if it isn't visible.
+     * @type {boolean}
+     * @default true
+     */
     this.frustumCulled = true;
 
     /**
-     * Object gets rendered if true. Default is true.
+     * Object gets rendered if true.
      * @type {boolean} 
+     * @default true
      */
     this.visible = true;
 
     /**
      * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently. 
-     * Sorting is from lowest to highest renderOrder. 
-     * Default value is 0.
+     * Sorting is from lowest to highest renderOrder.
      * @type {number}
+     * @default 0
      */
     this.renderOrder = 0;
 
+    /**
+     * An object that can be used to store custom data about the {@link Object3D}. 
+     * It should not hold references to functions as these will not be cloned.
+     * @type {Object}
+     * @default {}
+     */
     this.userData = {};
 }
 
-Object.defineProperties(Object3D.prototype, {
-    /**
-     * rotation set by euler
-     **/
-    rotation: {
-        get: function() {
-            return this.euler;
-        },
-        set: function(euler) {
-            var _euler = this.euler;
-            _euler.copyFrom(euler);
-
-            this.quaternion.setFromEuler(euler);
-        }
-    }
-});
-
 Object.assign(Object3D.prototype, {
 
+    /**
+     * An optional callback that is executed immediately before the Object3D is rendered.
+     * @memberof Object3D#
+     * @type {Function}
+     */
     onBeforeRender: function () {},
+
+    /**
+     * An optional callback that is executed immediately after the Object3D is rendered.
+     * @memberof Object3D#
+     * @type {Function}
+     */
 	onAfterRender: function () {},
 
     /**
-     * add child to object3d
+     * Add object as child of this object.
+     * @memberof Object3D#
+     * @param {Object3D} object
      */
     add: function(object) {
         this.children.push(object);
@@ -117,7 +177,9 @@ Object.assign(Object3D.prototype, {
     },
 
     /**
-     * remove child from object3d
+     * Remove object as child of this object.
+     * @memberof Object3D#  
+     * @param {Object3D} object
      */
     remove: function(object) {
         var index = this.children.indexOf(object);
@@ -128,14 +190,23 @@ Object.assign(Object3D.prototype, {
     },
 
     /**
-     * get object by name
+     * Searches through the object's children and returns the first with a matching name.
+     * Note that for most objects the name is an empty string by default. 
+     * You will have to set it manually to make use of this method.
+     * @memberof Object3D#
+     * @param {string} name - String to match to the children's {@link Object3D#name} property. 
+     * @return {Object3D}
      */
     getObjectByName: function(name) {
         return this.getObjectByProperty('name', name);
     },
 
     /**
-     * get object by property
+     * Searches through the object's children and returns the first with a property that matches the value given.
+     * @memberof Object3D#
+     * @param {string} name - the property name to search for. 
+     * @param {number} value - value of the given property. 
+     * @return {Object3D}
      */
     getObjectByProperty: function(name, value) {
         if (this[name] === value) return this;
@@ -157,7 +228,8 @@ Object.assign(Object3D.prototype, {
     },
 
     /**
-     * update matrix
+     * Update the local transform.
+     * @memberof Object3D#
      */
     updateMatrix: function() {
         var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
@@ -175,9 +247,13 @@ Object.assign(Object3D.prototype, {
         }
     },
 
-    /*
-     * get world direction
-     * must call after world matrix updated
+    /**
+     * Returns a vector representing the direction of object's positive z-axis in world space.
+     * This call must be after {@link Object3D#updateMatrix}.
+     * @memberof Object3D#
+     * @method
+     * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
+     * @return {Vector3} - the result.
      */
     getWorldDirection: function() {
 
@@ -199,7 +275,11 @@ Object.assign(Object3D.prototype, {
     }(),
 
     /**
-     * set view by look at, this func will set quaternion of this object
+     * Rotates the object to face a point in local space.
+     * @memberof Object3D#
+     * @method
+     * @param {Vector3} target - A vector representing a position in local space.
+     * @param {Vector3} up — A vector representing the up direction in local space.
      */
     lookAt: function() {
 
@@ -215,12 +295,21 @@ Object.assign(Object3D.prototype, {
     }(),
 
     /**
-     * raycast
+     * Method to get intersections between a casted ray and this object.
+     * @memberof Object3D#  
+     * @abstract
+     * @param {Raycaster} raycaster - The {@link Raycaster} instance.
+     * @param {Array} intersects - output intersects array.
      */
-    raycast: function() {
-        // implemental by subclass
+    raycast: function(raycaster, intersects) {
+        
     },
 
+    /**
+     * Executes the callback on this object and all descendants.
+     * @memberof Object3D#  
+     * @param {Function} callback - A function with as first argument an object3D object.
+     */
     traverse: function ( callback ) {
         callback( this );
 
@@ -229,11 +318,24 @@ Object.assign(Object3D.prototype, {
             children[ i ].traverse( callback );
         }
     },
-
+    
+    /**
+     * Returns a clone of this object and optionally all descendants.
+     * @memberof Object3D#  
+     * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
+     * @return {Object3D}
+     */
     clone: function ( recursive ) {
         return new this.constructor().copy( this, recursive );
     },
 
+    /**
+     * Copy the given object into this object.
+     * @memberof Object3D#  
+     * @param {Object3D} source - The object to be copied.
+     * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
+     * @return {Object3D}
+     */
     copy: function( source, recursive ) {
         if ( recursive === undefined ) recursive = true;
 

@@ -3,10 +3,13 @@ import {Mesh} from './Mesh.js';
 import {Matrix4} from '../math/Matrix4.js';
 
 /**
- * SkinnedMesh
- * @class
+ * A mesh that has a {@link Skeleton} with bones that can then be used to animate the vertices of the geometry.
+ * The material must support skinning.
+ * @constructor
+ * @extends Mesh
  */
 function SkinnedMesh(geometry, material) {
+
     Mesh.call(this, geometry, material);
 
     this.type = OBJECT_TYPE.SKINNED_MESH;
@@ -17,6 +20,7 @@ function SkinnedMesh(geometry, material) {
 
     this.bindMatrix = new Matrix4();
     this.bindMatrixInverse = new Matrix4();
+
 }
 
 SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), {

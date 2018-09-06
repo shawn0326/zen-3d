@@ -48,30 +48,49 @@ function Object3D() {
     this.uuid = generateUUID();
 
     /**
-     * Optional name of the object (doesn't need to be unique). 
-     * Default is an empty string.
+     * Optional name of the object (doesn't need to be unique).
      * @type {string}
+     * @default ""
      */
     this.name = "";
 
     /**
      * Type of the object.
-     * Set by Subclass
+     * Set by Subclass.
      * @type {OBJECT_TYPE} 
      */
     this.type = "";
 
-    // position
+    /**
+     * A Vector3 representing the object's local position.
+     * @type {Vector3} 
+     * @default Vector3(0, 0, 0)
+     */
     this.position = new Vector3();
-    // scale
+
+    /**
+     * The object's local scale.
+     * @type {Vector3} 
+     * @default Vector3(1, 1, 1)
+     */
     this.scale = new Vector3(1, 1, 1);
 
-    // euler rotate
-    var euler = this.euler = new Euler();
-    // quaternion rotate
-    var quaternion = this.quaternion = new Quaternion();
+    /**
+     * Object's local rotation as an {@link Euler}, in radians.
+     * @type {Euler} 
+     * @default Euler(0, 0, 0)
+     */
+    this.euler = new Euler();
+
+    /**
+     * Object's local rotation as a {@link Quaternion}.
+     * @type {Quaternion}
+     * @default Quaternion(0, 0, 0, 1)
+     */
+    this.quaternion = new Quaternion();
 
     // bind euler and quaternion
+    var euler = this.euler, quaternion = this.quaternion;
     euler.onChange(function() {
         quaternion.setFromEuler(euler, false);
     });
@@ -79,65 +98,106 @@ function Object3D() {
         euler.setFromQuaternion(quaternion, undefined, false);
     });
 
-    // transform matrix
+    /**
+     * The local transform matrix.
+     * @type {Matrix4}
+     */
     this.matrix = new Matrix4();
-    // world transform matrix
+
+    /**
+     * The global transform of the object. 
+     * If the Object3D has no parent, then it's identical to the local transform {@link Object3D#matrix}.
+     * @type {Matrix4}
+     */
     this.worldMatrix = new Matrix4();
 
-    // children
+    /**
+     * Object's parent in the scene graph. 
+     * An object can have at most one parent.
+     * @type {Object3D[]}
+     */
     this.children = new Array();
-    // parent
+
+    /**
+     * Object's parent in the scene graph. 
+     * An object can have at most one parent.
+     * @type {Object3D}
+     */
     this.parent = null;
 
-    // shadow
+    /**
+     * Whether the object gets rendered into shadow map.
+     * @type {boolean}
+     * @default false
+     */
     this.castShadow = false;
+
+    /**
+     * Whether the material receives shadows.
+     * @type {boolean}
+     * @default false
+     */
     this.receiveShadow = false;
+
+    /**
+     * Defines shadow map type.
+     * @type {SHADOW_TYPE}
+     * @default SHADOW_TYPE.PCF_SOFT
+     */
     this.shadowType = SHADOW_TYPE.PCF_SOFT;
 
-    // frustum test
+    /**
+     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 
+     * Otherwise the object gets rendered every frame even if it isn't visible.
+     * @type {boolean}
+     * @default true
+     */
     this.frustumCulled = true;
 
     /**
-     * Object gets rendered if true. Default is true.
+     * Object gets rendered if true.
      * @type {boolean} 
+     * @default true
      */
     this.visible = true;
 
     /**
      * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently. 
-     * Sorting is from lowest to highest renderOrder. 
-     * Default value is 0.
+     * Sorting is from lowest to highest renderOrder.
      * @type {number}
+     * @default 0
      */
     this.renderOrder = 0;
 
+    /**
+     * An object that can be used to store custom data about the {@link Object3D}. 
+     * It should not hold references to functions as these will not be cloned.
+     * @type {Object}
+     * @default {}
+     */
     this.userData = {};
 }
 
-Object.defineProperties(Object3D.prototype, {
-    /**
-     * rotation set by euler
-     **/
-    rotation: {
-        get: function() {
-            return this.euler;
-        },
-        set: function(euler) {
-            var _euler = this.euler;
-            _euler.copyFrom(euler);
-
-            this.quaternion.setFromEuler(euler);
-        }
-    }
-});
-
 Object.assign(Object3D.prototype, {
 
+    /**
+     * An optional callback that is executed immediately before the Object3D is rendered.
+     * @memberof Object3D#
+     * @type {Function}
+     */
     onBeforeRender: function () {},
+
+    /**
+     * An optional callback that is executed immediately after the Object3D is rendered.
+     * @memberof Object3D#
+     * @type {Function}
+     */
 	onAfterRender: function () {},
 
     /**
-     * add child to object3d
+     * Add object as child of this object.
+     * @memberof Object3D#
+     * @param {Object3D} object
      */
     add: function(object) {
         this.children.push(object);
@@ -145,7 +205,9 @@ Object.assign(Object3D.prototype, {
     },
 
     /**
-     * remove child from object3d
+     * Remove object as child of this object.
+     * @memberof Object3D#  
+     * @param {Object3D} object
      */
     remove: function(object) {
         var index = this.children.indexOf(object);
@@ -156,14 +218,23 @@ Object.assign(Object3D.prototype, {
     },
 
     /**
-     * get object by name
+     * Searches through the object's children and returns the first with a matching name.
+     * Note that for most objects the name is an empty string by default. 
+     * You will have to set it manually to make use of this method.
+     * @memberof Object3D#
+     * @param {string} name - String to match to the children's {@link Object3D#name} property. 
+     * @return {Object3D}
      */
     getObjectByName: function(name) {
         return this.getObjectByProperty('name', name);
     },
 
     /**
-     * get object by property
+     * Searches through the object's children and returns the first with a property that matches the value given.
+     * @memberof Object3D#
+     * @param {string} name - the property name to search for. 
+     * @param {number} value - value of the given property. 
+     * @return {Object3D}
      */
     getObjectByProperty: function(name, value) {
         if (this[name] === value) return this;
@@ -185,7 +256,8 @@ Object.assign(Object3D.prototype, {
     },
 
     /**
-     * update matrix
+     * Update the local transform.
+     * @memberof Object3D#
      */
     updateMatrix: function() {
         var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
@@ -203,9 +275,13 @@ Object.assign(Object3D.prototype, {
         }
     },
 
-    /*
-     * get world direction
-     * must call after world matrix updated
+    /**
+     * Returns a vector representing the direction of object's positive z-axis in world space.
+     * This call must be after {@link Object3D#updateMatrix}.
+     * @memberof Object3D#
+     * @method
+     * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
+     * @return {Vector3} - the result.
      */
     getWorldDirection: function() {
 
@@ -227,7 +303,11 @@ Object.assign(Object3D.prototype, {
     }(),
 
     /**
-     * set view by look at, this func will set quaternion of this object
+     * Rotates the object to face a point in local space.
+     * @memberof Object3D#
+     * @method
+     * @param {Vector3} target - A vector representing a position in local space.
+     * @param {Vector3} up — A vector representing the up direction in local space.
      */
     lookAt: function() {
 
@@ -243,12 +323,21 @@ Object.assign(Object3D.prototype, {
     }(),
 
     /**
-     * raycast
+     * Method to get intersections between a casted ray and this object.
+     * @memberof Object3D#  
+     * @abstract
+     * @param {Raycaster} raycaster - The {@link Raycaster} instance.
+     * @param {Array} intersects - output intersects array.
      */
-    raycast: function() {
-        // implemental by subclass
+    raycast: function(raycaster, intersects) {
+        
     },
 
+    /**
+     * Executes the callback on this object and all descendants.
+     * @memberof Object3D#  
+     * @param {Function} callback - A function with as first argument an object3D object.
+     */
     traverse: function ( callback ) {
         callback( this );
 
@@ -257,11 +346,24 @@ Object.assign(Object3D.prototype, {
             children[ i ].traverse( callback );
         }
     },
-
+    
+    /**
+     * Returns a clone of this object and optionally all descendants.
+     * @memberof Object3D#  
+     * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
+     * @return {Object3D}
+     */
     clone: function ( recursive ) {
         return new this.constructor().copy( this, recursive );
     },
 
+    /**
+     * Copy the given object into this object.
+     * @memberof Object3D#  
+     * @param {Object3D} source - The object to be copied.
+     * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
+     * @return {Object3D}
+     */
     copy: function( source, recursive ) {
         if ( recursive === undefined ) recursive = true;
 
@@ -309,13 +411,13 @@ export {Object3D};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li></ul><h3>Global</h3><ul><li><a href="global.html#add">add</a></li><li><a href="global.html#getObjectByName">getObjectByName</a></li><li><a href="global.html#getObjectByProperty">getObjectByProperty</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#raycast">raycast</a></li><li><a href="global.html#remove">remove</a></li><li><a href="global.html#resize">resize</a></li><li><a href="global.html#rotation">rotation</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#updateMatrix">updateMatrix</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li></ul><h3>Global</h3><ul><li><a href="global.html#resize">resize</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#transform">transform</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Aug 24 2018 00:02:47 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Sep 06 2018 18:21:26 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

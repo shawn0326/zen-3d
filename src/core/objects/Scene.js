@@ -4,10 +4,13 @@ import {RenderList} from '../render/RenderList.js';
 import {Object3D} from './Object3D.js';
 
 /**
- * Scene
- * @class
+ * Scenes allow you to set up what and where is to be rendered by zen3d.js. 
+ * This is where you place objects, lights and cameras.
+ * @constructor
+ * @extends Object3D
  */
 function Scene() {
+
     Object3D.call(this);
 
     this.type = OBJECT_TYPE.SCENE;
