@@ -1,14 +1,21 @@
 import {RenderTargetBase} from './RenderTargetBase.js';
 
 /**
- * RenderTargetBack Class
- * no texture & framebuffer in this render target, but an canvas tag element
- * @class
+ * Render Target that render to canvas element.
+ * @constructor
+ * @extends RenderTargetBase
+ * @param {HTMLCanvasElement} view - The canvas element which the Render Target rendered to.
  */
 function RenderTargetBack(view) {
+
     RenderTargetBase.call(this, view.width, view.height);
 
-    this.view = view; // render to canvas
+    /**
+     * The canvas element which the Render Target rendered to.
+     * @type {HTMLCanvasElement}
+     */
+    this.view = view;
+
 }
 
 RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.prototype), {
@@ -16,18 +23,25 @@ RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.protot
     constructor: RenderTargetBack,
 
     /**
-     * resize render target
+     * @memberof RenderTargetBack#
+     * @override
      */
     resize: function(width, height) {
+
         this.view.width = width;
         this.view.height = height;
 
         this.width = width;
         this.height = height;
+
     },
 
+    /**
+     * @memberof RenderTargetBack#
+     * @override
+     */
     dispose: function() {
-        // dispose canvas?
+        // TODO dispose canvas?
     }
 
 });

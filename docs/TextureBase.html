@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>TextureBase<span class="signature">()</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature">(abstract) </span></span>TextureBase<span class="signature">()</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -41,7 +41,7 @@
     
 
     
-    <h4 class="name" id="TextureBase"><span class="type-signature"></span>new TextureBase<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="TextureBase"><span class="type-signature">(abstract) </span>new TextureBase<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -49,7 +49,7 @@
 
 
 <div class="description">
-    TextureBase
+    Create a texture to apply to a surface or as a reflection or refraction map.
 </div>
 
 
@@ -93,7 +93,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line9">line 9</a>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line11">line 11</a>
     </li></ul></dd>
     
 
@@ -125,6 +125,15 @@
     </div>
 
     
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li><a href="EventDispatcher.html">EventDispatcher</a></li>
+    </ul>
+
 
     
 
@@ -138,6 +147,1957 @@
 
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="anisotropy"><span class="type-signature"></span>anisotropy<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    The number of samples taken along the axis through the pixel that has the highest density of texels.
+A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used. 
+Use WebGLcapabilities#maxAnisotropy to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>1</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line81">line 81</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="border"><span class="type-signature"></span>border<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    WebGLTexture border. 
+See <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D">WebGLTexture texImage2D()</a>.
+Must be zero.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line30">line 30</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="encoding"><span class="type-signature"></span>encoding<span class="type-signature"> :TEXEL_ENCODING_TYPE</span></h4>
+
+
+
+
+<div class="description">
+    texture pixel encoding.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">TEXEL_ENCODING_TYPE</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>TEXEL_ENCODING_TYPE.LINEAR</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line96">line 96</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="flipY"><span class="type-signature"></span>flipY<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Flips the image's Y axis to match the WebGL texture coordinate space.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line103">line 103</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="generateMipmaps"><span class="type-signature"></span>generateMipmaps<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Whether to generate mipmaps (if possible) for a texture.
+Set this to false if you are creating mipmaps manually.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line89">line 89</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="magFilter"><span class="type-signature"></span>magFilter<span class="type-signature"> :<a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></span></h4>
+
+
+
+
+<div class="description">
+    How the texture is sampled when a texel covers more than one pixel.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>WEBGL_TEXTURE_FILTER.LINEAR</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line51">line 51</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="minFilter"><span class="type-signature"></span>minFilter<span class="type-signature"> :<a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></span></h4>
+
+
+
+
+<div class="description">
+    How the texture is sampled when a texel covers less than one pixel.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line58">line 58</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="pixelFormat"><span class="type-signature"></span>pixelFormat<span class="type-signature"> :<a href="global.html#WEBGL_PIXEL_FORMAT">WEBGL_PIXEL_FORMAT</a></span></h4>
+
+
+
+
+<div class="description">
+    WebGLTexture pixel format.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#WEBGL_PIXEL_FORMAT">WEBGL_PIXEL_FORMAT</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>WEBGL_PIXEL_FORMAT.RGBA</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line37">line 37</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="pixelType"><span class="type-signature"></span>pixelType<span class="type-signature"> :<a href="global.html#WEBGL_PIXEL_TYPE">WEBGL_PIXEL_TYPE</a></span></h4>
+
+
+
+
+<div class="description">
+    WebGLTexture pixel type.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#WEBGL_PIXEL_TYPE">WEBGL_PIXEL_TYPE</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>WEBGL_PIXEL_TYPE.UNSIGNED_BYTE</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line44">line 44</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="uuid"><span class="type-signature"></span>uuid<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    UUID of this texture instance. 
+This gets automatically assigned, so this shouldn't be edited.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="version"><span class="type-signature"></span>version<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    version code increse if texture changed.
+if version is still 0, this texture will be skiped.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>0</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line111">line 111</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="wrapS"><span class="type-signature"></span>wrapS<span class="type-signature"> :<a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></span></h4>
+
+
+
+
+<div class="description">
+    This defines how the texture is wrapped horizontally and corresponds to U in UV mapping.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line65">line 65</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="wrapT"><span class="type-signature"></span>wrapT<span class="type-signature"> :<a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></span></h4>
+
+
+
+
+<div class="description">
+    This defines how the texture is wrapped vertically and corresponds to V in UV mapping.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line72">line 72</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addEventListener"><span class="type-signature"></span>addEventListener<span class="signature">(type, listener, thisObject<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Adds a listener to an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The type of event to listen to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The function that gets called when the event is fired.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thisObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    this
+                
+                </td>
+            
+
+            <td class="description last">The Object of calling listener method.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="EventDispatcher.html#addEventListener">EventDispatcher#addEventListener</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="clone"><span class="type-signature"></span>clone<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="TextureBase.html">TextureBase</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Returns a clone of this texture.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line123">line 123</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="TextureBase.html">TextureBase</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">(source)</span><span class="type-signature"> &rarr; {<a href="TextureBase.html">TextureBase</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Copy the given texture into this texture.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>source</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="TextureBase.html">TextureBase</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The texture to be copied.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line133">line 133</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="TextureBase.html">TextureBase</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="dispatchEvent"><span class="type-signature"></span>dispatchEvent<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Fire an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event that gets fired.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="EventDispatcher.html#dispatchEvent">EventDispatcher#dispatchEvent</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line58">line 58</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="dispose"><span class="type-signature"></span>dispose<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Dispatches a dispose event.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line156">line 156</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="removeEventListener"><span class="type-signature"></span>removeEventListener<span class="signature">(type, listener, thisObject<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Removes a listener from an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The type of the listener that gets removed.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The listener function that gets removed.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thisObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    this
+                
+                </td>
+            
+
+            <td class="description last">thisObject - The Object of calling listener method.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="EventDispatcher.html#removeEventListener">EventDispatcher#removeEventListener</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line37">line 37</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     
@@ -153,13 +2113,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li></ul><h3>Global</h3><ul><li><a href="global.html#resize">resize</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#transform">transform</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AmbientLight.html">AmbientLight</a></li><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="Camera.html">Camera</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DirectionalLight.html">DirectionalLight</a></li><li><a href="DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Fog.html">Fog</a></li><li><a href="FogExp2.html">FogExp2</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Light.html">Light</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="PointLight.html">PointLight</a></li><li><a href="PointLightShadow.html">PointLightShadow</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Raycaster.html">Raycaster</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="SpotLight.html">SpotLight</a></li><li><a href="SpotLightShadow.html">SpotLightShadow</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="TextureData.html">TextureData</a></li><li><a href="TextureDepth.html">TextureDepth</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_updateCamera">_updateCamera</a></li><li><a href="global.html#_updateMatrix">_updateMatrix</a></li><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BLEND_EQUATION">BLEND_EQUATION</a></li><li><a href="global.html#BLEND_FACTOR">BLEND_FACTOR</a></li><li><a href="global.html#BLEND_TYPE">BLEND_TYPE</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createCheckerBoardPixels">createCheckerBoardPixels</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#CULL_FACE_TYPE">CULL_FACE_TYPE</a></li><li><a href="global.html#DRAW_SIDE">DRAW_SIDE</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#FOG_TYPE">FOG_TYPE</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#generateUUID">generateUUID</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#isMobile">isMobile</a></li><li><a href="global.html#isWeb">isWeb</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#LIGHT_TYPE">LIGHT_TYPE</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#MATERIAL_TYPE">MATERIAL_TYPE</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#OBJECT_TYPE">OBJECT_TYPE</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#setOrtho">setOrtho</a></li><li><a href="global.html#setPerspective">setPerspective</a></li><li><a href="global.html#SHADING_TYPE">SHADING_TYPE</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li><li><a href="global.html#WEBGL_PIXEL_FORMAT">WEBGL_PIXEL_FORMAT</a></li><li><a href="global.html#WEBGL_PIXEL_TYPE">WEBGL_PIXEL_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></li><li><a href="global.html#WEBGL_TEXTURE_TYPE">WEBGL_TEXTURE_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Sep 06 2018 18:21:27 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 23:04:49 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

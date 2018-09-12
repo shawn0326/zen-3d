@@ -4,10 +4,12 @@ import {ImageLoader} from '../loader/ImageLoader.js';
 import {TGALoader} from '../loader/TGALoader.js';
 
 /**
- * TextureCube
- * @class
+ * Creates a cube texture made up of six images.
+ * @constructor
+ * @extends TextureBase
  */
 function TextureCube() {
+
     TextureBase.call(this);
 
     this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: objects/Object3D.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: objects/Object3D.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {generateUUID} from '../base.js';
+import {SHADOW_TYPE} from '../const.js';
+import {Vector3} from '../math/Vector3.js';
+import {Euler} from '../math/Euler.js';
+import {Quaternion} from '../math/Quaternion.js';
+import {Matrix4} from '../math/Matrix4.js';
+
+/**
+ * This is the base class for most objects in zen3d
+ * and provides a set of properties and methods for manipulating objects in 3D space.
+ * @constructor
+ */
+function Object3D() {
+
+    /**
+     * UUID of this object instance. 
+     * This gets automatically assigned, so this shouldn't be edited.
+     * @type {string}
+     */
+    this.uuid = generateUUID();
+
+    /**
+     * Optional name of the object (doesn't need to be unique).
+     * @type {string}
+     * @default ""
+     */
+    this.name = "";
+
+    /**
+     * Type of the object.
+     * Set by Subclass.
+     * @type {OBJECT_TYPE} 
+     */
+    this.type = "";
+
+    /**
+     * A Vector3 representing the object's local position.
+     * @type {Vector3} 
+     * @default Vector3(0, 0, 0)
+     */
+    this.position = new Vector3();
+
+    /**
+     * The object's local scale.
+     * @type {Vector3} 
+     * @default Vector3(1, 1, 1)
+     */
+    this.scale = new Vector3(1, 1, 1);
+
+    /**
+     * Object's local rotation as an {@link Euler}, in radians.
+     * @type {Euler} 
+     * @default Euler(0, 0, 0)
+     */
+    this.euler = new Euler();
+
+    /**
+     * Object's local rotation as a {@link Quaternion}.
+     * @type {Quaternion}
+     * @default Quaternion(0, 0, 0, 1)
+     */
+    this.quaternion = new Quaternion();
+
+    // bind euler and quaternion
+    var euler = this.euler, quaternion = this.quaternion;
+    euler.onChange(function() {
+        quaternion.setFromEuler(euler, false);
+    });
+    quaternion.onChange(function() {
+        euler.setFromQuaternion(quaternion, undefined, false);
+    });
+
+    /**
+     * The local transform matrix.
+     * @type {Matrix4}
+     */
+    this.matrix = new Matrix4();
+
+    /**
+     * The global transform of the object. 
+     * If the Object3D has no parent, then it's identical to the local transform {@link Object3D#matrix}.
+     * @type {Matrix4}
+     */
+    this.worldMatrix = new Matrix4();
+
+    /**
+     * Object's parent in the scene graph. 
+     * An object can have at most one parent.
+     * @type {Object3D[]}
+     */
+    this.children = new Array();
+
+    /**
+     * Object's parent in the scene graph. 
+     * An object can have at most one parent.
+     * @type {Object3D}
+     */
+    this.parent = null;
+
+    /**
+     * Whether the object gets rendered into shadow map.
+     * @type {boolean}
+     * @default false
+     */
+    this.castShadow = false;
+
+    /**
+     * Whether the material receives shadows.
+     * @type {boolean}
+     * @default false
+     */
+    this.receiveShadow = false;
+
+    /**
+     * Defines shadow map type.
+     * @type {SHADOW_TYPE}
+     * @default SHADOW_TYPE.PCF_SOFT
+     */
+    this.shadowType = SHADOW_TYPE.PCF_SOFT;
+
+    /**
+     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 
+     * Otherwise the object gets rendered every frame even if it isn't visible.
+     * @type {boolean}
+     * @default true
+     */
+    this.frustumCulled = true;
+
+    /**
+     * Object gets rendered if true.
+     * @type {boolean} 
+     * @default true
+     */
+    this.visible = true;
+
+    /**
+     * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently. 
+     * Sorting is from lowest to highest renderOrder.
+     * @type {number}
+     * @default 0
+     */
+    this.renderOrder = 0;
+
+    /**
+     * An object that can be used to store custom data about the {@link Object3D}. 
+     * It should not hold references to functions as these will not be cloned.
+     * @type {Object}
+     * @default {}
+     */
+    this.userData = {};
+}
+
+Object.assign(Object3D.prototype, {
+
+    /**
+     * An optional callback that is executed immediately before the Object3D is rendered.
+     * @memberof Object3D#
+     * @type {Function}
+     */
+    onBeforeRender: function () {},
+
+    /**
+     * An optional callback that is executed immediately after the Object3D is rendered.
+     * @memberof Object3D#
+     * @type {Function}
+     */
+	onAfterRender: function () {},
+
+    /**
+     * Add object as child of this object.
+     * @memberof Object3D#
+     * @param {Object3D} object
+     */
+    add: function(object) {
+        this.children.push(object);
+        object.parent = this;
+    },
+
+    /**
+     * Remove object as child of this object.
+     * @memberof Object3D#  
+     * @param {Object3D} object
+     */
+    remove: function(object) {
+        var index = this.children.indexOf(object);
+        if (index !== -1) {
+            this.children.splice(index, 1);
+        }
+        object.parent = null;
+    },
+
+    /**
+     * Searches through the object's children and returns the first with a matching name.
+     * Note that for most objects the name is an empty string by default. 
+     * You will have to set it manually to make use of this method.
+     * @memberof Object3D#
+     * @param {string} name - String to match to the children's {@link Object3D#name} property. 
+     * @return {Object3D}
+     */
+    getObjectByName: function(name) {
+        return this.getObjectByProperty('name', name);
+    },
+
+    /**
+     * Searches through the object's children and returns the first with a property that matches the value given.
+     * @memberof Object3D#
+     * @param {string} name - the property name to search for. 
+     * @param {number} value - value of the given property. 
+     * @return {Object3D}
+     */
+    getObjectByProperty: function(name, value) {
+        if (this[name] === value) return this;
+
+        for (var i = 0, l = this.children.length; i &lt; l; i++) {
+
+            var child = this.children[i];
+            var object = child.getObjectByProperty(name, value);
+
+            if (object !== undefined) {
+
+                return object;
+
+            }
+
+        }
+
+        return undefined;
+    },
+
+    /**
+     * Update the local transform.
+     * @memberof Object3D#
+     */
+    updateMatrix: function() {
+        var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
+
+        this.worldMatrix.copy(matrix);
+
+        if (this.parent) {
+            var parentMatrix = this.parent.worldMatrix;
+            this.worldMatrix.premultiply(parentMatrix);
+        }
+
+        var children = this.children;
+        for (var i = 0, l = children.length; i &lt; l; i++) {
+            children[i].updateMatrix();
+        }
+    },
+
+    /**
+     * Returns a vector representing the direction of object's positive z-axis in world space.
+     * This call must be after {@link Object3D#updateMatrix}.
+     * @memberof Object3D#
+     * @method
+     * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
+     * @return {Vector3} - the result.
+     */
+    getWorldDirection: function() {
+
+        var position = new Vector3();
+        var quaternion = new Quaternion();
+        var scale = new Vector3();
+
+        return function getWorldDirection(optionalTarget) {
+
+            var result = optionalTarget || new Vector3();
+
+            this.worldMatrix.decompose(position, quaternion, scale);
+
+            result.set(0, 0, 1).applyQuaternion(quaternion);
+
+            return result;
+
+        };
+    }(),
+
+    /**
+     * Rotates the object to face a point in local space.
+     * @memberof Object3D#
+     * @method
+     * @param {Vector3} target - A vector representing a position in local space.
+     * @param {Vector3} up — A vector representing the up direction in local space.
+     */
+    lookAt: function() {
+
+        var m = new Matrix4();
+
+        return function lookAt(target, up) {
+
+            m.lookAtRH(target, this.position, up);
+            this.quaternion.setFromRotationMatrix(m);
+
+        };
+
+    }(),
+
+    /**
+     * Method to get intersections between a casted ray and this object.
+     * @memberof Object3D#  
+     * @abstract
+     * @param {Raycaster} raycaster - The {@link Raycaster} instance.
+     * @param {Array} intersects - output intersects array.
+     */
+    raycast: function(raycaster, intersects) {
+        
+    },
+
+    /**
+     * Executes the callback on this object and all descendants.
+     * @memberof Object3D#  
+     * @param {Function} callback - A function with as first argument an object3D object.
+     */
+    traverse: function ( callback ) {
+        callback( this );
+
+        var children = this.children;
+        for ( var i = 0, l = children.length; i &lt; l; i ++ ) {
+            children[ i ].traverse( callback );
+        }
+    },
+    
+    /**
+     * Returns a clone of this object and optionally all descendants.
+     * @memberof Object3D#  
+     * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
+     * @return {Object3D}
+     */
+    clone: function ( recursive ) {
+        return new this.constructor().copy( this, recursive );
+    },
+
+    /**
+     * Copy the given object into this object.
+     * @memberof Object3D#  
+     * @param {Object3D} source - The object to be copied.
+     * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
+     * @return {Object3D}
+     */
+    copy: function( source, recursive ) {
+        if ( recursive === undefined ) recursive = true;
+
+        this.name = source.name;
+
+        this.type = source.type;
+
+        this.position.copy( source.position );
+        this.quaternion.copy( source.quaternion );
+        this.scale.copy( source.scale );
+
+        this.matrix.copy( source.matrix );
+        this.worldMatrix.copy( source.worldMatrix );
+
+        this.castShadow = source.castShadow;
+        this.receiveShadow = source.receiveShadow;
+
+        this.frustumCulled = source.frustumCulled;
+
+        this.userData = JSON.parse( JSON.stringify( source.userData ) );
+
+        if ( recursive === true ) {
+
+            for ( var i = 0; i &lt; source.children.length; i ++ ) {
+
+                var child = source.children[ i ];
+                this.add( child.clone() );
+
+            }
+
+        }
+
+        return this;
+    }
+
+});
+
+export {Object3D};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="TextureData.html">TextureData</a></li><li><a href="TextureDepth.html">TextureDepth</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li></ul><h3>Global</h3><ul><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#transform">transform</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 12:23:35 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

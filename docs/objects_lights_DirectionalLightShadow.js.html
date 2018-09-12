@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: objects/lights/DirectionalLightShadow.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: objects/lights/DirectionalLightShadow.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {WEBGL_TEXTURE_FILTER} from '../../const.js';
+import {LightShadow} from './LightShadow.js';
+import {RenderTarget2D} from '../../render/RenderTarget2D.js';
+import {Vector3} from '../../math/Vector3.js';
+
+/**
+ * DirectionalLightShadow
+ * @class
+ */
+function DirectionalLightShadow() {
+    LightShadow.call(this);
+
+    // direct light is just a direction
+    // we would not do camera frustum cull, because this light could be any where
+    this.camera.frustumCulled = false;
+
+    this.renderTarget = new RenderTarget2D(this.mapSize.x, this.mapSize.y);
+
+    var map = this.renderTarget.texture;
+    map.generateMipmaps = false;
+    map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+    this.map = map;
+
+    // the cast shadow window size
+    this.windowSize = 500;
+
+    this._lookTarget = new Vector3();
+
+    this._up = new Vector3(0, 1, 0);
+}
+
+DirectionalLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
+
+    constructor: DirectionalLightShadow,
+
+    /**
+     * update by light
+     */
+    update: function(light) {
+        this._updateCamera(light);
+        this._updateMatrix();
+
+        // TODO check size change, remove this from loop
+        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+            this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
+        }
+    },
+
+    /**
+     * update camera matrix by light
+     */
+    _updateCamera: function(light) {
+        var camera = this.camera;
+        var lookTarget = this._lookTarget;
+
+        // set camera position and lookAt(rotation)
+        light.getWorldDirection(this._lookTarget);
+        camera.position.setFromMatrixPosition(light.worldMatrix);
+        lookTarget.set(lookTarget.x + camera.position.x, lookTarget.y + camera.position.y, lookTarget.z + camera.position.z);
+        camera.lookAt(lookTarget, this._up);
+
+        // update view matrix
+        camera.updateMatrix();
+
+        // update projection
+        var halfWindowSize = this.windowSize / 2;
+        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, this.cameraNear, this.cameraFar);
+    },
+
+    /**
+     * update shadow matrix
+     */
+    _updateMatrix: function() {
+        var matrix = this.matrix;
+        var camera = this.camera;
+
+        // matrix * 0.5 + 0.5, after identity, range is 0 ~ 1 instead of -1 ~ 1
+        matrix.set(
+            0.5, 0.0, 0.0, 0.5,
+            0.0, 0.5, 0.0, 0.5,
+            0.0, 0.0, 0.5, 0.5,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        matrix.multiply(camera.projectionMatrix);
+        matrix.multiply(camera.viewMatrix);
+    },
+
+    copy: function(source) {
+        LightShadow.prototype.copy.call(this, source);
+
+        this.windowSize = source.windowSize;
+
+        return this;
+    }
+
+});
+
+export {DirectionalLightShadow};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AmbientLight.html">AmbientLight</a></li><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="Camera.html">Camera</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DirectionalLight.html">DirectionalLight</a></li><li><a href="DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Fog.html">Fog</a></li><li><a href="FogExp2.html">FogExp2</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Light.html">Light</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="PointLight.html">PointLight</a></li><li><a href="PointLightShadow.html">PointLightShadow</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Raycaster.html">Raycaster</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="SpotLight.html">SpotLight</a></li><li><a href="SpotLightShadow.html">SpotLightShadow</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="TextureData.html">TextureData</a></li><li><a href="TextureDepth.html">TextureDepth</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_updateCamera">_updateCamera</a></li><li><a href="global.html#_updateMatrix">_updateMatrix</a></li><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BLEND_EQUATION">BLEND_EQUATION</a></li><li><a href="global.html#BLEND_FACTOR">BLEND_FACTOR</a></li><li><a href="global.html#BLEND_TYPE">BLEND_TYPE</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createCheckerBoardPixels">createCheckerBoardPixels</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#CULL_FACE_TYPE">CULL_FACE_TYPE</a></li><li><a href="global.html#DRAW_SIDE">DRAW_SIDE</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#FOG_TYPE">FOG_TYPE</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#generateUUID">generateUUID</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#isMobile">isMobile</a></li><li><a href="global.html#isWeb">isWeb</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#LIGHT_TYPE">LIGHT_TYPE</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#MATERIAL_TYPE">MATERIAL_TYPE</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#OBJECT_TYPE">OBJECT_TYPE</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#setOrtho">setOrtho</a></li><li><a href="global.html#setPerspective">setPerspective</a></li><li><a href="global.html#SHADING_TYPE">SHADING_TYPE</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li><li><a href="global.html#WEBGL_PIXEL_FORMAT">WEBGL_PIXEL_FORMAT</a></li><li><a href="global.html#WEBGL_PIXEL_TYPE">WEBGL_PIXEL_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></li><li><a href="global.html#WEBGL_TEXTURE_TYPE">WEBGL_TEXTURE_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 23:04:48 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

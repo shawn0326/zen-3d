@@ -45,9 +45,12 @@ var getClippingPlanesData = function() {
 
 /**
  * render method by WebGL.
- * just for render pass once in one render target
+ * just for render pass once in one render target.
+ * @constructor
+ * @param {WebGLRenderingContext} gl
  */
 function WebGLCore(gl) {
+
     this.gl = gl;
     
     var properties = new WebGLProperties();
@@ -72,6 +75,7 @@ function WebGLCore(gl) {
     this._usedTextureUnits = 0;
 
     this._currentGeometryProgram = "";
+
 }
 
 var directShadowMaps = [];
@@ -82,6 +86,7 @@ Object.assign(WebGLCore.prototype, {
 
     /**
      * clear buffer
+     * @memberof WebGLCore#
      */
     clear: function(color, depth, stencil) {
         var gl = this.gl;
@@ -97,6 +102,7 @@ Object.assign(WebGLCore.prototype, {
 
     /**
      * Render opaque and transparent objects
+     * @memberof WebGLCore#
      * @param {zen3d.Scene} scene 
      * @param {zen3d.Camera} camera 
      * @param {boolean} updateRenderList? default is false.
@@ -127,7 +133,8 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * Render a single renderable list in camera in sequence
+     * Render a single renderable list in camera in sequence.
+     * @memberof WebGLCore#
      * @param {Array} list List of all renderables.
      * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
      * @param {Object} [config]?
@@ -432,8 +439,8 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * @private
      * set states
+     * @memberof WebGLCore#
      * @param {boolean} frontFaceCW
      */
     setStates: function(material, frontFaceCW) {
@@ -474,8 +481,8 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * @private
      * gl draw
+     * @memberof WebGLCore#
      */
     draw: function(geometry, material, group) {
         var gl = this.gl;
@@ -515,8 +522,8 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * @private
      * upload skeleton uniforms
+     * @memberof WebGLCore#
      */
     uploadSkeleton: function(uniforms, object, programId) {
         if(object.skeleton && object.skeleton.bones.length > 0) {
@@ -563,9 +570,9 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * @private
      * upload lights uniforms
      * TODO a better function for array & struct uniforms upload
+     * @memberof WebGLCore#
      */
     uploadLights: function(uniforms, lights, receiveShadow, camera) {
         var gl = this.gl;
@@ -705,8 +712,8 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * @private
      * alloc texture unit
+     * @memberof WebGLCore#
      */
     allocTexUnit: function() {
         var textureUnit = this._usedTextureUnits;
@@ -723,7 +730,7 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * @private 
+     * @memberof WebGLCore#
      */
     setupVertexAttributes: function(program, geometry) {
         var gl = this.gl;

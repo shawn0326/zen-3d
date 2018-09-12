@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: render/shader/Program.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: render/shader/Program.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {MATERIAL_TYPE, TEXEL_ENCODING_TYPE, SHADOW_TYPE, SHADING_TYPE, FOG_TYPE, DRAW_SIDE, OBJECT_TYPE} from '../../const.js';
+import {WebGLProgram} from '../WebGL/WebGLProgram.js';
+import {ShaderChunk} from '../shader/ShaderChunk.js';
+import {ShaderLib} from '../shader/ShaderLib.js';
+
+var programMap = {};
+
+/**
+ * generate program code
+ */
+function generateProgramCode(props, material) {
+    var code = "";
+    for (var key in props) {
+        code += props[key] + "_";
+    }
+    if(material.defines !== undefined) {
+        for (var name in material.defines) {
+            code += name + "_" + material.defines[ name ] + "_";
+        }
+    }
+    return code;
+}
+
+function getTextureEncodingFromMap( map, gammaOverrideLinear ) {
+
+    var encoding;
+
+    if ( ! map ) {
+
+        encoding = TEXEL_ENCODING_TYPE.LINEAR;
+
+    } else if ( map.encoding ) {
+
+        encoding = map.encoding;
+
+    }
+
+    // add backwards compatibility for Renderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
+    if ( encoding === TEXEL_ENCODING_TYPE.LINEAR &amp;&amp; gammaOverrideLinear ) {
+
+        encoding = TEXEL_ENCODING_TYPE.GAMMA;
+
+    }
+
+    return encoding;
+
+}
+
+function getEncodingComponents( encoding ) {
+
+    switch ( encoding ) {
+
+        case TEXEL_ENCODING_TYPE.LINEAR:
+            return [ 'Linear','( value )' ];
+        case TEXEL_ENCODING_TYPE.SRGB:
+            return [ 'sRGB','( value )' ];
+        case TEXEL_ENCODING_TYPE.RGBE:
+            return [ 'RGBE','( value )' ];
+        case TEXEL_ENCODING_TYPE.RGBM7:
+            return [ 'RGBM','( value, 7.0 )' ];
+        case TEXEL_ENCODING_TYPE.RGBM16:
+            return [ 'RGBM','( value, 16.0 )' ];
+        case TEXEL_ENCODING_TYPE.RGBD:
+            return [ 'RGBD','( value, 256.0 )' ];
+        case TEXEL_ENCODING_TYPE.GAMMA:
+            return [ 'Gamma','( value, float( GAMMA_FACTOR ) )' ];
+        default:
+                console.error( 'unsupported encoding: ' + encoding );
+
+    }
+
+}
+
+function getTexelDecodingFunction( functionName, encoding ) {
+
+    var components = getEncodingComponents( encoding );
+    return "vec4 " + functionName + "( vec4 value ) { return " + components[ 0 ] + "ToLinear" + components[ 1 ] + "; }";
+
+}
+
+function getTexelEncodingFunction( functionName, encoding ) {
+
+    var components = getEncodingComponents( encoding );
+    return "vec4 " + functionName + "( vec4 value ) { return LinearTo" + components[ 0 ] + components[ 1 ] + "; }";
+
+}
+
+function generateDefines( defines ) {
+
+    var chunks = [];
+
+    for ( var name in defines ) {
+
+        var value = defines[ name ];
+
+        if ( value === false ) continue;
+
+        chunks.push( '#define ' + name + ' ' + value );
+
+    }
+
+    return chunks.join( '\n' );
+
+}
+
+/**
+ * create program
+ */
+function createProgram(gl, props, defines) {
+
+    // create defines
+    var prefixVertex = [
+
+        'precision ' + props.precision + ' float;',
+        'precision ' + props.precision + ' int;',
+        // depth texture may have precision problem on iOS device.
+        'precision ' + props.precision + ' sampler2D;',
+
+        '#define SHADER_NAME ' + props.materialType,
+
+        defines,
+
+        props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
+        props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
+
+        (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+        (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
+        (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+        (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+        (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
+        (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
+        ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) &amp;&amp; props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+        ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) &amp;&amp; props.useBumpMap) ? '#define USE_BUMPMAP' : '',
+        ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) &amp;&amp; props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+        props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
+        props.useShadow ? '#define USE_SHADOW' : '',
+        props.flatShading ? '#define FLAT_SHADED' : '',
+        props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+        props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
+        props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
+        props.flipSided ? '#define FLIP_SIDED' : '',
+        props.numClippingPlanes > 0 ? ('#define NUM_CLIPPING_PLANES ' + props.numClippingPlanes) : '',
+
+        props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+        props.useEnvMap ? '#define USE_ENV_MAP' : '',
+        props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
+        props.useAOMap ? '#define USE_AOMAP' : '',
+        props.useVertexColors ? '#define USE_VCOLOR' : '',
+
+        props.useSkinning ? '#define USE_SKINNING' : '',
+        (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
+        props.useVertexTexture ? '#define BONE_TEXTURE' : ''
+        
+    ].join("\n");
+
+    var prefixFragment = [
+
+        '#extension GL_OES_standard_derivatives : enable',
+        (props.useShaderTextureLOD &amp;&amp; props.useEnvMap) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
+
+        'precision ' + props.precision + ' float;',
+        'precision ' + props.precision + ' int;',
+        // depth texture may have precision problem on iOS device.
+        'precision ' + props.precision + ' sampler2D;',
+
+        '#define SHADER_NAME ' + props.materialType,
+        
+        '#define PI 3.14159265359',
+        '#define EPSILON 1e-6',
+        'float pow2( const in float x ) { return x*x; }',
+        '#define LOG2 1.442695',
+        '#define RECIPROCAL_PI 0.31830988618',
+        '#define saturate(a) clamp( a, 0.0, 1.0 )',
+        '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
+
+        defines,
+
+        props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
+        props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
+
+        (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
+        (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
+        (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
+        (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
+        (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
+        (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
+        ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) &amp;&amp; props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+        ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) &amp;&amp; props.useBumpMap) ? '#define USE_BUMPMAP' : '',
+        ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) &amp;&amp; props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+        props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
+        props.useShadow ? '#define USE_SHADOW' : '',
+        props.usePCFSoftShadow ? '#define USE_PCF_SOFT_SHADOW' : '',
+        props.flatShading ? '#define FLAT_SHADED' : '',
+        props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
+        props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
+        props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
+        props.doubleSided ? '#define DOUBLE_SIDED' : '',
+        (props.envMap &amp;&amp; props.useShaderTextureLOD) ? '#define TEXTURE_LOD_EXT' : '',
+        props.numClippingPlanes > 0 ? ('#define NUM_CLIPPING_PLANES ' + props.numClippingPlanes) : '',
+
+        props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+        props.useEnvMap ? '#define USE_ENV_MAP' : '',
+        props.useAOMap ? '#define USE_AOMAP' : '',
+        props.useVertexColors ? '#define USE_VCOLOR' : '',
+        props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
+        props.fog ? '#define USE_FOG' : '',
+        props.fogExp2 ? '#define USE_EXP2_FOG' : '',
+        props.alphaTest ? ('#define ALPHATEST ' + props.alphaTest) : '',
+        props.useEnvMap ? '#define ' + props.envMapCombine : '',
+        '#define GAMMA_FACTOR ' + props.gammaFactor,
+
+        (props.diffuseMapEncoding || props.envMapEncoding || props.emissiveMapEncoding || props.outputEncoding) ? ShaderChunk["encodings_pars_frag"] : '',
+        props.diffuseMapEncoding ? getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding) : '',
+        props.envMapEncoding ? getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding) : '',
+        props.emissiveMapEncoding ? getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding) : '',
+        props.outputEncoding ? getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding) : '',
+
+        props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '',
+
+    ].join("\n");
+
+    // vertexCode &amp; fragmentCode
+    var vertex = ShaderLib[props.materialType + "_vert"] || props.vertexShader || ShaderLib.basic_vert;
+    var fragment = ShaderLib[props.materialType + "_frag"] || props.fragmentShader || ShaderLib.basic_frag;
+
+    var vshader = [
+        prefixVertex,
+        vertex
+    ].join("\n");
+
+    var fshader = [
+        prefixFragment,
+        fragment
+    ].join("\n");
+
+    vshader = parseIncludes(vshader);
+    fshader = parseIncludes(fshader);
+
+    return new WebGLProgram(gl, vshader, fshader);
+}
+
+var parseIncludes = function(string) {
+
+    var pattern = /#include +&lt;([\w\d.]+)>/g;
+
+    function replace(match, include) {
+
+        var replace = ShaderChunk[include];
+
+        if (replace === undefined) {
+
+            throw new Error('Can not resolve #include &lt;' + include + '>');
+
+        }
+
+        return parseIncludes(replace);
+
+    }
+
+    return string.replace(pattern, replace);
+
+}
+
+function generateProps(glCore, camera, material, object, lights, fog, clippingPlanes) {
+    var props = {}; // cache this props?
+
+    props.materialType = material.type;
+    // capabilities
+    var capabilities = glCore.capabilities;
+    props.precision = capabilities.maxPrecision;
+    props.useShaderTextureLOD = !!capabilities.shaderTextureLOD;
+    // maps
+    props.useDiffuseMap = !!material.diffuseMap;
+    props.useNormalMap = !!material.normalMap;
+    props.useBumpMap = !!material.bumpMap;
+    props.useSpecularMap = !!material.specularMap;
+    props.useEnvMap = !!material.envMap;
+    props.envMapCombine = material.envMapCombine;
+    props.useEmissiveMap = !!material.emissiveMap;
+    props.useRoughnessMap = !!material.roughnessMap;
+    props.useMetalnessMap = !!material.metalnessMap;
+    props.useAOMap = !!material.aoMap;
+    // lights
+    props.ambientLightNum = !!lights ? lights.ambientsNum : 0;
+    props.directLightNum = !!lights ? lights.directsNum : 0;
+    props.pointLightNum = !!lights ? lights.pointsNum : 0;
+    props.spotLightNum = !!lights ? lights.spotsNum : 0;
+    props.useShadow = object.receiveShadow;
+    props.usePCFSoftShadow = object.shadowType === SHADOW_TYPE.PCF_SOFT;
+    // encoding
+    var currentRenderTarget = glCore.state.currentRenderTarget;
+    props.gammaFactor = camera.gammaFactor;
+    props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
+    props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, camera.gammaInput);
+    props.envMapEncoding = getTextureEncodingFromMap(material.envMap, camera.gammaInput);
+    props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, camera.gammaInput);
+    // other
+    props.alphaTest = material.alphaTest;
+    props.premultipliedAlpha = material.premultipliedAlpha;
+    props.useVertexColors = material.vertexColors;
+    props.numClippingPlanes = !!clippingPlanes ? clippingPlanes.length : 0;
+    props.flatShading = material.shading === SHADING_TYPE.FLAT_SHADING;
+    props.fog = !!fog;
+    props.fogExp2 = !!fog &amp;&amp; (fog.fogType === FOG_TYPE.EXP2);
+    props.sizeAttenuation = material.sizeAttenuation;
+    props.doubleSided = material.side === DRAW_SIDE.DOUBLE;
+    props.flipSided = material.side === DRAW_SIDE.BACK;
+    props.packDepthToRGBA = material.packToRGBA;
+    // skinned mesh
+    var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH &amp;&amp; object.skeleton;
+    var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
+    var useVertexTexture = capabilities.maxVertexTextures > 0 &amp;&amp; capabilities.floatTextures;
+    var maxBones = 0;
+    if(useVertexTexture) {
+        maxBones = 1024;
+    } else {
+        maxBones = object.skeleton ? object.skeleton.bones.length : 0;
+        if(maxBones * 16 > maxVertexUniformVectors) {
+            console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
+            maxBones = Math.floor(maxVertexUniformVectors / 16);
+        }
+    }
+    props.useSkinning = useSkinning;
+    props.bonesNum = maxBones;
+    props.useVertexTexture = useVertexTexture;
+    if(material.type === MATERIAL_TYPE.SHADER) {
+        props.vertexShader = material.vertexShader;
+        props.fragmentShader = material.fragmentShader;
+    }
+
+    return props;
+}
+
+/**
+ * get a suitable program
+ * @param {WebGLCore} glCore
+ * @param {Camera} camera
+ * @param {Material} material
+ * @param {Object3D} object?
+ * @param {RenderCache} cache?
+ */
+function getProgram(glCore, camera, material, object, cache) {
+    var gl = glCore.gl;
+    var material = material || object.material;
+
+    // get render context from cache
+    var lights = (cache &amp;&amp; material.acceptLight) ? cache.lights : null;
+    var fog = cache ? cache.fog : null;
+    var clippingPlanes = cache ? cache.clippingPlanes : null;
+
+    var props = generateProps(glCore, camera, material, object, lights, fog, clippingPlanes);
+    var code = generateProgramCode(props, material);
+    var map = programMap;
+    var program;
+
+    if (map[code]) {
+        program = map[code];
+    } else {
+        var customDefines = "";
+        if(material.defines !== undefined) {
+            customDefines = generateDefines(material.defines);
+        }
+        program = createProgram(gl, props, customDefines);
+
+        map[code] = program;
+    }
+
+    return program;
+}
+
+export {getProgram};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AmbientLight.html">AmbientLight</a></li><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="Camera.html">Camera</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DirectionalLight.html">DirectionalLight</a></li><li><a href="DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Fog.html">Fog</a></li><li><a href="FogExp2.html">FogExp2</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Light.html">Light</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="PointLight.html">PointLight</a></li><li><a href="PointLightShadow.html">PointLightShadow</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Raycaster.html">Raycaster</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="SpotLight.html">SpotLight</a></li><li><a href="SpotLightShadow.html">SpotLightShadow</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="TextureData.html">TextureData</a></li><li><a href="TextureDepth.html">TextureDepth</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_updateCamera">_updateCamera</a></li><li><a href="global.html#_updateMatrix">_updateMatrix</a></li><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BLEND_EQUATION">BLEND_EQUATION</a></li><li><a href="global.html#BLEND_FACTOR">BLEND_FACTOR</a></li><li><a href="global.html#BLEND_TYPE">BLEND_TYPE</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createCheckerBoardPixels">createCheckerBoardPixels</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#CULL_FACE_TYPE">CULL_FACE_TYPE</a></li><li><a href="global.html#DRAW_SIDE">DRAW_SIDE</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#FOG_TYPE">FOG_TYPE</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#generateUUID">generateUUID</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#isMobile">isMobile</a></li><li><a href="global.html#isWeb">isWeb</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#LIGHT_TYPE">LIGHT_TYPE</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#MATERIAL_TYPE">MATERIAL_TYPE</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#OBJECT_TYPE">OBJECT_TYPE</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#setOrtho">setOrtho</a></li><li><a href="global.html#setPerspective">setPerspective</a></li><li><a href="global.html#SHADING_TYPE">SHADING_TYPE</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li><li><a href="global.html#WEBGL_PIXEL_FORMAT">WEBGL_PIXEL_FORMAT</a></li><li><a href="global.html#WEBGL_PIXEL_TYPE">WEBGL_PIXEL_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></li><li><a href="global.html#WEBGL_TEXTURE_TYPE">WEBGL_TEXTURE_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 23:04:48 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

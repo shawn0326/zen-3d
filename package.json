@@ -37,7 +37,7 @@
     "build-vox": "rollup ./src/extension/vox/main.js -f umd -o ./build/zen3d.vox.js",
     "build-input": "rollup ./src/extension/input/main.js -f umd -o ./build/zen3d.input.js",
     "extension": "npm run build-canvas2d && npm run build-vox && npm run build-input",
-    "doc": "jsdoc ./src/core/**/*.js -d ./docs",
+    "doc": "jsdoc ./src/core -r -d ./docs",
     "example": "live-server --port=8080 --open=examples --watch=examples,build"
   }
 }

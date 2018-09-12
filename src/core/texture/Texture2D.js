@@ -6,10 +6,12 @@ import {ImageLoader} from '../loader/ImageLoader.js';
 import {TGALoader} from '../loader/TGALoader.js';
 
 /**
- * Texture2D
- * @class
+ * Creates a cube texture made up of single image.
+ * @constructor
+ * @extends TextureBase
  */
 function Texture2D() {
+
     TextureBase.call(this);
 
     this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_2D;

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: objects/Mesh.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: objects/Mesh.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {OBJECT_TYPE} from '../const.js';
+import {Object3D} from './Object3D.js';
+import {Sphere} from '../math/Sphere.js';
+import {Box3} from '../math/Box3.js';
+import {Matrix4} from '../math/Matrix4.js';
+import {Ray} from '../math/Ray.js';
+import {Vector3} from '../math/Vector3.js';
+import {Vector2} from '../math/Vector2.js';
+import {Triangle} from '../math/Triangle.js';
+
+/**
+ * Class representing triangular polygon mesh based objects. 
+ * Also serves as a base for other classes such as {@link SkinnedMesh}.
+ * @constructor
+ * @extends Object3D
+ * @param {Geometry} geometry — an instance of {@link Geometry}.
+ * @param {Material} material - a single or an array of {@link Material}.
+ */
+function Mesh(geometry, material) {
+
+    Object3D.call(this);
+
+    /**
+     * an instance of {@link Geometry}.
+     * @type {Geometry}
+     */
+    this.geometry = geometry;
+
+    /**
+     * a single or an array of {@link Material}.
+     * @type {Material|Material[]}
+     */
+    this.material = material;
+
+    this.type = OBJECT_TYPE.MESH;
+
+}
+
+Mesh.prototype = Object.assign(Object.create(Object3D.prototype), {
+
+    constructor: Mesh,
+
+    /**
+     * @memberof Mesh#
+     * @override
+     */
+    raycast: function() {
+        var sphere = new Sphere();
+        var box = new Box3();
+        var inverseMatrix = new Matrix4();
+        var ray = new Ray();
+
+        var barycoord = new Vector3();
+
+        var vA = new Vector3();
+        var vB = new Vector3();
+        var vC = new Vector3();
+
+        var uvA = new Vector2();
+        var uvB = new Vector2();
+        var uvC = new Vector2();
+
+        var intersectionPoint = new Vector3();
+        var intersectionPointWorld = new Vector3();
+
+        function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
+            Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
+
+            uv1.multiplyScalar(barycoord.x);
+            uv2.multiplyScalar(barycoord.y);
+            uv3.multiplyScalar(barycoord.z);
+
+            uv1.add(uv2).add(uv3);
+
+            return uv1.clone();
+        }
+
+        function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
+            var intersect;
+            var material = object.material;
+
+            // if (material.side === BackSide) {
+            //     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+            // } else {
+                // intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
+            // }
+            intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+
+            if (intersect === null) return null;
+
+            intersectionPointWorld.copy(point);
+            intersectionPointWorld.applyMatrix4(object.worldMatrix);
+
+            var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
+
+            if (distance &lt; raycaster.near || distance > raycaster.far) return null;
+
+            return {
+                distance: distance,
+                point: intersectionPointWorld.clone(),
+                object: object
+            };
+        }
+
+        return function raycast(raycaster, intersects) {
+            var geometry = this.geometry;
+            var worldMatrix = this.worldMatrix;
+
+            // sphere test
+            sphere.copy(geometry.boundingSphere);
+            sphere.applyMatrix4(worldMatrix);
+            if (!raycaster.ray.intersectsSphere(sphere)) {
+                return;
+            }
+
+            // box test
+            box.copy(geometry.boundingBox);
+            box.applyMatrix4(worldMatrix);
+            if (!raycaster.ray.intersectsBox(box)) {
+                return;
+            }
+
+            // vertex test
+            inverseMatrix.getInverse(worldMatrix);
+            ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+
+            var index = geometry.index.array;
+            var position = geometry.getAttribute("a_Position");
+            var uv = geometry.getAttribute("a_Uv");
+            var a, b, c;
+
+            for (var i = 0; i &lt; index.length; i += 3) {
+                a = index[i];
+                b = index[i + 1];
+                c = index[i + 2];
+
+                vA.fromArray(position.array, a * 3);
+                vB.fromArray(position.array, b * 3);
+                vC.fromArray(position.array, c * 3);
+
+                var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
+
+                if (intersection) {
+                    // uv
+                    uvA.fromArray(uv.array, a * 2);
+                    uvB.fromArray(uv.array, b * 2);
+                    uvC.fromArray(uv.array, c * 2);
+
+                    intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
+
+                    intersection.face = [a, b, c];
+                    intersection.faceIndex = a;
+
+                    intersects.push(intersection);
+                }
+            }
+        }
+    }(),
+
+    /**
+     * @memberof Mesh#
+     * @override
+     */
+    clone: function() {
+        return new this.constructor( this.geometry, this.material ).copy( this );
+    }
+
+});
+
+export {Mesh};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="TextureData.html">TextureData</a></li><li><a href="TextureDepth.html">TextureDepth</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li></ul><h3>Global</h3><ul><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#transform">transform</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 12:23:35 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

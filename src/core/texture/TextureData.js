@@ -1,7 +1,13 @@
 import {Texture2D} from './Texture2D.js';
 import {WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER} from '../const.js';
 
+/**
+ * Creates a texture directly from raw data, width and height.
+ * @constructor
+ * @extends Texture2D
+ */
 function TextureData(data, width, height) {
+
     Texture2D.call(this);
 
     this.image = {data: data, width: width, height: height};

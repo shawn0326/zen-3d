@@ -1,7 +1,14 @@
 import {Texture2D} from './Texture2D.js';
 import {WEBGL_PIXEL_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_TEXTURE_FILTER} from '../const.js';
 
+/**
+ * Creates a texture for use as a Depth Texture. 
+ * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
+ * @constructor
+ * @extends Texture2D
+ */
 function TextureDepth(width, height) {
+
     Texture2D.call(this);
 
     this.image = {width: width, height: height};
