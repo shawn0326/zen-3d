@@ -7,10 +7,13 @@ import {Quaternion} from '../../math/Quaternion.js';
 import {Vector3} from '../../math/Vector3.js';
 
 /**
- * Camera
- * @class
+ * The camera used for rendering a 3D scene.
+ * @memberof zen3d
+ * @constructor
+ * @extends zen3d.Object3D
  */
 function Camera() {
+
     Object3D.call(this);
 
     this.type = OBJECT_TYPE.CAMERA;
@@ -29,14 +32,24 @@ function Camera() {
     this.gammaInput = false;
     this.gammaOutput = false;
     
-    // Where on the screen is the camera rendered in normalized coordinates.
+    /**
+     * Where on the screen is the camera rendered in normalized coordinates.
+     * @type {zen3d.Vector4}
+     * @default zen3d.Vector4(0, 0, 1, 1)
+     */
     this.rect = new Vector4(0, 0, 1, 1);
 
-    // frustum test
+    /**
+     * When this is set, it checks every frame if objects are in the frustum of the camera before rendering objects. 
+     * Otherwise objects gets rendered every frame even if it isn't visible.
+     * @type {boolean}
+     * @default true
+     */
     this.frustumCulled = true;
+
 }
 
-Camera.prototype = Object.assign(Object.create(Object3D.prototype), {
+Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Camera.prototype */{
 
     constructor: Camera,
 

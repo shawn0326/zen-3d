@@ -53,6 +53,11 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
 
     constructor: Scene,
 
+    /**
+     * Update {@link zen3d.RenderList} for the scene and camera.
+     * @param {zen3d.Camera} camera - The camera.
+     * @return {RenderList} - The result render list.
+     */
     updateRenderList: function(camera) {
         var id = camera.uuid;
 
@@ -73,20 +78,30 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
         return renderList;
     },
 
+    /**
+     * Get {@link zen3d.RenderList} for the scene and camera.
+     * The Render List must be updated before this calling.
+     * @param {zen3d.Camera} camera - The camera.
+     * @return {RenderList} - The target render list.
+     */
     getRenderList: function(camera) {
         return this._renderLists[camera.uuid];
     },
 
+    /**
+     * Update all lights in the scene.
+     * @return {LightCache} - An instance of {@link LightCache} whitch contains all lights in the scene.
+     */
     updateLights: function() {
         var lights = this.lights;
 
-        this.lights.startCount();
+        lights.startCount();
 
         this._doUpdateLights(this);
 
-        this.lights.endCount();
+        lights.endCount();
 
-        return this.lights;
+        return lights;
     },
 
     _doUpdateRenderList: function(object, camera, renderList) {
