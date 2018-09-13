@@ -9,6 +9,7 @@ import {Matrix4} from '../math/Matrix4.js';
  * This is the base class for most objects in zen3d
  * and provides a set of properties and methods for manipulating objects in 3D space.
  * @constructor
+ * @memberof zen3d
  */
 function Object3D() {
 
@@ -29,34 +30,34 @@ function Object3D() {
     /**
      * Type of the object.
      * Set by Subclass.
-     * @type {OBJECT_TYPE} 
+     * @type {zen3d.OBJECT_TYPE} 
      */
     this.type = "";
 
     /**
      * A Vector3 representing the object's local position.
-     * @type {Vector3} 
+     * @type {zen3d.Vector3} 
      * @default Vector3(0, 0, 0)
      */
     this.position = new Vector3();
 
     /**
      * The object's local scale.
-     * @type {Vector3} 
+     * @type {zen3d.Vector3} 
      * @default Vector3(1, 1, 1)
      */
     this.scale = new Vector3(1, 1, 1);
 
     /**
-     * Object's local rotation as an {@link Euler}, in radians.
-     * @type {Euler} 
+     * Object's local rotation as an {@link zen3d.Euler}, in radians.
+     * @type {zen3d.Euler} 
      * @default Euler(0, 0, 0)
      */
     this.euler = new Euler();
 
     /**
-     * Object's local rotation as a {@link Quaternion}.
-     * @type {Quaternion}
+     * Object's local rotation as a {@link zen3d.Quaternion}.
+     * @type {zen3d.Quaternion}
      * @default Quaternion(0, 0, 0, 1)
      */
     this.quaternion = new Quaternion();
@@ -72,28 +73,28 @@ function Object3D() {
 
     /**
      * The local transform matrix.
-     * @type {Matrix4}
+     * @type {zen3d.Matrix4}
      */
     this.matrix = new Matrix4();
 
     /**
      * The global transform of the object. 
-     * If the Object3D has no parent, then it's identical to the local transform {@link Object3D#matrix}.
-     * @type {Matrix4}
+     * If the Object3D has no parent, then it's identical to the local transform {@link zen3d.Object3D#matrix}.
+     * @type {zen3d.Matrix4}
      */
     this.worldMatrix = new Matrix4();
 
     /**
      * Object's parent in the scene graph. 
      * An object can have at most one parent.
-     * @type {Object3D[]}
+     * @type {zen3d.Object3D[]}
      */
     this.children = new Array();
 
     /**
      * Object's parent in the scene graph. 
      * An object can have at most one parent.
-     * @type {Object3D}
+     * @type {zen3d.Object3D}
      */
     this.parent = null;
 
@@ -113,7 +114,7 @@ function Object3D() {
 
     /**
      * Defines shadow map type.
-     * @type {SHADOW_TYPE}
+     * @type {zen3d.SHADOW_TYPE}
      * @default SHADOW_TYPE.PCF_SOFT
      */
     this.shadowType = SHADOW_TYPE.PCF_SOFT;
@@ -142,7 +143,7 @@ function Object3D() {
     this.renderOrder = 0;
 
     /**
-     * An object that can be used to store custom data about the {@link Object3D}. 
+     * An object that can be used to store custom data about the {@link zen3d.Object3D}. 
      * It should not hold references to functions as these will not be cloned.
      * @type {Object}
      * @default {}
@@ -150,26 +151,23 @@ function Object3D() {
     this.userData = {};
 }
 
-Object.assign(Object3D.prototype, {
+Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
     /**
      * An optional callback that is executed immediately before the Object3D is rendered.
-     * @memberof Object3D#
      * @type {Function}
      */
     onBeforeRender: function () {},
 
     /**
      * An optional callback that is executed immediately after the Object3D is rendered.
-     * @memberof Object3D#
      * @type {Function}
      */
 	onAfterRender: function () {},
 
     /**
      * Add object as child of this object.
-     * @memberof Object3D#
-     * @param {Object3D} object
+     * @param {zen3d.Object3D} object
      */
     add: function(object) {
         this.children.push(object);
@@ -178,8 +176,7 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Remove object as child of this object.
-     * @memberof Object3D#  
-     * @param {Object3D} object
+     * @param {zen3d.Object3D} object
      */
     remove: function(object) {
         var index = this.children.indexOf(object);
@@ -193,9 +190,8 @@ Object.assign(Object3D.prototype, {
      * Searches through the object's children and returns the first with a matching name.
      * Note that for most objects the name is an empty string by default. 
      * You will have to set it manually to make use of this method.
-     * @memberof Object3D#
-     * @param {string} name - String to match to the children's {@link Object3D#name} property. 
-     * @return {Object3D}
+     * @param {string} name - String to match to the children's {@link zen3d.Object3D#name} property. 
+     * @return {zen3d.Object3D}
      */
     getObjectByName: function(name) {
         return this.getObjectByProperty('name', name);
@@ -203,10 +199,9 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Searches through the object's children and returns the first with a property that matches the value given.
-     * @memberof Object3D#
      * @param {string} name - the property name to search for. 
      * @param {number} value - value of the given property. 
-     * @return {Object3D}
+     * @return {zen3d.Object3D}
      */
     getObjectByProperty: function(name, value) {
         if (this[name] === value) return this;
@@ -229,7 +224,6 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Update the local transform.
-     * @memberof Object3D#
      */
     updateMatrix: function() {
         var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
@@ -249,8 +243,7 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Returns a vector representing the direction of object's positive z-axis in world space.
-     * This call must be after {@link Object3D#updateMatrix}.
-     * @memberof Object3D#
+     * This call must be after {@link zen3d.Object3D#updateMatrix}.
      * @method
      * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
      * @return {Vector3} - the result.
@@ -276,7 +269,6 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Rotates the object to face a point in local space.
-     * @memberof Object3D#
      * @method
      * @param {Vector3} target - A vector representing a position in local space.
      * @param {Vector3} up — A vector representing the up direction in local space.
@@ -296,9 +288,8 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Method to get intersections between a casted ray and this object.
-     * @memberof Object3D#  
      * @abstract
-     * @param {Raycaster} raycaster - The {@link Raycaster} instance.
+     * @param {Raycaster} raycaster - The {@link zen3d.Raycaster} instance.
      * @param {Array} intersects - output intersects array.
      */
     raycast: function(raycaster, intersects) {
@@ -307,7 +298,6 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Executes the callback on this object and all descendants.
-     * @memberof Object3D#  
      * @param {Function} callback - A function with as first argument an object3D object.
      */
     traverse: function ( callback ) {
@@ -321,9 +311,8 @@ Object.assign(Object3D.prototype, {
     
     /**
      * Returns a clone of this object and optionally all descendants.
-     * @memberof Object3D#  
      * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
-     * @return {Object3D}
+     * @return {zen3d.Object3D}
      */
     clone: function ( recursive ) {
         return new this.constructor().copy( this, recursive );
@@ -331,10 +320,9 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Copy the given object into this object.
-     * @memberof Object3D#  
-     * @param {Object3D} source - The object to be copied.
+     * @param {zen3d.Object3D} source - The object to be copied.
      * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
-     * @return {Object3D}
+     * @return {zen3d.Object3D}
      */
     copy: function( source, recursive ) {
         if ( recursive === undefined ) recursive = true;

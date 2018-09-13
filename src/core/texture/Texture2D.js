@@ -8,7 +8,8 @@ import {TGALoader} from '../loader/TGALoader.js';
 /**
  * Creates a cube texture made up of single image.
  * @constructor
- * @extends TextureBase
+ * @memberof zen3d
+ * @extends zen3d.TextureBase
  */
 function Texture2D() {
 
@@ -16,21 +17,77 @@ function Texture2D() {
 
     this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_2D;
 
+    /**
+     * Image data for this texture.
+     * @member {null|HTMLImageElement}
+     * @default null
+     */
     this.image = null;
+
+    /**
+     * Array of user-specified mipmaps (optional).
+     * @member {HTMLImageElement[]}
+     * @default []
+     */
     this.mipmaps = [];
 
-    // uv transform
+    /**
+     * How much a single repetition of the texture is offset from the beginning, in each direction U and V. 
+     * Typical range is 0.0 to 1.0. 
+     * _Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. 
+     * If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired offset..
+     * @member {zen3d.Vector2}
+     * @default zen3d.Vector2(0, 0)
+     */
     this.offset = new Vector2();
+
+    /**
+     * How many times the texture is repeated across the surface, in each direction U and V. 
+     * If repeat is set greater than 1 in either direction, the corresponding Wrap parameter should also be set to {@link zen3d.WEBGL_TEXTURE_WRAP.REPEAT} or {@link zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT} to achieve the desired tiling effect. 
+     * _Note:_ The repeat property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. 
+     * If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired repetiton.
+     * @member {zen3d.Vector2}
+     * @default zen3d.Vector2(1, 1)
+     */
     this.repeat = new Vector2(1, 1);
+
+    /**
+     * The point around which rotation occurs. 
+     * A value of (0.5, 0.5) corresponds to the center of the texture. 
+     * Default is (0, 0), the lower left.
+     * @member {zen3d.Vector2}
+     * @default zen3d.Vector2(0, 0)
+     */
     this.center = new Vector2();
+
+    
+    /**
+     * How much the texture is rotated around the center point, in radians. 
+     * Postive values are counter-clockwise.
+     * @member {number}
+     * @default 0
+     */
     this.rotation = 0;
 
+    /**
+     * The uv-transform matrix for the texture. Updated by the renderer from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center} when the texture's {@link zen3d.Texture2D#matrixAutoUpdate} property is true. 
+     * When {@link zen3d.Texture2D#matrixAutoUpdate}  property is false, this matrix may be set manually. 
+     * Default is the identity matrix.
+     * @member {zen3d.Matrix3}
+     * @default Matrix3()
+     */
     this.matrix = new Matrix3();
 
+    /**
+     * Whether to update the texture's uv-transform {@link zen3d.Texture2D#matrix} from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center}.
+     * Set this to false if you are specifying the uv-transform matrix directly.
+     * @member {boolean}
+     * @default true
+     */
     this.matrixAutoUpdate = true;
 }
 
-Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), {
+Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.Texture2D.prototype */{
 
     constructor: Texture2D,
 
@@ -51,12 +108,20 @@ Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), {
         return this;
     },
 
+    /**
+     * Update the texture's uv-transform {@link zen3d.Texture2D#matrix} from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center}.
+     */
     updateMatrix: function() {
         this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
     }
 
 });
 
+/**
+ * Create Texture2D from image.
+ * @param {HTMLImageElement} image 
+ * @return {TextureCube} - The result Texture.
+ */
 Texture2D.fromImage = function(image) {
     var texture = new Texture2D();
 
@@ -66,6 +131,11 @@ Texture2D.fromImage = function(image) {
     return texture;
 }
 
+/**
+ * Create Texture2D from src.
+ * @param {string} src 
+ * @return {TextureCube} - The result Texture.
+ */
 Texture2D.fromSrc = function(src) {
     var texture = new Texture2D();
 

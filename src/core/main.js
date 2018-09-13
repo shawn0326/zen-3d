@@ -1,3 +1,8 @@
+/**
+ * The zen3d namespace.
+ * @namespace zen3d
+ */
+
 export * from './base.js';
 export * from './const.js';
 

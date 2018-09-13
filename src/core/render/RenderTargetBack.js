@@ -3,7 +3,8 @@ import {RenderTargetBase} from './RenderTargetBase.js';
 /**
  * Render Target that render to canvas element.
  * @constructor
- * @extends RenderTargetBase
+ * @memberof zen3d
+ * @extends zen3d.RenderTargetBase
  * @param {HTMLCanvasElement} view - The canvas element which the Render Target rendered to.
  */
 function RenderTargetBack(view) {
@@ -18,14 +19,10 @@ function RenderTargetBack(view) {
 
 }
 
-RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.prototype), {
+RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.prototype), /** @lends zen3d.RenderTargetBack.prototype */{
 
     constructor: RenderTargetBack,
 
-    /**
-     * @memberof RenderTargetBack#
-     * @override
-     */
     resize: function(width, height) {
 
         this.view.width = width;
@@ -36,10 +33,6 @@ RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.protot
 
     },
 
-    /**
-     * @memberof RenderTargetBack#
-     * @override
-     */
     dispose: function() {
         // TODO dispose canvas?
     }

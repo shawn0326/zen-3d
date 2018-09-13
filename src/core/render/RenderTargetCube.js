@@ -4,7 +4,8 @@ import {TextureCube} from '../texture/TextureCube.js';
 /**
  * Render Target that render to cube texture.
  * @constructor
- * @extends RenderTargetBase
+ * @memberof zen3d
+ * @extends zen3d.RenderTargetBase
  * @param {number} width - The width of the render target.
  * @param {number} height - The height of the render target.
  */
@@ -14,8 +15,8 @@ function RenderTargetCube(width, height) {
 
     /**
      * The cube texture attached to COLOR_ATTACHMENT0.
-     * @type {TextureCube}
-     * @default TextureCube()
+     * @type {zen3d.TextureCube}
+     * @default zen3d.TextureCube()
      */
     this.texture = new TextureCube();
 

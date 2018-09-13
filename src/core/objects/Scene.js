@@ -4,10 +4,11 @@ import {RenderList} from '../render/RenderList.js';
 import {Object3D} from './Object3D.js';
 
 /**
- * Scenes allow you to set up what and where is to be rendered by zen3d.js. 
+ * Scenes allow you to set up what and where is to be rendered by zen3d.
  * This is where you place objects, lights and cameras.
  * @constructor
- * @extends Object3D
+ * @memberof zen3d
+ * @extends zen3d.Object3D
  */
 function Scene() {
 
@@ -15,18 +16,40 @@ function Scene() {
 
     this.type = OBJECT_TYPE.SCENE;
 
+    /**
+     * If not null, it will force everything in the scene to be rendered with that material.
+     * @type {zen3d.Material}
+     * @default null
+     */
     this.overrideMaterial = null;
 
+    /**
+     * A {@link zen3d.Fog} instance defining the type of fog that affects everything rendered in the scene.
+     * @type {zen3d.Fog}
+     * @default null
+     */
     this.fog = null;
 
-    this.clippingPlanes = []; // Planes array
+    /**
+     * User-defined clipping planes specified as {@link zen3d.Plane} objects in world space. 
+     * These planes apply to the scene.
+     * Points in space whose dot product with the plane is negative are cut away.
+     * @type {zen3d.Plane[]}
+     * @default []
+     */
+    this.clippingPlanes = [];
+
+    /**
+     * A {@link zen3d.LightCache} instance that collected all lights info after the calling of {@link zen3d.Scene#updateLights}.
+     * @type {zen3d.LightCache}
+     * @default zen3d.LightCache()
+     */
+    this.lights = new LightCache();
 
     this._renderLists = {};
-
-    this.lights = new LightCache();
 }
 
-Scene.prototype = Object.assign(Object.create(Object3D.prototype), {
+Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Scene.prototype */{
 
     constructor: Scene,
 

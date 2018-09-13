@@ -1,0 +1,3058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: TextureData</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: TextureData</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>TextureData<span class="signature">(data, width, height)</span><span class="type-signature"></span></h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    
+    <h4 class="name" id="TextureData"><span class="type-signature"></span>new TextureData<span class="signature">(data, width, height)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Creates a texture directly from raw data, width and height.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The data of the texture.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>width</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The width of the texture.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>height</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The height of the texture.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li><a href="zen3d.Texture2D.html">zen3d.Texture2D</a></li>
+    </ul>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="anisotropy"><span class="type-signature"></span>anisotropy<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    The number of samples taken along the axis through the pixel that has the highest density of texels.A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used. Use WebGLcapabilities#maxAnisotropy to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#anisotropy">zen3d.TextureBase#anisotropy</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>1</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line83">line 83</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="border"><span class="type-signature"></span>border<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    WebGLTexture border. See <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D">WebGLTexture texImage2D()</a>.Must be zero.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#border">zen3d.TextureBase#border</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line32">line 32</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="center"><span class="type-signature"></span>center<span class="type-signature"> :zen3d.Vector2</span></h4>
+
+
+
+
+<div class="description">
+    The point around which rotation occurs. A value of (0.5, 0.5) corresponds to the center of the texture. Default is (0, 0), the lower left.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.Vector2</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.Vector2(0, 0)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line61">line 61</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="encoding"><span class="type-signature"></span>encoding<span class="type-signature"> :<a href="zen3d.html#.TEXEL_ENCODING_TYPE">zen3d.TEXEL_ENCODING_TYPE</a></span></h4>
+
+
+
+
+<div class="description">
+    texture pixel encoding.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="zen3d.html#.TEXEL_ENCODING_TYPE">zen3d.TEXEL_ENCODING_TYPE</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#encoding">zen3d.TextureBase#encoding</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.TEXEL_ENCODING_TYPE.LINEAR</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line98">line 98</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="flipY"><span class="type-signature"></span>flipY<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Data textures do not need to be flipped so this is false by default.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#flipY">zen3d.Texture2D#flipY</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line49">line 49</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="generateMipmaps"><span class="type-signature"></span>generateMipmaps<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Data textures do not use mipmaps.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#generateMipmaps">zen3d.Texture2D#generateMipmaps</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line43">line 43</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="image"><span class="type-signature"></span>image<span class="type-signature"> :Object</span></h4>
+
+
+
+
+<div class="description">
+    Image data like: {data: TypedArray, width: number, height: number}
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#image">zen3d.Texture2D#image</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line21">line 21</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="isDataTexture"><span class="type-signature">(readonly) </span>isDataTexture<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    This is an Data Texture.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line62">line 62</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="magFilter"><span class="type-signature"></span>magFilter<span class="type-signature"></span></h4>
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#magFilter">zen3d.Texture2D#magFilter</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.WEBGL_TEXTURE_FILTER.NEAREST</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line32">line 32</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="matrix"><span class="type-signature"></span>matrix<span class="type-signature"> :zen3d.Matrix3</span></h4>
+
+
+
+
+<div class="description">
+    The uv-transform matrix for the texture. Updated by the renderer from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a> when the texture's <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a> property is true. When <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a>  property is false, this matrix may be set manually. Default is the identity matrix.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.Matrix3</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>Matrix3()</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line79">line 79</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="matrixAutoUpdate"><span class="type-signature"></span>matrixAutoUpdate<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Whether to update the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.Set this to false if you are specifying the uv-transform matrix directly.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line87">line 87</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="minFilter"><span class="type-signature"></span>minFilter<span class="type-signature"></span></h4>
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#minFilter">zen3d.Texture2D#minFilter</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.WEBGL_TEXTURE_FILTER.NEAREST</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line37">line 37</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="mipmaps"><span class="type-signature"></span>mipmaps<span class="type-signature"> :Array.&lt;HTMLImageElement></span></h4>
+
+
+
+
+<div class="description">
+    Array of user-specified mipmaps (optional).
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;HTMLImageElement></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#mipmaps">zen3d.Texture2D#mipmaps</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>[]</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line32">line 32</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="offset"><span class="type-signature"></span>offset<span class="type-signature"> :zen3d.Vector2</span></h4>
+
+
+
+
+<div class="description">
+    How much a single repetition of the texture is offset from the beginning, in each direction U and V. Typical range is 0.0 to 1.0. _Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired offset..
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.Vector2</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.Vector2(0, 0)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="pixelFormat"><span class="type-signature"></span>pixelFormat<span class="type-signature"> :<a href="zen3d.html#.WEBGL_PIXEL_FORMAT">zen3d.WEBGL_PIXEL_FORMAT</a></span></h4>
+
+
+
+
+<div class="description">
+    WebGLTexture pixel format.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="zen3d.html#.WEBGL_PIXEL_FORMAT">zen3d.WEBGL_PIXEL_FORMAT</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#pixelFormat">zen3d.TextureBase#pixelFormat</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.WEBGL_PIXEL_FORMAT.RGBA</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line39">line 39</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="pixelType"><span class="type-signature"></span>pixelType<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Default pixel type set to float.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#pixelType">zen3d.Texture2D#pixelType</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.WEBGL_PIXEL_TYPE.FLOAT</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureData.js.html">texture/TextureData.js</a>, <a href="texture_TextureData.js.html#line27">line 27</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="repeat"><span class="type-signature"></span>repeat<span class="type-signature"> :zen3d.Vector2</span></h4>
+
+
+
+
+<div class="description">
+    How many times the texture is repeated across the surface, in each direction U and V. If repeat is set greater than 1 in either direction, the corresponding Wrap parameter should also be set to zen3d.WEBGL_TEXTURE_WRAP.REPEAT or zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT to achieve the desired tiling effect. _Note:_ The repeat property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired repetiton.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.Vector2</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.Vector2(1, 1)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line52">line 52</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="rotation"><span class="type-signature"></span>rotation<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    How much the texture is rotated around the center point, in radians. Postive values are counter-clockwise.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>0</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line70">line 70</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="uuid"><span class="type-signature">(readonly) </span>uuid<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    UUID of this texture instance. This gets automatically assigned, so this shouldn't be edited.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#uuid">zen3d.TextureBase#uuid</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line22">line 22</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="version"><span class="type-signature"></span>version<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    version code increse if texture changed.if version is still 0, this texture will be skiped.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#version">zen3d.TextureBase#version</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>0</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line113">line 113</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="wrapS"><span class="type-signature"></span>wrapS<span class="type-signature"> :<a href="zen3d.html#.WEBGL_TEXTURE_WRAP">zen3d.WEBGL_TEXTURE_WRAP</a></span></h4>
+
+
+
+
+<div class="description">
+    This defines how the texture is wrapped horizontally and corresponds to U in UV mapping.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="zen3d.html#.WEBGL_TEXTURE_WRAP">zen3d.WEBGL_TEXTURE_WRAP</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#wrapS">zen3d.TextureBase#wrapS</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line67">line 67</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="wrapT"><span class="type-signature"></span>wrapT<span class="type-signature"> :<a href="zen3d.html#.WEBGL_TEXTURE_WRAP">zen3d.WEBGL_TEXTURE_WRAP</a></span></h4>
+
+
+
+
+<div class="description">
+    This defines how the texture is wrapped vertically and corresponds to V in UV mapping.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="zen3d.html#.WEBGL_TEXTURE_WRAP">zen3d.WEBGL_TEXTURE_WRAP</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#wrapT">zen3d.TextureBase#wrapT</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line74">line 74</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addEventListener"><span class="type-signature"></span>addEventListener<span class="signature">(type, listener, thisObject<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Adds a listener to an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The type of event to listen to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The function that gets called when the event is fired.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thisObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    this
+                
+                </td>
+            
+
+            <td class="description last">The Object of calling listener method.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.EventDispatcher.html#addEventListener">zen3d.EventDispatcher#addEventListener</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="clone"><span class="type-signature"></span>clone<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="zen3d.TextureBase.html">zen3d.TextureBase</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Returns a clone of this texture.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#clone">zen3d.TextureBase#clone</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line124">line 124</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="zen3d.TextureBase.html">zen3d.TextureBase</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">(source)</span><span class="type-signature"> &rarr; {<a href="zen3d.TextureBase.html">zen3d.TextureBase</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Copy the given texture into this texture.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>source</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="zen3d.TextureBase.html">zen3d.TextureBase</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The texture to be copied.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#copy">zen3d.TextureBase#copy</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line133">line 133</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="zen3d.TextureBase.html">zen3d.TextureBase</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="dispatchEvent"><span class="type-signature"></span>dispatchEvent<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Fire an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event that gets fired.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.EventDispatcher.html#dispatchEvent">zen3d.EventDispatcher#dispatchEvent</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line56">line 56</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="dispose"><span class="type-signature"></span>dispose<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Dispatches a dispose event.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.TextureBase.html#dispose">zen3d.TextureBase#dispose</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_TextureBase.js.html">texture/TextureBase.js</a>, <a href="texture_TextureBase.js.html#line155">line 155</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="removeEventListener"><span class="type-signature"></span>removeEventListener<span class="signature">(type, listener, thisObject<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Removes a listener from an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The type of the listener that gets removed.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The listener function that gets removed.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thisObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    this
+                
+                </td>
+            
+
+            <td class="description last">thisObject - The Object of calling listener method.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.EventDispatcher.html#removeEventListener">zen3d.EventDispatcher#removeEventListener</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line36">line 36</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="updateMatrix"><span class="type-signature"></span>updateMatrix<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Update the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Texture2D.html#updateMatrix">zen3d.Texture2D#updateMatrix</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="texture_Texture2D.js.html">texture/Texture2D.js</a>, <a href="texture_Texture2D.js.html#line114">line 114</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AmbientLight.html">AmbientLight</a></li><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="Camera.html">Camera</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DirectionalLight.html">DirectionalLight</a></li><li><a href="DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Fog.html">Fog</a></li><li><a href="FogExp2.html">FogExp2</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Light.html">Light</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="PointLight.html">PointLight</a></li><li><a href="PointLightShadow.html">PointLightShadow</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="SpotLight.html">SpotLight</a></li><li><a href="SpotLightShadow.html">SpotLightShadow</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.Line.html">Line</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.Points.html">Points</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TextureData.html">TextureData</a></li><li><a href="zen3d.TextureDepth.html">TextureDepth</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_updateCamera">_updateCamera</a></li><li><a href="global.html#_updateMatrix">_updateMatrix</a></li><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#setOrtho">setOrtho</a></li><li><a href="global.html#setPerspective">setPerspective</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Sep 13 2018 17:44:52 GMT+0800 (中国标准时间)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -6,7 +6,8 @@ import {TGALoader} from '../loader/TGALoader.js';
 /**
  * Creates a cube texture made up of six images.
  * @constructor
- * @extends TextureBase
+ * @memberof zen3d
+ * @extends zen3d.TextureBase
  */
 function TextureCube() {
 
@@ -14,12 +15,20 @@ function TextureCube() {
 
     this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
 
+    /**
+     * Images data for this texture.
+     * @member {HTMLImageElement[]}
+     * @default []
+     */
     this.images = [];
 
+    /**
+     * @default false
+     */
     this.flipY = false;
 }
 
-TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), {
+TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.TextureCube.prototype */{
 
     constructor: TextureCube,
 
@@ -35,6 +44,11 @@ TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), {
 
 });
 
+/**
+ * Create TextureCube from images.
+ * @param {HTMLImageElement[]} imageArray 
+ * @return {TextureCube} - The result Texture.
+ */
 TextureCube.fromImage = function(imageArray) {
     var texture = new TextureCube();
     var images = texture.images;
@@ -48,6 +62,11 @@ TextureCube.fromImage = function(imageArray) {
     return texture;
 }
 
+/**
+ * Create TextureCube from src array.
+ * @param {string[]} srcArray 
+ * @return {TextureCube} - The result Texture.
+ */
 TextureCube.fromSrc = function(srcArray) {
     var texture = new TextureCube();
     var images = texture.images;

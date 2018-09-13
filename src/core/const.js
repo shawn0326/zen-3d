@@ -1,5 +1,8 @@
 /**
- * OBJECT_TYPE
+ * Enum for object Type.
+ * @name zen3d.OBJECT_TYPE
+ * @readonly
+ * @enum {string}
  */
 export var OBJECT_TYPE = {
     MESH: "mesh",
@@ -16,7 +19,10 @@ export var OBJECT_TYPE = {
 };
 
 /**
- * LIGHT_TYPE
+ * Enum for light Type.
+ * @name zen3d.LIGHT_TYPE
+ * @readonly
+ * @enum {string}
  */
 export var LIGHT_TYPE = {
     AMBIENT: "ambient",
@@ -26,7 +32,10 @@ export var LIGHT_TYPE = {
 };
 
 /**
- * MATERIAL_TYPE
+ * Enum for material Type.
+ * @name zen3d.MATERIAL_TYPE
+ * @readonly
+ * @enum {string}
  */
 export var MATERIAL_TYPE = {
     BASIC: "basic",
@@ -44,7 +53,10 @@ export var MATERIAL_TYPE = {
 };
 
 /**
- * FOG_TYPE
+ * Enum for fog Type.
+ * @name zen3d.FOG_TYPE
+ * @readonly
+ * @enum {string}
  */
 export var FOG_TYPE = {
     NORMAL: "normal",
@@ -52,7 +64,10 @@ export var FOG_TYPE = {
 };
 
 /**
- * BLEND_TYPE
+ * Enum for blend Type.
+ * @name zen3d.BLEND_TYPE
+ * @readonly
+ * @enum {string}
  */
 export var BLEND_TYPE = {
     NONE: "none",
@@ -62,7 +77,10 @@ export var BLEND_TYPE = {
 };
 
 /**
- * BLEND_EQUATION
+ * Enum for blend equation.
+ * @name zen3d.BLEND_EQUATION
+ * @readonly
+ * @enum {number}
  */
 export var BLEND_EQUATION = {
     ADD: 0x8006,
@@ -71,7 +89,10 @@ export var BLEND_EQUATION = {
 };
 
 /**
- * BLEND_FACTOR
+ * Enum for blend factor.
+ * @name zen3d.BLEND_FACTOR
+ * @readonly
+ * @enum {number}
  */
 export var BLEND_FACTOR = {
     ZERO: 0,
@@ -87,7 +108,10 @@ export var BLEND_FACTOR = {
 };
 
 /**
- * CULL_FACE_TYPE
+ * Enum for cull face Type.
+ * @name zen3d.CULL_FACE_TYPE
+ * @readonly
+ * @enum {string}
  */
 export var CULL_FACE_TYPE = {
     NONE: "none",
@@ -97,7 +121,10 @@ export var CULL_FACE_TYPE = {
 };
 
 /**
- * DRAW_SIDE
+ * Enum for draw side.
+ * @name zen3d.DRAW_SIDE
+ * @readonly
+ * @enum {string}
  */
 export var DRAW_SIDE = {
     FRONT: "front",
@@ -106,7 +133,10 @@ export var DRAW_SIDE = {
 };
 
 /**
- * SHADING_TYPE
+ * Enum for shading side.
+ * @name zen3d.SHADING_TYPE
+ * @readonly
+ * @enum {string}
  */
 export var SHADING_TYPE = {
     SMOOTH_SHADING: "smooth_shading",
@@ -114,7 +144,10 @@ export var SHADING_TYPE = {
 }
 
 /**
- * WEBGL_TEXTURE_TYPE
+ * Enum for WebGL Texture Type.
+ * @name zen3d.WEBGL_TEXTURE_TYPE
+ * @readonly
+ * @enum {number}
  */
 export var WEBGL_TEXTURE_TYPE = {
     TEXTURE_2D: 0x0DE1,
@@ -122,7 +155,10 @@ export var WEBGL_TEXTURE_TYPE = {
 };
 
 /**
- * WEBGL_PIXEL_FORMAT
+ * Enum for WebGL pixel format.
+ * @name zen3d.WEBGL_PIXEL_FORMAT
+ * @readonly
+ * @enum {number}
  */
 export var WEBGL_PIXEL_FORMAT = {
     DEPTH_COMPONENT: 0x1902,
@@ -135,7 +171,10 @@ export var WEBGL_PIXEL_FORMAT = {
 }
 
 /**
- * WEBGL_PIXEL_TYPE
+ * Enum for WebGL pixel Type.
+ * @name zen3d.WEBGL_PIXEL_TYPE
+ * @readonly
+ * @enum {number}
  */
 export var WEBGL_PIXEL_TYPE = {
     BYTE: 0x1400,
@@ -153,7 +192,10 @@ export var WEBGL_PIXEL_TYPE = {
 }
 
 /**
- * WEBGL_TEXTURE_FILTER
+ * Enum for WebGL Texture filter.
+ * @name zen3d.WEBGL_TEXTURE_FILTER
+ * @readonly
+ * @enum {number}
  */
 export var WEBGL_TEXTURE_FILTER = {
     NEAREST: 0x2600,
@@ -165,7 +207,10 @@ export var WEBGL_TEXTURE_FILTER = {
 }
 
 /**
- * WEBGL_TEXTURE_WRAP
+ * Enum for WebGL Texture wrap.
+ * @name zen3d.WEBGL_TEXTURE_WRAP
+ * @readonly
+ * @enum {number}
  */
 export var WEBGL_TEXTURE_WRAP = {
     REPEAT:	0x2901,
@@ -173,8 +218,13 @@ export var WEBGL_TEXTURE_WRAP = {
     MIRRORED_REPEAT: 0x8370
 }
 
-// Taken from the WebGl spec:
-// http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14
+/**
+ * Enum for WebGL Uniform Type.
+ * Taken from the {@link http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14 WebGl spec}.
+ * @name zen3d.WEBGL_UNIFORM_TYPE
+ * @readonly
+ * @enum {number}
+ */
 export var WEBGL_UNIFORM_TYPE = {
     FLOAT_VEC2: 0x8B50,
     FLOAT_VEC3: 0x8B51,
@@ -200,6 +250,12 @@ export var WEBGL_UNIFORM_TYPE = {
     FLOAT: 0x1406
 }
 
+/**
+ * Enum for WebGL Attribute Type.
+ * @name zen3d.WEBGL_ATTRIBUTE_TYPE
+ * @readonly
+ * @enum {number}
+ */
 export var WEBGL_ATTRIBUTE_TYPE = {
     FLOAT_VEC2: 0x8B50,
     FLOAT_VEC3: 0x8B51,
@@ -210,17 +266,35 @@ export var WEBGL_ATTRIBUTE_TYPE = {
     UNSIGNED_SHORT: 0x1403
 }
 
+/**
+ * Enum for WebGL Buffer Usage.
+ * @name zen3d.WEBGL_BUFFER_USAGE
+ * @readonly
+ * @enum {number}
+ */
 export var WEBGL_BUFFER_USAGE = {
     STREAM_DRAW: 0x88e0,
     STATIC_DRAW: 0x88E4,
     DYNAMIC_DRAW: 0x88E8
 }
 
+/**
+ * Enum for Shadow Type.
+ * @name zen3d.SHADOW_TYPE
+ * @readonly
+ * @enum {number}
+ */
 export var SHADOW_TYPE = {
     HARD: "hard",
     PCF_SOFT: "pcf_soft"
 }
 
+/**
+ * Enum for Texel Encoding Type.
+ * @name zen3d.TEXEL_ENCODING_TYPE
+ * @readonly
+ * @enum {number}
+ */
 export var TEXEL_ENCODING_TYPE = {
     LINEAR: "linear",
     SRGB: "sRGB",
@@ -231,12 +305,24 @@ export var TEXEL_ENCODING_TYPE = {
     GAMMA: "Gamma"
 }
 
+/**
+ * Enum for Envmap Combine Type.
+ * @name zen3d.ENVMAP_COMBINE_TYPE
+ * @readonly
+ * @enum {number}
+ */
 export var ENVMAP_COMBINE_TYPE = {
     MULTIPLY: "ENVMAP_BLENDING_MULTIPLY",
     MIX: "ENVMAP_BLENDING_MIX",
     ADD: "ENVMAP_BLENDING_ADD"
 }
 
+/**
+ * Enum for Draw Mode.
+ * @name zen3d.DRAW_MODE
+ * @readonly
+ * @enum {number}
+ */
 export var DRAW_MODE = {
     POINTS: 0,
     LINES: 1,

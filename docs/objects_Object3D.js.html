@@ -37,6 +37,7 @@ import {Matrix4} from '../math/Matrix4.js';
  * This is the base class for most objects in zen3d
  * and provides a set of properties and methods for manipulating objects in 3D space.
  * @constructor
+ * @memberof zen3d
  */
 function Object3D() {
 
@@ -57,34 +58,34 @@ function Object3D() {
     /**
      * Type of the object.
      * Set by Subclass.
-     * @type {OBJECT_TYPE} 
+     * @type {zen3d.OBJECT_TYPE} 
      */
     this.type = "";
 
     /**
      * A Vector3 representing the object's local position.
-     * @type {Vector3} 
+     * @type {zen3d.Vector3} 
      * @default Vector3(0, 0, 0)
      */
     this.position = new Vector3();
 
     /**
      * The object's local scale.
-     * @type {Vector3} 
+     * @type {zen3d.Vector3} 
      * @default Vector3(1, 1, 1)
      */
     this.scale = new Vector3(1, 1, 1);
 
     /**
-     * Object's local rotation as an {@link Euler}, in radians.
-     * @type {Euler} 
+     * Object's local rotation as an {@link zen3d.Euler}, in radians.
+     * @type {zen3d.Euler} 
      * @default Euler(0, 0, 0)
      */
     this.euler = new Euler();
 
     /**
-     * Object's local rotation as a {@link Quaternion}.
-     * @type {Quaternion}
+     * Object's local rotation as a {@link zen3d.Quaternion}.
+     * @type {zen3d.Quaternion}
      * @default Quaternion(0, 0, 0, 1)
      */
     this.quaternion = new Quaternion();
@@ -100,28 +101,28 @@ function Object3D() {
 
     /**
      * The local transform matrix.
-     * @type {Matrix4}
+     * @type {zen3d.Matrix4}
      */
     this.matrix = new Matrix4();
 
     /**
      * The global transform of the object. 
-     * If the Object3D has no parent, then it's identical to the local transform {@link Object3D#matrix}.
-     * @type {Matrix4}
+     * If the Object3D has no parent, then it's identical to the local transform {@link zen3d.Object3D#matrix}.
+     * @type {zen3d.Matrix4}
      */
     this.worldMatrix = new Matrix4();
 
     /**
      * Object's parent in the scene graph. 
      * An object can have at most one parent.
-     * @type {Object3D[]}
+     * @type {zen3d.Object3D[]}
      */
     this.children = new Array();
 
     /**
      * Object's parent in the scene graph. 
      * An object can have at most one parent.
-     * @type {Object3D}
+     * @type {zen3d.Object3D}
      */
     this.parent = null;
 
@@ -141,7 +142,7 @@ function Object3D() {
 
     /**
      * Defines shadow map type.
-     * @type {SHADOW_TYPE}
+     * @type {zen3d.SHADOW_TYPE}
      * @default SHADOW_TYPE.PCF_SOFT
      */
     this.shadowType = SHADOW_TYPE.PCF_SOFT;
@@ -170,7 +171,7 @@ function Object3D() {
     this.renderOrder = 0;
 
     /**
-     * An object that can be used to store custom data about the {@link Object3D}. 
+     * An object that can be used to store custom data about the {@link zen3d.Object3D}. 
      * It should not hold references to functions as these will not be cloned.
      * @type {Object}
      * @default {}
@@ -178,26 +179,23 @@ function Object3D() {
     this.userData = {};
 }
 
-Object.assign(Object3D.prototype, {
+Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
     /**
      * An optional callback that is executed immediately before the Object3D is rendered.
-     * @memberof Object3D#
      * @type {Function}
      */
     onBeforeRender: function () {},
 
     /**
      * An optional callback that is executed immediately after the Object3D is rendered.
-     * @memberof Object3D#
      * @type {Function}
      */
 	onAfterRender: function () {},
 
     /**
      * Add object as child of this object.
-     * @memberof Object3D#
-     * @param {Object3D} object
+     * @param {zen3d.Object3D} object
      */
     add: function(object) {
         this.children.push(object);
@@ -206,8 +204,7 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Remove object as child of this object.
-     * @memberof Object3D#  
-     * @param {Object3D} object
+     * @param {zen3d.Object3D} object
      */
     remove: function(object) {
         var index = this.children.indexOf(object);
@@ -221,9 +218,8 @@ Object.assign(Object3D.prototype, {
      * Searches through the object's children and returns the first with a matching name.
      * Note that for most objects the name is an empty string by default. 
      * You will have to set it manually to make use of this method.
-     * @memberof Object3D#
-     * @param {string} name - String to match to the children's {@link Object3D#name} property. 
-     * @return {Object3D}
+     * @param {string} name - String to match to the children's {@link zen3d.Object3D#name} property. 
+     * @return {zen3d.Object3D}
      */
     getObjectByName: function(name) {
         return this.getObjectByProperty('name', name);
@@ -231,10 +227,9 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Searches through the object's children and returns the first with a property that matches the value given.
-     * @memberof Object3D#
      * @param {string} name - the property name to search for. 
      * @param {number} value - value of the given property. 
-     * @return {Object3D}
+     * @return {zen3d.Object3D}
      */
     getObjectByProperty: function(name, value) {
         if (this[name] === value) return this;
@@ -257,7 +252,6 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Update the local transform.
-     * @memberof Object3D#
      */
     updateMatrix: function() {
         var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
@@ -277,8 +271,7 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Returns a vector representing the direction of object's positive z-axis in world space.
-     * This call must be after {@link Object3D#updateMatrix}.
-     * @memberof Object3D#
+     * This call must be after {@link zen3d.Object3D#updateMatrix}.
      * @method
      * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
      * @return {Vector3} - the result.
@@ -304,7 +297,6 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Rotates the object to face a point in local space.
-     * @memberof Object3D#
      * @method
      * @param {Vector3} target - A vector representing a position in local space.
      * @param {Vector3} up — A vector representing the up direction in local space.
@@ -324,9 +316,8 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Method to get intersections between a casted ray and this object.
-     * @memberof Object3D#  
      * @abstract
-     * @param {Raycaster} raycaster - The {@link Raycaster} instance.
+     * @param {Raycaster} raycaster - The {@link zen3d.Raycaster} instance.
      * @param {Array} intersects - output intersects array.
      */
     raycast: function(raycaster, intersects) {
@@ -335,7 +326,6 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Executes the callback on this object and all descendants.
-     * @memberof Object3D#  
      * @param {Function} callback - A function with as first argument an object3D object.
      */
     traverse: function ( callback ) {
@@ -349,9 +339,8 @@ Object.assign(Object3D.prototype, {
     
     /**
      * Returns a clone of this object and optionally all descendants.
-     * @memberof Object3D#  
      * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
-     * @return {Object3D}
+     * @return {zen3d.Object3D}
      */
     clone: function ( recursive ) {
         return new this.constructor().copy( this, recursive );
@@ -359,10 +348,9 @@ Object.assign(Object3D.prototype, {
 
     /**
      * Copy the given object into this object.
-     * @memberof Object3D#  
-     * @param {Object3D} source - The object to be copied.
+     * @param {zen3d.Object3D} source - The object to be copied.
      * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
-     * @return {Object3D}
+     * @return {zen3d.Object3D}
      */
     copy: function( source, recursive ) {
         if ( recursive === undefined ) recursive = true;
@@ -411,13 +399,13 @@ export {Object3D};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AmbientLight.html">AmbientLight</a></li><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="Camera.html">Camera</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DirectionalLight.html">DirectionalLight</a></li><li><a href="DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Fog.html">Fog</a></li><li><a href="FogExp2.html">FogExp2</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="Group.html">Group</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Light.html">Light</a></li><li><a href="Line.html">Line</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Mesh.html">Mesh</a></li><li><a href="Object3D.html">Object3D</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="PointLight.html">PointLight</a></li><li><a href="PointLightShadow.html">PointLightShadow</a></li><li><a href="Points.html">Points</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Raycaster.html">Raycaster</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="RenderTarget2D.html">RenderTarget2D</a></li><li><a href="RenderTargetBack.html">RenderTargetBack</a></li><li><a href="RenderTargetBase.html">RenderTargetBase</a></li><li><a href="RenderTargetCube.html">RenderTargetCube</a></li><li><a href="Scene.html">Scene</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SkinnedMesh.html">SkinnedMesh</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="SpotLight.html">SpotLight</a></li><li><a href="SpotLightShadow.html">SpotLightShadow</a></li><li><a href="Texture2D.html">Texture2D</a></li><li><a href="TextureBase.html">TextureBase</a></li><li><a href="TextureCube.html">TextureCube</a></li><li><a href="TextureData.html">TextureData</a></li><li><a href="TextureDepth.html">TextureDepth</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_updateCamera">_updateCamera</a></li><li><a href="global.html#_updateMatrix">_updateMatrix</a></li><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BLEND_EQUATION">BLEND_EQUATION</a></li><li><a href="global.html#BLEND_FACTOR">BLEND_FACTOR</a></li><li><a href="global.html#BLEND_TYPE">BLEND_TYPE</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createCheckerBoardPixels">createCheckerBoardPixels</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#CULL_FACE_TYPE">CULL_FACE_TYPE</a></li><li><a href="global.html#DRAW_SIDE">DRAW_SIDE</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#FOG_TYPE">FOG_TYPE</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#generateUUID">generateUUID</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#isMobile">isMobile</a></li><li><a href="global.html#isWeb">isWeb</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#LIGHT_TYPE">LIGHT_TYPE</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#MATERIAL_TYPE">MATERIAL_TYPE</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#OBJECT_TYPE">OBJECT_TYPE</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#setOrtho">setOrtho</a></li><li><a href="global.html#setPerspective">setPerspective</a></li><li><a href="global.html#SHADING_TYPE">SHADING_TYPE</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li><li><a href="global.html#WEBGL_PIXEL_FORMAT">WEBGL_PIXEL_FORMAT</a></li><li><a href="global.html#WEBGL_PIXEL_TYPE">WEBGL_PIXEL_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_FILTER">WEBGL_TEXTURE_FILTER</a></li><li><a href="global.html#WEBGL_TEXTURE_TYPE">WEBGL_TEXTURE_TYPE</a></li><li><a href="global.html#WEBGL_TEXTURE_WRAP">WEBGL_TEXTURE_WRAP</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AmbientLight.html">AmbientLight</a></li><li><a href="BasicMaterial.html">BasicMaterial</a></li><li><a href="Camera.html">Camera</a></li><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="DepthMaterial.html">DepthMaterial</a></li><li><a href="DirectionalLight.html">DirectionalLight</a></li><li><a href="DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="DistanceMaterial.html">DistanceMaterial</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Fog.html">Fog</a></li><li><a href="FogExp2.html">FogExp2</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="LambertMaterial.html">LambertMaterial</a></li><li><a href="Light.html">Light</a></li><li><a href="LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="LineMaterial.html">LineMaterial</a></li><li><a href="Material.html">Material</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="PBRMaterial.html">PBRMaterial</a></li><li><a href="PhongMaterial.html">PhongMaterial</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="PointLight.html">PointLight</a></li><li><a href="PointLightShadow.html">PointLightShadow</a></li><li><a href="PointsMaterial.html">PointsMaterial</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="ShaderMaterial.html">ShaderMaterial</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="SpotLight.html">SpotLight</a></li><li><a href="SpotLightShadow.html">SpotLightShadow</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.Line.html">Line</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.Points.html">Points</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TextureData.html">TextureData</a></li><li><a href="zen3d.TextureDepth.html">TextureDepth</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_updateCamera">_updateCamera</a></li><li><a href="global.html#_updateMatrix">_updateMatrix</a></li><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#lookAt">lookAt</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#setOrtho">setOrtho</a></li><li><a href="global.html#setPerspective">setPerspective</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 23:04:48 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Sep 13 2018 17:44:52 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

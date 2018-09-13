@@ -10,25 +10,26 @@ import {Triangle} from '../math/Triangle.js';
 
 /**
  * Class representing triangular polygon mesh based objects. 
- * Also serves as a base for other classes such as {@link SkinnedMesh}.
+ * Also serves as a base for other classes such as {@link zen3d.SkinnedMesh}.
  * @constructor
- * @extends Object3D
- * @param {Geometry} geometry — an instance of {@link Geometry}.
- * @param {Material} material - a single or an array of {@link Material}.
+ * @memberof zen3d
+ * @extends zen3d.Object3D
+ * @param {zen3d.Geometry} geometry — an instance of {@link zen3d.Geometry}.
+ * @param {zen3d.Material} material - a single or an array of {@link zen3d.Material}.
  */
 function Mesh(geometry, material) {
 
     Object3D.call(this);
 
     /**
-     * an instance of {@link Geometry}.
-     * @type {Geometry}
+     * an instance of {@link zen3d.Geometry}.
+     * @type {zen3d.Geometry}
      */
     this.geometry = geometry;
 
     /**
-     * a single or an array of {@link Material}.
-     * @type {Material|Material[]}
+     * a single or an array of {@link zen3d.Material}.
+     * @type {zen3d.Material|zen3d.Material[]}
      */
     this.material = material;
 
@@ -36,13 +37,12 @@ function Mesh(geometry, material) {
 
 }
 
-Mesh.prototype = Object.assign(Object.create(Object3D.prototype), {
+Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Mesh.prototype */{
 
     constructor: Mesh,
 
     /**
-     * @memberof Mesh#
-     * @override
+     * @override 
      */
     raycast: function() {
         var sphere = new Sphere();
@@ -157,10 +157,6 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), {
         }
     }(),
 
-    /**
-     * @memberof Mesh#
-     * @override
-     */
     clone: function() {
         return new this.constructor( this.geometry, this.material ).copy( this );
     }

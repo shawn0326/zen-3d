@@ -5,8 +5,9 @@ import {EventDispatcher} from '../EventDispatcher.js';
 /**
  * Create a texture to apply to a surface or as a reflection or refraction map.
  * @constructor
+ * @memberof zen3d
  * @abstract
- * @extends EventDispatcher
+ * @extends zen3d.EventDispatcher
  */
 function TextureBase() {
 
@@ -15,6 +16,7 @@ function TextureBase() {
     /**
      * UUID of this texture instance. 
      * This gets automatically assigned, so this shouldn't be edited.
+     * @readonly
      * @type {string}
      */
     this.uuid = generateUUID();
@@ -31,43 +33,43 @@ function TextureBase() {
 
     /**
      * WebGLTexture pixel format.
-     * @type {WEBGL_PIXEL_FORMAT}
-     * @default WEBGL_PIXEL_FORMAT.RGBA
+     * @type {zen3d.WEBGL_PIXEL_FORMAT}
+     * @default zen3d.WEBGL_PIXEL_FORMAT.RGBA
      */
     this.pixelFormat = WEBGL_PIXEL_FORMAT.RGBA;
 
     /**
      * WebGLTexture pixel type.
-     * @type {WEBGL_PIXEL_TYPE}
-     * @default WEBGL_PIXEL_TYPE.UNSIGNED_BYTE
+     * @type {zen3d.WEBGL_PIXEL_TYPE}
+     * @default zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE
      */
     this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 
     /**
      * How the texture is sampled when a texel covers more than one pixel.
-     * @type {WEBGL_TEXTURE_FILTER}
-     * @default WEBGL_TEXTURE_FILTER.LINEAR
+     * @type {zen3d.WEBGL_TEXTURE_FILTER}
+     * @default zen3d.WEBGL_TEXTURE_FILTER.LINEAR
      */
     this.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
 
     /**
      * How the texture is sampled when a texel covers less than one pixel.
-     * @type {WEBGL_TEXTURE_FILTER}
-     * @default WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR
+     * @type {zen3d.WEBGL_TEXTURE_FILTER}
+     * @default zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR
      */
     this.minFilter = WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 
     /**
      * This defines how the texture is wrapped horizontally and corresponds to U in UV mapping.
-     * @type {WEBGL_TEXTURE_WRAP}
-     * @default WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE
+     * @type {zen3d.WEBGL_TEXTURE_WRAP}
+     * @default zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE
      */
     this.wrapS = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
     /**
      * This defines how the texture is wrapped vertically and corresponds to V in UV mapping.
-     * @type {WEBGL_TEXTURE_WRAP}
-     * @default WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE
+     * @type {zen3d.WEBGL_TEXTURE_WRAP}
+     * @default zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE
      */
     this.wrapT = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
@@ -90,8 +92,8 @@ function TextureBase() {
 
     /**
      * texture pixel encoding.
-     * @type {TEXEL_ENCODING_TYPE}
-     * @default TEXEL_ENCODING_TYPE.LINEAR 
+     * @type {zen3d.TEXEL_ENCODING_TYPE}
+     * @default zen3d.TEXEL_ENCODING_TYPE.LINEAR 
      */
     this.encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
@@ -111,14 +113,13 @@ function TextureBase() {
     this.version = 0;
 }
 
-TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
+TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.TextureBase.prototype */{
 
     constructor: TextureBase,
 
     /**
      * Returns a clone of this texture.
-     * @memberof TextureBase#
-     * @return {TextureBase}
+     * @return {zen3d.TextureBase}
      */
     clone: function() {
         return new this.constructor().copy( this );
@@ -126,9 +127,8 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
 
     /**
      * Copy the given texture into this texture.
-     * @memberof TextureBase#
-     * @param {TextureBase} source - The texture to be copied.
-     * @return {TextureBase}
+     * @param {zen3d.TextureBase} source - The texture to be copied.
+     * @return {zen3d.TextureBase}
      */
     copy: function( source ) {
         this.textureType = source.textureType;
@@ -151,7 +151,6 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
 
     /**
      * Dispatches a dispose event.
-     * @memberof TextureBase#
      */
     dispose: function() {
         this.dispatchEvent({type: 'dispose'});

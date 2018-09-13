@@ -4,7 +4,8 @@ import {EventDispatcher} from '../EventDispatcher.js';
 /**
  * Render Target is the wrapping class of gl.framebuffer.
  * @constructor
- * @extends EventDispatcher
+ * @memberof zen3d
+ * @extends zen3d.EventDispatcher
  * @abstract
  * @param {number} width - The width of the render target.
  * @param {number} height - The height of the render target.
@@ -47,13 +48,12 @@ function RenderTargetBase(width, height) {
     this.stencilBuffer = true;
 }
 
-RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
+RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{
 
     constructor: RenderTargetBase,
 
     /**
      * Resize the render target.
-     * @memberof RenderTargetBase#
      * @param {number} width - The width of the render target.
      * @param {number} height - The height of the render target.    
      */
@@ -70,7 +70,6 @@ RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototy
 
     /**
      * Dispatches a dispose event.
-     * @memberof RenderTargetBase#   
      */
     dispose: function() {
         this.dispatchEvent({type: 'dispose'});

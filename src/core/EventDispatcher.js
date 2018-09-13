@@ -1,5 +1,6 @@
 /**
  * JavaScript events for custom objects.
+ * @memberof zen3d
  * @constructor
  */
 function EventDispatcher() {
@@ -8,11 +9,10 @@ function EventDispatcher() {
 
 }
 
-Object.assign(EventDispatcher.prototype, {
+Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.prototype */{
 
     /**
      * Adds a listener to an event type.
-     * @memberof EventDispatcher#
      * @param {string} type - The type of event to listen to.
      * @param {function} listener - The function that gets called when the event is fired.
      * @param {Object} [thisObject = this] - The Object of calling listener method.
@@ -29,7 +29,6 @@ Object.assign(EventDispatcher.prototype, {
 
     /**
      * Removes a listener from an event type.
-     * @memberof EventDispatcher#
      * @param {string} type - The type of the listener that gets removed.
      * @param {function} listener - The listener function that gets removed.
      * @param {Object} [thisObject = this] thisObject - The Object of calling listener method.
@@ -52,7 +51,6 @@ Object.assign(EventDispatcher.prototype, {
 
     /**
      * Fire an event type.
-     * @memberof EventDispatcher#
      * @param {Object} event - The event that gets fired.
      */
     dispatchEvent: function(event) {
@@ -63,7 +61,6 @@ Object.assign(EventDispatcher.prototype, {
     /**
      * notify listener
      * @private
-     * @memberof EventDispatcher#
      * @param {Object} event - The event that gets fired.
      */
     notifyListener: function(event) {
