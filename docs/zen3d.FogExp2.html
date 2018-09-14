@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: material/LineDashedMaterial.js</title>
+    <title>JSDoc: Class: FogExp2</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,57 +17,402 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: material/LineDashedMaterial.js</h1>
+    <h1 class="page-title">Class: FogExp2</h1>
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>import {MATERIAL_TYPE, DRAW_MODE} from '../const.js';
-import {Material} from './Material.js';
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>FogExp2<span class="signature">(color<span class="signature-attributes">opt</span>, density<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
+        
+    
+</header>
 
-/**
- * LineDashedMaterial
- * @class
- */
-function LineDashedMaterial() {
-    Material.call(this);
+<article>
+    <div class="container-overview">
+    
+        
 
-    this.type = MATERIAL_TYPE.LINE_DASHED;
+    
 
-    // chrome bug on MacOS: gl.lineWidth no effect
-    this.lineWidth = 1;
+    
+    <h4 class="name" id="FogExp2"><span class="type-signature"></span>new FogExp2<span class="signature">(color<span class="signature-attributes">opt</span>, density<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
 
-    this.scale = 1;
-    this.dashSize = 3;
-    this.gapSize = 1;
+    
 
-    this.drawMode = DRAW_MODE.LINE_STRIP;
-}
 
-LineDashedMaterial.prototype = Object.assign(Object.create(Material.prototype), {
 
-    constructor: LineDashedMaterial,
+<div class="description">
+    Exp2 fog.
+</div>
 
-    copy: function(source) {
-        Material.prototype.copy.call(this, source);
 
-        this.lineWidth = source.lineWidth;
-        this.scale = source.scale;
-        this.dashSize = source.dashSize;
-        this.gapSize = source.gapSize;
 
-        return this;
-    }
 
-});
 
-export {LineDashedMaterial};</code></pre>
-        </article>
-    </section>
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>color</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0x000000
+                
+                </td>
+            
+
+            <td class="description last">The color of the fog.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>density</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0.00025
+                
+                </td>
+            
+
+            <td class="description last">The density of the exp2 fog.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_fog_FogExp2.js.html">objects/fog/FogExp2.js</a>, <a href="objects_fog_FogExp2.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="color"><span class="type-signature"></span>color<span class="type-signature"> :zen3d.Color3</span></h4>
+
+
+
+
+<div class="description">
+    The color of the fog.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.Color3</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.Color3(0x000000)</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_fog_FogExp2.js.html">objects/fog/FogExp2.js</a>, <a href="objects_fog_FogExp2.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="density"><span class="type-signature"></span>density<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    The density of the exp2 fog.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>0.00025</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_fog_FogExp2.js.html">objects/fog/FogExp2.js</a>, <a href="objects_fog_FogExp2.js.html#line27">line 27</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

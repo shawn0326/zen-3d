@@ -18,18 +18,44 @@ function Camera() {
 
     this.type = OBJECT_TYPE.CAMERA;
 
-    // view matrix
+    /**
+     * This is the inverse of worldMatrix.
+     * @type {zen3d.Matrix4}
+     */
     this.viewMatrix = new Matrix4();
 
-    // projection matrix
+    /**
+     * This is the matrix which contains the projection.
+     * @type {zen3d.Matrix4}
+     */
     this.projectionMatrix = new Matrix4();
 
-    // camera frustum
+    /**
+     * The frustum of the camera.
+     * @type {zen3d.Frustum}
+     */
     this.frustum = new Frustum();
 
     // gamma space or linear space
+    /**
+     * The factor of gamma.
+     * @type {number}
+     * @default 2.0
+     */
     this.gammaFactor = 2.0;
+
+    /**
+     * If set, then it expects that all textures and colors are premultiplied gamma.
+     * @type {boolean}
+     * @default false
+     */
     this.gammaInput = false;
+
+    /**
+     * If set, then it expects that all textures and colors need to be outputted in premultiplied gamma. 
+     * @type {boolean}
+     * @default false
+     */
     this.gammaOutput = false;
     
     /**
@@ -54,7 +80,10 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
     constructor: Camera,
 
     /**
-     * set view by look at, this func will set quaternion of this camera
+     * Set view by look at, this func will set quaternion of this camera.
+     * @method
+     * @param {zen3d.Vector3} target - The target that the camera look at.
+     * @param {zen3d.Vector3} up - The up direction of the camera.
      */
     lookAt: function() {
         var m = new Matrix4();
@@ -68,7 +97,13 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
     }(),
 
     /**
-     * set orthographic projection matrix
+     * Set orthographic projection matrix.
+     * @param {number} left — Camera frustum left plane.
+     * @param {number} right — Camera frustum right plane.
+     * @param {number} bottom — Camera frustum bottom plane.
+     * @param {number} top — Camera frustum top plane.
+     * @param {number} near — Camera frustum near plane.
+     * @param {number} far — Camera frustum far plane.
      */
     setOrtho: function(left, right, bottom, top, near, far) {
         this.projectionMatrix.set(
@@ -80,7 +115,11 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
     },
 
     /**
-     * set perspective projection matrix
+     * Set perspective projection matrix.
+     * @param {number} fov — Camera frustum vertical field of view.
+     * @param {number} aspect — Camera frustum aspect ratio.
+     * @param {number} near — Camera frustum near plane.
+     * @param {number} far — Camera frustum far plane.
      */
     setPerspective: function(fov, aspect, near, far) {
         this.projectionMatrix.set(
@@ -91,10 +130,6 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
         );
     },
 
-    /*
-        * get world direction (override)
-        * must call after world matrix updated
-        */
     getWorldDirection: function() {
 
         var position = new Vector3();
@@ -107,6 +142,7 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
             this.worldMatrix.decompose(position, quaternion, scale);
 
+            // -z
             result.set(0, 0, -1).applyQuaternion(quaternion);
 
             return result;

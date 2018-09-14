@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: Scene</title>
+    <title>JSDoc: Class: DirectionalLight</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: Scene</h1>
+    <h1 class="page-title">Class: DirectionalLight</h1>
 
     
 
@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>Scene<span class="signature">()</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>DirectionalLight<span class="signature">()</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -42,7 +42,7 @@
     
 
     
-    <h4 class="name" id="Scene"><span class="type-signature"></span>new Scene<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="DirectionalLight"><span class="type-signature"></span>new DirectionalLight<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -50,7 +50,7 @@
 
 
 <div class="description">
-    Scenes allow you to set up what and where is to be rendered by zen3d.This is where you place objects, lights and cameras.
+    A light that gets emitted in a specific direction. This light will behave as though it is infinitely far away and the rays produced from it are all parallel. The common use case for this is to simulate daylight; the sun is far enough away that its position can be considered to be infinite, and all light rays coming from it are parallel.This light can cast shadows - see the zen3d.DirectionalLightShadow page for details.
 </div>
 
 
@@ -94,7 +94,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line13">line 13</a>
+        <a href="objects_lights_DirectionalLight.js.html">objects/lights/DirectionalLight.js</a>, <a href="objects_lights_DirectionalLight.js.html#line14">line 14</a>
     </li></ul></dd>
     
 
@@ -132,7 +132,7 @@
 
 
     <ul>
-        <li><a href="zen3d.Object3D.html">zen3d.Object3D</a></li>
+        <li><a href="zen3d.Light.html">zen3d.Light</a></li>
     </ul>
 
 
@@ -312,13 +312,13 @@
 
         
             
-<h4 class="name" id="clippingPlanes"><span class="type-signature"></span>clippingPlanes<span class="type-signature"> :Array.&lt;zen3d.Plane></span></h4>
+<h4 class="name" id="color"><span class="type-signature"></span>color<span class="type-signature"> :zen3d.Color3</span></h4>
 
 
 
 
 <div class="description">
-    User-defined clipping planes specified as zen3d.Plane objects in world space. These planes apply to the scene.Points in space whose dot product with the plane is negative are cut away.
+    Color of the light.
 </div>
 
 
@@ -327,7 +327,7 @@
     <ul>
         <li>
             
-<span class="param-type">Array.&lt;zen3d.Plane></span>
+<span class="param-type">zen3d.Color3</span>
 
 
         </li>
@@ -343,6 +343,11 @@
 
     
 
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Light.html#color">zen3d.Light#color</a>
+    </li></ul></dd>
     
 
     
@@ -364,14 +369,14 @@
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li>[]</li>
+            <li>zen3d.Color3(0xffffff)</li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line40">line 40</a>
+        <a href="objects_lights_Light.js.html">objects/lights/Light.js</a>, <a href="objects_lights_Light.js.html#line26">line 26</a>
     </li></ul></dd>
     
 
@@ -471,83 +476,6 @@
 
         
             
-<h4 class="name" id="fog"><span class="type-signature"></span>fog<span class="type-signature"> :<a href="zen3d.Fog.html">zen3d.Fog</a></span></h4>
-
-
-
-
-<div class="description">
-    A <a href="zen3d.Fog.html">zen3d.Fog</a> instance defining the type of fog that affects everything rendered in the scene.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type"><a href="zen3d.Fog.html">zen3d.Fog</a></span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>null</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line31">line 31</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
 <h4 class="name" id="frustumCulled"><span class="type-signature"></span>frustumCulled<span class="type-signature"> :boolean</span></h4>
 
 
@@ -630,13 +558,13 @@
 
         
             
-<h4 class="name" id="lights"><span class="type-signature"></span>lights<span class="type-signature"> :zen3d.LightCache</span></h4>
+<h4 class="name" id="intensity"><span class="type-signature"></span>intensity<span class="type-signature"> :number</span></h4>
 
 
 
 
 <div class="description">
-    A zen3d.LightCache instance that collected all lights info after the calling of <a href="zen3d.Scene.html#updateLights">zen3d.Scene#updateLights</a>.
+    The light's intensity, or strength.
 </div>
 
 
@@ -645,7 +573,7 @@
     <ul>
         <li>
             
-<span class="param-type">zen3d.LightCache</span>
+<span class="param-type">number</span>
 
 
         </li>
@@ -661,6 +589,11 @@
 
     
 
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Light.html#intensity">zen3d.Light#intensity</a>
+    </li></ul></dd>
     
 
     
@@ -682,14 +615,14 @@
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li>zen3d.LightCache()</li>
+            <li>1</li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line47">line 47</a>
+        <a href="objects_lights_Light.js.html">objects/lights/Light.js</a>, <a href="objects_lights_Light.js.html#line33">line 33</a>
     </li></ul></dd>
     
 
@@ -849,83 +782,6 @@
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
         <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line28">line 28</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="overrideMaterial"><span class="type-signature"></span>overrideMaterial<span class="type-signature"> :zen3d.Material</span></h4>
-
-
-
-
-<div class="description">
-    If not null, it will force everything in the scene to be rendered with that material.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">zen3d.Material</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>null</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line24">line 24</a>
     </li></ul></dd>
     
 
@@ -1430,6 +1286,83 @@
 
         
             
+<h4 class="name" id="shadow"><span class="type-signature"></span>shadow<span class="type-signature"> :zen3d.DirectionalLightShadow</span></h4>
+
+
+
+
+<div class="description">
+    A zen3d.DirectionalLightShadow used to calculate shadows for this light.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.DirectionalLightShadow</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.DirectionalLightShadow()</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="objects_lights_DirectionalLight.js.html">objects/lights/DirectionalLight.js</a>, <a href="objects_lights_DirectionalLight.js.html#line25">line 25</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="shadowType"><span class="type-signature"></span>shadowType<span class="type-signature"> :<a href="zen3d.html#.SHADOW_TYPE">zen3d.SHADOW_TYPE</a></span></h4>
 
 
@@ -1544,12 +1477,12 @@
     
 
     
-
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
         <a href="zen3d.Object3D.html#type">zen3d.Object3D#type</a>
     </li></ul></dd>
+    
+
     
 
     
@@ -2235,7 +2168,7 @@
     
 
     
-    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">(source, recursive<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="zen3d.Object3D.html">zen3d.Object3D</a>}</span></h4>
+    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">(source)</span><span class="type-signature"> &rarr; {<a href="zen3d.Light.html">zen3d.Light</a>}</span></h4>
     
 
     
@@ -2243,7 +2176,7 @@
 
 
 <div class="description">
-    Copy the given object into this object.
+    Copies properties from the source light into this one.
 </div>
 
 
@@ -2267,11 +2200,7 @@
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
-        
-        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -2289,68 +2218,17 @@
             <td class="type">
             
                 
-<span class="param-type"><a href="zen3d.Object3D.html">zen3d.Object3D</a></span>
+<span class="param-type"><a href="zen3d.Light.html">zen3d.Light</a></span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
 
             
-                <td class="default">
-                
-                </td>
-            
 
-            <td class="description last">The object to be copied.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>recursive</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    true
-                
-                </td>
-            
-
-            <td class="description last">if true, descendants of the object are also copied.</td>
+            <td class="description last">The source light.</td>
         </tr>
 
     
@@ -2369,12 +2247,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.Object3D.html#copy">zen3d.Object3D#copy</a>
-    </li></ul></dd>
-    
 
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="zen3d.Light.html#copy">zen3d.Light#copy</a>
+    </li></ul></dd>
     
 
     
@@ -2396,7 +2274,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Object3D.js.html">objects/Object3D.js</a>, <a href="objects_Object3D.js.html#line327">line 327</a>
+        <a href="objects_lights_Light.js.html">objects/lights/Light.js</a>, <a href="objects_lights_Light.js.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -2422,6 +2300,10 @@
 <h5>Returns:</h5>
 
         
+<div class="param-desc">
+    - This light.
+</div>
+
 
 
 <dl>
@@ -2430,7 +2312,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="zen3d.Object3D.html">zen3d.Object3D</a></span>
+<span class="param-type"><a href="zen3d.Light.html">zen3d.Light</a></span>
 
 
     </dd>
@@ -2770,163 +2652,6 @@
     <dd>
         
 <span class="param-type"><a href="zen3d.Object3D.html">zen3d.Object3D</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getRenderList"><span class="type-signature"></span>getRenderList<span class="signature">(camera)</span><span class="type-signature"> &rarr; {RenderList}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Get zen3d.RenderList for the scene and camera.The Render List must be updated before this calling.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>camera</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="zen3d.Camera.html">zen3d.Camera</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The camera.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line87">line 87</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - The target render list.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">RenderList</span>
 
 
     </dd>
@@ -3906,114 +3631,6 @@
     
 
     
-    <h4 class="name" id="updateLights"><span class="type-signature"></span>updateLights<span class="signature">()</span><span class="type-signature"> &rarr; {LightCache}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Update all lights in the scene.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line95">line 95</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - An instance of LightCache whitch contains all lights in the scene.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">LightCache</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
     <h4 class="name" id="updateMatrix"><span class="type-signature"></span>updateMatrix<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
@@ -4094,163 +3711,6 @@
 
 
 
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="updateRenderList"><span class="type-signature"></span>updateRenderList<span class="signature">(camera)</span><span class="type-signature"> &rarr; {RenderList}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Update zen3d.RenderList for the scene and camera.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>camera</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="zen3d.Camera.html">zen3d.Camera</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The camera.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_Scene.js.html">objects/Scene.js</a>, <a href="objects_Scene.js.html#line61">line 61</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - The result render list.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">RenderList</span>
-
-
-    </dd>
-</dl>
-
-    
 
 
 
