@@ -4,10 +4,14 @@ import {RenderTarget2D} from '../../render/RenderTarget2D.js';
 import {Vector3} from '../../math/Vector3.js';
 
 /**
- * DirectionalLightShadow
- * @class
+ * This is used internally by DirectionalLights for calculating shadows.
+ * @constructor
+ * @hideconstructor
+ * @memberof zen3d
+ * @extends zen3d.LightShadow
  */
 function DirectionalLightShadow() {
+
     LightShadow.call(this);
 
     // direct light is just a direction
@@ -21,21 +25,23 @@ function DirectionalLightShadow() {
     map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
     this.map = map;
 
-    // the cast shadow window size
+    /**
+     * The cast shadow window size.
+     * @type {number}
+     * @default 500
+     */
     this.windowSize = 500;
 
     this._lookTarget = new Vector3();
 
     this._up = new Vector3(0, 1, 0);
+
 }
 
 DirectionalLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
 
     constructor: DirectionalLightShadow,
 
-    /**
-     * update by light
-     */
     update: function(light) {
         this._updateCamera(light);
         this._updateMatrix();
@@ -46,9 +52,6 @@ DirectionalLightShadow.prototype = Object.assign(Object.create(LightShadow.proto
         }
     },
 
-    /**
-     * update camera matrix by light
-     */
     _updateCamera: function(light) {
         var camera = this.camera;
         var lookTarget = this._lookTarget;
@@ -67,9 +70,6 @@ DirectionalLightShadow.prototype = Object.assign(Object.create(LightShadow.proto
         camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, this.cameraNear, this.cameraFar);
     },
 
-    /**
-     * update shadow matrix
-     */
     _updateMatrix: function() {
         var matrix = this.matrix;
         var camera = this.camera;

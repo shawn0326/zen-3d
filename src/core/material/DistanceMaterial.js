@@ -2,21 +2,20 @@ import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
 import {Material} from './Material.js';
 
 /**
- * DistanceMaterial
- * @class
+ * A material for drawing geometry by distance. 
+ * @constructor
+ * @extends zen3d.Material
+ * @memberof zen3d
  */
 function DistanceMaterial() {
+
     Material.call(this);
 
     this.type = MATERIAL_TYPE.DISTANCE;
 
-    this.blending = BLEND_TYPE.NONE;
 }
 
-DistanceMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-    constructor: DistanceMaterial
-
-});
+DistanceMaterial.prototype = Object.create(Material.prototype);
+DistanceMaterial.prototype.constructor = DistanceMaterial;
 
 export {DistanceMaterial};

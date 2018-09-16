@@ -4,10 +4,14 @@ import {RenderTargetCube} from '../../render/RenderTargetCube.js';
 import {Vector3} from '../../math/Vector3.js';
 
 /**
- * PointLightShadow
- * @class
+ * This is used internally by PointLights for calculating shadows.
+ * @constructor
+ * @hideconstructor
+ * @memberof zen3d
+ * @extends zen3d.LightShadow
  */
 function PointLightShadow() {
+
     LightShadow.call(this);
 
     this.renderTarget = new RenderTargetCube(this.mapSize.x, this.mapSize.y);
@@ -28,15 +32,13 @@ function PointLightShadow() {
     ];
 
     this._lookTarget = new Vector3();
+
 }
 
 PointLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
 
     constructor: PointLightShadow,
 
-    /**
-     * update by light
-     */
     update: function(light, face) {
         this._updateCamera(light, face);
         this._updateMatrix();
@@ -47,9 +49,6 @@ PointLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype),
         }
     },
 
-    /**
-     * update camera matrix by light
-     */
     _updateCamera: function(light, face) {
         var camera = this.camera;
         var lookTarget = this._lookTarget;
@@ -68,9 +67,6 @@ PointLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype),
         camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);
     },
 
-    /**
-     * update shadow matrix
-     */
     _updateMatrix: function() {
         var matrix = this.matrix;
         var camera = this.camera;

@@ -3,27 +3,54 @@ import {Material} from './Material.js';
 import {cloneUniforms} from '../base.js';
 
 /**
- * ShaderMaterial
- * @class
+ * A material rendered with custom shaders. 
+ * A shader is a small program written in GLSL that runs on the GPU.
+ * @constructor
+ * @extends zen3d.Material
+ * @memberof zen3d
+ * @param {Object} shader
  */
 function ShaderMaterial(shader) {
+
     Material.call(this);
 
     this.type = MATERIAL_TYPE.SHADER;
 
+    /**
+     * Vertex shader GLSL code. This is the actual code for the shader.
+     * @type {number}
+     * @default ""
+     */
     this.vertexShader = shader.vertexShader || "";
 
+    /**
+     * Fragment shader GLSL code. This is the actual code for the shader.
+     * @type {number}
+     * @default ""
+     */
     this.fragmentShader = shader.fragmentShader || "";
 
+    /**
+     * Defines of the shader
+     * @type {Object}
+     * @default {}
+     */
     this.defines = {};
+
     // copy defines
     Object.assign( this.defines, shader.defines ); 
 
-    // uniforms should match fragment shader
+    /**
+     * Uniforms of the shader.
+     * Uniforms should match with fragment shader
+     * @type {Object}
+     * @default {}
+     */
     this.uniforms = cloneUniforms(shader.uniforms);
+
 }
 
-ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.ShaderMaterial.prototype */{
 
     constructor: ShaderMaterial,
 

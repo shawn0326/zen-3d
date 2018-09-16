@@ -4,10 +4,14 @@ import {RenderTarget2D} from '../../render/RenderTarget2D.js';
 import {Vector3} from '../../math/Vector3.js';
 
 /**
- * SpotLightShadow
- * @class
+ * This is used internally by SpotLights for calculating shadows.
+ * @constructor
+ * @hideconstructor
+ * @memberof zen3d
+ * @extends zen3d.LightShadow
  */
 function SpotLightShadow() {
+
     LightShadow.call(this);
 
     this.renderTarget = new RenderTarget2D(this.mapSize.x, this.mapSize.y);
@@ -20,15 +24,13 @@ function SpotLightShadow() {
     this._lookTarget = new Vector3();
 
     this._up = new Vector3(0, 1, 0);
+
 }
 
 SpotLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
 
     constructor: SpotLightShadow,
 
-    /**
-     * update by light
-     */
     update: function(light) {
         this._updateCamera(light);
         this._updateMatrix();
@@ -39,9 +41,6 @@ SpotLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), 
         }
     },
 
-    /**
-     * update camera matrix by light
-     */
     _updateCamera: function(light) {
         var camera = this.camera;
         var lookTarget = this._lookTarget;
@@ -60,9 +59,6 @@ SpotLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), 
         camera.setPerspective(light.angle * 2, 1, this.cameraNear, this.cameraFar);
     },
 
-    /**
-     * update shadow matrix
-     */
     _updateMatrix: function() {
         var matrix = this.matrix;
         var camera = this.camera;
@@ -78,6 +74,7 @@ SpotLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), 
         matrix.multiply(camera.projectionMatrix);
         matrix.multiply(camera.viewMatrix);
     }
+
 });
 
 export {SpotLightShadow};
