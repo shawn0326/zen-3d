@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: SpotLightShadow</title>
+    <title>JSDoc: Class: Renderer</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: SpotLightShadow</h1>
+    <h1 class="page-title">Class: Renderer</h1>
 
     
 
@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>SpotLightShadow</h2>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>Renderer<span class="signature">(view, options=<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -39,6 +39,19 @@
     
         
 
+    
+
+    
+    <h4 class="name" id="Renderer"><span class="type-signature"></span>new Renderer<span class="signature">(view, options=<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    A simple foward renderer.
+</div>
 
 
 
@@ -47,6 +60,97 @@
 
 
 
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>view</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLCanvasElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The canvas elements.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options=</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">options for webgl context</a>.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -82,7 +186,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_SpotLightShadow.js.html">objects/lights/SpotLightShadow.js</a>, <a href="objects_lights_SpotLightShadow.js.html#line13">line 13</a>
+        <a href="render_Renderer.js.html">render/Renderer.js</a>, <a href="render_Renderer.js.html#line13">line 13</a>
     </li></ul></dd>
     
 
@@ -114,17 +218,6 @@
     </div>
 
     
-        <h3 class="subsection-title">Extends</h3>
-
-        
-
-
-    <ul>
-        <li><a href="zen3d.LightShadow.html">zen3d.LightShadow</a></li>
-    </ul>
-
-
-    
 
     
 
@@ -141,13 +234,13 @@
 
         
             
-<h4 class="name" id="bias"><span class="type-signature"></span>bias<span class="type-signature"> :number</span></h4>
+<h4 class="name" id="autoClear"><span class="type-signature"></span>autoClear<span class="type-signature"> :boolean</span></h4>
 
 
 
 
 <div class="description">
-    Shadow map bias, how much to add or subtract from the normalized depth when deciding whether a surface is in shadow.Very tiny adjustments here (in the order of 0.0001) may help reduce artefacts in shadows.
+    Defines whether the renderer should automatically clear its output before rendering a frame.
 </div>
 
 
@@ -156,7 +249,7 @@
     <ul>
         <li>
             
-<span class="param-type">number</span>
+<span class="param-type">boolean</span>
 
 
         </li>
@@ -172,11 +265,6 @@
 
     
 
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#bias">zen3d.LightShadow#bias</a>
-    </li></ul></dd>
     
 
     
@@ -198,14 +286,14 @@
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li>0.0003</li>
+            <li>true</li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line34">line 34</a>
+        <a href="render_Renderer.js.html">render/Renderer.js</a>, <a href="render_Renderer.js.html#line63">line 63</a>
     </li></ul></dd>
     
 
@@ -223,13 +311,13 @@
 
         
             
-<h4 class="name" id="camera"><span class="type-signature"></span>camera<span class="type-signature"> :<a href="zen3d.Camera.html">zen3d.Camera</a></span></h4>
+<h4 class="name" id="lightsAutoupdate"><span class="type-signature"></span>lightsAutoupdate<span class="type-signature"> :boolean</span></h4>
 
 
 
 
 <div class="description">
-    The light's view of the world. This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
+    Defines whether the scene should automatically update its lights.
 </div>
 
 
@@ -238,11 +326,503 @@
     <ul>
         <li>
             
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_Renderer.js.html">render/Renderer.js</a>, <a href="render_Renderer.js.html#line56">line 56</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="matrixAutoUpdate"><span class="type-signature"></span>matrixAutoUpdate<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Defines whether the scene should automatically update its matrix.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_Renderer.js.html">render/Renderer.js</a>, <a href="render_Renderer.js.html#line49">line 49</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="shadowAutoUpdate"><span class="type-signature"></span>shadowAutoUpdate<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Defines whether the shadow pass should automatically update.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_Renderer.js.html">render/Renderer.js</a>, <a href="render_Renderer.js.html#line35">line 35</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="shadowNeedsUpdate"><span class="type-signature"></span>shadowNeedsUpdate<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    If zen3d.Renderer.shadowAutoUpdate is set true and this set true, shadow will update and set this to false automatically.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_Renderer.js.html">render/Renderer.js</a>, <a href="render_Renderer.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="render"><span class="type-signature"></span>render<span class="signature">(scene, camera, renderTarget=<span class="signature-attributes">opt</span>, forceClear<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Render a scene using a camera.The render is done to the renderTarget (if specified) or to the canvas as usual.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>scene</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="zen3d.Scene.html">zen3d.Scene</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The scene.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>camera</code></td>
+            
+
+            <td class="type">
+            
+                
 <span class="param-type"><a href="zen3d.Camera.html">zen3d.Camera</a></span>
 
 
-        </li>
-    </ul>
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The camera.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>renderTarget=</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="zen3d.RenderTargetBase.html">zen3d.RenderTargetBase</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The render is done to the renderTarget (if specified) or to the canvas as usual.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>forceClear</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">If set true, the depth, stencil and color buffers will be cleared before rendering even if the renderer's autoClear property is false.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
 
 
 
@@ -254,11 +834,6 @@
 
     
 
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#camera">zen3d.LightShadow#camera</a>
-    </li></ul></dd>
     
 
     
@@ -282,7 +857,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line19">line 19</a>
+        <a href="render_Renderer.js.html">render/Renderer.js</a>, <a href="render_Renderer.js.html#line75">line 75</a>
     </li></ul></dd>
     
 
@@ -298,82 +873,12 @@
 
 
 
-        
-            
-<h4 class="name" id="cameraFar"><span class="type-signature"></span>cameraFar<span class="type-signature"> :number</span></h4>
-
-
-
-
-<div class="description">
-    Shadow camera far.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">number</span>
-
-
-        </li>
-    </ul>
 
 
 
 
 
-<dl class="details">
 
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#cameraFar">zen3d.LightShadow#cameraFar</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>500</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line57">line 57</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
 
 
 
@@ -381,331 +886,6 @@
 
 
         
-            
-<h4 class="name" id="cameraNear"><span class="type-signature"></span>cameraNear<span class="type-signature"> :number</span></h4>
-
-
-
-
-<div class="description">
-    Shadow camera near.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">number</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#cameraNear">zen3d.LightShadow#cameraNear</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>1</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line50">line 50</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="mapSize"><span class="type-signature"></span>mapSize<span class="type-signature"> :zen3d.Vector2</span></h4>
-
-
-
-
-<div class="description">
-    A zen3d.Vector2 defining the width and height of the shadow map.Higher values give better quality shadows at the cost of computation time. Values must be powers of 2,
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">zen3d.Vector2</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#mapSize">zen3d.LightShadow#mapSize</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>zen3d.Vector2(512, 512)</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line66">line 66</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="matrix"><span class="type-signature"></span>matrix<span class="type-signature"> :zen3d.Matrix4</span></h4>
-
-
-
-
-<div class="description">
-    Model to shadow camera space, to compute location and depth in shadow map. Stored in a zen3d.Matrix4. This is computed internally during rendering.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">zen3d.Matrix4</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#matrix">zen3d.LightShadow#matrix</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line26">line 26</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="radius"><span class="type-signature"></span>radius<span class="type-signature"> :number</span></h4>
-
-
-
-
-<div class="description">
-    Setting this to values greater than 1 will blur the edges of the shadow.High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.Note that this has no effect if the @zen3d.Object3D#shadowType is set to zen3d.SHADOW_TYPE.PCF_SOFT.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">number</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#radius">zen3d.LightShadow#radius</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>2</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line43">line 43</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
-
     
 
     

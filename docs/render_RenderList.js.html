@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: material/DistanceMaterial.js</title>
+    <title>JSDoc: Source: render/RenderList.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: material/DistanceMaterial.js</h1>
+    <h1 class="page-title">Source: render/RenderList.js</h1>
 
     
 
@@ -26,27 +26,167 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
-import {Material} from './Material.js';
+            <pre class="prettyprint source linenums"><code>import {Vector3} from '../math/Vector3.js';
+import {Sphere} from '../math/Sphere.js';
+
+var helpVector3 = new Vector3();
+var helpSphere = new Sphere();
+
+var sortFrontToBack = function(a, b) {
+    if (a.renderOrder !== b.renderOrder) {
+        return a.renderOrder - b.renderOrder;
+    } else {
+        return a.z - b.z;
+    }
+}
+
+var sortBackToFront = function(a, b) {
+    if (a.renderOrder !== b.renderOrder) {
+        return a.renderOrder - b.renderOrder;
+    } else {
+        return b.z - a.z;
+    }
+}
 
 /**
- * A material for drawing geometry by distance. 
+ * Render list is used to collect renderable objects from the scene.
+ * Render list has an opaque list and a transparent list.
  * @constructor
- * @extends zen3d.Material
+ * @hideconstructor
  * @memberof zen3d
  */
-function DistanceMaterial() {
+function RenderList() {
 
-    Material.call(this);
+    var renderItems = [];
+	var renderItemsIndex = 0;
 
-    this.type = MATERIAL_TYPE.DISTANCE;
+    /**
+     * Opaque list.
+     * @memberof zen3d.RenderList#
+     */
+    var opaque = [];
+    var opaqueCount = 0;
+
+    /**
+     * Transparent list.
+     * @memberof zen3d.RenderList#
+     */
+    var transparent = [];
+    var transparentCount = 0;
+
+    /**
+     * Mark count start.
+     * @memberof zen3d.RenderList#
+     */
+    function startCount() {
+        renderItemsIndex = 0;
+
+        opaqueCount = 0;
+        transparentCount = 0;
+    }
+
+    /**
+     * Collect render list.
+     * @memberof zen3d.RenderList#
+     * @param {zen3d.Object3D} object - The object to be collected.
+     * @param {zen3d.Camera} camera - The main camera.
+     */
+    function add(object, camera) {
+
+        // frustum test
+        if(object.frustumCulled &amp;&amp; camera.frustumCulled) {
+            helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
+            var frustumTest = camera.frustum.intersectsSphere(helpSphere);
+            if(!frustumTest) { // only test bounding sphere
+                return;
+            }
+        }
+
+        // calculate z
+        helpVector3.setFromMatrixPosition(object.worldMatrix);
+        helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+
+        if(Array.isArray(object.material)){
+            var groups = object.geometry.groups;
+
+            for(var i = 0; i &lt; groups.length; i++) {
+                var group = groups[i];
+                var groupMaterial = object.material[group.materialIndex];
+                if(groupMaterial) {
+                    _doAdd(object, object.geometry, groupMaterial, helpVector3.z, group);
+                }
+            }
+        } else {
+            _doAdd(object, object.geometry, object.material, helpVector3.z);
+        }
+
+    }
+
+    function _doAdd(object, geometry, material, z, group) {
+
+        var renderable = renderItems[renderItemsIndex];
+
+        if (renderable === undefined) {
+            renderable = {
+                object: object,
+                geometry: geometry,
+                material: material,
+                z: z,
+                renderOrder: object.renderOrder,
+                group: group
+            };
+            renderItems[ renderItemsIndex ] = renderable;
+        } else {
+            renderable.object = object;
+            renderable.geometry = geometry;
+            renderable.material = material;
+            renderable.z = z;
+            renderable.renderOrder = object.renderOrder;
+            renderable.group = group;
+        }
+        
+        if (material.transparent) {
+            transparent[transparentCount] = renderable;
+            transparentCount++;
+        } else {
+            opaque[opaqueCount] = renderable;
+            opaqueCount++;
+        }
+
+        renderItemsIndex ++;
+
+    }
+
+    /**
+     * Mark count finished.
+     * @memberof zen3d.RenderList#
+     */
+    function endCount() {
+        opaque.length = opaqueCount;
+        transparent.length = transparentCount;
+    }
+
+    /**
+     * Sort render list.
+     * @memberof zen3d.RenderList#
+     */
+    function sort() {
+        opaque.sort(sortFrontToBack);
+        transparent.sort(sortBackToFront);
+    }
+
+    return {
+        opaque: opaque,
+        transparent: transparent,
+        startCount: startCount,
+        add: add,
+        endCount: endCount,
+        sort: sort
+    };
 
 }
 
-DistanceMaterial.prototype = Object.create(Material.prototype);
-DistanceMaterial.prototype.constructor = DistanceMaterial;
-
-export {DistanceMaterial};</code></pre>
+export {RenderList};</code></pre>
         </article>
     </section>
 

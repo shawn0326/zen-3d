@@ -50,8 +50,7 @@
 
 
 <div class="description">
-    Creates a texture for use as a Depth Texture. 
-Require support for the <a href="https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/">WEBGL_depth_texture extension</a>.
+    Creates a texture for use as a Depth Texture. Require support for the <a href="https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/">WEBGL_depth_texture extension</a>.
 </div>
 
 
@@ -232,9 +231,7 @@ Require support for the <a href="https://www.khronos.org/registry/webgl/extensio
 
 
 <div class="description">
-    The number of samples taken along the axis through the pixel that has the highest density of texels.
-A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used. 
-Use WebGLcapabilities#maxAnisotropy to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
+    The number of samples taken along the axis through the pixel that has the highest density of texels.A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used. Use WebGLcapabilities#maxAnisotropy to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
 </div>
 
 
@@ -316,9 +313,7 @@ Use WebGLcapabilities#maxAnisotropy to find the maximum valid anisotropy value f
 
 
 <div class="description">
-    WebGLTexture border. 
-See <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D">WebGLTexture texImage2D()</a>.
-Must be zero.
+    WebGLTexture border. See <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D">WebGLTexture texImage2D()</a>.Must be zero.
 </div>
 
 
@@ -395,9 +390,7 @@ Must be zero.
 
 
 <div class="description">
-    The point around which rotation occurs. 
-A value of (0.5, 0.5) corresponds to the center of the texture. 
-Default is (0, 0), the lower left.
+    The point around which rotation occurs. A value of (0.5, 0.5) corresponds to the center of the texture. Default is (0, 0), the lower left.
 </div>
 
 
@@ -927,9 +920,7 @@ Default is (0, 0), the lower left.
 
 
 <div class="description">
-    The uv-transform matrix for the texture. Updated by the renderer from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a> when the texture's <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a> property is true. 
-When <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a>  property is false, this matrix may be set manually. 
-Default is the identity matrix.
+    The uv-transform matrix for the texture. Updated by the renderer from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a> when the texture's <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a> property is true. When <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a>  property is false, this matrix may be set manually. Default is the identity matrix.
 </div>
 
 
@@ -1011,8 +1002,7 @@ Default is the identity matrix.
 
 
 <div class="description">
-    Whether to update the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.
-Set this to false if you are specifying the uv-transform matrix directly.
+    Whether to update the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.Set this to false if you are specifying the uv-transform matrix directly.
 </div>
 
 
@@ -1244,10 +1234,7 @@ Set this to false if you are specifying the uv-transform matrix directly.
 
 
 <div class="description">
-    How much a single repetition of the texture is offset from the beginning, in each direction U and V. 
-Typical range is 0.0 to 1.0. 
-_Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. 
-If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired offset..
+    How much a single repetition of the texture is offset from the beginning, in each direction U and V. Typical range is 0.0 to 1.0. _Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired offset..
 </div>
 
 
@@ -1401,8 +1388,7 @@ If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or 
 
 
 <div class="description">
-    Use unsigned_short or unsigned_int.
-DEPTH_STENCIL_ATTACHMENT will be set to UNSIGNED_INT_24_8.
+    Use unsigned_short or unsigned_int.DEPTH_STENCIL_ATTACHMENT will be set to UNSIGNED_INT_24_8.
 </div>
 
 
@@ -1474,10 +1460,7 @@ DEPTH_STENCIL_ATTACHMENT will be set to UNSIGNED_INT_24_8.
 
 
 <div class="description">
-    How many times the texture is repeated across the surface, in each direction U and V. 
-If repeat is set greater than 1 in either direction, the corresponding Wrap parameter should also be set to zen3d.WEBGL_TEXTURE_WRAP.REPEAT or zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT to achieve the desired tiling effect. 
-_Note:_ The repeat property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. 
-If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired repetiton.
+    How many times the texture is repeated across the surface, in each direction U and V. If repeat is set greater than 1 in either direction, the corresponding Wrap parameter should also be set to zen3d.WEBGL_TEXTURE_WRAP.REPEAT or zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT to achieve the desired tiling effect. _Note:_ The repeat property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired repetiton.
 </div>
 
 
@@ -1559,8 +1542,7 @@ If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or 
 
 
 <div class="description">
-    How much the texture is rotated around the center point, in radians. 
-Postive values are counter-clockwise.
+    How much the texture is rotated around the center point, in radians. Postive values are counter-clockwise.
 </div>
 
 
@@ -1642,8 +1624,7 @@ Postive values are counter-clockwise.
 
 
 <div class="description">
-    UUID of this texture instance. 
-This gets automatically assigned, so this shouldn't be edited.
+    UUID of this texture instance. This gets automatically assigned, so this shouldn't be edited.
 </div>
 
 
@@ -1720,8 +1701,7 @@ This gets automatically assigned, so this shouldn't be edited.
 
 
 <div class="description">
-    version code increse if texture changed.
-if version is still 0, this texture will be skiped.
+    version code increse if texture changed.if version is still 0, this texture will be skiped.
 </div>
 
 
@@ -3030,13 +3010,13 @@ if version is still 0, this texture will be skiped.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.Line.html">Line</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.Points.html">Points</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TextureData.html">TextureData</a></li><li><a href="zen3d.TextureDepth.html">TextureDepth</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="CubeGeometry.html">CubeGeometry</a></li><li><a href="CylinderGeometry.html">CylinderGeometry</a></li><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="Geometry.html">Geometry</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="PlaneGeometry.html">PlaneGeometry</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="SphereGeometry.html">SphereGeometry</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.Line.html">Line</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.Points.html">Points</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TextureData.html">TextureData</a></li><li><a href="zen3d.TextureDepth.html">TextureDepth</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Sep 16 2018 22:41:16 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Sep 17 2018 11:13:37 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

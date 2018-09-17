@@ -8,7 +8,11 @@ import {cloneUniforms} from '../base.js';
  * @constructor
  * @extends zen3d.Material
  * @memberof zen3d
- * @param {Object} shader
+ * @param {Object} shader - Shader object for the shader material.
+ * @param {string} shader.vertexShader -  Vertex shader GLSL code.
+ * @param {string} shader.fragmentShader - Fragment shader GLSL code.
+ * @param {Object} [shader.defines={}] - Defines of the shader.
+ * @param {Object} [shader.uniforms={}] - Uniforms of the shader.
  */
 function ShaderMaterial(shader) {
 

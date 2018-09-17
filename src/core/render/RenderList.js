@@ -20,16 +20,36 @@ var sortBackToFront = function(a, b) {
     }
 }
 
+/**
+ * Render list is used to collect renderable objects from the scene.
+ * Render list has an opaque list and a transparent list.
+ * @constructor
+ * @hideconstructor
+ * @memberof zen3d
+ */
 function RenderList() {
 
     var renderItems = [];
 	var renderItemsIndex = 0;
 
+    /**
+     * Opaque list.
+     * @memberof zen3d.RenderList#
+     */
     var opaque = [];
     var opaqueCount = 0;
+
+    /**
+     * Transparent list.
+     * @memberof zen3d.RenderList#
+     */
     var transparent = [];
     var transparentCount = 0;
 
+    /**
+     * Mark count start.
+     * @memberof zen3d.RenderList#
+     */
     function startCount() {
         renderItemsIndex = 0;
 
@@ -37,6 +57,12 @@ function RenderList() {
         transparentCount = 0;
     }
 
+    /**
+     * Collect render list.
+     * @memberof zen3d.RenderList#
+     * @param {zen3d.Object3D} object - The object to be collected.
+     * @param {zen3d.Camera} camera - The main camera.
+     */
     function add(object, camera) {
 
         // frustum test
@@ -103,11 +129,19 @@ function RenderList() {
 
     }
 
+    /**
+     * Mark count finished.
+     * @memberof zen3d.RenderList#
+     */
     function endCount() {
         opaque.length = opaqueCount;
         transparent.length = transparentCount;
     }
 
+    /**
+     * Sort render list.
+     * @memberof zen3d.RenderList#
+     */
     function sort() {
         opaque.sort(sortFrontToBack);
         transparent.sort(sortBackToFront);
