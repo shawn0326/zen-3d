@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: PointLightShadow</title>
+    <title>JSDoc: Class: BufferAttribute</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: PointLightShadow</h1>
+    <h1 class="page-title">Class: BufferAttribute</h1>
 
     
 
@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>PointLightShadow</h2>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>BufferAttribute<span class="signature">(array, size, normalized<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -39,6 +39,19 @@
     
         
 
+    
+
+    
+    <h4 class="name" id="BufferAttribute"><span class="type-signature"></span>new BufferAttribute<span class="signature">(array, size, normalized<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    This class stores data for an attribute (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes ) associated with a Geometry, which allows for more efficient passing of data to the GPU.Data is stored as vectors of any length (defined by itemSize).
+</div>
 
 
 
@@ -47,6 +60,144 @@
 
 
 
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>array</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">Used to instantiate the buffer.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>size</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">the number of values of the array that should be associated with a particular vertex. For instance, if this attribute is storing a 3-component vector (such as a position, normal, or color), then itemSize should be 3.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>normalized</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">Indicates how the underlying data in the buffer maps to the values in the GLSL code. For instance, if array is an instance of UInt16Array, and normalized is true, the values 0 - +65535 in the array data will be mapped to 0.0f - +1.0f in the GLSL attribute. An Int16Array (signed) would map from -32767 - +32767 to -1.0f - +1.0f. If normalized is false, the values will be converted to floats which contain the exact value, i.e. 32767 becomes 32767.0f.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -82,7 +233,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_PointLightShadow.js.html">objects/lights/PointLightShadow.js</a>, <a href="objects_lights_PointLightShadow.js.html#line13">line 13</a>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -114,17 +265,6 @@
     </div>
 
     
-        <h3 class="subsection-title">Extends</h3>
-
-        
-
-
-    <ul>
-        <li><a href="zen3d.LightShadow.html">zen3d.LightShadow</a></li>
-    </ul>
-
-
-    
 
     
 
@@ -141,13 +281,13 @@
 
         
             
-<h4 class="name" id="bias"><span class="type-signature"></span>bias<span class="type-signature"> :number</span></h4>
+<h4 class="name" id="array"><span class="type-signature"></span>array<span class="type-signature"> :TypedArray</span></h4>
 
 
 
 
 <div class="description">
-    Shadow map bias, how much to add or subtract from the normalized depth when deciding whether a surface is in shadow.Very tiny adjustments here (in the order of 0.0001) may help reduce artefacts in shadows.
+    The array holding data stored in the buffer.
 </div>
 
 
@@ -156,7 +296,7 @@
     <ul>
         <li>
             
-<span class="param-type">number</span>
+<span class="param-type">TypedArray</span>
 
 
         </li>
@@ -173,10 +313,149 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#bias">zen3d.LightShadow#bias</a>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line25">line 25</a>
     </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="count"><span class="type-signature"></span>count<span class="type-signature"> :Integer</span></h4>
+
+
+
+
+<div class="description">
+    Stores the array's length divided by the size.If the buffer is storing a 3-component vector (such as a position, normal, or color), then this will count the number of such vectors stored.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Integer</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line38">line 38</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="dynamic"><span class="type-signature"></span>dynamic<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Whether the buffer is dynamic or not.If false, the GPU is informed that contents of the buffer are likely to be used often and not change often. This corresponds to the gl.STATIC_DRAW flag.If true, the GPU is informed that contents of the buffer are likely to be used often and change often. This corresponds to the gl.DYNAMIC_DRAW flag.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
     
 
     
@@ -198,14 +477,14 @@
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li>0.0003</li>
+            <li>false</li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line34">line 34</a>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line56">line 56</a>
     </li></ul></dd>
     
 
@@ -223,13 +502,13 @@
 
         
             
-<h4 class="name" id="camera"><span class="type-signature"></span>camera<span class="type-signature"> :<a href="zen3d.Camera.html">zen3d.Camera</a></span></h4>
+<h4 class="name" id="normalized"><span class="type-signature"></span>normalized<span class="type-signature"> :boolean</span></h4>
 
 
 
 
 <div class="description">
-    The light's view of the world. This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
+    Indicates how the underlying data in the buffer maps to the values in the GLSL shader code.See the constructor above for details.
 </div>
 
 
@@ -238,7 +517,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="zen3d.Camera.html">zen3d.Camera</a></span>
+<span class="param-type">boolean</span>
 
 
         </li>
@@ -254,11 +533,6 @@
 
     
 
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#camera">zen3d.LightShadow#camera</a>
-    </li></ul></dd>
     
 
     
@@ -282,7 +556,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line19">line 19</a>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line45">line 45</a>
     </li></ul></dd>
     
 
@@ -300,13 +574,13 @@
 
         
             
-<h4 class="name" id="cameraFar"><span class="type-signature"></span>cameraFar<span class="type-signature"> :number</span></h4>
+<h4 class="name" id="size"><span class="type-signature"></span>size<span class="type-signature"> :Integer</span></h4>
 
 
 
 
 <div class="description">
-    Shadow camera far.
+    The length of vectors that are being stored in the array.
 </div>
 
 
@@ -315,7 +589,7 @@
     <ul>
         <li>
             
-<span class="param-type">number</span>
+<span class="param-type">Integer</span>
 
 
         </li>
@@ -332,10 +606,211 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#cameraFar">zen3d.LightShadow#cameraFar</a>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line31">line 31</a>
     </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="updateRange"><span class="type-signature"></span>updateRange<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Object containing:offset: Default is 0. Position at whcih to start update.count: Default is -1, which means don't use update ranges. This can be used to only update some components of stored vectors (for example, just the component related to color).
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line64">line 64</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="uuid"><span class="type-signature"></span>uuid<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    UUID of this buffer attribute instance. This gets automatically assigned, so this shouldn't be edited.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line19">line 19</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="version"><span class="type-signature"></span>version<span class="type-signature"> :Integer</span></h4>
+
+
+
+
+<div class="description">
+    A version number, incremented every time the data changes.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Integer</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
     
 
     
@@ -357,14 +832,14 @@
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li>500</li>
+            <li>0</li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line57">line 57</a>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line71">line 71</a>
     </li></ul></dd>
     
 
@@ -381,27 +856,84 @@
 
 
         
-            
-<h4 class="name" id="cameraNear"><span class="type-signature"></span>cameraNear<span class="type-signature"> :number</span></h4>
+    
 
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setArray"><span class="type-signature"></span>setArray<span class="signature">(array)</span><span class="type-signature"></span></h4>
+    
+
+    
 
 
 
 <div class="description">
-    Shadow camera near.
+    Array to the TypedArray passed in here.After setting the array, <a href="zen3d.BufferAttribute.html#version">zen3d.BufferAttribute#version</a> should be incremented.
 </div>
 
 
 
-    <h5>Type:</h5>
-    <ul>
-        <li>
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
             
-<span class="param-type">number</span>
+                <td class="name"><code>array</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
 
 
-        </li>
-    </ul>
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
 
 
 
@@ -414,11 +946,6 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#cameraNear">zen3d.LightShadow#cameraNear</a>
-    </li></ul></dd>
-    
 
     
 
@@ -436,17 +963,12 @@
 
     
 
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>1</li>
-        </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line50">line 50</a>
+        <a href="geometry_BufferAttribute.js.html">geometry/BufferAttribute.js</a>, <a href="geometry_BufferAttribute.js.html#line82">line 82</a>
     </li></ul></dd>
     
 
@@ -462,82 +984,12 @@
 
 
 
-        
-            
-<h4 class="name" id="mapSize"><span class="type-signature"></span>mapSize<span class="type-signature"> :zen3d.Vector2</span></h4>
-
-
-
-
-<div class="description">
-    A zen3d.Vector2 defining the width and height of the shadow map.Higher values give better quality shadows at the cost of computation time. Values must be powers of 2,
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">zen3d.Vector2</span>
-
-
-        </li>
-    </ul>
 
 
 
 
 
-<dl class="details">
 
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#mapSize">zen3d.LightShadow#mapSize</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>zen3d.Vector2(512, 512)</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line66">line 66</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
 
 
 
@@ -545,167 +997,6 @@
 
 
         
-            
-<h4 class="name" id="matrix"><span class="type-signature"></span>matrix<span class="type-signature"> :zen3d.Matrix4</span></h4>
-
-
-
-
-<div class="description">
-    Model to shadow camera space, to compute location and depth in shadow map. Stored in a zen3d.Matrix4. This is computed internally during rendering.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">zen3d.Matrix4</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#matrix">zen3d.LightShadow#matrix</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line26">line 26</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="radius"><span class="type-signature"></span>radius<span class="type-signature"> :number</span></h4>
-
-
-
-
-<div class="description">
-    Setting this to values greater than 1 will blur the edges of the shadow.High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.Note that this has no effect if the @zen3d.Object3D#shadowType is set to zen3d.SHADOW_TYPE.PCF_SOFT.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">number</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="zen3d.LightShadow.html#radius">zen3d.LightShadow#radius</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>2</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="objects_lights_LightShadow.js.html">objects/lights/LightShadow.js</a>, <a href="objects_lights_LightShadow.js.html#line43">line 43</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
-
     
 
     

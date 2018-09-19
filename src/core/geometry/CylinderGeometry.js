@@ -4,14 +4,25 @@ import {Vector2} from '../math/Vector2.js';
 import {Vector3} from '../math/Vector3.js';
 
 /**
- * CylinderGeometry data
- * same as CylinderGeometry of three.js
- * @class
+ * A class for generating cylinder geometries.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ * @param {number} [radiusTop=1] — Radius of the cylinder at the top.
+ * @param {number} [radiusBottom=1] — Radius of the cylinder at the bottom.
+ * @param {number} [height=1] — Height of the cylinder.
+ * @param {Integer} [radialSegments=8] — Number of segmented faces around the circumference of the cylinder.
+ * @param {Integer} [heightSegments=1] — Number of rows of faces along the height of the cylinder.
+ * @param {number} [openEnded=false] — A Boolean indicating whether the ends of the cylinder are open or capped. Default is false, meaning capped.
+ * @param {number} [thetaStart=0] — Start angle for first segment, default = 0 (three o'clock position).
+ * @param {number} [thetaLength=2*Pi] — The central angle, often called theta, of the circular sector. The default is 2*Pi, which makes for a complete cylinder.
  */
 function CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
+
 	Geometry.call(this);
 
 	this.buildGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
+	
 }
 
 CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {

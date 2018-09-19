@@ -109,6 +109,9 @@
 
         this.frustumCulled = false;
 
+        // higher render order than other
+        this.renderOrder = 10000;
+
         this.geometry = new zen3d.Geometry();
         this.buffer = new zen3d.InterleavedBuffer(new Float32Array(), 5);
         this.buffer.dynamic = true;
@@ -116,7 +119,6 @@
         this.geometry.addAttribute("a_Uv", new zen3d.InterleavedBufferAttribute(this.buffer, 2, 3));
         this.geometry.setIndex([]);
 
-        this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
         this.material = new Canvas2DMaterial();
 
         this.sprites = [];

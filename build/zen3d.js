@@ -6,11 +6,13 @@
 }(this, (function (exports) { 'use strict';
 
 	/**
-	 * generate uuid
+	 * Method for generate uuid.
+	 * ( http://www.broofa.com/Tools/Math.uuid.htm )
+	 * @method
+	 * @name zen3d.generateUUID
+	 * @return {string} - The uuid.
 	 */
 	var generateUUID = (function () {
-
-	    // http://www.broofa.com/Tools/Math.uuid.htm
 
 	    var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split( '' );
 	    var uuid = new Array( 36 );
@@ -46,7 +48,9 @@
 	})();
 
 	/**
-	 * is mobile
+	 * Is mobile.
+	 * @name zen3d.isMobile
+	 * @type {boolean}
 	 */
 	var isMobile = (function () {
 	    if (!window.navigator) {
@@ -57,14 +61,22 @@
 	})();
 
 	/**
-	 * is web
+	 * Is web.
+	 * @name zen3d.isWeb
+	 * @type {boolean}
 	 */
 	var isWeb = (function () {
 	    return !!document;
 	})();
 
 	/**
-	 * create checker board pixels
+	 * Create an Checker Board Pixels Data.
+	 * @method
+	 * @name zen3d.createCheckerBoardPixels
+	 * @param {number} width - The width of the pixels.
+	 * @param {number} height - The height of the pixels.
+	 * @param {number} [blockSize=5] - The block size of the Checker Board.
+	 * @return {Uint8Array} - The Board Pixels Data.
 	 */
 	function createCheckerBoardPixels(width, height, blockSize) {
 	    var pixelArray = new Uint8Array(width * height * 4);
@@ -101,14 +113,35 @@
 	    return pixelArray;
 	}
 
+	/**
+	 * Is this number a power of two.
+	 * @method
+	 * @name zen3d.isPowerOfTwo
+	 * @param {number} value - The input number.
+	 * @return {boolean} - Is this number a power of two.
+	 */
 	function isPowerOfTwo(value) {
 	    return ( value & ( value - 1 ) ) === 0 && value !== 0;
 	}
 
+	/**
+	 * Return the nearest power of two number of this number.
+	 * @method
+	 * @name zen3d.nearestPowerOfTwo
+	 * @param {number} value - The input number.
+	 * @return {number} - The result number.
+	 */
 	function nearestPowerOfTwo( value ) {
 	    return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
 	}
 
+	/**
+	 * Return the next power of two number of this number.
+	 * @method
+	 * @name zen3d.nextPowerOfTwo
+	 * @param {number} value - The input number.
+	 * @return {number} - The result number.
+	 */
 	function nextPowerOfTwo( value ) {
 	    value --;
 	    value |= value >> 1;
@@ -121,6 +154,13 @@
 	    return value;
 	}
 
+	/**
+	 * Clone Object of Uniforms.
+	 * @method
+	 * @name zen3d.cloneUniforms
+	 * @param {Object} value - The input uniforms.
+	 * @return {Object} - The result uniforms.
+	 */
 	function cloneUniforms(uniforms_src) {
 	    var uniforms_dst = {};
 
@@ -137,8 +177,14 @@
 	    return uniforms_dst;
 	}
 
-	// Generate halton sequence
-	// https://en.wikipedia.org/wiki/Halton_sequence
+	/**
+	 * Generate {@link https://en.wikipedia.org/wiki/Halton_sequence halton sequence}.
+	 * @method
+	 * @name zen3d.halton
+	 * @param {number} index
+	 * @param {number} base
+	 * @return {number} - The result halton number.
+	 */
 	function halton(index, base) {
 	    var result = 0;
 	    var f = 1 / base;
@@ -152,7 +198,10 @@
 	}
 
 	/**
-	 * OBJECT_TYPE
+	 * Enum for object Type.
+	 * @name zen3d.OBJECT_TYPE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var OBJECT_TYPE = {
 	    MESH: "mesh",
@@ -169,7 +218,10 @@
 	};
 
 	/**
-	 * LIGHT_TYPE
+	 * Enum for light Type.
+	 * @name zen3d.LIGHT_TYPE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var LIGHT_TYPE = {
 	    AMBIENT: "ambient",
@@ -179,7 +231,10 @@
 	};
 
 	/**
-	 * MATERIAL_TYPE
+	 * Enum for material Type.
+	 * @name zen3d.MATERIAL_TYPE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var MATERIAL_TYPE = {
 	    BASIC: "basic",
@@ -197,7 +252,10 @@
 	};
 
 	/**
-	 * FOG_TYPE
+	 * Enum for fog Type.
+	 * @name zen3d.FOG_TYPE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var FOG_TYPE = {
 	    NORMAL: "normal",
@@ -205,7 +263,10 @@
 	};
 
 	/**
-	 * BLEND_TYPE
+	 * Enum for blend Type.
+	 * @name zen3d.BLEND_TYPE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var BLEND_TYPE = {
 	    NONE: "none",
@@ -215,7 +276,10 @@
 	};
 
 	/**
-	 * BLEND_EQUATION
+	 * Enum for blend equation.
+	 * @name zen3d.BLEND_EQUATION
+	 * @readonly
+	 * @enum {number}
 	 */
 	var BLEND_EQUATION = {
 	    ADD: 0x8006,
@@ -224,7 +288,10 @@
 	};
 
 	/**
-	 * BLEND_FACTOR
+	 * Enum for blend factor.
+	 * @name zen3d.BLEND_FACTOR
+	 * @readonly
+	 * @enum {number}
 	 */
 	var BLEND_FACTOR = {
 	    ZERO: 0,
@@ -240,7 +307,10 @@
 	};
 
 	/**
-	 * CULL_FACE_TYPE
+	 * Enum for cull face Type.
+	 * @name zen3d.CULL_FACE_TYPE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var CULL_FACE_TYPE = {
 	    NONE: "none",
@@ -250,7 +320,10 @@
 	};
 
 	/**
-	 * DRAW_SIDE
+	 * Enum for draw side.
+	 * @name zen3d.DRAW_SIDE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var DRAW_SIDE = {
 	    FRONT: "front",
@@ -259,7 +332,10 @@
 	};
 
 	/**
-	 * SHADING_TYPE
+	 * Enum for shading side.
+	 * @name zen3d.SHADING_TYPE
+	 * @readonly
+	 * @enum {string}
 	 */
 	var SHADING_TYPE = {
 	    SMOOTH_SHADING: "smooth_shading",
@@ -267,7 +343,10 @@
 	};
 
 	/**
-	 * WEBGL_TEXTURE_TYPE
+	 * Enum for WebGL Texture Type.
+	 * @name zen3d.WEBGL_TEXTURE_TYPE
+	 * @readonly
+	 * @enum {number}
 	 */
 	var WEBGL_TEXTURE_TYPE = {
 	    TEXTURE_2D: 0x0DE1,
@@ -275,7 +354,10 @@
 	};
 
 	/**
-	 * WEBGL_PIXEL_FORMAT
+	 * Enum for WebGL pixel format.
+	 * @name zen3d.WEBGL_PIXEL_FORMAT
+	 * @readonly
+	 * @enum {number}
 	 */
 	var WEBGL_PIXEL_FORMAT = {
 	    DEPTH_COMPONENT: 0x1902,
@@ -288,7 +370,10 @@
 	};
 
 	/**
-	 * WEBGL_PIXEL_TYPE
+	 * Enum for WebGL pixel Type.
+	 * @name zen3d.WEBGL_PIXEL_TYPE
+	 * @readonly
+	 * @enum {number}
 	 */
 	var WEBGL_PIXEL_TYPE = {
 	    BYTE: 0x1400,
@@ -306,7 +391,10 @@
 	};
 
 	/**
-	 * WEBGL_TEXTURE_FILTER
+	 * Enum for WebGL Texture filter.
+	 * @name zen3d.WEBGL_TEXTURE_FILTER
+	 * @readonly
+	 * @enum {number}
 	 */
 	var WEBGL_TEXTURE_FILTER = {
 	    NEAREST: 0x2600,
@@ -318,7 +406,10 @@
 	};
 
 	/**
-	 * WEBGL_TEXTURE_WRAP
+	 * Enum for WebGL Texture wrap.
+	 * @name zen3d.WEBGL_TEXTURE_WRAP
+	 * @readonly
+	 * @enum {number}
 	 */
 	var WEBGL_TEXTURE_WRAP = {
 	    REPEAT:	0x2901,
@@ -326,8 +417,13 @@
 	    MIRRORED_REPEAT: 0x8370
 	};
 
-	// Taken from the WebGl spec:
-	// http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14
+	/**
+	 * Enum for WebGL Uniform Type.
+	 * Taken from the {@link http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14 WebGl spec}.
+	 * @name zen3d.WEBGL_UNIFORM_TYPE
+	 * @readonly
+	 * @enum {number}
+	 */
 	var WEBGL_UNIFORM_TYPE = {
 	    FLOAT_VEC2: 0x8B50,
 	    FLOAT_VEC3: 0x8B51,
@@ -353,6 +449,12 @@
 	    FLOAT: 0x1406
 	};
 
+	/**
+	 * Enum for WebGL Attribute Type.
+	 * @name zen3d.WEBGL_ATTRIBUTE_TYPE
+	 * @readonly
+	 * @enum {number}
+	 */
 	var WEBGL_ATTRIBUTE_TYPE = {
 	    FLOAT_VEC2: 0x8B50,
 	    FLOAT_VEC3: 0x8B51,
@@ -363,17 +465,23 @@
 	    UNSIGNED_SHORT: 0x1403
 	};
 
-	var WEBGL_BUFFER_USAGE = {
-	    STREAM_DRAW: 0x88e0,
-	    STATIC_DRAW: 0x88E4,
-	    DYNAMIC_DRAW: 0x88E8
-	};
-
+	/**
+	 * Enum for Shadow Type.
+	 * @name zen3d.SHADOW_TYPE
+	 * @readonly
+	 * @enum {number}
+	 */
 	var SHADOW_TYPE = {
 	    HARD: "hard",
 	    PCF_SOFT: "pcf_soft"
 	};
 
+	/**
+	 * Enum for Texel Encoding Type.
+	 * @name zen3d.TEXEL_ENCODING_TYPE
+	 * @readonly
+	 * @enum {number}
+	 */
 	var TEXEL_ENCODING_TYPE = {
 	    LINEAR: "linear",
 	    SRGB: "sRGB",
@@ -384,12 +492,24 @@
 	    GAMMA: "Gamma"
 	};
 
+	/**
+	 * Enum for Envmap Combine Type.
+	 * @name zen3d.ENVMAP_COMBINE_TYPE
+	 * @readonly
+	 * @enum {number}
+	 */
 	var ENVMAP_COMBINE_TYPE = {
 	    MULTIPLY: "ENVMAP_BLENDING_MULTIPLY",
 	    MIX: "ENVMAP_BLENDING_MIX",
 	    ADD: "ENVMAP_BLENDING_ADD"
 	};
 
+	/**
+	 * Enum for Draw Mode.
+	 * @name zen3d.DRAW_MODE
+	 * @readonly
+	 * @enum {number}
+	 */
 	var DRAW_MODE = {
 	    POINTS: 0,
 	    LINES: 1,
@@ -401,17 +521,24 @@
 	};
 
 	/**
-	 * EventDispatcher Class
-	 **/
+	 * JavaScript events for custom objects.
+	 * @memberof zen3d
+	 * @constructor
+	 */
 	function EventDispatcher() {
+
 	    this.eventMap = {};
+
 	}
 
-	Object.assign(EventDispatcher.prototype, {
+	Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.prototype */{
 
 	    /**
-	     * add a event listener
-	     **/
+	     * Adds a listener to an event type.
+	     * @param {string} type - The type of event to listen to.
+	     * @param {function} listener - The function that gets called when the event is fired.
+	     * @param {Object} [thisObject = this] - The Object of calling listener method.
+	     */
 	    addEventListener: function(type, listener, thisObject) {
 	        var list = this.eventMap[type];
 
@@ -423,8 +550,11 @@
 	    },
 
 	    /**
-	     * remove a event listener
-	     **/
+	     * Removes a listener from an event type.
+	     * @param {string} type - The type of the listener that gets removed.
+	     * @param {function} listener - The listener function that gets removed.
+	     * @param {Object} [thisObject = this] thisObject - The Object of calling listener method.
+	     */
 	    removeEventListener: function(type, listener, thisObject) {
 	        var list = this.eventMap[type];
 
@@ -442,8 +572,9 @@
 	    },
 
 	    /**
-	     * dispatch a event
-	     **/
+	     * Fire an event type.
+	     * @param {Object} event - The event that gets fired.
+	     */
 	    dispatchEvent: function(event) {
 	        event.target = this;
 	        this.notifyListener(event);
@@ -451,7 +582,9 @@
 
 	    /**
 	     * notify listener
-	     **/
+	     * @private
+	     * @param {Object} event - The event that gets fired.
+	     */
 	    notifyListener: function(event) {
 	        var list = this.eventMap[event.type];
 
@@ -1544,12 +1677,35 @@
 
 	});
 
+	/**
+	 * This creates a new raycaster object.
+	 * @memberof zen3d
+	 * @constructor
+	 * @param {zen3d.Vector3} origin — The origin vector where the ray casts from.
+	 * @param {zen3d.Vector3} direction — The direction vector that gives direction to the ray. Should be normalized.
+	 * @param {number} [near=0] — All results returned are further away than near. Near can't be negative.
+	 * @param {number} [far=Infinity] All results returned are closer than far. Far can't be lower than near.
+	 */
 	function Raycaster(origin, direction, near, far) {
+
+	    /**
+	     * The Ray used for the raycasting.
+	     * @member {zen3d.Ray}
+	     */
 	    this.ray = new Ray(origin, direction);
 
+	    /**
+	     * The near factor of the raycaster. This value indicates which objects can be discarded based on the distance. This value shouldn't be negative and should be smaller than the far property.
+	     * @member {number}
+	     */
 	    this.near = near || 0;
 
+	    /**
+	     * The far factor of the raycaster. This value indicates which objects can be discarded based on the distance. This value shouldn't be negative and should be larger than the near property.
+	     * @member {number}
+	     */
 	    this.far = far || Infinity;
+
 	}
 
 	function ascSort(a, b) {
@@ -1568,17 +1724,28 @@
 	    }
 	}
 
-	Object.assign(Raycaster.prototype, {
 
+	Object.assign(Raycaster.prototype, /** @lends zen3d.Raycaster.prototype */{
+
+	    /**
+	     * Updates the ray with a new origin and direction.
+	     * @param {zen3d.Vector3} origin — The origin vector where the ray casts from.
+	     * @param {zen3d.Vector3} direction — The normalized direction vector that gives direction to the ray.
+	     */
 	    set: function(origin, direction) {
 	        this.ray.set(origin, direction);
 	    },
 
+	    /**
+	     * Updates the ray with a new origin and direction.
+	     * @param {zen3d.Vector2} coords — 2D coordinates of the mouse, in normalized device coordinates (NDC)---X and Y components should be between -1 and 1.
+	     * @param {zen3d.Camera} camera — camera from which the ray should originate.
+	     */
 	    setFromCamera: function(coords, camera) {
 	        // if ((camera && camera.isPerspectiveCamera)) {
 	            this.ray.origin.setFromMatrixPosition(camera.worldMatrix);
 	            this.ray.direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(this.ray.origin).normalize();
-	        // } else if ((camera && camera.isOrthographicCamera)) {
+	        // } else if ((camera && camera.isOrthographicCamera)) { // TODO
 	        //     this.ray.origin.set(coords.x, coords.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera); // set origin in plane of camera
 	        //     this.ray.direction.set(0, 0, -1).transformDirection(camera.worldMatrix);
 	        // } else {
@@ -1586,6 +1753,13 @@
 	        // }
 	    },
 
+	    /**
+	     * Checks all intersection between the ray and the object with or without the descendants. Intersections are returned sorted by distance, closest first. An array of intersections is returned:
+	     * [ { distance, point, face, faceIndex, object }, ... ]
+	     * @param {zen3d.Object3D} object — The object to check for intersection with the ray.
+	     * @param {boolean} [recursive=] — If true, it also checks all descendants. Otherwise it only checks intersecton with the object.
+	     * @return {Object[]} An array of intersections
+	     */
 	    intersectObject: function(object, recursive) {
 	        var intersects = [];
 
@@ -1596,6 +1770,13 @@
 	        return intersects;
 	    },
 
+	    /**
+	     * Checks all intersection between the ray and the objects with or without the descendants. Intersections are returned sorted by distance, closest first. An array of intersections is returned:
+	     * [ { distance, point, face, faceIndex, object }, ... ]
+	     * @param {zen3d.Object3D[]} objects — The objects to check for intersection with the ray.
+	     * @param {boolean} [recursive=] — If true, it also checks all descendants. Otherwise it only checks intersecton with the object.
+	     * @return {Object[]} An array of intersections
+	     */
 	    intersectObjects: function(objects, recursive) {
 	        var intersects = [];
 
@@ -3597,47 +3778,133 @@
 	});
 
 	/**
-	 * TextureBase
-	 * @class
+	 * Create a texture to apply to a surface or as a reflection or refraction map.
+	 * @constructor
+	 * @memberof zen3d
+	 * @abstract
+	 * @extends zen3d.EventDispatcher
 	 */
 	function TextureBase() {
+
 	    EventDispatcher.call(this);
 
+	    /**
+	     * UUID of this texture instance. 
+	     * This gets automatically assigned, so this shouldn't be edited.
+	     * @readonly
+	     * @type {string}
+	     */
 	    this.uuid = generateUUID();
 
 	    this.textureType = "";
 
+	    /**
+	     * WebGLTexture border. 
+	     * See {@link https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D WebGLTexture texImage2D()}.
+	     * Must be zero. 
+	     * @type {number}
+	     */
 	    this.border = 0;
 
+	    /**
+	     * WebGLTexture pixel format.
+	     * @type {zen3d.WEBGL_PIXEL_FORMAT}
+	     * @default zen3d.WEBGL_PIXEL_FORMAT.RGBA
+	     */
 	    this.pixelFormat = WEBGL_PIXEL_FORMAT.RGBA;
 
+	    /**
+	     * WebGLTexture pixel type.
+	     * @type {zen3d.WEBGL_PIXEL_TYPE}
+	     * @default zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE
+	     */
 	    this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 
+	    /**
+	     * How the texture is sampled when a texel covers more than one pixel.
+	     * @type {zen3d.WEBGL_TEXTURE_FILTER}
+	     * @default zen3d.WEBGL_TEXTURE_FILTER.LINEAR
+	     */
 	    this.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+
+	    /**
+	     * How the texture is sampled when a texel covers less than one pixel.
+	     * @type {zen3d.WEBGL_TEXTURE_FILTER}
+	     * @default zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR
+	     */
 	    this.minFilter = WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 
+	    /**
+	     * This defines how the texture is wrapped horizontally and corresponds to U in UV mapping.
+	     * @type {zen3d.WEBGL_TEXTURE_WRAP}
+	     * @default zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE
+	     */
 	    this.wrapS = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+
+	    /**
+	     * This defines how the texture is wrapped vertically and corresponds to V in UV mapping.
+	     * @type {zen3d.WEBGL_TEXTURE_WRAP}
+	     * @default zen3d.WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE
+	     */
 	    this.wrapT = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
+	    /**
+	     * The number of samples taken along the axis through the pixel that has the highest density of texels.
+	     * A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used. 
+	     * Use {@link WebGLcapabilities#maxAnisotropy} to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.anisotropy = 1;
 
+	    /**
+	     * Whether to generate mipmaps (if possible) for a texture.
+	     * Set this to false if you are creating mipmaps manually.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.generateMipmaps = true;
 
+	    /**
+	     * texture pixel encoding.
+	     * @type {zen3d.TEXEL_ENCODING_TYPE}
+	     * @default zen3d.TEXEL_ENCODING_TYPE.LINEAR 
+	     */
 	    this.encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
+	    /**
+	     * Flips the image's Y axis to match the WebGL texture coordinate space.
+	     * @type {boolean}
+	     * @default true 
+	     */
 	    this.flipY = true;
 
+	    /**
+	     * version code increse if texture changed.
+	     * if version is still 0, this texture will be skiped.
+	     * @type {number}
+	     * @default 0
+	     */
 	    this.version = 0;
 	}
 
-	TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
+	TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.TextureBase.prototype */{
 
 	    constructor: TextureBase,
 
+	    /**
+	     * Returns a clone of this texture.
+	     * @return {zen3d.TextureBase}
+	     */
 	    clone: function() {
 	        return new this.constructor().copy( this );
 	    },
 
+	    /**
+	     * Copy the given texture into this texture.
+	     * @param {zen3d.TextureBase} source - The texture to be copied.
+	     * @return {zen3d.TextureBase}
+	     */
 	    copy: function( source ) {
 	        this.textureType = source.textureType;
 	        this.border = source.border;
@@ -3657,6 +3924,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * Dispatches a dispose event.
+	     */
 	    dispose: function() {
 	        this.dispatchEvent({type: 'dispose'});
 
@@ -4346,29 +4616,88 @@
 	});
 
 	/**
-	 * Texture2D
-	 * @class
+	 * Creates a cube texture made up of single image.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.TextureBase
 	 */
 	function Texture2D() {
+
 	    TextureBase.call(this);
 
 	    this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_2D;
 
+	    /**
+	     * Image data for this texture.
+	     * @member {null|HTMLImageElement}
+	     * @default null
+	     */
 	    this.image = null;
+
+	    /**
+	     * Array of user-specified mipmaps (optional).
+	     * @member {HTMLImageElement[]}
+	     * @default []
+	     */
 	    this.mipmaps = [];
 
-	    // uv transform
+	    /**
+	     * How much a single repetition of the texture is offset from the beginning, in each direction U and V. 
+	     * Typical range is 0.0 to 1.0. 
+	     * _Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. 
+	     * If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired offset..
+	     * @member {zen3d.Vector2}
+	     * @default zen3d.Vector2(0, 0)
+	     */
 	    this.offset = new Vector2();
+
+	    /**
+	     * How many times the texture is repeated across the surface, in each direction U and V. 
+	     * If repeat is set greater than 1 in either direction, the corresponding Wrap parameter should also be set to {@link zen3d.WEBGL_TEXTURE_WRAP.REPEAT} or {@link zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT} to achieve the desired tiling effect. 
+	     * _Note:_ The repeat property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model. 
+	     * If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired repetiton.
+	     * @member {zen3d.Vector2}
+	     * @default zen3d.Vector2(1, 1)
+	     */
 	    this.repeat = new Vector2(1, 1);
+
+	    /**
+	     * The point around which rotation occurs. 
+	     * A value of (0.5, 0.5) corresponds to the center of the texture. 
+	     * Default is (0, 0), the lower left.
+	     * @member {zen3d.Vector2}
+	     * @default zen3d.Vector2(0, 0)
+	     */
 	    this.center = new Vector2();
+
+	    
+	    /**
+	     * How much the texture is rotated around the center point, in radians. 
+	     * Postive values are counter-clockwise.
+	     * @member {number}
+	     * @default 0
+	     */
 	    this.rotation = 0;
 
+	    /**
+	     * The uv-transform matrix for the texture. Updated by the renderer from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center} when the texture's {@link zen3d.Texture2D#matrixAutoUpdate} property is true. 
+	     * When {@link zen3d.Texture2D#matrixAutoUpdate}  property is false, this matrix may be set manually. 
+	     * Default is the identity matrix.
+	     * @member {zen3d.Matrix3}
+	     * @default Matrix3()
+	     */
 	    this.matrix = new Matrix3();
 
+	    /**
+	     * Whether to update the texture's uv-transform {@link zen3d.Texture2D#matrix} from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center}.
+	     * Set this to false if you are specifying the uv-transform matrix directly.
+	     * @member {boolean}
+	     * @default true
+	     */
 	    this.matrixAutoUpdate = true;
 	}
 
-	Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), {
+	Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.Texture2D.prototype */{
 
 	    constructor: Texture2D,
 
@@ -4389,12 +4718,20 @@
 	        return this;
 	    },
 
+	    /**
+	     * Update the texture's uv-transform {@link zen3d.Texture2D#matrix} from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center}.
+	     */
 	    updateMatrix: function() {
 	        this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
 	    }
 
 	});
 
+	/**
+	 * Create Texture2D from image.
+	 * @param {HTMLImageElement} image 
+	 * @return {TextureCube} - The result Texture.
+	 */
 	Texture2D.fromImage = function(image) {
 	    var texture = new Texture2D();
 
@@ -4404,6 +4741,11 @@
 	    return texture;
 	};
 
+	/**
+	 * Create Texture2D from src.
+	 * @param {string} src 
+	 * @return {TextureCube} - The result Texture.
+	 */
 	Texture2D.fromSrc = function(src) {
 	    var texture = new Texture2D();
 
@@ -4425,20 +4767,31 @@
 	};
 
 	/**
-	 * TextureCube
-	 * @class
+	 * Creates a cube texture made up of six images.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.TextureBase
 	 */
 	function TextureCube() {
+
 	    TextureBase.call(this);
 
 	    this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
 
+	    /**
+	     * Images data for this texture.
+	     * @member {HTMLImageElement[]}
+	     * @default []
+	     */
 	    this.images = [];
 
+	    /**
+	     * @default false
+	     */
 	    this.flipY = false;
 	}
 
-	TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), {
+	TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.TextureCube.prototype */{
 
 	    constructor: TextureCube,
 
@@ -4454,6 +4807,11 @@
 
 	});
 
+	/**
+	 * Create TextureCube from images.
+	 * @param {HTMLImageElement[]} imageArray 
+	 * @return {TextureCube} - The result Texture.
+	 */
 	TextureCube.fromImage = function(imageArray) {
 	    var texture = new TextureCube();
 	    var images = texture.images;
@@ -4467,6 +4825,11 @@
 	    return texture;
 	};
 
+	/**
+	 * Create TextureCube from src array.
+	 * @param {string[]} srcArray 
+	 * @return {TextureCube} - The result Texture.
+	 */
 	TextureCube.fromSrc = function(srcArray) {
 	    var texture = new TextureCube();
 	    var images = texture.images;
@@ -4501,83 +4864,196 @@
 	    return texture;
 	};
 
+	/**
+	 * Creates a texture directly from raw data, width and height.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Texture2D
+	 * @param {TypedArray} data - The data of the texture.
+	 * @param {number} width - The width of the texture.
+	 * @param {number} height - The height of the texture.
+	 */
 	function TextureData(data, width, height) {
+
 	    Texture2D.call(this);
 
+	    /**
+	     * Image data like: {data: TypedArray, width: number, height: number}
+	     * @member {Object}
+	     */
 	    this.image = {data: data, width: width, height: height};
 
-	    // default pixel type set to float
+	    /**
+	     * Default pixel type set to float.
+	     * @default zen3d.WEBGL_PIXEL_TYPE.FLOAT
+	     */
 	    this.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
 
+	    /**
+	     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
+	     */
 	    this.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+
+	    /**
+	     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
+	     */
 	    this.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
 
+	    /**
+	     * Data textures do not use mipmaps.
+	     * @default false
+	     */
 	    this.generateMipmaps = false;
 
+	    /**
+	     * Data textures do not need to be flipped so this is false by default.
+	     * @default false
+	     */
 	    this.flipY = false;
 	}
 
-	TextureData.prototype = Object.assign(Object.create(Texture2D.prototype), {
+	TextureData.prototype = Object.assign(Object.create(Texture2D.prototype), /** @lends zen3d.TextureData.prototype */{
 
 	    constructor: TextureData,
 
+	    /**
+	     * This is an Data Texture.
+	     * @readonly
+	     * @type {boolean}
+	     * @default true
+	     */
 	    isDataTexture: true
 
 	});
 
+	/**
+	 * Creates a texture for use as a Depth Texture. 
+	 * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Texture2D
+	 * @param {number} width - The width of the texture.
+	 * @param {number} height - The height of the texture.
+	 */
 	function TextureDepth(width, height) {
+
 	    Texture2D.call(this);
 
+	    /**
+	     * Image data like: {width: number, height: number}
+	     * @member {Object}
+	     */
 	    this.image = {width: width, height: height};
 
-	    // DEPTH_ATTACHMENT set to unsigned_short or unsigned_int
-	    // DEPTH_STENCIL_ATTACHMENT set to UNSIGNED_INT_24_8
+	    /**
+	     * Use unsigned_short or unsigned_int.
+	     * DEPTH_STENCIL_ATTACHMENT will be set to UNSIGNED_INT_24_8.
+	     * @default zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT
+	     */
 	    this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT;
 
-	    // don't change
+	    /**
+	     * Depth textures don't change this.
+	     * @default zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT
+	     */
 	    this.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;   
 
+	    /**
+	     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
+	     */
 	    this.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+
+	    /**
+	     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
+	     */
 	    this.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
 
+	    /**
+	     * Depth textures do not use mipmaps.
+	     * @default false
+	     */
 	    this.generateMipmaps = false;
 
+	    /**
+	     * Depth textures do not need to be flipped so this is false by default.
+	     * @default false
+	     */
 	    this.flipY = false;
 	}
 
-	TextureDepth.prototype = Object.assign(Object.create(Texture2D.prototype), {
+	TextureDepth.prototype = Object.assign(Object.create(Texture2D.prototype), /** @lends zen3d.TextureDepth.prototype */{
 
 	    constructor: TextureDepth,
 
+	    /**
+	     * This is an Depth Texture.
+	     * @readonly
+	     * @type {boolean}
+	     * @default true
+	     */
 	    isDepthTexture: true
 
 	});
 
 	/**
-	 * Object3D
-	 * @class
+	 * This is the base class for most objects in zen3d
+	 * and provides a set of properties and methods for manipulating objects in 3D space.
+	 * @constructor
+	 * @memberof zen3d
 	 */
 	function Object3D() {
 
+	    /**
+	     * UUID of this object instance. 
+	     * This gets automatically assigned, so this shouldn't be edited.
+	     * @type {string}
+	     */
 	    this.uuid = generateUUID();
 
-	    // a custom name for this object
+	    /**
+	     * Optional name of the object (doesn't need to be unique).
+	     * @type {string}
+	     * @default ""
+	     */
 	    this.name = "";
 
-	    // type of this object, set by subclass
+	    /**
+	     * Type of the object.
+	     * Set by Subclass.
+	     * @type {zen3d.OBJECT_TYPE} 
+	     */
 	    this.type = "";
 
-	    // position
+	    /**
+	     * A Vector3 representing the object's local position.
+	     * @type {zen3d.Vector3} 
+	     * @default Vector3(0, 0, 0)
+	     */
 	    this.position = new Vector3();
-	    // scale
+
+	    /**
+	     * The object's local scale.
+	     * @type {zen3d.Vector3} 
+	     * @default Vector3(1, 1, 1)
+	     */
 	    this.scale = new Vector3(1, 1, 1);
 
-	    // euler rotate
-	    var euler = this.euler = new Euler();
-	    // quaternion rotate
-	    var quaternion = this.quaternion = new Quaternion();
+	    /**
+	     * Object's local rotation as an {@link zen3d.Euler}, in radians.
+	     * @type {zen3d.Euler} 
+	     * @default Euler(0, 0, 0)
+	     */
+	    this.euler = new Euler();
+
+	    /**
+	     * Object's local rotation as a {@link zen3d.Quaternion}.
+	     * @type {zen3d.Quaternion}
+	     * @default Quaternion(0, 0, 0, 1)
+	     */
+	    this.quaternion = new Quaternion();
 
 	    // bind euler and quaternion
+	    var euler = this.euler, quaternion = this.quaternion;
 	    euler.onChange(function() {
 	        quaternion.setFromEuler(euler, false);
 	    });
@@ -4585,56 +5061,103 @@
 	        euler.setFromQuaternion(quaternion, undefined, false);
 	    });
 
-	    // transform matrix
+	    /**
+	     * The local transform matrix.
+	     * @type {zen3d.Matrix4}
+	     */
 	    this.matrix = new Matrix4();
-	    // world transform matrix
+
+	    /**
+	     * The global transform of the object. 
+	     * If the Object3D has no parent, then it's identical to the local transform {@link zen3d.Object3D#matrix}.
+	     * @type {zen3d.Matrix4}
+	     */
 	    this.worldMatrix = new Matrix4();
 
-	    // children
+	    /**
+	     * Object's parent in the scene graph. 
+	     * An object can have at most one parent.
+	     * @type {zen3d.Object3D[]}
+	     */
 	    this.children = new Array();
-	    // parent
+
+	    /**
+	     * Object's parent in the scene graph. 
+	     * An object can have at most one parent.
+	     * @type {zen3d.Object3D}
+	     */
 	    this.parent = null;
 
-	    // shadow
+	    /**
+	     * Whether the object gets rendered into shadow map.
+	     * @type {boolean}
+	     * @default false
+	     */
 	    this.castShadow = false;
+
+	    /**
+	     * Whether the material receives shadows.
+	     * @type {boolean}
+	     * @default false
+	     */
 	    this.receiveShadow = false;
+
+	    /**
+	     * Defines shadow map type.
+	     * @type {zen3d.SHADOW_TYPE}
+	     * @default SHADOW_TYPE.PCF_SOFT
+	     */
 	    this.shadowType = SHADOW_TYPE.PCF_SOFT;
 
-	    // frustum test
+	    /**
+	     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 
+	     * Otherwise the object gets rendered every frame even if it isn't visible.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.frustumCulled = true;
 
+	    /**
+	     * Object gets rendered if true.
+	     * @type {boolean} 
+	     * @default true
+	     */
 	    this.visible = true;
 
-	    this.userData = {};
-
-	    // render from lowest to highest
+	    /**
+	     * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently. 
+	     * Sorting is from lowest to highest renderOrder.
+	     * @type {number}
+	     * @default 0
+	     */
 	    this.renderOrder = 0;
+
+	    /**
+	     * An object that can be used to store custom data about the {@link zen3d.Object3D}. 
+	     * It should not hold references to functions as these will not be cloned.
+	     * @type {Object}
+	     * @default {}
+	     */
+	    this.userData = {};
 	}
 
-	Object.defineProperties(Object3D.prototype, {
+	Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
+
 	    /**
-	     * rotation set by euler
-	     **/
-	    rotation: {
-	        get: function() {
-	            return this.euler;
-	        },
-	        set: function(euler) {
-	            var _euler = this.euler;
-	            _euler.copyFrom(euler);
-
-	            this.quaternion.setFromEuler(euler);
-	        }
-	    }
-	});
-
-	Object.assign(Object3D.prototype, {
-
+	     * An optional callback that is executed immediately before the Object3D is rendered.
+	     * @type {Function}
+	     */
 	    onBeforeRender: function () {},
+
+	    /**
+	     * An optional callback that is executed immediately after the Object3D is rendered.
+	     * @type {Function}
+	     */
 		onAfterRender: function () {},
 
 	    /**
-	     * add child to object3d
+	     * Add object as child of this object.
+	     * @param {zen3d.Object3D} object
 	     */
 	    add: function(object) {
 	        this.children.push(object);
@@ -4642,7 +5165,8 @@
 	    },
 
 	    /**
-	     * remove child from object3d
+	     * Remove object as child of this object.
+	     * @param {zen3d.Object3D} object
 	     */
 	    remove: function(object) {
 	        var index = this.children.indexOf(object);
@@ -4653,14 +5177,21 @@
 	    },
 
 	    /**
-	     * get object by name
+	     * Searches through the object's children and returns the first with a matching name.
+	     * Note that for most objects the name is an empty string by default. 
+	     * You will have to set it manually to make use of this method.
+	     * @param {string} name - String to match to the children's {@link zen3d.Object3D#name} property. 
+	     * @return {zen3d.Object3D}
 	     */
 	    getObjectByName: function(name) {
 	        return this.getObjectByProperty('name', name);
 	    },
 
 	    /**
-	     * get object by property
+	     * Searches through the object's children and returns the first with a property that matches the value given.
+	     * @param {string} name - the property name to search for. 
+	     * @param {number} value - value of the given property. 
+	     * @return {zen3d.Object3D}
 	     */
 	    getObjectByProperty: function(name, value) {
 	        if (this[name] === value) return this;
@@ -4682,7 +5213,7 @@
 	    },
 
 	    /**
-	     * update matrix
+	     * Update the local transform.
 	     */
 	    updateMatrix: function() {
 	        var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
@@ -4700,9 +5231,12 @@
 	        }
 	    },
 
-	    /*
-	     * get world direction
-	     * must call after world matrix updated
+	    /**
+	     * Returns a vector representing the direction of object's positive z-axis in world space.
+	     * This call must be after {@link zen3d.Object3D#updateMatrix}.
+	     * @method
+	     * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
+	     * @return {Vector3} - the result.
 	     */
 	    getWorldDirection: function() {
 
@@ -4724,7 +5258,10 @@
 	    }(),
 
 	    /**
-	     * set view by look at, this func will set quaternion of this object
+	     * Rotates the object to face a point in local space.
+	     * @method
+	     * @param {Vector3} target - A vector representing a position in local space.
+	     * @param {Vector3} up — A vector representing the up direction in local space.
 	     */
 	    lookAt: function() {
 
@@ -4740,12 +5277,19 @@
 	    }(),
 
 	    /**
-	     * raycast
+	     * Method to get intersections between a casted ray and this object.
+	     * @abstract
+	     * @param {Raycaster} raycaster - The {@link zen3d.Raycaster} instance.
+	     * @param {Array} intersects - output intersects array.
 	     */
-	    raycast: function() {
-	        // implemental by subclass
+	    raycast: function(raycaster, intersects) {
+	        
 	    },
 
+	    /**
+	     * Executes the callback on this object and all descendants.
+	     * @param {Function} callback - A function with as first argument an object3D object.
+	     */
 	    traverse: function ( callback ) {
 	        callback( this );
 
@@ -4754,11 +5298,22 @@
 	            children[ i ].traverse( callback );
 	        }
 	    },
-
+	    
+	    /**
+	     * Returns a clone of this object and optionally all descendants.
+	     * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
+	     * @return {zen3d.Object3D}
+	     */
 	    clone: function ( recursive ) {
 	        return new this.constructor().copy( this, recursive );
 	    },
 
+	    /**
+	     * Copy the given object into this object.
+	     * @param {zen3d.Object3D} source - The object to be copied.
+	     * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
+	     * @return {zen3d.Object3D}
+	     */
 	    copy: function( source, recursive ) {
 	        if ( recursive === undefined ) recursive = true;
 
@@ -5496,27 +6051,50 @@
 	});
 
 	/**
-	 * Geometry data
-	 * @class
+	 * An efficient representation of mesh, line, or point geometry. 
+	 * Includes vertex positions, face indices, normals, colors, UVs, and custom attributes within buffers, reducing the cost of passing all this data to the GPU.
+	 * To read and edit data in {@link zen3d.Geometry#attributes}.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.EventDispatcher
 	 */
 	function Geometry() {
+
 	    EventDispatcher.call(this);
 
+	    /**
+	     * UUID of this geometry instance. 
+	     * This gets automatically assigned, so this shouldn't be edited.
+	     * @type {string}
+	     */
 	    this.uuid = generateUUID();
 
 	    this.attributes = {};
 	    this.index = null;
 
-	    this.usageType = WEBGL_BUFFER_USAGE.STATIC_DRAW;
-
+	    /**
+	     * Bounding box for the bufferGeometry, which can be calculated with {@link zen3d.Geometry#computeBoundingBox}.
+	     * @type {zen3d.Box3} 
+	     * @default zen3d.Box3()
+	     */
 	    this.boundingBox = new Box3();
 
+	    /**
+	     * Bounding sphere for the bufferGeometry, which can be calculated with {@link zen3d.Geometry#computeBoundingSphere}.
+	     * @type {zen3d.Sphere} 
+	     * @default zen3d.Sphere()
+	     */
 	    this.boundingSphere = new Sphere();
 
-	    // if part dirty, update part of buffers
-	    this.dirtyRange = {enable: false, start: 0, count: 0};
-
+	    /**
+	     * Split the geometry into groups, each of which will be rendered in a separate WebGL draw call. This allows an array of materials to be used with the geometry.
+	     * Each group is an object of the form:
+	     * { start: Integer, count: Integer, materialIndex: Integer }
+	     * @type {Array} 
+	     * @default []
+	     */
 	    this.groups = [];
+
 	}
 
 	Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
@@ -6318,84 +6896,272 @@
 	});
 
 	/**
-	 * base material class
-	 * @class
+	 * Abstract base class for materials.
+	 * Materials describe the appearance of {@link zen3d.Object3D}. 
+	 * They are defined in a (mostly) renderer-independent way, so you don't have to rewrite materials if you decide to use a different renderer.
+	 * The following properties and methods are inherited by all other material types (although they may have different defaults).
+	 * @constructor
+	 * @abstract
+	 * @memberof zen3d
 	 */
 	function Material() {
 
 	    // material type
 	    this.type = "";
 
+	    /**
+	     * Float in the range of 0.0 - 1.0 indicating how transparent the material is. 
+	     * A value of 0.0 indicates fully transparent, 1.0 is fully opaque. 
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.opacity = 1;
 
+	    /**
+	     * Defines whether this material is transparent. 
+	     * This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects. 
+	     * When set to true, the extent to which the material is transparent is controlled by setting it's blending property. 
+	     * @type {boolean}
+	     * @default false
+	     */
 	    this.transparent = false;
 
-	    //blending
+	    /**
+	     * Which blending to use when displaying objects with this material. 
+	     * This must be set to zen3d.BLEND_TYPE.CUSTOM to use custom blendSrc, blendDst or blendEquation.
+	     * @type {zen3d.BLEND_TYPE}
+	     * @default zen3d.BLEND_TYPE.NORMAL
+	     */
 	    this.blending = BLEND_TYPE.NORMAL;
 
+	    /**
+	     * Blending source.
+	     * The {@link zen3d.Material#blending} must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+	     * @type {zen3d.BLEND_FACTOR}
+	     * @default zen3d.BLEND_FACTOR.SRC_ALPHA
+	     */
 	    this.blendSrc = BLEND_FACTOR.SRC_ALPHA;
+
+	    /**
+	     * Blending destination.
+	     * The {@link zen3d.Material#blending} must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+	     * @type {zen3d.BLEND_FACTOR}
+	     * @default zen3d.BLEND_FACTOR.ONE_MINUS_SRC_ALPHA
+	     */
 	    this.blendDst = BLEND_FACTOR.ONE_MINUS_SRC_ALPHA;
+
+	    /**
+	     * Blending equation to use when applying blending. 
+	     * The {@link zen3d.Material#blending} must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+	     * @type {zen3d.BLEND_EQUATION}
+	     * @default zen3d.BLEND_EQUATION.ADD
+	     */
 	    this.blendEquation = BLEND_EQUATION.ADD;
+
+	    /**
+	     * The transparency of the {@link zen3d.Material#blendSrc}.
+	     * The {@link zen3d.Material#blending} must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+	     * @type {zen3d.BLEND_FACTOR}
+	     * @default null
+	     */
 	    this.blendSrcAlpha = null;
+
+	    /**
+	     * The transparency of the {@link zen3d.Material#blendDst}.
+	     * The {@link zen3d.Material#blending} must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+	     * @type {zen3d.BLEND_FACTOR}
+	     * @default null
+	     */
 	    this.blendDstAlpha = null;
+
+	    /**
+	     * The tranparency of the {@link zen3d.Material#blendEquation}.
+	     * The {@link zen3d.Material#blending} must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+	     * @type {zen3d.BLEND_EQUATION}
+	     * @default null
+	     */
 	    this.blendEquationAlpha = null;
 
+	    /**
+	     * Whether to premultiply the alpha (transparency) value.
+	     * @type {boolean}
+	     * @default false 
+	     */
 	    this.premultipliedAlpha = false;
 
-	    // use vertex colors
+	    /**
+	     * Defines whether vertex coloring is used.
+	     * @type {boolean}
+	     * @default false 
+	     */
 	    this.vertexColors = false;
 
-	    // diffuse
+	    /**
+	     * The diffuse color.
+	     * @type {zen3d.Color3}
+	     * @default zen3d.Color3(0xffffff) 
+	     */
 	    this.diffuse = new Color3(0xffffff);
+
+	    /**
+	     * The diffuse map.
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.diffuseMap = null;
 
-	    // normal
+	    /**
+	     * The normal map.
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.normalMap = null;
 
-	    // aoMap
+	    /**
+	     * The red channel of this texture is used as the ambient occlusion map.
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.aoMap = null;
+
+	    /**
+	     * Intensity of the ambient occlusion effect.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.aoMapIntensity = 1.0;
 
-	    // bump
+	    /**
+	     * The texture to create a bump map. 
+	     * The black and white values map to the perceived depth in relation to the lights. Bump doesn't actually affect the geometry of the object, only the lighting. 
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.bumpMap = null;
+
+	    /**
+	     * How much the bump map affects the material. 
+	     * Typical ranges are 0-1.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.bumpScale = 1;
 
-	    // env
+	    /**
+	     * The environment map.
+	     * @type {zen3d.TextureCube}
+	     * @default null
+	     */
 	    this.envMap = null;
+
+	    /**
+	     * Scales the effect of the environment map by multiplying its color.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.envMapIntensity = 1;
+
+	    /**
+	     * How to combine the result of the surface's color with the environment map, if any.
+	     * This has no effect in a {@link zen3d.PBRMaterial}.
+	     * @type {zen3d.ENVMAP_COMBINE_TYPE} 
+	     * @default zen3d.ENVMAP_COMBINE_TYPE.MULTIPLY
+	     */
 	    this.envMapCombine = ENVMAP_COMBINE_TYPE.MULTIPLY;
 
-	    // emissive
+	    /**
+	     * Emissive (light) color of the material, essentially a solid color unaffected by other lighting.
+	     * @type {zen3d.Color3}
+	     * @default zen3d.Color3(0x000000) 
+	     */
 	    this.emissive = new Color3(0x000000);
+
+	    /**
+	     * Set emissive (glow) map.
+	     * The emissive map color is modulated by the emissive color and the emissive intensity. 
+	     * If you have an emissive map, be sure to set the emissive color to something other than black.
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.emissiveMap = null;
+
+	    /**
+	     * Intensity of the emissive light. 
+	     * Modulates the emissive color.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.emissiveIntensity = 1;
 
-	    // depth test
+	    /**
+	     * Whether to have depth test enabled when rendering this material.
+	     * @type {boolean}
+	     * @default true 
+	     */
 	    this.depthTest = true;
+
+	    /**
+	     * Whether rendering this material has any effect on the depth buffer.
+	     * When drawing 2D overlays it can be useful to disable the depth writing in order to layer several things together without creating z-index artifacts. 
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.depthWrite = true;
 
+	    /**
+	     * Whether to render the material's color. 
+	     * This can be used in conjunction with a mesh's renderOrder property to create invisible objects that occlude other objects.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.colorWrite = true;
 
-	    // alpha test
+	    /**
+	     * Sets the alpha value to be used when running an alpha test. 
+	     * The material will not be renderered if the opacity is lower than this value.
+	     * @type {number}
+	     * @default 0
+	     */
 	    this.alphaTest = 0;
 
-	    // draw side
+	    /**
+	     * Defines which side of faces will be rendered - front, back or double.
+	     * @type {zen3d.DRAW_SIDE}
+	     * @default zen3d.DRAW_SIDE.FRONT
+	     */
 	    this.side = DRAW_SIDE.FRONT;
 
-	    // shading type: SMOOTH_SHADING, FLAT_SHADING
+	    /**
+	     * Define whether the material is rendered with flat shading or smooth shading.
+	     * @type {zen3d.SHADING_TYPE}
+	     * @default zen3d.SHADING_TYPE.SMOOTH_SHADING
+	     */
 	    this.shading = SHADING_TYPE.SMOOTH_SHADING;
 
-	    // use light
-	    // if use light, renderer will try to upload light uniforms
+	    /**
+	     * Whether the material is affected by lights.
+	     * If set true, renderer will try to upload light uniforms.
+	     * @type {boolean}
+	     * @default false
+	     */
 	    this.acceptLight = false;
 
-	    // draw mode
+	    /**
+	     * Determines how the mesh triangles are constructed from the vertices.
+	     * @type {zen3d.DRAW_MODE}
+	     * @default zen3d.DRAW_MODE.TRIANGLES
+	     */
 	    this.drawMode = DRAW_MODE.TRIANGLES;
 
 	}
 
-	Object.assign(Material.prototype, {
+	Object.assign(Material.prototype, /** @lends zen3d.Material.prototype */{
 
+	    /**
+	     * Copy the parameters from the passed material into this material.
+	     * @param {zen3d.Material} source - The material to be copied.
+	     * @return {zen3d.Material}
+	     */
 	    copy: function(source) {
 	        this.type = source.type;
 	        this.opacity = source.opacity;
@@ -6425,6 +7191,10 @@
 	        return this;
 	    },
 
+	    /**
+	     * Return a new material with the same parameters as this material.
+	     * @return {zen3d.Material}
+	     */
 	    clone: function() {
 	        return new this.constructor().copy( this );
 	    }
@@ -6432,57 +7202,95 @@
 	});
 
 	/**
-	 * BasicMaterial
-	 * @class
+	 * A material for drawing geometries in a simple shaded (flat or wireframe) way.
+	 * This material is not affected by lights.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function BasicMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.BASIC;
+
 	}
 
-	BasicMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-	    constructor: BasicMaterial
-
-	});
+	BasicMaterial.prototype = Object.create(Material.prototype);
+	BasicMaterial.prototype.constructor = BasicMaterial;
 
 	/**
-	 * LambertMaterial
-	 * @class
+	 * A material for non-shiny surfaces, without specular highlights.
+	 * The material uses a non-physically based Lambertian model for calculating reflectance. 
+	 * This can simulate some surfaces (such as untreated wood or stone) well, but cannot simulate shiny surfaces with specular highlights (such as varnished wood).
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function LambertMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.LAMBERT;
 
+	    /**
+	     * Lambert material is affected by lights.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.acceptLight = true;
+
 	}
 
-	LambertMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-	    constructor: LambertMaterial
-
-	});
+	LambertMaterial.prototype = Object.create(Material.prototype);
+	LambertMaterial.prototype.constructor = LambertMaterial;
 
 	/**
-	 * PhongMaterial
-	 * @class
+	 * A material for shiny surfaces with specular highlights.
+	 * The material uses a non-physically based Blinn-Phong model for calculating reflectance. 
+	 * Unlike the Lambertian model used in the {@link zen3d.LambertMaterial} this can simulate shiny surfaces with specular highlights (such as varnished wood).
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function PhongMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.PHONG;
 
-	    // specular
+	    /**
+	     * How shiny the {@link zen3d.PhongMaterial#specular} highlight is; a higher value gives a sharper highlight. 
+	     * @type {number}
+	     * @default 30
+	     */
 	    this.shininess = 30;
+
+	    /**
+	     * Specular color of the material.
+	     * This defines how shiny the material is and the color of its shine.
+	     * @type {zen3d.Color3}
+	     * @default zen3d.Color(0x666666)
+	     */
 	    this.specular = new Color3(0x666666);
+
+	    /**
+	     * The specular map value affects both how much the specular surface highlight contributes and how much of the environment map affects the surface.
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.specularMap = null;
 
+	    /**
+	     * Phong material is affected by lights.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.acceptLight = true;
+
 	}
 
-	PhongMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+	PhongMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.PhongMaterial.prototype */{
 
 	    constructor: PhongMaterial,
 
@@ -6499,24 +7307,61 @@
 	});
 
 	/**
-	 * PBRMaterial
-	 * @class
+	 * A standard physically based material, using Metallic-Roughness workflow.
+	 * Physically based rendering (PBR) has recently become the standard in many 3D applications, such as Unity, Unreal and 3D Studio Max.
+	 * This approach differs from older approaches in that instead of using approximations for the way in which light interacts with a surface, a physically correct model is used. 
+	 * The idea is that, instead of tweaking materials to look good under specific lighting, a material can	be created that will react 'correctly' under all lighting scenarios.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function PBRMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.PBR;
 
+	    /**
+	     * How rough the material appears. 0.0 means a smooth mirror reflection, 1.0 means fully diffuse.
+	     * If roughnessMap is also provided, both values are multiplied.
+	     * @type {number}
+	     * @default 0.5 
+	     */
 	    this.roughness = 0.5;
+
+	    /**
+	     * How much the material is like a metal. 
+	     * Non-metallic materials such as wood or stone use 0.0, metallic use 1.0, with nothing (usually) in between. 
+	     * A value between 0.0 and 1.0 could be used for a rusty metal look. If metalnessMap is also provided, both values are multiplied.
+	     * @type {number}
+	     * @default 0.5 
+	     */
 	    this.metalness = 0.5;
 
+	    /**
+	     * The green channel of this texture is used to alter the roughness of the material.
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.roughnessMap = null;
+
+	    /**
+	     * The blue channel of this texture is used to alter the metalness of the material. 
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
 	    this.metalnessMap = null;
 
+	    /**
+	     * PBR material is affected by lights.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.acceptLight = true;
+	    
 	}
 
-	PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+	PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.PBRMaterial.prototype */{
 
 	    constructor: PBRMaterial,
 
@@ -6532,22 +7377,41 @@
 	});
 
 	/**
-	 * PointsMaterial
-	 * @class
+	 * The default material used by Points.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function PointsMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.POINT;
 
+	    /**
+	     * Sets the size of the points.
+	     * @type {number}
+	     * @default 1 
+	     */
 	    this.size = 1;
 
+	    /**
+	     * Specify whether points' size is attenuated by the camera depth. (Perspective camera only.)
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.sizeAttenuation = true;
 
+	    /**
+	     * Set draw mode to POINTS.
+	     * @type {zen3d.DRAW_MODE}
+	     * @default zen3d.DRAW_MODE.POINTS
+	     */
 	    this.drawMode = DRAW_MODE.POINTS;
+
 	}
 
-	PointsMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+	PointsMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.PointsMaterial.prototype */{
 
 	    constructor: PointsMaterial,
 
@@ -6563,21 +7427,35 @@
 	});
 
 	/**
-	 * LineMaterial
-	 * @class
+	 * A material for drawing wireframe-style geometries.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function LineMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.LINE;
 
-	    // chrome bug on MacOS: gl.lineWidth no effect
+	    /**
+	     * Controls line thickness.
+	     * Due to limitations of the OpenGL Core Profile with the WebGL renderer on most platforms linewidth will always be 1 regardless of the set value.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.lineWidth = 1;
 
+	    /**
+	     * Set draw mode to LINES.
+	     * @type {zen3d.DRAW_MODE}
+	     * @default zen3d.DRAW_MODE.LINES
+	     */
 	    this.drawMode = DRAW_MODE.LINES;
+
 	}
 
-	LineMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+	LineMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.LineMaterial.prototype */{
 
 	    constructor: LineMaterial,
 
@@ -6592,21 +7470,35 @@
 	});
 
 	/**
-	 * LineLoopMaterial
-	 * @class
+	 * A material for drawing loop lines.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function LineLoopMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.LINE_LOOP;
 
-	    // chrome bug on MacOS: gl.lineWidth no effect
+	    /**
+	     * Controls line thickness.
+	     * Due to limitations of the OpenGL Core Profile with the WebGL renderer on most platforms linewidth will always be 1 regardless of the set value.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.lineWidth = 1;
 
+	    /**
+	     * Set draw mode to LINE_LOOP.
+	     * @type {zen3d.DRAW_MODE}
+	     * @default zen3d.DRAW_MODE.LINE_LOOP
+	     */
 	    this.drawMode = DRAW_MODE.LINE_LOOP;
+
 	}
 
-	LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+	LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.LineLoopMaterial.prototype */{
 
 	    constructor: LineLoopMaterial,
 
@@ -6621,25 +7513,55 @@
 	});
 
 	/**
-	 * LineDashedMaterial
-	 * @class
+	 * A material for drawing dashed lines.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function LineDashedMaterial() {
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.LINE_DASHED;
 
-	    // chrome bug on MacOS: gl.lineWidth no effect
+	    /**
+	     * Controls line thickness.
+	     * Due to limitations of the OpenGL Core Profile with the WebGL renderer on most platforms linewidth will always be 1 regardless of the set value.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.lineWidth = 1;
 
+	    /**
+	     * The scale of the dashed part of a line.
+	     * @type {number}
+	     * @default 1 
+	     */
 	    this.scale = 1;
+
+	    /**
+	     * The size of the dash. 
+	     * This is both the gap with the stroke.
+	     * @type {number}
+	     * @default 3
+	     */
 	    this.dashSize = 3;
+
+	    /**
+	     * The size of the gap.
+	     * @type {number}
+	     * @default 1 
+	     */
 	    this.gapSize = 1;
 
+	    /**
+	     * Set draw mode to LINE_STRIP.
+	     * @type {zen3d.DRAW_MODE}
+	     * @default zen3d.DRAW_MODE.LINE_STRIP
+	     */
 	    this.drawMode = DRAW_MODE.LINE_STRIP;
 	}
 
-	LineDashedMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+	LineDashedMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.LineDashedMaterial.prototype */{
 
 	    constructor: LineDashedMaterial,
 
@@ -6657,27 +7579,58 @@
 	});
 
 	/**
-	 * ShaderMaterial
-	 * @class
+	 * A material rendered with custom shaders. 
+	 * A shader is a small program written in GLSL that runs on the GPU.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
+	 * @param {Object} shader - Shader object for the shader material.
+	 * @param {string} shader.vertexShader -  Vertex shader GLSL code.
+	 * @param {string} shader.fragmentShader - Fragment shader GLSL code.
+	 * @param {Object} [shader.defines={}] - Defines of the shader.
+	 * @param {Object} [shader.uniforms={}] - Uniforms of the shader.
 	 */
 	function ShaderMaterial(shader) {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.SHADER;
 
+	    /**
+	     * Vertex shader GLSL code. This is the actual code for the shader.
+	     * @type {number}
+	     * @default ""
+	     */
 	    this.vertexShader = shader.vertexShader || "";
 
+	    /**
+	     * Fragment shader GLSL code. This is the actual code for the shader.
+	     * @type {number}
+	     * @default ""
+	     */
 	    this.fragmentShader = shader.fragmentShader || "";
 
+	    /**
+	     * Defines of the shader
+	     * @type {Object}
+	     * @default {}
+	     */
 	    this.defines = {};
+
 	    // copy defines
 	    Object.assign( this.defines, shader.defines ); 
 
-	    // uniforms should match fragment shader
+	    /**
+	     * Uniforms of the shader.
+	     * Uniforms should match with fragment shader
+	     * @type {Object}
+	     * @default {}
+	     */
 	    this.uniforms = cloneUniforms(shader.uniforms);
+
 	}
 
-	ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), {
+	ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.ShaderMaterial.prototype */{
 
 	    constructor: ShaderMaterial,
 
@@ -6693,42 +7646,46 @@
 	});
 
 	/**
-	 * DepthMaterial
-	 * @class
+	 * A material for drawing geometry by depth. 
+	 * Depth is based off of the camera near and far plane. White is nearest, black is farthest.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function DepthMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.DEPTH;
 
-	    this.blending = BLEND_TYPE.NONE;
-
+	    /**
+	     * Encoding for depth packing.
+	     * @type {boolean}
+	     * @default false
+	     */
 	    this.packToRGBA = false;
+	    
 	}
 
-	DepthMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-	    constructor: DepthMaterial
-
-	});
+	DepthMaterial.prototype = Object.create(Material.prototype);
+	DepthMaterial.prototype.constructor = DepthMaterial;
 
 	/**
-	 * DistanceMaterial
-	 * @class
+	 * A material for drawing geometry by distance. 
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
 	 */
 	function DistanceMaterial() {
+
 	    Material.call(this);
 
 	    this.type = MATERIAL_TYPE.DISTANCE;
 
-	    this.blending = BLEND_TYPE.NONE;
 	}
 
-	DistanceMaterial.prototype = Object.assign(Object.create(Material.prototype), {
-
-	    constructor: DistanceMaterial
-
-	});
+	DistanceMaterial.prototype = Object.create(Material.prototype);
+	DistanceMaterial.prototype.constructor = DistanceMaterial;
 
 	/**
 	 * WebGL capabilities
@@ -8759,9 +9716,12 @@
 
 	/**
 	 * render method by WebGL.
-	 * just for render pass once in one render target
+	 * just for render pass once in one render target.
+	 * @constructor
+	 * @param {WebGLRenderingContext} gl
 	 */
 	function WebGLCore(gl) {
+
 	    this.gl = gl;
 	    
 	    var properties = new WebGLProperties();
@@ -8786,6 +9746,7 @@
 	    this._usedTextureUnits = 0;
 
 	    this._currentGeometryProgram = "";
+
 	}
 
 	var directShadowMaps = [];
@@ -8796,6 +9757,7 @@
 
 	    /**
 	     * clear buffer
+	     * @memberof WebGLCore#
 	     */
 	    clear: function(color, depth, stencil) {
 	        var gl = this.gl;
@@ -8811,6 +9773,7 @@
 
 	    /**
 	     * Render opaque and transparent objects
+	     * @memberof WebGLCore#
 	     * @param {zen3d.Scene} scene 
 	     * @param {zen3d.Camera} camera 
 	     * @param {boolean} updateRenderList? default is false.
@@ -8841,7 +9804,8 @@
 	    },
 
 	    /**
-	     * Render a single renderable list in camera in sequence
+	     * Render a single renderable list in camera in sequence.
+	     * @memberof WebGLCore#
 	     * @param {Array} list List of all renderables.
 	     * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
 	     * @param {Object} [config]?
@@ -9146,8 +10110,8 @@
 	    },
 
 	    /**
-	     * @private
 	     * set states
+	     * @memberof WebGLCore#
 	     * @param {boolean} frontFaceCW
 	     */
 	    setStates: function(material, frontFaceCW) {
@@ -9188,8 +10152,8 @@
 	    },
 
 	    /**
-	     * @private
 	     * gl draw
+	     * @memberof WebGLCore#
 	     */
 	    draw: function(geometry, material, group) {
 	        var gl = this.gl;
@@ -9229,8 +10193,8 @@
 	    },
 
 	    /**
-	     * @private
 	     * upload skeleton uniforms
+	     * @memberof WebGLCore#
 	     */
 	    uploadSkeleton: function(uniforms, object, programId) {
 	        if(object.skeleton && object.skeleton.bones.length > 0) {
@@ -9277,9 +10241,9 @@
 	    },
 
 	    /**
-	     * @private
 	     * upload lights uniforms
 	     * TODO a better function for array & struct uniforms upload
+	     * @memberof WebGLCore#
 	     */
 	    uploadLights: function(uniforms, lights, receiveShadow, camera) {
 	        var gl = this.gl;
@@ -9419,8 +10383,8 @@
 	    },
 
 	    /**
-	     * @private
 	     * alloc texture unit
+	     * @memberof WebGLCore#
 	     */
 	    allocTexUnit: function() {
 	        var textureUnit = this._usedTextureUnits;
@@ -9437,7 +10401,7 @@
 	    },
 
 	    /**
-	     * @private 
+	     * @memberof WebGLCore#
 	     */
 	    setupVertexAttributes: function(program, geometry) {
 	        var gl = this.gl;
@@ -9515,41 +10479,83 @@
 	});
 
 	/**
-	 * Camera
-	 * @class
+	 * The camera used for rendering a 3D scene.
+	 * @memberof zen3d
+	 * @constructor
+	 * @extends zen3d.Object3D
 	 */
 	function Camera() {
+
 	    Object3D.call(this);
 
 	    this.type = OBJECT_TYPE.CAMERA;
 
-	    // view matrix
+	    /**
+	     * This is the inverse of worldMatrix.
+	     * @type {zen3d.Matrix4}
+	     */
 	    this.viewMatrix = new Matrix4();
 
-	    // projection matrix
+	    /**
+	     * This is the matrix which contains the projection.
+	     * @type {zen3d.Matrix4}
+	     */
 	    this.projectionMatrix = new Matrix4();
 
-	    // camera frustum
+	    /**
+	     * The frustum of the camera.
+	     * @type {zen3d.Frustum}
+	     */
 	    this.frustum = new Frustum();
 
 	    // gamma space or linear space
+	    /**
+	     * The factor of gamma.
+	     * @type {number}
+	     * @default 2.0
+	     */
 	    this.gammaFactor = 2.0;
+
+	    /**
+	     * If set, then it expects that all textures and colors are premultiplied gamma.
+	     * @type {boolean}
+	     * @default false
+	     */
 	    this.gammaInput = false;
+
+	    /**
+	     * If set, then it expects that all textures and colors need to be outputted in premultiplied gamma. 
+	     * @type {boolean}
+	     * @default false
+	     */
 	    this.gammaOutput = false;
 	    
-	    // Where on the screen is the camera rendered in normalized coordinates.
+	    /**
+	     * Where on the screen is the camera rendered in normalized coordinates.
+	     * @type {zen3d.Vector4}
+	     * @default zen3d.Vector4(0, 0, 1, 1)
+	     */
 	    this.rect = new Vector4(0, 0, 1, 1);
 
-	    // frustum test
+	    /**
+	     * When this is set, it checks every frame if objects are in the frustum of the camera before rendering objects. 
+	     * Otherwise objects gets rendered every frame even if it isn't visible.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.frustumCulled = true;
+
 	}
 
-	Camera.prototype = Object.assign(Object.create(Object3D.prototype), {
+	Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Camera.prototype */{
 
 	    constructor: Camera,
 
 	    /**
-	     * set view by look at, this func will set quaternion of this camera
+	     * Set view by look at, this func will set quaternion of this camera.
+	     * @method
+	     * @param {zen3d.Vector3} target - The target that the camera look at.
+	     * @param {zen3d.Vector3} up - The up direction of the camera.
 	     */
 	    lookAt: function() {
 	        var m = new Matrix4();
@@ -9563,7 +10569,13 @@
 	    }(),
 
 	    /**
-	     * set orthographic projection matrix
+	     * Set orthographic projection matrix.
+	     * @param {number} left — Camera frustum left plane.
+	     * @param {number} right — Camera frustum right plane.
+	     * @param {number} bottom — Camera frustum bottom plane.
+	     * @param {number} top — Camera frustum top plane.
+	     * @param {number} near — Camera frustum near plane.
+	     * @param {number} far — Camera frustum far plane.
 	     */
 	    setOrtho: function(left, right, bottom, top, near, far) {
 	        this.projectionMatrix.set(
@@ -9575,7 +10587,11 @@
 	    },
 
 	    /**
-	     * set perspective projection matrix
+	     * Set perspective projection matrix.
+	     * @param {number} fov — Camera frustum vertical field of view.
+	     * @param {number} aspect — Camera frustum aspect ratio.
+	     * @param {number} near — Camera frustum near plane.
+	     * @param {number} far — Camera frustum far plane.
 	     */
 	    setPerspective: function(fov, aspect, near, far) {
 	        this.projectionMatrix.set(
@@ -9586,10 +10602,6 @@
 	        );
 	    },
 
-	    /*
-	        * get world direction (override)
-	        * must call after world matrix updated
-	        */
 	    getWorldDirection: function() {
 
 	        var position = new Vector3();
@@ -9602,6 +10614,7 @@
 
 	            this.worldMatrix.decompose(position, quaternion, scale);
 
+	            // -z
 	            result.set(0, 0, -1).applyQuaternion(quaternion);
 
 	            return result;
@@ -9636,37 +10649,75 @@
 	});
 
 	/**
-	 * RenderTargetBase Class
-	 * @class
+	 * Render Target is the wrapping class of gl.framebuffer.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.EventDispatcher
+	 * @abstract
+	 * @param {number} width - The width of the render target.
+	 * @param {number} height - The height of the render target.
 	 */
 	function RenderTargetBase(width, height) {
+
 	    EventDispatcher.call(this);
 
+	    /**
+	     * UUID of this render target instance. 
+	     * This gets automatically assigned, so this shouldn't be edited.
+	     * @type {string}
+	     */
 	    this.uuid = generateUUID();
 
+	    /**
+	     * The width of the render target.
+	     * @type {number}
+	     */
 	    this.width = width;
+
+	    /**
+	     * The height of the render target.
+	     * @type {number}
+	     */
 	    this.height = height;
 
+	    /**
+	     * If set true, attach a depth render buffer to the redner target.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.depthBuffer = true;
+
+	    /**
+	     * If set true, attach a stencil render buffer to the redner target.
+	     * @type {boolean}
+	     * @default true
+	     */
 	    this.stencilBuffer = true;
 	}
 
-	RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
+	RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{
 
 	    constructor: RenderTargetBase,
 
 	    /**
-	     * resize render target
+	     * Resize the render target.
+	     * @param {number} width - The width of the render target.
+	     * @param {number} height - The height of the render target.    
 	     */
 	    resize: function(width, height) {
+
 	        if(this.width !== width || this.height !== height) {
 	            this.dispose();
 	        }
 
 	        this.width = width;
 	        this.height = height;
+
 	    },
 
+	    /**
+	     * Dispatches a dispose event.
+	     */
 	    dispose: function() {
 	        this.dispatchEvent({type: 'dispose'});
 	    }
@@ -9674,15 +10725,30 @@
 	});
 
 	/**
-	 * RenderTargetCube Class
-	 * @class
+	 * Render Target that render to cube texture.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.RenderTargetBase
+	 * @param {number} width - The width of the render target.
+	 * @param {number} height - The height of the render target.
 	 */
 	function RenderTargetCube(width, height) {
+
 	    RenderTargetBase.call(this, width, height);
 
+	    /**
+	     * The cube texture attached to COLOR_ATTACHMENT0.
+	     * @type {zen3d.TextureCube}
+	     * @default zen3d.TextureCube()
+	     */
 	    this.texture = new TextureCube();
 
-	    this.activeCubeFace = 0; // PX 0, NX 1, PY 2, NY 3, PZ 4, NZ 5
+	    /**
+	     * The activeCubeFace property corresponds to a cube side (PX 0, NX 1, PY 2, NY 3, PZ 4, NZ 5).
+	     * @type {number}
+	     * @default 0
+	     */
+	    this.activeCubeFace = 0;
 	}
 
 	RenderTargetCube.prototype = Object.create(RenderTargetBase.prototype);
@@ -9872,6 +10938,12 @@
 	    return cache;
 	}
 
+	/**
+	 * Light cache collect all lights in the scene.
+	 * @constructor
+	 * @hideconstructor
+	 * @memberof zen3d 
+	 */
 	function LightCache() {
 	    this.ambient = new Float32Array([0, 0, 0, 1]);
 	    this.directional = [];
@@ -9894,6 +10966,10 @@
 
 	Object.assign(LightCache.prototype, {
 
+	    /**
+	     * Mark count start.
+	     * @memberof zen3d.LightCache#
+	     */
 	    startCount: function () {
 	        for(var i = 0; i < 3; i++) {
 	            this.ambient[i] = 0;
@@ -9907,6 +10983,11 @@
 	        this.totalNum = 0;
 	    },
 
+	    /**
+	     * Collect a light.
+	     * @memberof zen3d.LightCache#
+	     * @param {zen3d.Light} object - The light to be collected.
+	     */
 	    add: function (object) {
 	        if (object.lightType == LIGHT_TYPE.AMBIENT) {
 	            this._doAddAmbientLight(object);
@@ -9926,6 +11007,10 @@
 	        this.totalNum++;
 	    },
 
+	    /**
+	     * Mark count finished.
+	     * @memberof zen3d.LightCache#
+	     */
 	    endCount: function () {
 	        // do nothing
 	    },
@@ -10125,16 +11210,36 @@
 	    }
 	};
 
+	/**
+	 * Render list is used to collect renderable objects from the scene.
+	 * Render list has an opaque list and a transparent list.
+	 * @constructor
+	 * @hideconstructor
+	 * @memberof zen3d
+	 */
 	function RenderList() {
 
 	    var renderItems = [];
 		var renderItemsIndex = 0;
 
+	    /**
+	     * Opaque list.
+	     * @memberof zen3d.RenderList#
+	     */
 	    var opaque = [];
 	    var opaqueCount = 0;
+
+	    /**
+	     * Transparent list.
+	     * @memberof zen3d.RenderList#
+	     */
 	    var transparent = [];
 	    var transparentCount = 0;
 
+	    /**
+	     * Mark count start.
+	     * @memberof zen3d.RenderList#
+	     */
 	    function startCount() {
 	        renderItemsIndex = 0;
 
@@ -10142,6 +11247,12 @@
 	        transparentCount = 0;
 	    }
 
+	    /**
+	     * Collect render list.
+	     * @memberof zen3d.RenderList#
+	     * @param {zen3d.Object3D} object - The object to be collected.
+	     * @param {zen3d.Camera} camera - The main camera.
+	     */
 	    function add(object, camera) {
 
 	        // frustum test
@@ -10208,11 +11319,19 @@
 
 	    }
 
+	    /**
+	     * Mark count finished.
+	     * @memberof zen3d.RenderList#
+	     */
 	    function endCount() {
 	        opaque.length = opaqueCount;
 	        transparent.length = transparentCount;
 	    }
 
+	    /**
+	     * Sort render list.
+	     * @memberof zen3d.RenderList#
+	     */
 	    function sort() {
 	        opaque.sort(sortFrontToBack);
 	        transparent.sort(sortBackToFront);
@@ -10230,29 +11349,60 @@
 	}
 
 	/**
-	 * Scene
-	 * @class
+	 * Scenes allow you to set up what and where is to be rendered by zen3d.
+	 * This is where you place objects, lights and cameras.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Object3D
 	 */
 	function Scene() {
+
 	    Object3D.call(this);
 
 	    this.type = OBJECT_TYPE.SCENE;
 
+	    /**
+	     * If not null, it will force everything in the scene to be rendered with that material.
+	     * @type {zen3d.Material}
+	     * @default null
+	     */
 	    this.overrideMaterial = null;
 
+	    /**
+	     * A {@link zen3d.Fog} instance defining the type of fog that affects everything rendered in the scene.
+	     * @type {zen3d.Fog}
+	     * @default null
+	     */
 	    this.fog = null;
 
-	    this.clippingPlanes = []; // Planes array
+	    /**
+	     * User-defined clipping planes specified as {@link zen3d.Plane} objects in world space. 
+	     * These planes apply to the scene.
+	     * Points in space whose dot product with the plane is negative are cut away.
+	     * @type {zen3d.Plane[]}
+	     * @default []
+	     */
+	    this.clippingPlanes = [];
+
+	    /**
+	     * A {@link zen3d.LightCache} instance that collected all lights info after the calling of {@link zen3d.Scene#updateLights}.
+	     * @type {zen3d.LightCache}
+	     * @default zen3d.LightCache()
+	     */
+	    this.lights = new LightCache();
 
 	    this._renderLists = {};
-
-	    this.lights = new LightCache();
 	}
 
-	Scene.prototype = Object.assign(Object.create(Object3D.prototype), {
+	Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Scene.prototype */{
 
 	    constructor: Scene,
 
+	    /**
+	     * Update {@link zen3d.RenderList} for the scene and camera.
+	     * @param {zen3d.Camera} camera - The camera.
+	     * @return {RenderList} - The result render list.
+	     */
 	    updateRenderList: function(camera) {
 	        var id = camera.uuid;
 
@@ -10273,20 +11423,30 @@
 	        return renderList;
 	    },
 
+	    /**
+	     * Get {@link zen3d.RenderList} for the scene and camera.
+	     * The Render List must be updated before this calling.
+	     * @param {zen3d.Camera} camera - The camera.
+	     * @return {RenderList} - The target render list.
+	     */
 	    getRenderList: function(camera) {
 	        return this._renderLists[camera.uuid];
 	    },
 
+	    /**
+	     * Update all lights in the scene.
+	     * @return {LightCache} - An instance of {@link LightCache} whitch contains all lights in the scene.
+	     */
 	    updateLights: function() {
 	        var lights = this.lights;
 
-	        this.lights.startCount();
+	        lights.startCount();
 
 	        this._doUpdateLights(this);
 
-	        this.lights.endCount();
+	        lights.endCount();
 
-	        return this.lights;
+	        return lights;
 	    },
 
 	    _doUpdateRenderList: function(object, camera, renderList) {
@@ -10336,24 +11496,41 @@
 	});
 
 	/**
-	 * Mesh
-	 * @class
+	 * Class representing triangular polygon mesh based objects. 
+	 * Also serves as a base for other classes such as {@link zen3d.SkinnedMesh}.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Object3D
+	 * @param {zen3d.Geometry} geometry — an instance of {@link zen3d.Geometry}.
+	 * @param {zen3d.Material} material - a single or an array of {@link zen3d.Material}.
 	 */
 	function Mesh(geometry, material) {
+
 	    Object3D.call(this);
 
+	    /**
+	     * an instance of {@link zen3d.Geometry}.
+	     * @type {zen3d.Geometry}
+	     */
 	    this.geometry = geometry;
 
+	    /**
+	     * a single or an array of {@link zen3d.Material}.
+	     * @type {zen3d.Material|zen3d.Material[]}
+	     */
 	    this.material = material;
 
 	    this.type = OBJECT_TYPE.MESH;
+
 	}
 
-	Mesh.prototype = Object.assign(Object.create(Object3D.prototype), {
+	Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Mesh.prototype */{
 
 	    constructor: Mesh,
 
-	    // override
+	    /**
+	     * @override 
+	     */
 	    raycast: function() {
 	        var sphere = new Sphere();
 	        var box = new Box3();
@@ -10506,33 +11683,40 @@
 	});
 
 	/**
-	 * RenderTargetBack Class
-	 * no texture & framebuffer in this render target, but an canvas tag element
-	 * @class
+	 * Render Target that render to canvas element.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.RenderTargetBase
+	 * @param {HTMLCanvasElement} view - The canvas element which the Render Target rendered to.
 	 */
 	function RenderTargetBack(view) {
+
 	    RenderTargetBase.call(this, view.width, view.height);
 
-	    this.view = view; // render to canvas
+	    /**
+	     * The canvas element which the Render Target rendered to.
+	     * @type {HTMLCanvasElement}
+	     */
+	    this.view = view;
+
 	}
 
-	RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.prototype), {
+	RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.prototype), /** @lends zen3d.RenderTargetBack.prototype */{
 
 	    constructor: RenderTargetBack,
 
-	    /**
-	     * resize render target
-	     */
 	    resize: function(width, height) {
+
 	        this.view.width = width;
 	        this.view.height = height;
 
 	        this.width = width;
 	        this.height = height;
+
 	    },
 
 	    dispose: function() {
-	        // dispose canvas?
+	        // TODO dispose canvas?
 	    }
 
 	});
@@ -10621,12 +11805,13 @@
 	});
 
 	/**
-	 * Renderer
-	 * @class
+	 * A simple foward renderer.
+	 * @constructor
+	 * @memberof zen3d
+	 * @param {HTMLCanvasElement} view - The canvas elements.
+	 * @param {Object} [options=] - The {@link https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext options for webgl context}.
 	 */
 	function Renderer(view, options) {
-
-	    this.backRenderTarget = new RenderTargetBack(view);
 	    
 	    var gl = view.getContext("webgl", options || {
 	        antialias: true, // antialias
@@ -10634,23 +11819,59 @@
 	        // premultipliedAlpha: false, // effect performance, default false
 	        stencil: true
 	    });
+
 	    this.glCore = new WebGLCore(gl);
 
-	    this.autoClear = true;
+	    this.backRenderTarget = new RenderTargetBack(view);
 
 	    this.performance = new Performance();
 
 	    this.shadowMapPass = new ShadowMapPass();
 
+	    /**
+	     * Defines whether the shadow pass should automatically update.
+	     * @type {boolean}
+	     * @default true 
+	     */
 	    this.shadowAutoUpdate = true;
+
+	    /**
+	     * If {@link zen3d.Renderer.shadowAutoUpdate} is set true and this set true, shadow will update and set this to false automatically.
+	     * @type {boolean}
+	     * @default false 
+	     */
 	    this.shadowNeedsUpdate = false;
 
+	    /**
+	     * Defines whether the scene should automatically update its matrix.
+	     * @type {boolean}
+	     * @default true 
+	     */
 	    this.matrixAutoUpdate = true;
+
+	    /**
+	     * Defines whether the scene should automatically update its lights.
+	     * @type {boolean}
+	     * @default true 
+	     */
 	    this.lightsAutoupdate = true;
+
+	    /**
+	     * Defines whether the renderer should automatically clear its output before rendering a frame.
+	     * @type {boolean}
+	     * @default true 
+	     */
+	    this.autoClear = true;
+
 	}
 
 	/**
-	 * render scene with camera
+	 * Render a scene using a camera.
+	 * The render is done to the renderTarget (if specified) or to the canvas as usual.
+	 * @param {zen3d.Scene} scene - The scene.
+	 * @param {zen3d.Camera} camera - The camera.
+	 * @param {zen3d.RenderTargetBase} [renderTarget=] - The render is done to the renderTarget (if specified) or to the canvas as usual.
+	 * @param {boolean} [forceClear=false] - If set true, the depth, stencil and color buffers will be cleared before rendering even if the renderer's autoClear property is false.
 	 */
 	Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
 	    var performance = this.performance;
@@ -10693,82 +11914,154 @@
 	};
 
 	/**
-	 * RenderTarget2D Class
-	 * @class
+	 * Render Target that render to 2d texture.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.RenderTargetBase
+	 * @param {number} width - The width of the render target.
+	 * @param {number} height - The height of the render target.
 	 */
 	function RenderTarget2D(width, height) {
+
 	    RenderTargetBase.call(this, width, height);
 
+	    /**
+	     * The texture attached to COLOR_ATTACHMENT0.
+	     * @type {zen3d.Texture2D}
+	     * @default Texture2D()
+	     */
 	    this.texture = new Texture2D();
 
+	    /**
+	     * The texture attached to DEPTH_ATTACHMENT.
+	     * @type {zen3d.TextureDepth}
+	     */
 	    this.depthTexture = null;
+
 	}
 
 	RenderTarget2D.prototype = Object.create(RenderTargetBase.prototype);
 	RenderTarget2D.prototype.constructor = RenderTarget2D;
 
 	/**
-	 * Fog
-	 * @class
+	 * Linear fog.
+	 * @memberof zen3d
+	 * @constructor
+	 * @param {number} [color=0x000000] - The color of the fog.
+	 * @param {number} [near=1] - The near clip of the fog.
+	 * @param {number} [far=1000] - The far clip of the fog.
 	 */
 	function Fog(color, near, far) {
 
 	    this.fogType = FOG_TYPE.NORMAL;
 
+	    /**
+	     * The color of the fog.
+	     * @member {zen3d.Color3} 
+	     * @default zen3d.Color3(0x000000)
+	     */
 	    this.color = new Color3( (color !== undefined) ? color : 0x000000 );
 
+	    /**
+	     * The near clip of the fog.
+	     * @member {number} 
+	     * @default 1
+	     */
 	    this.near = (near !== undefined) ? near : 1;
+
+	    /**
+	     * The far clip of the fog.
+	     * @member {number} 
+	     * @default 1000
+	     */
 	    this.far = (far !== undefined) ? far : 1000;
 	}
 
 	/**
-	 * FogExp2
-	 * @class
+	 * Exp2 fog.
+	 * @memberof zen3d
+	 * @constructor
+	 * @param {number} [color=0x000000] - The color of the fog.
+	 * @param {number} [density=0.00025] - The density of the exp2 fog.
 	 */
 	function FogExp2(color, density) {
 
 	    this.fogType = FOG_TYPE.EXP2;
 
+	    /**
+	     * The color of the fog.
+	     * @member {zen3d.Color3} 
+	     * @default zen3d.Color3(0x000000)
+	     */
 	    this.color = new Color3( (color !== undefined) ? color : 0x000000 );
 
+	    /**
+	     * The density of the exp2 fog.
+	     * @member {number} 
+	     * @default 0.00025
+	     */
 	    this.density = (density !== undefined) ? density : 0.00025;
 	}
 
 	/**
-	 * Group
-	 * @class
+	 * This is almost identical to an {@link zen3d.Object3D}. 
+	 * Its purpose is to make working with groups of objects syntactically clearer.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Object3D
 	 */
 	function Group() {
+
 	    Object3D.call(this);
 
 	    this.type = OBJECT_TYPE.GROUP;
+
 	}
 
 	Group.prototype = Object.create(Object3D.prototype);
 	Group.prototype.constructor = Group;
 
 	/**
-	 * Light
-	 * @class
+	 * Abstract base class for lights 
+	 * - all other light types inherit the properties and methods described here.
+	 * @constructor
+	 * @abstract
+	 * @memberof zen3d
+	 * @extends zen3d.Object3D
 	 */
 	function Light() {
+
 	    Object3D.call(this);
 
 	    this.type = OBJECT_TYPE.LIGHT;
 
 	    this.lightType = "";
 
-	    // default light color is white
+	    /**
+	     * Color of the light.
+	     * @type {zen3d.Color3}
+	     * @default zen3d.Color3(0xffffff) 
+	     */
 	    this.color = new Color3(0xffffff);
 
-	    // light intensity, default 1
+	    /**
+	     * The light's intensity, or strength.
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.intensity = 1;
+
 	}
 
-	Light.prototype = Object.assign(Object.create(Object3D.prototype), {
+	Light.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Light.prototype */{
 
 	    constructor: Light,
 
+	    /**
+	     * Copies properties from the source light into this one.
+	     * @param {zen3d.Light} source - The source light.
+	     * @return {zen3d.Light} - This light.
+	     */
 	    copy: function(source) {
 	        Object3D.prototype.copy.call(this, source);
 
@@ -10783,35 +12076,92 @@
 	});
 
 	/**
-	 * AmbientLight
-	 * @class
+	 * This light globally illuminates all objects in the scene equally.
+	 * This light cannot be used to cast shadows as it does not have a direction.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Light
 	 */
 	function AmbientLight() {
+
 	    Light.call(this);
 
 	    this.lightType = LIGHT_TYPE.AMBIENT;
+	    
 	}
 
 	AmbientLight.prototype = Object.create(Light.prototype);
 	AmbientLight.prototype.constructor = AmbientLight;
 
+	/**
+	 * Serves as a base class for the other shadow classes.
+	 * @constructor
+	 * @hideconstructor
+	 * @abstract
+	 * @memberof zen3d
+	 */
 	function LightShadow() {
+
+	    /**
+	     * The light's view of the world. 
+	     * This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
+	     * @type {zen3d.Camera}
+	     */
 	    this.camera = new Camera();
+
+	    /**
+	     * Model to shadow camera space, to compute location and depth in shadow map. Stored in a {@link zen3d.Matrix4}. 
+	     * This is computed internally during rendering.
+	     * @type {zen3d.Matrix4}
+	     */
 	    this.matrix = new Matrix4();
 
+	    /**
+	     * Shadow map bias, how much to add or subtract from the normalized depth when deciding whether a surface is in shadow.
+	     * Very tiny adjustments here (in the order of 0.0001) may help reduce artefacts in shadows.
+	     * @type {number}
+	     * @default 0.0003
+	     */
 	    this.bias = 0.0003;
+
+	    /**
+	     * Setting this to values greater than 1 will blur the edges of the shadow.
+	     * High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.
+	     * Note that this has no effect if the {@link @zen3d.Object3D#shadowType} is set to zen3d.SHADOW_TYPE.PCF_SOFT.
+	     * @type {number}
+	     * @default 2
+	     */
 	    this.radius = 2;
 
+	    /**
+	     * Shadow camera near. 
+	     * @type {number}
+	     * @default 1
+	     */
 	    this.cameraNear = 1;
+
+	    /**
+	     * Shadow camera far. 
+	     * @type {number}
+	     * @default 500
+	     */
 	    this.cameraFar = 500;
 
+	    /**
+	     * A {@link zen3d.Vector2} defining the width and height of the shadow map.
+	     * Higher values give better quality shadows at the cost of computation time. 
+	     * Values must be powers of 2, 
+	     * @type {zen3d.Vector2}
+	     * @default zen3d.Vector2(512, 512)
+	     */
 	    this.mapSize = new Vector2(512, 512);
 
 	    this.renderTarget = null;
 	    this.map = null;
+
 	}
 
-	Object.assign(LightShadow.prototype, {
+	Object.assign(LightShadow.prototype, /** @lends zen3d.LightShadow.prototype */{
 
 	    update: function(light, face) {
 
@@ -10839,10 +12189,14 @@
 	});
 
 	/**
-	 * DirectionalLightShadow
-	 * @class
+	 * This is used internally by DirectionalLights for calculating shadows.
+	 * @constructor
+	 * @hideconstructor
+	 * @memberof zen3d
+	 * @extends zen3d.LightShadow
 	 */
 	function DirectionalLightShadow() {
+
 	    LightShadow.call(this);
 
 	    // direct light is just a direction
@@ -10856,21 +12210,23 @@
 	    map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
 	    this.map = map;
 
-	    // the cast shadow window size
+	    /**
+	     * The cast shadow window size.
+	     * @type {number}
+	     * @default 500
+	     */
 	    this.windowSize = 500;
 
 	    this._lookTarget = new Vector3();
 
 	    this._up = new Vector3(0, 1, 0);
+
 	}
 
 	DirectionalLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
 
 	    constructor: DirectionalLightShadow,
 
-	    /**
-	     * update by light
-	     */
 	    update: function(light) {
 	        this._updateCamera(light);
 	        this._updateMatrix();
@@ -10881,9 +12237,6 @@
 	        }
 	    },
 
-	    /**
-	     * update camera matrix by light
-	     */
 	    _updateCamera: function(light) {
 	        var camera = this.camera;
 	        var lookTarget = this._lookTarget;
@@ -10902,9 +12255,6 @@
 	        camera.setOrtho(-halfWindowSize, halfWindowSize, -halfWindowSize, halfWindowSize, this.cameraNear, this.cameraFar);
 	    },
 
-	    /**
-	     * update shadow matrix
-	     */
 	    _updateMatrix: function() {
 	        var matrix = this.matrix;
 	        var camera = this.camera;
@@ -10932,18 +12282,30 @@
 	});
 
 	/**
-	 * DirectionalLight
-	 * @class
+	 * A light that gets emitted in a specific direction. 
+	 * This light will behave as though it is infinitely far away and the rays produced from it are all parallel. 
+	 * The common use case for this is to simulate daylight; the sun is far enough away that its position can be considered to be infinite, and all light rays coming from it are parallel.
+	 * This light can cast shadows - see the {@link zen3d.DirectionalLightShadow} page for details.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Light
 	 */
 	function DirectionalLight() {
+
 	    Light.call(this);
 
 	    this.lightType = LIGHT_TYPE.DIRECT;
 
+	    /**
+	     * A {@link zen3d.DirectionalLightShadow} used to calculate shadows for this light. 
+	     * @type {zen3d.DirectionalLightShadow}
+	     * @default zen3d.DirectionalLightShadow()
+	     */
 	    this.shadow = new DirectionalLightShadow();
+
 	}
 
-	DirectionalLight.prototype = Object.assign(Object.create(Light.prototype), {
+	DirectionalLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends zen3d.DirectionalLight.prototype */{
 
 	    constructor: DirectionalLight,
 
@@ -10958,10 +12320,14 @@
 	});
 
 	/**
-	 * PointLightShadow
-	 * @class
+	 * This is used internally by PointLights for calculating shadows.
+	 * @constructor
+	 * @hideconstructor
+	 * @memberof zen3d
+	 * @extends zen3d.LightShadow
 	 */
 	function PointLightShadow() {
+
 	    LightShadow.call(this);
 
 	    this.renderTarget = new RenderTargetCube(this.mapSize.x, this.mapSize.y);
@@ -10982,15 +12348,13 @@
 	    ];
 
 	    this._lookTarget = new Vector3();
+
 	}
 
 	PointLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
 
 	    constructor: PointLightShadow,
 
-	    /**
-	     * update by light
-	     */
 	    update: function(light, face) {
 	        this._updateCamera(light, face);
 	        this._updateMatrix();
@@ -11001,9 +12365,6 @@
 	        }
 	    },
 
-	    /**
-	     * update camera matrix by light
-	     */
 	    _updateCamera: function(light, face) {
 	        var camera = this.camera;
 	        var lookTarget = this._lookTarget;
@@ -11022,9 +12383,6 @@
 	        camera.setPerspective(90 / 180 * Math.PI, 1, this.cameraNear, this.cameraFar);
 	    },
 
-	    /**
-	     * update shadow matrix
-	     */
 	    _updateMatrix: function() {
 	        var matrix = this.matrix;
 	        var camera = this.camera;
@@ -11044,24 +12402,43 @@
 	});
 
 	/**
-	 * PointLight
-	 * @class
+	 * A light that gets emitted from a single point in all directions. 
+	 * A common use case for this is to replicate the light emitted from a bare lightbulb.
+	 * This light can cast shadows - see {@link zen3d.PointLightShadow} page for details.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Light
 	 */
 	function PointLight() {
+
 	    Light.call(this);
 
 	    this.lightType = LIGHT_TYPE.POINT;
 
-	    // decay of this light
-	    this.decay = 2;
+	    /**
+	     * The amount the light dims along the distance of the light.
+	     * @type {number}
+	     * @default 1
+	     */
+	    this.decay = 1;
 
-	    // distance of this light
+	    /**
+	     * The distance from the light where the intensity is 0.
+	     * @type {number}
+	     * @default 200
+	     */
 	    this.distance = 200;
 
+	    /**
+	     * A {@link zen3d.PointLightShadow} used to calculate shadows for this light. 
+	     * @type {zen3d.PointLightShadow}
+	     * @default zen3d.PointLightShadow()
+	     */
 	    this.shadow = new PointLightShadow();
+
 	}
 
-	PointLight.prototype = Object.assign(Object.create(Light.prototype), {
+	PointLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends zen3d.PointLight.prototype */{
 
 	    constructor: PointLight,
 
@@ -11075,10 +12452,14 @@
 	});
 
 	/**
-	 * SpotLightShadow
-	 * @class
+	 * This is used internally by SpotLights for calculating shadows.
+	 * @constructor
+	 * @hideconstructor
+	 * @memberof zen3d
+	 * @extends zen3d.LightShadow
 	 */
 	function SpotLightShadow() {
+
 	    LightShadow.call(this);
 
 	    this.renderTarget = new RenderTarget2D(this.mapSize.x, this.mapSize.y);
@@ -11091,15 +12472,13 @@
 	    this._lookTarget = new Vector3();
 
 	    this._up = new Vector3(0, 1, 0);
+
 	}
 
 	SpotLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), {
 
 	    constructor: SpotLightShadow,
 
-	    /**
-	     * update by light
-	     */
 	    update: function(light) {
 	        this._updateCamera(light);
 	        this._updateMatrix();
@@ -11110,9 +12489,6 @@
 	        }
 	    },
 
-	    /**
-	     * update camera matrix by light
-	     */
 	    _updateCamera: function(light) {
 	        var camera = this.camera;
 	        var lookTarget = this._lookTarget;
@@ -11131,9 +12507,6 @@
 	        camera.setPerspective(light.angle * 2, 1, this.cameraNear, this.cameraFar);
 	    },
 
-	    /**
-	     * update shadow matrix
-	     */
 	    _updateMatrix: function() {
 	        var matrix = this.matrix;
 	        var camera = this.camera;
@@ -11149,32 +12522,62 @@
 	        matrix.multiply(camera.projectionMatrix);
 	        matrix.multiply(camera.viewMatrix);
 	    }
+
 	});
 
 	/**
-	 * SpotLight
-	 * @class
+	 * This light gets emitted from a single point in one direction, along a cone that increases in size the further from the light it gets.
+	 * This light can cast shadows - see the {@link zen3d.SpotLightShadow} page for details.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Light
 	 */
 	function SpotLight() {
+
 	    Light.call(this);
 
 	    this.lightType = LIGHT_TYPE.SPOT;
 
-	    // decay of this light
-	    this.decay = 2;
+	    /**
+	     * The amount the light dims along the distance of the light.
+	     * @type {number}
+	     * @default 1
+	     */
+	    this.decay = 1;
 
-	    // distance of this light
+	    /**
+	     * The distance from the light where the intensity is 0.
+	     * @type {number}
+	     * @default 200
+	     */
 	    this.distance = 200;
 
-	    // from 0 to 1
+	    /**
+	     * Percent of the spotlight cone that is attenuated due to penumbra. 
+	     * Takes values between zero and 1.
+	     * @type {number}
+	     * @default 0
+	     */
 	    this.penumbra = 0;
 
+	    /**
+	     * Maximum extent of the spotlight, in radians, from its direction. 
+	     * Should be no more than Math.PI/2.
+	     * @type {number}
+	     * @default Math.PI/6
+	     */
 	    this.angle = Math.PI / 6;
 
+	    /**
+	     * A {@link zen3d.SpotLightShadow} used to calculate shadows for this light. 
+	     * @type {zen3d.SpotLightShadow}
+	     * @default zen3d.SpotLightShadow()
+	     */
 	    this.shadow = new SpotLightShadow();
+
 	}
 
-	SpotLight.prototype = Object.assign(Object.create(Light.prototype), {
+	SpotLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends zen3d.SpotLight.prototype */{
 
 	    constructor: SpotLight,
 
@@ -11185,29 +12588,61 @@
 
 	        return this;
 	    }
+	    
 	});
 
 	/**
-	 * SkinnedMesh
-	 * @class
+	 * A mesh that has a {@link zen3d.Skeleton} with bones that can then be used to animate the vertices of the geometry.
+	 * The material must support skinning.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Mesh
 	 */
 	function SkinnedMesh(geometry, material) {
+
 	    Mesh.call(this, geometry, material);
 
 	    this.type = OBJECT_TYPE.SKINNED_MESH;
 
+	    /**
+	     * Skeleton created from the bones of the Geometry.
+	     * @member {zen3d.Skeleton}
+	     */
 	    this.skeleton = undefined;
 
+	    /**
+	     * Either "attached" or "detached". 
+	     * "attached" uses the {@link zen3d.SkinnedMesh#worldMatrix} property for the base transform matrix of the bones. 
+	     * "detached" uses the {@link zen3d.SkinnedMesh#bindMatrix}.
+	     * @member {string}
+	     * @default "attached"
+	     */
 	    this.bindMode = 'attached';
 
+	    /**
+	     * The base matrix that is used for the bound bone transforms.
+	     * @member {zen3d.Matrix4}
+	     */
 	    this.bindMatrix = new Matrix4();
+
+	    /**
+	     * The base matrix that is used for resetting the bound bone transforms.
+	     * @member {zen3d.Matrix4}
+	     */
 	    this.bindMatrixInverse = new Matrix4();
+
 	}
 
-	SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), {
+	SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends zen3d.SkinnedMesh.prototype */{
 
 	    constructor: SkinnedMesh,
 	    
+	    /**
+	     * Bind a skeleton to the skinned mesh. 
+	     * The bindMatrix gets saved to .bindMatrix property and the .bindMatrixInverse gets calculated.
+	     * @param {zen3d.Skeleton} skeleton - Skeleton created from a Bones tree.
+	     * @param {zen3d.Matrix4} [bindMatrix=] - Matrix4 that represents the base transform of the skeleton.
+	     */
 	    bind: function ( skeleton, bindMatrix ) {
 
 			this.skeleton = skeleton;
@@ -11244,48 +12679,83 @@
 	});
 
 	/**
-	 * Points
-	 * @class
+	 * A class for displaying points. 
+	 * The points are rendered using gl.POINTS.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Object3D
+	 * @param {zen3d.Geometry} geometry — an instance of {@link zen3d.Geometry}.
+	 * @param {zen3d.Material} material - an instance of {@link zen3d.Material}.
 	 */
 	function Points(geometry, material) {
+
 	    Object3D.call(this);
 
+	    /**
+	     * an instance of {@link zen3d.Geometry}.
+	     * @type {zen3d.Geometry}
+	     */
 	    this.geometry = geometry;
 
+	    /**
+	     * an instance of {@link zen3d.Material}.
+	     * @type {zen3d.Material}
+	     */
 	    this.material = material;
 
 	    this.type = OBJECT_TYPE.POINT;
+
 	}
 
 	Points.prototype = Object.create(Object3D.prototype);
 	Points.prototype.constructor = Points;
 
 	/**
-	 * Line
-	 * @class
+	 * A continuous line.
+	 * The line is rendered using gl.LINES.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.Object3D
+	 * @param {zen3d.Geometry} geometry — an instance of {@link zen3d.Geometry}.
+	 * @param {zen3d.Material} material - an instance of {@link zen3d.Material}.
 	 */
 	function Line(geometry, material) {
+
 	    Object3D.call(this);
 
+	    /**
+	     * an instance of {@link zen3d.Geometry}.
+	     * @type {zen3d.Geometry}
+	     */
 	    this.geometry = geometry;
 
+	    /**
+	     * an instance of {@link zen3d.Material}.
+	     * @type {zen3d.Material}
+	     */
 	    this.material = material;
 
 	    this.type = OBJECT_TYPE.LINE;
+
 	}
 
-	Line.prototype = Object.assign(Object.create(Object3D.prototype), {
+	Line.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Line.prototype */{
 
 	    constructor: Line,
 
 	    /**
-	     * raycast
+	     * @override 
 	     */
-	    raycast: function() {
+	    raycast: function(raycaster, intersects) {
 	        // TODO
 	    }
 
 	});
+
+	/**
+	 * The zen3d namespace.
+	 * @namespace zen3d
+	 */
 
 	exports.EventDispatcher = EventDispatcher;
 	exports.Raycaster = Raycaster;
@@ -11415,7 +12885,6 @@
 	exports.WEBGL_TEXTURE_WRAP = WEBGL_TEXTURE_WRAP;
 	exports.WEBGL_UNIFORM_TYPE = WEBGL_UNIFORM_TYPE;
 	exports.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
-	exports.WEBGL_BUFFER_USAGE = WEBGL_BUFFER_USAGE;
 	exports.SHADOW_TYPE = SHADOW_TYPE;
 	exports.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
 	exports.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;

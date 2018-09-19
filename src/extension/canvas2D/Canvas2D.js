@@ -98,7 +98,6 @@ function Canvas2D(width, height, isScreenCanvas, screenMatchMode) {
     this.geometry.addAttribute("a_Uv", new zen3d.InterleavedBufferAttribute(this.buffer, 2, 3));
     this.geometry.setIndex([]);
 
-    this.geometry.usageType = zen3d.WEBGL_BUFFER_USAGE.DYNAMIC_DRAW;
     this.material = new Canvas2DMaterial();
 
     this.sprites = [];

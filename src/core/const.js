@@ -267,18 +267,6 @@ export var WEBGL_ATTRIBUTE_TYPE = {
 }
 
 /**
- * Enum for WebGL Buffer Usage.
- * @name zen3d.WEBGL_BUFFER_USAGE
- * @readonly
- * @enum {number}
- */
-export var WEBGL_BUFFER_USAGE = {
-    STREAM_DRAW: 0x88e0,
-    STATIC_DRAW: 0x88E4,
-    DYNAMIC_DRAW: 0x88E8
-}
-
-/**
  * Enum for Shadow Type.
  * @name zen3d.SHADOW_TYPE
  * @readonly
