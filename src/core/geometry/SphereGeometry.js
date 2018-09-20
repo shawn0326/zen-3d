@@ -3,13 +3,26 @@ import {BufferAttribute} from './BufferAttribute.js';
 import {Vector3} from '../math/Vector3.js';
 
 /**
- * SphereGeometry data
- * @class
+ * A class for generating sphere geometries.
+ * The geometry is created by sweeping and calculating vertexes around the Y axis (horizontal sweep) and the Z axis (vertical sweep). 
+ * Thus, incomplete spheres (akin to 'sphere slices') can be created through the use of different values of phiStart, phiLength, thetaStart and thetaLength, in order to define the points in which we start (or end) calculating those vertices.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ * @param {number} [radius=1] — sphere radius. Default is 1.
+ * @param {Integer} [widthSegments=8] — number of horizontal segments. Minimum value is 3, and the default is 8.
+ * @param {Integer} [heightSegments=6] — number of vertical segments. Minimum value is 2, and the default is 6.
+ * @param {number} [phiStart=0] — specify horizontal starting angle. Default is 0.
+ * @param {number} [phiLength=Math.PI*2] — specify horizontal sweep angle size. Default is Math.PI * 2.
+ * @param {number} [thetaStart=0] — specify vertical starting angle. Default is 0.
+ * @param {number} [thetaLength=Math.PI] — specify vertical sweep angle size. Default is Math.PI.
  */
 function SphereGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
+
     Geometry.call(this);
 
     this.buildGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength);
+
 }
 
 SphereGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {

@@ -2,13 +2,21 @@ import {Geometry} from './Geometry.js';
 import {BufferAttribute} from './BufferAttribute.js';
 
 /**
- * PlaneGeometry data
- * @class
+ * A class for generating plane geometries.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ * @param {number} [width=1] — Width along the X axis. 
+ * @param {number} [height=1] — Height along the Y axis.
+ * @param {Integer} [widthSegments=1] — Optional. 
+ * @param {Integer} [heightSegments=1] — Optional.
  */
 function PlaneGeometry(width, height, widthSegments, heightSegments) {
+
 	Geometry.call(this);
 
 	this.buildGeometry(width, height, widthSegments, heightSegments);
+	
 }
 
 PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {

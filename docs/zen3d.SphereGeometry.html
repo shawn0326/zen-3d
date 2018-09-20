@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: SphereGeometry</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: SphereGeometry</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>SphereGeometry<span class="signature">(radius<span class="signature-attributes">opt</span>, widthSegments<span class="signature-attributes">opt</span>, heightSegments<span class="signature-attributes">opt</span>, phiStart<span class="signature-attributes">opt</span>, phiLength<span class="signature-attributes">opt</span>, thetaStart<span class="signature-attributes">opt</span>, thetaLength<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    
+    <h4 class="name" id="SphereGeometry"><span class="type-signature"></span>new SphereGeometry<span class="signature">(radius<span class="signature-attributes">opt</span>, widthSegments<span class="signature-attributes">opt</span>, heightSegments<span class="signature-attributes">opt</span>, phiStart<span class="signature-attributes">opt</span>, phiLength<span class="signature-attributes">opt</span>, thetaStart<span class="signature-attributes">opt</span>, thetaLength<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    A class for generating sphere geometries.The geometry is created by sweeping and calculating vertexes around the Y axis (horizontal sweep) and the Z axis (vertical sweep). Thus, incomplete spheres (akin to 'sphere slices') can be created through the use of different values of phiStart, phiLength, thetaStart and thetaLength, in order to define the points in which we start (or end) calculating those vertices.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>radius</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    1
+                
+                </td>
+            
+
+            <td class="description last">— sphere radius. Default is 1.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>widthSegments</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    8
+                
+                </td>
+            
+
+            <td class="description last">— number of horizontal segments. Minimum value is 3, and the default is 8.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>heightSegments</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    6
+                
+                </td>
+            
+
+            <td class="description last">— number of vertical segments. Minimum value is 2, and the default is 6.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>phiStart</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0
+                
+                </td>
+            
+
+            <td class="description last">— specify horizontal starting angle. Default is 0.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>phiLength</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Math.PI*2
+                
+                </td>
+            
+
+            <td class="description last">— specify horizontal sweep angle size. Default is Math.PI * 2.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thetaStart</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0
+                
+                </td>
+            
+
+            <td class="description last">— specify vertical starting angle. Default is 0.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thetaLength</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Math.PI
+                
+                </td>
+            
+
+            <td class="description last">— specify vertical sweep angle size. Default is Math.PI.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_SphereGeometry.js.html">geometry/SphereGeometry.js</a>, <a href="geometry_SphereGeometry.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li><a href="zen3d.Geometry.html">zen3d.Geometry</a></li>
+    </ul>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="attributes"><span class="type-signature"></span>attributes<span class="type-signature"> :Object</span></h4>
+
+
+
+
+<div class="description">
+    This hashmap has as id the name of the attribute to be set and as value the buffer to set it to. Rather than accessing this property directly, use <a href="zen3d.Geometry.html#addAttribute">zen3d.Geometry#addAttribute</a> and <a href="zen3d.Geometry.html#getAttribute">zen3d.Geometry#getAttribute</a> to access attributes of this geometry.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#attributes">zen3d.Geometry#attributes</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line31">line 31</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="boundingBox"><span class="type-signature"></span>boundingBox<span class="type-signature"> :zen3d.Box3</span></h4>
+
+
+
+
+<div class="description">
+    Bounding box for the bufferGeometry, which can be calculated with <a href="zen3d.Geometry.html#computeBoundingBox">zen3d.Geometry#computeBoundingBox</a>.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.Box3</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#boundingBox">zen3d.Geometry#boundingBox</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.Box3()</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line46">line 46</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="boundingSphere"><span class="type-signature"></span>boundingSphere<span class="type-signature"> :zen3d.Sphere</span></h4>
+
+
+
+
+<div class="description">
+    Bounding sphere for the bufferGeometry, which can be calculated with <a href="zen3d.Geometry.html#computeBoundingSphere">zen3d.Geometry#computeBoundingSphere</a>.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">zen3d.Sphere</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#boundingSphere">zen3d.Geometry#boundingSphere</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.Sphere()</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line53">line 53</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="groups"><span class="type-signature"></span>groups<span class="type-signature"> :Array</span></h4>
+
+
+
+
+<div class="description">
+    Split the geometry into groups, each of which will be rendered in a separate WebGL draw call. This allows an array of materials to be used with the geometry.Each group is an object of the form:{ start: Integer, count: Integer, materialIndex: Integer }
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#groups">zen3d.Geometry#groups</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>[]</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line62">line 62</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="index"><span class="type-signature"></span>index<span class="type-signature"> :<a href="zen3d.BufferAttribute.html">zen3d.BufferAttribute</a>|null</span></h4>
+
+
+
+
+<div class="description">
+    Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices. This attribute therefore stores the index of each vertex for each triangular face. If this attribute is not set, the renderer assumes that each three contiguous positions represent a single triangle.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="zen3d.BufferAttribute.html">zen3d.BufferAttribute</a></span>
+|
+
+<span class="param-type">null</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#index">zen3d.Geometry#index</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line39">line 39</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="uuid"><span class="type-signature"></span>uuid<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    UUID of this geometry instance. This gets automatically assigned, so this shouldn't be edited.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#uuid">zen3d.Geometry#uuid</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line24">line 24</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addAttribute"><span class="type-signature"></span>addAttribute<span class="signature">(name, attribute)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Adds an attribute to this geometry. Use this rather than the attributes property.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>attribute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="zen3d.BufferAttribute.html">zen3d.BufferAttribute</a></span>
+|
+
+<span class="param-type"><a href="zen3d.InterleavedBufferAttribute.html">zen3d.InterleavedBufferAttribute</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#addAttribute">zen3d.Geometry#addAttribute</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line76">line 76</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addEventListener"><span class="type-signature"></span>addEventListener<span class="signature">(type, listener, thisObject<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Adds a listener to an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The type of event to listen to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The function that gets called when the event is fired.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thisObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    this
+                
+                </td>
+            
+
+            <td class="description last">The Object of calling listener method.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.EventDispatcher.html#addEventListener">zen3d.EventDispatcher#addEventListener</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addGroup"><span class="type-signature"></span>addGroup<span class="signature">(start, count, materialIndex)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Adds a group to this geometry; see the <a href="zen3d.Geometry.html#groups">zen3d.Geometry#groups</a> for details.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>start</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>count</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>materialIndex</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#addGroup">zen3d.Geometry#addGroup</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line113">line 113</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="clearGroups"><span class="type-signature"></span>clearGroups<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Clears all groups.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#clearGroups">zen3d.Geometry#clearGroups</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line124">line 124</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="computeBoundingBox"><span class="type-signature"></span>computeBoundingBox<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Computes bounding box of the geometry, updating <a href="zen3d.Geometry.html#boundingBox">zen3d.Geometry#boundingBox</a>.Bounding boxes aren't computed by default. They need to be explicitly computed.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#computeBoundingBox">zen3d.Geometry#computeBoundingBox</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line132">line 132</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="computeBoundingSphere"><span class="type-signature"></span>computeBoundingSphere<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Computes bounding sphere of the geometry, updating <a href="zen3d.Geometry.html#boundingSphere">zen3d.Geometry#boundingSphere</a>.Bounding spheres aren't computed by default. They need to be explicitly computed.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#computeBoundingSphere">zen3d.Geometry#computeBoundingSphere</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line146">line 146</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="dispatchEvent"><span class="type-signature"></span>dispatchEvent<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Fire an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event that gets fired.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.EventDispatcher.html#dispatchEvent">zen3d.EventDispatcher#dispatchEvent</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line56">line 56</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="dispose"><span class="type-signature"></span>dispose<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Disposes the object from memory. You need to call this when you want the BufferGeometry removed while the application is running.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#dispose">zen3d.Geometry#dispose</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line160">line 160</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getAttribute"><span class="type-signature"></span>getAttribute<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="zen3d.BufferAttribute.html">zen3d.BufferAttribute</a>|<a href="zen3d.InterleavedBufferAttribute.html">zen3d.InterleavedBufferAttribute</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Returns the attribute with the specified name.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#getAttribute">zen3d.Geometry#getAttribute</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line84">line 84</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="zen3d.BufferAttribute.html">zen3d.BufferAttribute</a></span>
+|
+
+<span class="param-type"><a href="zen3d.InterleavedBufferAttribute.html">zen3d.InterleavedBufferAttribute</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="removeAttribute"><span class="type-signature"></span>removeAttribute<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Removes the attribute with the specified name.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#removeAttribute">zen3d.Geometry#removeAttribute</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line91">line 91</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="removeEventListener"><span class="type-signature"></span>removeEventListener<span class="signature">(type, listener, thisObject<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Removes a listener from an event type.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The type of the listener that gets removed.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The listener function that gets removed.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thisObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    this
+                
+                </td>
+            
+
+            <td class="description last">thisObject - The Object of calling listener method.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.EventDispatcher.html#removeEventListener">zen3d.EventDispatcher#removeEventListener</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="EventDispatcher.js.html">EventDispatcher.js</a>, <a href="EventDispatcher.js.html#line36">line 36</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setIndex"><span class="type-signature"></span>setIndex<span class="signature">(index)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Set the <a href="zen3d.Geometry.html#index">zen3d.Geometry#index</a> buffer.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>index</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+|
+
+<span class="param-type"><a href="zen3d.BufferAttribute.html">zen3d.BufferAttribute</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Geometry.html#setIndex">zen3d.Geometry#setIndex</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="geometry_Geometry.js.html">geometry/Geometry.js</a>, <a href="geometry_Geometry.js.html#line99">line 99</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Euler.html">Euler</a></li><li><a href="FileLoader.html">FileLoader</a></li><li><a href="ImageLoader.html">ImageLoader</a></li><li><a href="Matrix3.html">Matrix3</a></li><li><a href="Matrix4.html">Matrix4</a></li><li><a href="Program.html">Program</a></li><li><a href="Quaternion.html">Quaternion</a></li><li><a href="Vector2.html">Vector2</a></li><li><a href="Vector3.html">Vector3</a></li><li><a href="Vector4.html">Vector4</a></li><li><a href="WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="WebGLCore.html">WebGLCore</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.Line.html">Line</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.Points.html">Points</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TextureData.html">TextureData</a></li><li><a href="zen3d.TextureDepth.html">TextureDepth</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#accumulate">accumulate</a></li><li><a href="global.html#apply">apply</a></li><li><a href="global.html#BooleanKeyframeTrack">BooleanKeyframeTrack</a></li><li><a href="global.html#ColorKeyframeTrack">ColorKeyframeTrack</a></li><li><a href="global.html#createProgram">createProgram</a></li><li><a href="global.html#createWebGLProgram">createWebGLProgram</a></li><li><a href="global.html#extractAttributes">extractAttributes</a></li><li><a href="global.html#extractUniforms">extractUniforms</a></li><li><a href="global.html#generateProgramCode">generateProgramCode</a></li><li><a href="global.html#getProgram">getProgram</a></li><li><a href="global.html#KeyframeTrack">KeyframeTrack</a></li><li><a href="global.html#loadShader">loadShader</a></li><li><a href="global.html#NumberKeyframeTrack">NumberKeyframeTrack</a></li><li><a href="global.html#PropertyBindingMixer">PropertyBindingMixer</a></li><li><a href="global.html#QuaternionKeyframeTrack">QuaternionKeyframeTrack</a></li><li><a href="global.html#setFromAxisAngle">setFromAxisAngle</a></li><li><a href="global.html#Spherical">Spherical</a></li><li><a href="global.html#StringKeyframeTrack">StringKeyframeTrack</a></li><li><a href="global.html#transform">transform</a></li><li><a href="global.html#VectorKeyframeTrack">VectorKeyframeTrack</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Sep 20 2018 18:23:59 GMT+0800 (中国标准时间)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
