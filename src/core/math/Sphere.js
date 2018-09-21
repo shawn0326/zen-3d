@@ -12,7 +12,7 @@ function Sphere(center, radius) {
     this.radius = (radius !== undefined) ? radius : 0;
 }
 
-Object.assign(Sphere.prototype, {
+Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 
     set: function(center, radius) {
         this.center.copy(center);

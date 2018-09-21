@@ -37,7 +37,14 @@ function lerp(buffer, dstOffset, srcOffset, t, stride) {
 }
 
 /**
- * bind property and value, mixer for multiple values
+ * This holds a reference to a real property in the scene graph; used internally.
+ * Binding property and value, mixer for multiple values.
+ * @constructor
+ * @memberof zen3d
+ * @param {Object3D} target
+ * @param {string} propertyPath
+ * @param {string} typeName - vector/bool/string/quaternion/number/color
+ * @param {Integer} valueSize
  */
 function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
 
@@ -79,7 +86,7 @@ function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
 
 }
 
-Object.assign(PropertyBindingMixer.prototype, {
+Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMixer.prototype */{
 
     parseBinding: function(target, propertyPath) {
         propertyPath = propertyPath.split(".");
@@ -101,7 +108,8 @@ Object.assign(PropertyBindingMixer.prototype, {
     },
 
     /**
-     * accumulate value 
+     * Accumulate value.
+     * @param {number} weight
      */
     accumulate: function(weight) {
 
@@ -134,7 +142,7 @@ Object.assign(PropertyBindingMixer.prototype, {
     },
 
     /**
-     * update scene graph
+     * Apply to scene graph.
      */
     apply: function() {
 

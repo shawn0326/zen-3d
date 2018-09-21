@@ -19,7 +19,7 @@ function Spherical(radius, phi, theta) {
     this.theta = ( theta !== undefined ) ? theta : 0; // around the equator of the sphere
 }
 
-Object.assign(Spherical.prototype, {
+Object.assign(Spherical.prototype, /** @lends zen3d.Spherical.prototype */{
 
     set: function(radius, phi, theta) {
         this.radius = radius;

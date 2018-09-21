@@ -11,7 +11,7 @@ function Vector3(x, y, z) {
     this.z = z || 0;
 }
 
-Object.assign(Vector3.prototype, {
+Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 
     lerpVectors: function(v1, v2, ratio) {
         return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);

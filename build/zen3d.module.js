@@ -596,7 +596,8 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
 
 /**
  * a 4x4 matrix class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Matrix4() {
     this.elements = new Float32Array([
@@ -607,7 +608,7 @@ function Matrix4() {
     ]);
 }
 
-Object.assign(Matrix4.prototype, {
+Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 
     identity: function() {
         this.set(
@@ -1136,7 +1137,8 @@ Object.assign(Matrix4.prototype, {
 
 /**
  * a vector 3 class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Vector3(x, y, z) {
     this.x = x || 0;
@@ -1144,7 +1146,7 @@ function Vector3(x, y, z) {
     this.z = z || 0;
 }
 
-Object.assign(Vector3.prototype, {
+Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 
     lerpVectors: function(v1, v2, ratio) {
         return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
@@ -1453,12 +1455,18 @@ Object.assign(Vector3.prototype, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} origin 
+ * @param {*} direction 
+ */
 function Ray(origin, direction) {
     this.origin = (origin !== undefined) ? origin : new Vector3();
     this.direction = (direction !== undefined) ? direction : new Vector3();
 }
 
-Object.assign(Ray.prototype, {
+Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
 
     set: function(origin, direction) {
         this.origin.copy(origin);
@@ -1792,7 +1800,8 @@ Object.assign(Raycaster.prototype, /** @lends zen3d.Raycaster.prototype */{
 
 /**
  * a Euler class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Euler(x, y, z, order) {
     this._x = x || 0;
@@ -1844,7 +1853,7 @@ Object.defineProperties(Euler.prototype, {
     }
 });
 
-Object.assign(Euler.prototype, {
+Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
     copyFrom: function(euler) {
         this._x = euler._x;
@@ -2021,14 +2030,15 @@ Object.assign(Euler.prototype, {
 
 /**
  * a vector 2 class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Vector2(x, y) {
     this.x = x || 0;
     this.y = y || 0;
 }
 
-Object.assign(Vector2.prototype, {
+Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
 
     set: function(x, y) {
         this.x = x || 0;
@@ -2145,7 +2155,8 @@ Object.assign(Vector2.prototype, {
 
 /**
  * a vector 4 class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Vector4(x, y, z, w) {
     this.x = x || 0;
@@ -2154,7 +2165,7 @@ function Vector4(x, y, z, w) {
     this.w = ( w !== undefined ) ? w : 1;
 }
 
-Object.assign(Vector4.prototype, {
+Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 
     lerpVectors: function(v1, v2, ratio) {
         return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
@@ -2263,7 +2274,8 @@ Object.assign(Vector4.prototype, {
 
 /**
  * a 3x3 matrix class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Matrix3() {
     this.elements = new Float32Array([
@@ -2273,7 +2285,7 @@ function Matrix3() {
     ]);
 }
 
-Object.assign(Matrix3.prototype, {
+Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
     identity: function() {
         this.set(
@@ -2488,7 +2500,8 @@ Object.assign(Matrix3.prototype, {
 
 /**
  * a Quaternion class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Quaternion(x, y, z, w) {
     this._x = x || 0;
@@ -2536,7 +2549,7 @@ Object.defineProperties(Quaternion.prototype, {
     }
 });
 
-Object.assign(Quaternion.prototype, {
+Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
     normalize: function(thickness) {
         var l = this.length();
@@ -3006,12 +3019,18 @@ Object.assign( Quaternion, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} min 
+ * @param {*} max 
+ */
 function Box2(min, max) {
     this.min = (min !== undefined) ? min : new Vector2(+Infinity, +Infinity);
     this.max = (max !== undefined) ? max : new Vector2(-Infinity, -Infinity);
 }
 
-Object.assign(Box2.prototype, {
+Object.assign(Box2.prototype, /** @lends zen3d.Box2.prototype */{
 
     set: function(x1, y1, x2, y2) {
         this.min.set(x1, y1);
@@ -3027,12 +3046,18 @@ Object.assign(Box2.prototype, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} min 
+ * @param {*} max 
+ */
 function Box3(min, max) {
     this.min = (min !== undefined) ? min : new Vector3(+Infinity, +Infinity, +Infinity);
     this.max = (max !== undefined) ? max : new Vector3(-Infinity, -Infinity, -Infinity);
 }
 
-Object.assign(Box3.prototype, {
+Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
 
     set: function(min, max) {
         this.min.copy(min);
@@ -3158,12 +3183,18 @@ Object.assign(Box3.prototype, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} center 
+ * @param {*} radius 
+ */
 function Sphere(center, radius) {
     this.center = (center !== undefined) ? center : new Vector3();
     this.radius = (radius !== undefined) ? radius : 0;
 }
 
-Object.assign(Sphere.prototype, {
+Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 
     set: function(center, radius) {
         this.center.copy(center);
@@ -3230,12 +3261,18 @@ Object.assign(Sphere.prototype, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} normal 
+ * @param {*} constant 
+ */
 function Plane(normal, constant) {
     this.normal = (normal !== undefined) ? normal : new Vector3(1, 0, 0);
     this.constant = (constant !== undefined) ? constant : 0;
 }
 
-Object.assign(Plane.prototype, {
+Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
     set: function(normal, constant) {
         this.normal.copy(normal);
@@ -3298,6 +3335,16 @@ Object.assign(Plane.prototype, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} p0 
+ * @param {*} p1 
+ * @param {*} p2 
+ * @param {*} p3 
+ * @param {*} p4 
+ * @param {*} p5 
+ */
 function Frustum(p0, p1, p2, p3, p4, p5) {
     this.planes = [
         (p0 !== undefined) ? p0 : new Plane(),
@@ -3309,7 +3356,7 @@ function Frustum(p0, p1, p2, p3, p4, p5) {
     ];
 }
 
-Object.assign(Frustum.prototype, {
+Object.assign(Frustum.prototype, /** @lends zen3d.Frustum.prototype */{
 
     set: function(p0, p1, p2, p3, p4, p5) {
         var planes = this.planes;
@@ -3403,6 +3450,13 @@ Object.assign(Frustum.prototype, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} r 
+ * @param {*} g 
+ * @param {*} b 
+ */
 function Color3(r, g, b) {
     this.r = 0;
     this.g = 0;
@@ -3415,7 +3469,7 @@ function Color3(r, g, b) {
     return this.setRGB(r, g, b);
 }
 
-Object.assign(Color3.prototype, {
+Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
     
     lerpColors: function(c1, c2, ratio) {
         this.r = ratio * (c2.r - c1.r) + c1.r;
@@ -3517,13 +3571,17 @@ Object.assign(Color3.prototype, {
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d 
+ */
 function Triangle(a, b, c) {
     this.a = (a !== undefined) ? a : new Vector3();
     this.b = (b !== undefined) ? b : new Vector3();
     this.c = (c !== undefined) ? c : new Vector3();
 }
 
-Object.assign(Triangle.prototype, {
+Object.assign(Triangle.prototype, /** @lends zen3d.Triangle.prototype */{
 
     set: function(a, b, c) {
         this.a.copy(a);
@@ -3602,6 +3660,12 @@ Triangle.containsPoint = function() {
     };
 }();
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} posPoints 
+ * @param {*} ctrlPoints 
+ */
 function Curve(posPoints, ctrlPoints) {
     this.posPoints = undefined;
     this.ctrlPoints = undefined;
@@ -3611,7 +3675,7 @@ function Curve(posPoints, ctrlPoints) {
     this.set(posPoints, ctrlPoints);
 }
 
-Object.assign(Curve.prototype, {
+Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
 
     set: function (posPoints, ctrlPoints) {
         this.posPoints = posPoints;
@@ -3715,13 +3779,17 @@ Object.assign(Curve.prototype, {
  * The equator starts at positive z.
  */
 
+ /**
+  * @constructor
+  * @memberof zen3d 
+  */
 function Spherical(radius, phi, theta) {
     this.radius = ( radius !== undefined ) ? radius : 1.0;
     this.phi = ( phi !== undefined ) ? phi : 0; // up / down towards top and bottom pole
     this.theta = ( theta !== undefined ) ? theta : 0; // around the equator of the sphere
 }
 
-Object.assign(Spherical.prototype, {
+Object.assign(Spherical.prototype, /** @lends zen3d.Spherical.prototype */{
 
     set: function(radius, phi, theta) {
         this.radius = radius;
@@ -3930,17 +3998,24 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
 });
 
 /**
- * ImageLoader
- * @class
- * Loader for image
+ * A loader for loading an Image.
+ * @constructor
+ * @memberof zen3d
  */
 function ImageLoader() {
     this.crossOrigin = undefined;
     this.path = undefined;
 }
 
-Object.assign(ImageLoader.prototype, {
+Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
 
+    /**
+     * Load the URL and pass the response to the onLoad function. 
+     * @param {string} url — the path or URL to the file. This can also be a Data URI.
+     * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded image.
+     * @param {Function} [onProgress=] — Will be called while load progresses. todo.
+     * @param {Function} [onError=] — Will be called if an error occurs.
+     */
     load: function(url, onLoad, onProgress, onError) {
         if (url === undefined) url = '';
         if (this.path !== undefined) url = this.path + url;
@@ -3968,11 +4043,23 @@ Object.assign(ImageLoader.prototype, {
         return image;
     },
 
+    /**
+     * If set, assigns the crossOrigin attribute of the image to the value of crossOrigin, prior to starting the load. 
+     * Default is "anonymous".
+     * @param {string} value
+     * @return {zen3d.ImageLoader}
+     */
     setCrossOrigin: function(value) {
         this.crossOrigin = value;
         return this;
     },
 
+    /**
+     * Set the base path or URL from which to load files. 
+     * This can be useful if you are loading many images from the same directory. 
+     * @param {string} value
+     * @return {zen3d.ImageLoader}
+     */
     setPath: function(value) {
         this.path = value;
         return this;
@@ -3981,9 +4068,10 @@ Object.assign(ImageLoader.prototype, {
 });
 
 /**
- * FileLoader
- * @class
- * Loader for file
+ * A low level class for loading resources with XMLHttpRequest, used internaly by most loaders. 
+ * It can also be used directly to load any file type that does not have a loader.
+ * @constructor
+ * @memberof zen3d
  */
 function FileLoader() {
     this.path = undefined;
@@ -3993,8 +4081,15 @@ function FileLoader() {
     this.requestHeader = undefined;
 }
 
-Object.assign(FileLoader.prototype, {
+Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 
+    /**
+     * Load the URL and pass the response to the onLoad function. 
+     * @param {string} url — the path or URL to the file. This can also be a Data URI.
+     * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded response.
+     * @param {Function} [onProgress=] — Will be called while load progresses. The argument will be the XMLHttpRequest instance, which contains .total and .loaded bytes.
+     * @param {Function} [onError=] — Will be called if an error occurs.
+     */
     load: function(url, onLoad, onProgress, onError) {
         if (url === undefined) url = '';
         if (this.path != undefined) url = this.path + url;
@@ -4089,27 +4184,61 @@ Object.assign(FileLoader.prototype, {
         }
     },
 
+    /**
+     * Set the base path or URL from which to load files. 
+     * This can be useful if you are loading many models from the same directory.
+     * @param {string} value
+     * @return {zen3d.FileLoader}
+     */
     setPath: function(value) {
         this.path = value;
         return this;
     },
 
+    /**
+     * Change the response type. Valid values are:
+     * text or empty string (default) - returns the data as string.
+     * arraybuffer - loads the data into a ArrayBuffer and returns that.
+     * blob - returns the data as a Blob.
+     * document - parses the file using the DOMParser.
+     * json - parses the file using JSON.parse.
+     * @param {string} value
+     * @return {zen3d.FileLoader}
+     */
     setResponseType: function(value) {
         this.responseType = value;
         return this;
     },
 
-    // Access-Control-Allow-Credentials: true
+    /**
+     * Whether the XMLHttpRequest uses credentials such as cookies, authorization headers or TLS client certificates. 
+     * See {@link https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials XMLHttpRequest.withCredentials}.
+     * Note that this has no effect if you are loading files locally or from the same domain.
+     * @param {boolean} value
+     * @return {zen3d.FileLoader}
+     */
     setWithCredentials: function(value) {
         this.withCredentials = value;
         return this;
     },
 
+    /**
+     * Set the expected mimeType of the file being loaded. 
+     * Note that in many cases this will be determined automatically, so by default it is undefined.
+     * @param {string} value
+     * @return {zen3d.FileLoader} 
+     */
     setMimeType: function(value) {
         this.mimeType = value;
         return this;
     },
 
+    /**
+     * The request header used in HTTP request.
+     * Default is undefined.
+     * @param {string} value
+     * @return {zen3d.FileLoader} 
+     */
     setRequestHeader: function(value) {
         this.requestHeader = value;
         return this;
@@ -4117,12 +4246,24 @@ Object.assign(FileLoader.prototype, {
 
 });
 
+/**
+ * A loader for loading a .tga Image.
+ * @constructor
+ * @memberof zen3d
+ */
 function TGALoader() {
 
 }
 
-Object.assign(TGALoader.prototype, {
+Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
+	/**
+     * Load the URL and pass the response to the onLoad function. 
+     * @param {string} url — the path or URL to the file. This can also be a Data URI.
+     * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded image ( draw to an canvas element ).
+     * @param {Function} [onProgress=] — Will be called while load progresses. The argument will be the XMLHttpRequest instance, which contains .total and .loaded bytes.
+     * @param {Function} [onError=] — Will be called if an error occurs.
+     */
 	load: function(url, onLoad, onProgress, onError) {
 		var that = this;
 
@@ -5345,17 +5486,27 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
 });
 
-// Bone acturely is a joint
-// the position means joint position
-// mesh transform is based this joint space
+/**
+ * A bone which is part of a Skeleton. 
+ * The skeleton in turn is used by the SkinnedMesh. 
+ * Bones are almost identical to a blank Object3D.
+ * Bone acturely is a joint.
+ * The position means joint position.
+ * Mesh transform is based this joint space.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Object3D
+ */
 function Bone() {
 
     Object3D.call(this);
 
     this.type = "bone";
 
-    // the origin offset matrix
-    // the inverse matrix of origin transform matrix
+    /**
+     * The origin offset matrix - inverse matrix of the origin transform matrix.
+     * @type {zen3d.Matrix4}
+     */
     this.offsetMatrix = new Matrix4();
 
 }
@@ -5363,24 +5514,48 @@ function Bone() {
 Bone.prototype = Object.create(Object3D.prototype);
 Bone.prototype.constructor = Bone;
 
+/**
+ * Use an array of bones to create a skeleton that can be used by a SkinnedMesh.
+ * @constructor
+ * @memberof zen3d
+ */
 function Skeleton(bones) {
 
     // bones in array
     bones = bones || [];
+
+    /**
+     * The array of bones.
+     * @type {zen3d.Bone[]}
+     * @default []
+     */
     this.bones = bones.slice( 0 );
 
-    // bone matrices data
+    /**
+     * The array buffer holding the bone data.
+     * @type {Float32Array}
+     */
     this.boneMatrices = new Float32Array(16 * this.bones.length);
 
-    // use vertex texture to update boneMatrices
-    // by that way, we can use more bones on phone
+    /**
+     * The {@link zen3d.TextureData} holding the bone data when using a vertex texture. 
+     * Use vertex texture to update boneMatrices, by that way, we can use more bones on phone.
+     * @type {zen3d.TextureData|undefined}
+     * @default undefined
+     */
     this.boneTexture = undefined;
-    this.boneTextureSize = 0;
 
 }
 
-Object.assign(Skeleton.prototype, {
+Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
 
+    /**
+     * Updates the boneMatrices and boneTexture after changing the bones. 
+     * This is called automatically if the skeleton is used with a SkinnedMesh.
+     * @method
+     * @param {string} name -- String to match to the Bone's .name property. 
+     * @return {zen3d.Bone}
+     */
     updateBones: function() {
 
         var offsetMatrix = new Matrix4();
@@ -5401,6 +5576,11 @@ Object.assign(Skeleton.prototype, {
 
     }(),
 
+    /**
+     * Searches through the skeleton's bone array and returns the first with a matching name.
+     * @param {string} name -- String to match to the Bone's .name property. 
+     * @return {zen3d.Bone}
+     */
     getBoneByName: function(name) {
         for ( var i = 0, il = this.bones.length; i < il; i ++ ) {
 			var bone = this.bones[ i ];
@@ -5451,7 +5631,14 @@ function lerp(buffer, dstOffset, srcOffset, t, stride) {
 }
 
 /**
- * bind property and value, mixer for multiple values
+ * This holds a reference to a real property in the scene graph; used internally.
+ * Binding property and value, mixer for multiple values.
+ * @constructor
+ * @memberof zen3d
+ * @param {Object3D} target
+ * @param {string} propertyPath
+ * @param {string} typeName - vector/bool/string/quaternion/number/color
+ * @param {Integer} valueSize
  */
 function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
 
@@ -5493,7 +5680,7 @@ function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
 
 }
 
-Object.assign(PropertyBindingMixer.prototype, {
+Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMixer.prototype */{
 
     parseBinding: function(target, propertyPath) {
         propertyPath = propertyPath.split(".");
@@ -5515,7 +5702,8 @@ Object.assign(PropertyBindingMixer.prototype, {
     },
 
     /**
-     * accumulate value 
+     * Accumulate value.
+     * @param {number} weight
      */
     accumulate: function(weight) {
 
@@ -5548,7 +5736,7 @@ Object.assign(PropertyBindingMixer.prototype, {
     },
 
     /**
-     * update scene graph
+     * Apply to scene graph.
      */
     apply: function() {
 
@@ -5569,6 +5757,12 @@ Object.assign(PropertyBindingMixer.prototype, {
 
 });
 
+/**
+ * The AnimationMixer is a player for animations on a particular object in the scene. 
+ * When multiple objects in the scene are animated independently, one AnimationMixer may be used for each object.
+ * @constructor
+ * @memberof zen3d
+ */
 function AnimationMixer() {
 
     this._clips = {};
@@ -5579,7 +5773,7 @@ function AnimationMixer() {
 
 }
 
-Object.assign(AnimationMixer.prototype, {
+Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototype */{
 
     add: function(clip) {
 
@@ -5768,8 +5962,15 @@ Object.assign(AnimationMixer.prototype, {
 });
 
 /**
- * KeyframeTrack
- * base class for property track
+ * Base class for property track.
+ * @constructor
+ * @memberof zen3d
+ * @abstract
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function KeyframeTrack(target, propertyPath, times, values, interpolant) {
 
@@ -5836,8 +6037,14 @@ Object.assign(KeyframeTrack.prototype, {
 });
 
 /**
- * BooleanKeyframeTrack
- * used for boolean property track
+ * Used for boolean property track.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function BooleanKeyframeTrack(target, propertyPath, times, values, interpolant) {
     KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
@@ -5861,8 +6068,14 @@ BooleanKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.proto
 });
 
 /**
- * ColorKeyframeTrack
- * used for vector property track
+ * Used for color property track.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function ColorKeyframeTrack(target, propertyPath, times, values, interpolant) {
     KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
@@ -5876,24 +6089,58 @@ ColorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototy
 
 });
 
+/**
+ * An KeyframeClip is a reusable set of keyframe tracks which represent an animation.
+ * @constructor
+ * @memberof zen3d
+ * @param {string} [name=""]
+ */
 function KeyframeClip(name) {
 
+    /**
+     * The name of the clip.
+     * @type {string} 
+     */
     this.name = name || "";
 
+    /**
+     * All tracks for this clip.
+     * @type {zen3d.KeyframeTrack[]} 
+     */
     this.tracks = [];
 
+    /**
+     * @type {boolean}
+     * @default true 
+     */
     this.loop = true;
 
+    /**
+     * Start frame.
+     * @type {number}
+     * @default 0 
+     */
     this.startFrame = 0;
 
+    /**
+     * End frame.
+     * @type {number}
+     * @default 0 
+     */
     this.endFrame = 0;
 
     this.frame = 0;
 
 }
 
-Object.assign(KeyframeClip.prototype, {
+Object.assign(KeyframeClip.prototype, /** @lends zen3d.KeyframeClip.prototype */{
 
+    /**
+     * Update tracks.
+     * @param {number} t
+     * @param {Object} bindings
+     * @param {number} weight
+     */
     update: function(t, bindings, weight) {
 
         this.frame += t;
@@ -5922,8 +6169,14 @@ Object.assign(KeyframeClip.prototype, {
 });
 
 /**
- * NumberKeyframeTrack
- * used for vector property track
+ * Used for number property track.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function NumberKeyframeTrack(target, propertyPath, times, values, interpolant) {
     KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
@@ -5938,8 +6191,14 @@ NumberKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.protot
 });
 
 /**
- * QuaternionKeyframeTrack
- * used for quaternion property track
+ * Used for quaternion property track.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function QuaternionKeyframeTrack(target, propertyPath, times, values, interpolant) {
     KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
@@ -5981,8 +6240,14 @@ QuaternionKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.pr
 });
 
 /**
- * StringKeyframeTrack
- * used for boolean property track
+ * Used for string property track.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function StringKeyframeTrack(target, propertyPath, times, values, interpolant) {
     KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
@@ -6006,8 +6271,14 @@ StringKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.protot
 });
 
 /**
- * VectorKeyframeTrack
- * used for vector property track
+ * Used for vector property track.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function VectorKeyframeTrack(target, propertyPath, times, values, interpolant) {
     KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
@@ -6021,22 +6292,85 @@ VectorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.protot
 
 });
 
+/**
+ * This class stores data for an attribute (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes ) associated with a Geometry, which allows for more efficient passing of data to the GPU.
+ * Data is stored as vectors of any length (defined by itemSize).
+ * @constructor
+ * @memberof zen3d
+ * @param {TypedArray} array - Used to instantiate the buffer.
+ * @param {Integer} size - the number of values of the array that should be associated with a particular vertex. For instance, if this attribute is storing a 3-component vector (such as a position, normal, or color), then itemSize should be 3.
+ * @param {boolean} [normalized=false] - Indicates how the underlying data in the buffer maps to the values in the GLSL code. For instance, if array is an instance of UInt16Array, and normalized is true, the values 0 - +65535 in the array data will be mapped to 0.0f - +1.0f in the GLSL attribute. An Int16Array (signed) would map from -32767 - +32767 to -1.0f - +1.0f. If normalized is false, the values will be converted to floats which contain the exact value, i.e. 32767 becomes 32767.0f.
+ */
 function BufferAttribute(array, size, normalized) {
+
+    /**
+     * UUID of this buffer attribute instance. 
+     * This gets automatically assigned, so this shouldn't be edited.
+     * @type {string}
+     */
     this.uuid = generateUUID();
 
+    /**
+     * The array holding data stored in the buffer.
+     * @type {TypedArray} 
+     */
     this.array = array;
+
+    /**
+     * The length of vectors that are being stored in the array.
+     * @type {Integer} 
+     */
     this.size = size;
+
+    /**
+     * Stores the array's length divided by the size.
+     * If the buffer is storing a 3-component vector (such as a position, normal, or color), then this will count the number of such vectors stored.
+     * @type {Integer}  
+     */
     this.count = array !== undefined ? array.length / size : 0;
+
+    /**
+     * Indicates how the underlying data in the buffer maps to the values in the GLSL shader code.
+     * See the constructor above for details.
+     * @type {boolean}  
+     */
     this.normalized = normalized === true;
 
+    /**
+     * Whether the buffer is dynamic or not.
+     * If false, the GPU is informed that contents of the buffer are likely to be used often and not change often. 
+     * This corresponds to the gl.STATIC_DRAW flag.
+     * If true, the GPU is informed that contents of the buffer are likely to be used often and change often. 
+     * This corresponds to the gl.DYNAMIC_DRAW flag. 
+     * @type {boolean}
+     * @default false
+     */
     this.dynamic = false;
+
+    /**
+     * Object containing:
+     * offset: Default is 0. Position at whcih to start update.
+     * count: Default is -1, which means don't use update ranges. 
+     * This can be used to only update some components of stored vectors (for example, just the component related to color). 
+     */
     this.updateRange = { offset: 0, count: - 1 };
 
+    /**
+     * A version number, incremented every time the data changes.
+     * @type {Integer}
+     * @default 0
+     */
     this.version = 0;
+
 }
 
-Object.assign(BufferAttribute.prototype, {
+Object.assign(BufferAttribute.prototype, /** @lends zen3d.BufferAttribute.prototype */{
 
+    /**
+     * Array to the TypedArray passed in here.
+     * After setting the array, {@link zen3d.BufferAttribute#version} should be incremented.
+     * @param {TypedArray} array
+     */
     setArray: function(array) {
         this.count = array !== undefined ? array.length / this.size : 0;
         this.array = array;
@@ -6063,7 +6397,19 @@ function Geometry() {
      */
     this.uuid = generateUUID();
 
+    /**
+     * This hashmap has as id the name of the attribute to be set and as value the buffer to set it to. 
+     * Rather than accessing this property directly, use {@link zen3d.Geometry#addAttribute} and {@link zen3d.Geometry#getAttribute} to access attributes of this geometry. 
+     * @type {Object}
+     */
     this.attributes = {};
+
+    /**
+     * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices. 
+     * This attribute therefore stores the index of each vertex for each triangular face. 
+     * If this attribute is not set, the renderer assumes that each three contiguous positions represent a single triangle.
+     * @type {zen3d.BufferAttribute|null}
+     */
     this.index = null;
 
     /**
@@ -6091,22 +6437,39 @@ function Geometry() {
 
 }
 
-Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
+Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.Geometry.prototype */{
 
     constructor: Geometry,
 
+    /**
+     * Adds an attribute to this geometry. 
+     * Use this rather than the attributes property.
+     * @param {string} name
+     * @param {zen3d.BufferAttribute|zen3d.InterleavedBufferAttribute} attribute
+     */
     addAttribute: function(name, attribute) {
         this.attributes[name] = attribute;
     },
 
+    /**
+     * Returns the attribute with the specified name.
+     * @return {zen3d.BufferAttribute|zen3d.InterleavedBufferAttribute}
+     */
     getAttribute: function(name) {
         return this.attributes[name];
     },
 
+    /**
+     * Removes the attribute with the specified name.
+     */
     removeAttribute: function(name) {
         delete this.attributes[name];
     },
 
+    /**
+     * Set the {@link zen3d.Geometry#index} buffer.
+     * @param {Array|zen3d.BufferAttribute} index
+     */
     setIndex: function(index) {
         if(Array.isArray(index)) {
             this.index = new BufferAttribute(new Uint16Array( index ), 1);
@@ -6115,6 +6478,12 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
         }
     },
 
+    /**
+     * Adds a group to this geometry; see the {@link zen3d.Geometry#groups} for details.
+     * @param {Integer} start
+     * @param {Integer} count
+     * @param {Integer} materialIndex
+     */
     addGroup: function(start, count, materialIndex) {
         this.groups.push({
             start: start,
@@ -6123,10 +6492,17 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
         });
     },
 
+    /**
+     * Clears all groups.
+     */
     clearGroups: function() {
         this.groups = [];
     },
 
+    /**
+     * Computes bounding box of the geometry, updating {@link zen3d.Geometry#boundingBox}.
+     * Bounding boxes aren't computed by default. They need to be explicitly computed.
+     */
     computeBoundingBox: function() {
         var position = this.attributes["a_Position"] || this.attributes["position"];
         if(position.isInterleavedBufferAttribute) {
@@ -6137,6 +6513,10 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
         }
     },
 
+    /**
+     * Computes bounding sphere of the geometry, updating {@link zen3d.Geometry#boundingSphere}.
+     * Bounding spheres aren't computed by default. They need to be explicitly computed.
+     */
     computeBoundingSphere: function() {
         var position = this.attributes["a_Position"] || this.attributes["position"];
         if(position.isInterleavedBufferAttribute) {
@@ -6147,6 +6527,10 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
         }
     },
 
+    /**
+     * Disposes the object from memory. 
+     * You need to call this when you want the BufferGeometry removed while the application is running.
+     */
     dispose: function() {
         this.dispatchEvent({type: 'dispose'});
     }
@@ -6154,13 +6538,24 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
 });
 
 /**
- * CubeGeometry data
- * @class
+ * CubeGeometry is the quadrilateral primitive geometry class. 
+ * It is typically used for creating a cube or irregular quadrilateral of the dimensions provided with the 'width', 'height', and 'depth' constructor arguments.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ * @param {number} [width=1] - Width of the sides on the X axis.
+ * @param {number} [height=1] - Height of the sides on the Y axis.
+ * @param {number} [depth=1] - Depth of the sides on the Z axis.
+ * @param {Integer} [widthSegments=1] - Number of segmented faces along the width of the sides.
+ * @param {Integer} [heightSegments=1] - Number of segmented faces along the height of the sides.
+ * @param {Integer} [depthSegments=1] - Number of segmented faces along the depth of the sides.
  */
 function CubeGeometry(width, height, depth, widthSegments, heightSegments, depthSegments) {
+
 	Geometry.call(this);
 
 	this.buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
+
 }
 
 CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -6320,14 +6715,25 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 });
 
 /**
- * CylinderGeometry data
- * same as CylinderGeometry of three.js
- * @class
+ * A class for generating cylinder geometries.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ * @param {number} [radiusTop=1] — Radius of the cylinder at the top.
+ * @param {number} [radiusBottom=1] — Radius of the cylinder at the bottom.
+ * @param {number} [height=1] — Height of the cylinder.
+ * @param {Integer} [radialSegments=8] — Number of segmented faces around the circumference of the cylinder.
+ * @param {Integer} [heightSegments=1] — Number of rows of faces along the height of the cylinder.
+ * @param {number} [openEnded=false] — A Boolean indicating whether the ends of the cylinder are open or capped. Default is false, meaning capped.
+ * @param {number} [thetaStart=0] — Start angle for first segment, default = 0 (three o'clock position).
+ * @param {number} [thetaLength=2*Pi] — The central angle, often called theta, of the circular sector. The default is 2*Pi, which makes for a complete cylinder.
  */
 function CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
+
 	Geometry.call(this);
 
 	this.buildGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
+	
 }
 
 CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -6593,53 +6999,133 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 });
 
-function InstancedBufferAttribute(array, itemSize, meshPerAttribute) {
+/**
+ * An instanced version of {@link zen3d.BufferAttribute}.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.BufferAttribute
+ * @param {TypedArray} array - Used to instantiate the buffer.
+ * @param {Integer} size - the number of values of the array that should be associated with a particular vertex. For instance, if this attribute is storing a 3-component vector (such as a position, normal, or color), then itemSize should be 3.
+ * @param {boolean} [normalized=false] - Indicates how the underlying data in the buffer maps to the values in the GLSL code. For instance, if array is an instance of UInt16Array, and normalized is true, the values 0 - +65535 in the array data will be mapped to 0.0f - +1.0f in the GLSL attribute. An Int16Array (signed) would map from -32767 - +32767 to -1.0f - +1.0f. If normalized is false, the values will be converted to floats which contain the exact value, i.e. 32767 becomes 32767.0f.
+ * @param {Integer} [meshPerAttribute=1]
+ */
+function InstancedBufferAttribute(array, itemSize, normalized, meshPerAttribute) {
 
-    BufferAttribute.call( this, array, itemSize );
+    BufferAttribute.call( this, array, itemSize, normalized );
 
+    /**
+     * @type {Integer}
+     */
     this.meshPerAttribute = meshPerAttribute || 1;
 
 }
 
-InstancedBufferAttribute.prototype = Object.assign( Object.create( BufferAttribute.prototype ), {
+InstancedBufferAttribute.prototype = Object.assign( Object.create( BufferAttribute.prototype ), /** @lends zen3d.InstancedBufferAttribute.prototype */{
 
     constructor: InstancedBufferAttribute,
 
+    /**
+     * @readonly
+     * @type {boolean}
+     * @default true 
+     */
     isInstancedBufferAttribute: true
 
 });
 
+/**
+ * An instanced version of {@link zen3d.Geometry}.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ */
 function InstancedGeometry() {
 
     Geometry.call( this );
 
+    /**
+     * @type {Integer|undefined}
+     */
     this.maxInstancedCount = undefined;
 
 }
 
-InstancedGeometry.prototype = Object.assign( Object.create( Geometry.prototype ), {
+InstancedGeometry.prototype = Object.assign( Object.create( Geometry.prototype ), /** @lends zen3d.InstancedGeometry.prototype */{
 
     constructor: InstancedGeometry,
 
+    /**
+     * @readonly
+     * @type {boolean}
+     * @default true 
+     */
     isInstancedGeometry: true
 
 });
 
+/**
+ * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer. 
+ * An introduction into interleaved arrays can be found here: {@link https://blog.tojicode.com/2011/05/interleaved-array-basics.html Interleaved array basics}.
+ * @constructor
+ * @memberof zen3d
+ * @param {TypedArray} array -- A typed array with a shared buffer. Stores the geometry data.
+ * @param {Integer} stride -- The number of typed-array elements per vertex.
+ */
 function InterleavedBuffer(array, stride) {
+
+    /**
+     * UUID of this InterleavedBuffer instance. 
+     * This gets automatically assigned, so this shouldn't be edited.
+     * @type {string}
+     */
     this.uuid = generateUUID();
 
+    /**
+     * A typed array with a shared buffer. 
+     * Stores the geometry data. 
+     * @type {TypedArray}
+     */
     this.array = array;
+
+    /**
+     * The number of typed-array elements per vertex.
+     * @type {Integer}
+     */
     this.stride = stride;
+
+    /**
+     * Gives the total number of elements in the array.
+     * @type {Integer} 
+     */
     this.count = array !== undefined ? array.length / stride : 0;
 
+    /**
+     * @type {boolean} 
+     * @default false
+     */
     this.dynamic = false;
+
+    /**
+     * Object containing offset and count. 
+     * @type {Object}
+     * @default { offset: 0, count: - 1 }
+     */
     this.updateRange = { offset: 0, count: - 1 };
 
+    /**
+     * A version number, incremented every time the data is changed. 
+     * @type {Integer}
+     * @default 0
+     */
     this.version = 0;
+
 }
 
-Object.assign(InterleavedBuffer.prototype, {
+Object.assign(InterleavedBuffer.prototype, /** @lends zen3d.InterleavedBuffer.prototype */{
 
+    /**
+     * @param {TypedArray} array 
+     */
     setArray: function(array) {
         this.count = array !== undefined ? array.length / this.stride : 0;
         this.array = array;
@@ -6647,55 +7133,129 @@ Object.assign(InterleavedBuffer.prototype, {
 
 });
 
+/**
+ * An instanced version of {@link zen3d.InterleavedBuffer}.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.InterleavedBuffer
+ * @param {TypedArray} array -- A typed array with a shared buffer. Stores the geometry data.
+ * @param {Integer} stride -- The number of typed-array elements per vertex.
+ * @param {Integer} [meshPerAttribute=1]
+ */
 function InstancedInterleavedBuffer(array, itemSize, meshPerAttribute) {
 
     InterleavedBuffer.call( this, array, itemSize );
 
+    /**
+     * @type {Integer}
+     */
     this.meshPerAttribute = meshPerAttribute || 1;
 
 }
 
-InstancedInterleavedBuffer.prototype = Object.assign( Object.create( InterleavedBuffer.prototype ), {
+InstancedInterleavedBuffer.prototype = Object.assign( Object.create( InterleavedBuffer.prototype ), /** @lends zen3d.InstancedInterleavedBuffer.prototype */{
 
     constructor: InstancedInterleavedBuffer,
 
+    /**
+     * @readonly
+     * @type {boolean}
+     * @default true 
+     */
     isInstancedInterleavedBuffer: true
 
 });
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.InterleavedBuffer} interleavedBuffer
+ * @param {Integer} size
+ * @param {Integer} offset
+ * @param {boolean} [normalized=false]
+ */
 function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized) {
+
     this.uuid = generateUUID();
 
+    /**
+     * The InterleavedBuffer instance passed in the constructor. 
+     * @type {zen3d.InterleavedBuffer}
+     */
     this.data = interleavedBuffer;
+
+    /**
+     * How many values make up each item.
+     * @type {Integer}
+     */
     this.size = size;
+
+    /**
+     * The offset in the underlying array buffer where an item starts.
+     * @type {Integer}
+     */
     this.offset = offset;
 
+    /**
+     * @type {boolean}
+     * @default false
+     */
     this.normalized = normalized === true;
+
 }
 
+/**
+ * @readonly
+ * @type {boolean}
+ * @default true 
+ */
 InterleavedBufferAttribute.prototype.isInterleavedBufferAttribute = true;
 
 Object.defineProperties(InterleavedBufferAttribute.prototype, {
+
+    /**
+     * The value of data.count. 
+     * If the buffer is storing a 3-component item (such as a position, normal, or color), then this will count the number of such items stored.
+     * @memberof zen3d.InterleavedBufferAttribute#
+     * @readonly
+     * @type {Integer}
+     */
     count: {
         get: function() {
             return this.data.count;
         }
     },
+
+    /**
+     * The value of data.array.
+     * @memberof zen3d.InterleavedBufferAttribute#
+     * @readonly
+     * @type {TypedArray}
+     */
     array: {
         get: function() {
             return this.data.array;
         }
     }
+
 });
 
 /**
- * PlaneGeometry data
- * @class
+ * A class for generating plane geometries.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ * @param {number} [width=1] — Width along the X axis. 
+ * @param {number} [height=1] — Height along the Y axis.
+ * @param {Integer} [widthSegments=1] — Optional. 
+ * @param {Integer} [heightSegments=1] — Optional.
  */
 function PlaneGeometry(width, height, widthSegments, heightSegments) {
+
 	Geometry.call(this);
 
 	this.buildGeometry(width, height, widthSegments, heightSegments);
+	
 }
 
 PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -6782,13 +7342,26 @@ PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 });
 
 /**
- * SphereGeometry data
- * @class
+ * A class for generating sphere geometries.
+ * The geometry is created by sweeping and calculating vertexes around the Y axis (horizontal sweep) and the Z axis (vertical sweep). 
+ * Thus, incomplete spheres (akin to 'sphere slices') can be created through the use of different values of phiStart, phiLength, thetaStart and thetaLength, in order to define the points in which we start (or end) calculating those vertices.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.Geometry
+ * @param {number} [radius=1] — sphere radius. Default is 1.
+ * @param {Integer} [widthSegments=8] — number of horizontal segments. Minimum value is 3, and the default is 8.
+ * @param {Integer} [heightSegments=6] — number of vertical segments. Minimum value is 2, and the default is 6.
+ * @param {number} [phiStart=0] — specify horizontal starting angle. Default is 0.
+ * @param {number} [phiLength=Math.PI*2] — specify horizontal sweep angle size. Default is Math.PI * 2.
+ * @param {number} [thetaStart=0] — specify vertical starting angle. Default is 0.
+ * @param {number} [thetaLength=Math.PI] — specify vertical sweep angle size. Default is Math.PI.
  */
 function SphereGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength) {
+
     Geometry.call(this);
 
     this.buildGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength);
+
 }
 
 SphereGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -9709,9 +10282,9 @@ var getClippingPlanesData = function() {
 }();
 
 /**
- * render method by WebGL.
- * just for render pass once in one render target.
+ * Core render methods by WebGL.
  * @constructor
+ * @memberof zen3d
  * @param {WebGLRenderingContext} gl
  */
 function WebGLCore(gl) {
@@ -9747,11 +10320,13 @@ var directShadowMaps = [];
 var pointShadowMaps = [];
 var spotShadowMaps = [];
 
-Object.assign(WebGLCore.prototype, {
+Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
     /**
-     * clear buffer
-     * @memberof WebGLCore#
+     * Clear buffers.
+     * @param {boolean} [color=false]
+     * @param {boolean} [depth=false]
+     * @param {boolean} [stencil=false]
      */
     clear: function(color, depth, stencil) {
         var gl = this.gl;
@@ -9766,11 +10341,10 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * Render opaque and transparent objects
-     * @memberof WebGLCore#
+     * Render opaque and transparent objects.
      * @param {zen3d.Scene} scene 
      * @param {zen3d.Camera} camera 
-     * @param {boolean} updateRenderList? default is false.
+     * @param {boolean} [updateRenderList=false]
      */
     render: function(scene, camera, updateRenderList) {
         updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
@@ -9799,15 +10373,14 @@ Object.assign(WebGLCore.prototype, {
 
     /**
      * Render a single renderable list in camera in sequence.
-     * @memberof WebGLCore#
-     * @param {Array} list List of all renderables.
-     * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
-     * @param {Object} [config]?
-     * @param {Function} [config.getMaterial]? Get renderable material.
-     * @param {Function} [config.beforeRender] Before render each renderable.
-     * @param {Function} [config.afterRender] After render each renderable
-     * @param {Function} [config.ifRender]? If render the renderable.
-     * @param {zen3d.Scene} [config.scene]? Rendering scene, have some rendering context.
+     * @param {Array} list - List of all renderables.
+     * @param {zen3d.Camera} camera - Camera provide view matrix and porjection matrix.
+     * @param {Object} [config=] - The config for this render.
+     * @param {Function} [config.getMaterial=] - Get renderable material.
+     * @param {Function} [config.beforeRender=] - Before render each renderable.
+     * @param {Function} [config.afterRender=] - After render each renderable
+     * @param {Function} [config.ifRender=] - If render the renderable.
+     * @param {zen3d.Scene} [config.scene=] - Rendering scene, have some rendering context.
      */
     renderPass: function(renderList, camera, config) {
         config = config || {};
@@ -10103,11 +10676,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * set states
-     * @memberof WebGLCore#
-     * @param {boolean} frontFaceCW
-     */
+    // Set states.
     setStates: function(material, frontFaceCW) {
         var gl = this.gl;
         var state = this.state;
@@ -10145,10 +10714,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * gl draw
-     * @memberof WebGLCore#
-     */
+    // GL draw.
     draw: function(geometry, material, group) {
         var gl = this.gl;
         var properties = this.properties;
@@ -10186,10 +10752,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * upload skeleton uniforms
-     * @memberof WebGLCore#
-     */
+    // Upload skeleton uniforms.
     uploadSkeleton: function(uniforms, object, programId) {
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
@@ -10210,7 +10773,6 @@ Object.assign(WebGLCore.prototype, {
     
                     skeleton.boneMatrices = boneMatrices;
                     skeleton.boneTexture = boneTexture;
-                    skeleton.boneTextureSize = size;
                 }
     
                 var slot = this.allocTexUnit();
@@ -10221,7 +10783,7 @@ Object.assign(WebGLCore.prototype, {
                 }
     
                 if(uniforms["boneTextureSize"]) {
-                    uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
+                    uniforms["boneTextureSize"].setValue(skeleton.boneTexture.image.width);
                 }
             } else {
                 // TODO a cache for uniform location
@@ -10234,11 +10796,8 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * upload lights uniforms
-     * TODO a better function for array & struct uniforms upload
-     * @memberof WebGLCore#
-     */
+    // Upload lights uniforms.
+    // TODO a better function for array & struct uniforms upload.
     uploadLights: function(uniforms, lights, receiveShadow, camera) {
         var gl = this.gl;
     
@@ -10376,10 +10935,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * alloc texture unit
-     * @memberof WebGLCore#
-     */
+    // Alloc texture unit.
     allocTexUnit: function() {
         var textureUnit = this._usedTextureUnits;
     
@@ -10394,9 +10950,6 @@ Object.assign(WebGLCore.prototype, {
         return textureUnit;
     },
 
-    /**
-     * @memberof WebGLCore#
-     */
     setupVertexAttributes: function(program, geometry) {
         var gl = this.gl;
         var attributes = program.attributes;

@@ -8,7 +8,7 @@ function Vector2(x, y) {
     this.y = y || 0;
 }
 
-Object.assign(Vector2.prototype, {
+Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
 
     set: function(x, y) {
         this.x = x || 0;

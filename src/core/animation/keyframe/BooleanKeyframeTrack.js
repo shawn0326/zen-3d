@@ -1,8 +1,14 @@
 import {KeyframeTrack} from './KeyframeTrack.js';
 
 /**
- * BooleanKeyframeTrack
- * used for boolean property track
+ * Used for boolean property track.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function BooleanKeyframeTrack(target, propertyPath, times, values, interpolant) {
     KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);

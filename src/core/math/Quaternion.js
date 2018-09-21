@@ -52,7 +52,7 @@ Object.defineProperties(Quaternion.prototype, {
     }
 });
 
-Object.assign(Quaternion.prototype, {
+Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
     normalize: function(thickness) {
         var l = this.length();

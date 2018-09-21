@@ -10,7 +10,7 @@ function Triangle(a, b, c) {
     this.c = (c !== undefined) ? c : new Vector3();
 }
 
-Object.assign(Triangle.prototype, {
+Object.assign(Triangle.prototype, /** @lends zen3d.Triangle.prototype */{
 
     set: function(a, b, c) {
         this.a.copy(a);

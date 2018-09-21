@@ -1,5 +1,11 @@
 import {PropertyBindingMixer} from './PropertyBindingMixer.js';
 
+/**
+ * The AnimationMixer is a player for animations on a particular object in the scene. 
+ * When multiple objects in the scene are animated independently, one AnimationMixer may be used for each object.
+ * @constructor
+ * @memberof zen3d
+ */
 function AnimationMixer() {
 
     this._clips = {};
@@ -10,7 +16,7 @@ function AnimationMixer() {
 
 }
 
-Object.assign(AnimationMixer.prototype, {
+Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototype */{
 
     add: function(clip) {
 

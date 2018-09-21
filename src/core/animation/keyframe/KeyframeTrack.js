@@ -1,6 +1,13 @@
 /**
- * KeyframeTrack
- * base class for property track
+ * Base class for property track.
+ * @constructor
+ * @memberof zen3d
+ * @abstract
+ * @param {zen3d.Object3D} target
+ * @param {string} propertyPath
+ * @param {Array} times
+ * @param {Array} values
+ * @param {Boolean} interpolant
  */
 function KeyframeTrack(target, propertyPath, times, values, interpolant) {
 
