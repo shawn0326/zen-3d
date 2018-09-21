@@ -1,6 +1,12 @@
 
 import {Vector3} from './Vector3.js';
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} min 
+ * @param {*} max 
+ */
 function Box3(min, max) {
     this.min = (min !== undefined) ? min : new Vector3(+Infinity, +Infinity, +Infinity);
     this.max = (max !== undefined) ? max : new Vector3(-Infinity, -Infinity, -Infinity);

@@ -1,6 +1,12 @@
 import {Vector3} from './Vector3.js';
 import {Box3} from './Box3.js';
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} center 
+ * @param {*} radius 
+ */
 function Sphere(center, radius) {
     this.center = (center !== undefined) ? center : new Vector3();
     this.radius = (radius !== undefined) ? radius : 0;

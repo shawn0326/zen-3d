@@ -1,11 +1,17 @@
 import {Vector3} from './Vector3.js';
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} origin 
+ * @param {*} direction 
+ */
 function Ray(origin, direction) {
     this.origin = (origin !== undefined) ? origin : new Vector3();
     this.direction = (direction !== undefined) ? direction : new Vector3();
 }
 
-Object.assign(Ray.prototype, {
+Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
 
     set: function(origin, direction) {
         this.origin.copy(origin);

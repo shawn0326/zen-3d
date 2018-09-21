@@ -1,3 +1,10 @@
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} r 
+ * @param {*} g 
+ * @param {*} b 
+ */
 function Color3(r, g, b) {
     this.r = 0;
     this.g = 0;
@@ -10,7 +17,7 @@ function Color3(r, g, b) {
     return this.setRGB(r, g, b);
 }
 
-Object.assign(Color3.prototype, {
+Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
     
     lerpColors: function(c1, c2, ratio) {
         this.r = ratio * (c2.r - c1.r) + c1.r;

@@ -1,5 +1,9 @@
 import {Vector3} from './Vector3.js';
 
+/**
+ * @constructor
+ * @memberof zen3d 
+ */
 function Triangle(a, b, c) {
     this.a = (a !== undefined) ? a : new Vector3();
     this.b = (b !== undefined) ? b : new Vector3();

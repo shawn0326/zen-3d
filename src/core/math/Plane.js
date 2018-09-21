@@ -1,12 +1,18 @@
 import {Vector3} from './Vector3';
 import {Matrix3} from './Matrix3';
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} normal 
+ * @param {*} constant 
+ */
 function Plane(normal, constant) {
     this.normal = (normal !== undefined) ? normal : new Vector3(1, 0, 0);
     this.constant = (constant !== undefined) ? constant : 0;
 }
 
-Object.assign(Plane.prototype, {
+Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
     set: function(normal, constant) {
         this.normal.copy(normal);

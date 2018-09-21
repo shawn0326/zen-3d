@@ -2,7 +2,8 @@ import {Matrix4} from './Matrix4.js';
 
 /**
  * a Euler class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Euler(x, y, z, order) {
     this._x = x || 0;
@@ -54,7 +55,7 @@ Object.defineProperties(Euler.prototype, {
     }
 });
 
-Object.assign(Euler.prototype, {
+Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
     copyFrom: function(euler) {
         this._x = euler._x;

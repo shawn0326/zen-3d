@@ -1,7 +1,8 @@
 /**
- * FileLoader
- * @class
- * Loader for file
+ * A low level class for loading resources with XMLHttpRequest, used internaly by most loaders. 
+ * It can also be used directly to load any file type that does not have a loader.
+ * @constructor
+ * @memberof zen3d
  */
 function FileLoader() {
     this.path = undefined;
@@ -11,8 +12,15 @@ function FileLoader() {
     this.requestHeader = undefined;
 }
 
-Object.assign(FileLoader.prototype, {
+Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 
+    /**
+     * Load the URL and pass the response to the onLoad function. 
+     * @param {string} url — the path or URL to the file. This can also be a Data URI.
+     * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded response.
+     * @param {Function} [onProgress=] — Will be called while load progresses. The argument will be the XMLHttpRequest instance, which contains .total and .loaded bytes.
+     * @param {Function} [onError=] — Will be called if an error occurs.
+     */
     load: function(url, onLoad, onProgress, onError) {
         if (url === undefined) url = '';
         if (this.path != undefined) url = this.path + url;
@@ -107,27 +115,61 @@ Object.assign(FileLoader.prototype, {
         }
     },
 
+    /**
+     * Set the base path or URL from which to load files. 
+     * This can be useful if you are loading many models from the same directory.
+     * @param {string} value
+     * @return {zen3d.FileLoader}
+     */
     setPath: function(value) {
         this.path = value;
         return this;
     },
 
+    /**
+     * Change the response type. Valid values are:
+     * text or empty string (default) - returns the data as string.
+     * arraybuffer - loads the data into a ArrayBuffer and returns that.
+     * blob - returns the data as a Blob.
+     * document - parses the file using the DOMParser.
+     * json - parses the file using JSON.parse.
+     * @param {string} value
+     * @return {zen3d.FileLoader}
+     */
     setResponseType: function(value) {
         this.responseType = value;
         return this;
     },
 
-    // Access-Control-Allow-Credentials: true
+    /**
+     * Whether the XMLHttpRequest uses credentials such as cookies, authorization headers or TLS client certificates. 
+     * See {@link https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials XMLHttpRequest.withCredentials}.
+     * Note that this has no effect if you are loading files locally or from the same domain.
+     * @param {boolean} value
+     * @return {zen3d.FileLoader}
+     */
     setWithCredentials: function(value) {
         this.withCredentials = value;
         return this;
     },
 
+    /**
+     * Set the expected mimeType of the file being loaded. 
+     * Note that in many cases this will be determined automatically, so by default it is undefined.
+     * @param {string} value
+     * @return {zen3d.FileLoader} 
+     */
     setMimeType: function(value) {
         this.mimeType = value;
         return this;
     },
 
+    /**
+     * The request header used in HTTP request.
+     * Default is undefined.
+     * @param {string} value
+     * @return {zen3d.FileLoader} 
+     */
     setRequestHeader: function(value) {
         this.requestHeader = value;
         return this;

@@ -44,9 +44,9 @@ var getClippingPlanesData = function() {
 }();
 
 /**
- * render method by WebGL.
- * just for render pass once in one render target.
+ * Core render methods by WebGL.
  * @constructor
+ * @memberof zen3d
  * @param {WebGLRenderingContext} gl
  */
 function WebGLCore(gl) {
@@ -82,11 +82,13 @@ var directShadowMaps = [];
 var pointShadowMaps = [];
 var spotShadowMaps = [];
 
-Object.assign(WebGLCore.prototype, {
+Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
     /**
-     * clear buffer
-     * @memberof WebGLCore#
+     * Clear buffers.
+     * @param {boolean} [color=false]
+     * @param {boolean} [depth=false]
+     * @param {boolean} [stencil=false]
      */
     clear: function(color, depth, stencil) {
         var gl = this.gl;
@@ -101,11 +103,10 @@ Object.assign(WebGLCore.prototype, {
     },
 
     /**
-     * Render opaque and transparent objects
-     * @memberof WebGLCore#
+     * Render opaque and transparent objects.
      * @param {zen3d.Scene} scene 
      * @param {zen3d.Camera} camera 
-     * @param {boolean} updateRenderList? default is false.
+     * @param {boolean} [updateRenderList=false]
      */
     render: function(scene, camera, updateRenderList) {
         updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
@@ -134,15 +135,14 @@ Object.assign(WebGLCore.prototype, {
 
     /**
      * Render a single renderable list in camera in sequence.
-     * @memberof WebGLCore#
-     * @param {Array} list List of all renderables.
-     * @param {zen3d.Camera} camera Camera provide view matrix and porjection matrix.
-     * @param {Object} [config]?
-     * @param {Function} [config.getMaterial]? Get renderable material.
-     * @param {Function} [config.beforeRender] Before render each renderable.
-     * @param {Function} [config.afterRender] After render each renderable
-     * @param {Function} [config.ifRender]? If render the renderable.
-     * @param {zen3d.Scene} [config.scene]? Rendering scene, have some rendering context.
+     * @param {Array} list - List of all renderables.
+     * @param {zen3d.Camera} camera - Camera provide view matrix and porjection matrix.
+     * @param {Object} [config=] - The config for this render.
+     * @param {Function} [config.getMaterial=] - Get renderable material.
+     * @param {Function} [config.beforeRender=] - Before render each renderable.
+     * @param {Function} [config.afterRender=] - After render each renderable
+     * @param {Function} [config.ifRender=] - If render the renderable.
+     * @param {zen3d.Scene} [config.scene=] - Rendering scene, have some rendering context.
      */
     renderPass: function(renderList, camera, config) {
         config = config || {};
@@ -438,11 +438,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * set states
-     * @memberof WebGLCore#
-     * @param {boolean} frontFaceCW
-     */
+    // Set states.
     setStates: function(material, frontFaceCW) {
         var gl = this.gl;
         var state = this.state;
@@ -480,10 +476,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * gl draw
-     * @memberof WebGLCore#
-     */
+    // GL draw.
     draw: function(geometry, material, group) {
         var gl = this.gl;
         var properties = this.properties;
@@ -521,10 +514,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * upload skeleton uniforms
-     * @memberof WebGLCore#
-     */
+    // Upload skeleton uniforms.
     uploadSkeleton: function(uniforms, object, programId) {
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
@@ -545,7 +535,6 @@ Object.assign(WebGLCore.prototype, {
     
                     skeleton.boneMatrices = boneMatrices;
                     skeleton.boneTexture = boneTexture;
-                    skeleton.boneTextureSize = size;
                 }
     
                 var slot = this.allocTexUnit();
@@ -556,7 +545,7 @@ Object.assign(WebGLCore.prototype, {
                 }
     
                 if(uniforms["boneTextureSize"]) {
-                    uniforms["boneTextureSize"].setValue(skeleton.boneTextureSize);
+                    uniforms["boneTextureSize"].setValue(skeleton.boneTexture.image.width);
                 }
             } else {
                 // TODO a cache for uniform location
@@ -569,11 +558,8 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * upload lights uniforms
-     * TODO a better function for array & struct uniforms upload
-     * @memberof WebGLCore#
-     */
+    // Upload lights uniforms.
+    // TODO a better function for array & struct uniforms upload.
     uploadLights: function(uniforms, lights, receiveShadow, camera) {
         var gl = this.gl;
     
@@ -711,10 +697,7 @@ Object.assign(WebGLCore.prototype, {
         }
     },
 
-    /**
-     * alloc texture unit
-     * @memberof WebGLCore#
-     */
+    // Alloc texture unit.
     allocTexUnit: function() {
         var textureUnit = this._usedTextureUnits;
     
@@ -729,9 +712,6 @@ Object.assign(WebGLCore.prototype, {
         return textureUnit;
     },
 
-    /**
-     * @memberof WebGLCore#
-     */
     setupVertexAttributes: function(program, geometry) {
         var gl = this.gl;
         var attributes = program.attributes;

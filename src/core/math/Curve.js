@@ -1,5 +1,11 @@
 import {Vector2} from './Vector2.js';
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} posPoints 
+ * @param {*} ctrlPoints 
+ */
 function Curve(posPoints, ctrlPoints) {
     this.posPoints = undefined;
     this.ctrlPoints = undefined;
@@ -9,7 +15,7 @@ function Curve(posPoints, ctrlPoints) {
     this.set(posPoints, ctrlPoints);
 }
 
-Object.assign(Curve.prototype, {
+Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
 
     set: function (posPoints, ctrlPoints) {
         this.posPoints = posPoints;

@@ -1,6 +1,16 @@
 import {Plane} from './Plane.js';
 import {Vector3} from './Vector3.js';
 
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {*} p0 
+ * @param {*} p1 
+ * @param {*} p2 
+ * @param {*} p3 
+ * @param {*} p4 
+ * @param {*} p5 
+ */
 function Frustum(p0, p1, p2, p3, p4, p5) {
     this.planes = [
         (p0 !== undefined) ? p0 : new Plane(),
@@ -12,7 +22,7 @@ function Frustum(p0, p1, p2, p3, p4, p5) {
     ];
 }
 
-Object.assign(Frustum.prototype, {
+Object.assign(Frustum.prototype, /** @lends zen3d.Frustum.prototype */{
 
     set: function(p0, p1, p2, p3, p4, p5) {
         var planes = this.planes;

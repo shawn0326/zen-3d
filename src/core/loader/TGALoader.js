@@ -1,11 +1,23 @@
 import {FileLoader} from './FileLoader.js';
 
+/**
+ * A loader for loading a .tga Image.
+ * @constructor
+ * @memberof zen3d
+ */
 function TGALoader() {
 
 }
 
-Object.assign(TGALoader.prototype, {
+Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
+	/**
+     * Load the URL and pass the response to the onLoad function. 
+     * @param {string} url — the path or URL to the file. This can also be a Data URI.
+     * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded image ( draw to an canvas element ).
+     * @param {Function} [onProgress=] — Will be called while load progresses. The argument will be the XMLHttpRequest instance, which contains .total and .loaded bytes.
+     * @param {Function} [onError=] — Will be called if an error occurs.
+     */
 	load: function(url, onLoad, onProgress, onError) {
 		var that = this;
 

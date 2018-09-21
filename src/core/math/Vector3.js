@@ -2,7 +2,8 @@ import {Matrix4} from './Matrix4.js';
 
 /**
  * a vector 3 class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Vector3(x, y, z) {
     this.x = x || 0;

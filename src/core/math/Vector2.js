@@ -1,6 +1,7 @@
 /**
  * a vector 2 class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Vector2(x, y) {
     this.x = x || 0;

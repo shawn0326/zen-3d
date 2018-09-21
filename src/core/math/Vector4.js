@@ -1,6 +1,7 @@
 /**
  * a vector 4 class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Vector4(x, y, z, w) {
     this.x = x || 0;
@@ -9,7 +10,7 @@ function Vector4(x, y, z, w) {
     this.w = ( w !== undefined ) ? w : 1;
 }
 
-Object.assign(Vector4.prototype, {
+Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 
     lerpVectors: function(v1, v2, ratio) {
         return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);

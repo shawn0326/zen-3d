@@ -9,6 +9,10 @@
  * The equator starts at positive z.
  */
 
+ /**
+  * @constructor
+  * @memberof zen3d 
+  */
 function Spherical(radius, phi, theta) {
     this.radius = ( radius !== undefined ) ? radius : 1.0;
     this.phi = ( phi !== undefined ) ? phi : 0; // up / down towards top and bottom pole

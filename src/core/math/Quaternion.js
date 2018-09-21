@@ -3,7 +3,8 @@ import {Matrix4} from './Matrix4.js';
 
 /**
  * a Quaternion class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Quaternion(x, y, z, w) {
     this._x = x || 0;

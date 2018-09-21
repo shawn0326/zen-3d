@@ -1,6 +1,7 @@
 /**
  * a 3x3 matrix class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Matrix3() {
     this.elements = new Float32Array([
@@ -10,7 +11,7 @@ function Matrix3() {
     ]);
 }
 
-Object.assign(Matrix3.prototype, {
+Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
     identity: function() {
         this.set(

@@ -2,7 +2,8 @@ import {Vector3} from './Vector3';
 
 /**
  * a 4x4 matrix class
- * @class
+ * @constructor
+ * @memberof zen3d
  */
 function Matrix4() {
     this.elements = new Float32Array([
@@ -13,7 +14,7 @@ function Matrix4() {
     ]);
 }
 
-Object.assign(Matrix4.prototype, {
+Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 
     identity: function() {
         this.set(
