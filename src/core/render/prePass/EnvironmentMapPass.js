@@ -3,6 +3,11 @@ import {Vector3} from '../../math/Vector3.js';
 import {RenderTargetCube} from '../RenderTargetCube.js';
 import {WEBGL_TEXTURE_FILTER} from '../../const.js';
 
+/**
+ * environment map pre pass.
+ * @constructor
+ * @memberof zen3d
+ */
 function EnvironmentMapPass(renderTarget) {
     this.camera = new Camera();
 
@@ -25,6 +30,11 @@ function EnvironmentMapPass(renderTarget) {
     this.renderTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 }
 
+/**
+ * Render environment map.
+ * @param {zen3d.WebGLCore} glCore 
+ * @param {zen3d.Scene} scene 
+ */
 EnvironmentMapPass.prototype.render = function(glCore, scene) {
     this.camera.position.copy(this.position);
 

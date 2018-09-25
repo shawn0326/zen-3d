@@ -5,9 +5,7 @@ import {ShaderLib} from '../shader/ShaderLib.js';
 
 var programMap = {};
 
-/**
- * generate program code
- */
+// generate program code
 function generateProgramCode(props, material) {
     var code = "";
     for (var key in props) {
@@ -103,9 +101,7 @@ function generateDefines( defines ) {
 
 }
 
-/**
- * create program
- */
+// create program
 function createProgram(gl, props, defines) {
 
     // create defines
@@ -338,6 +334,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
  * @param {Material} material
  * @param {Object3D} object?
  * @param {RenderCache} cache?
+ * @ignore
  */
 function getProgram(glCore, camera, material, object, cache) {
     var gl = glCore.gl;

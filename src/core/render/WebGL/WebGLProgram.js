@@ -16,9 +16,7 @@ function addLineNumbers( string ) {
 
 }
 
-/**
- * create a shader
- **/
+// create a shader
 function loadShader(gl, type, source) {
     // create a shader object
     var shader = gl.createShader(type);
@@ -35,9 +33,7 @@ function loadShader(gl, type, source) {
     return shader;
 }
 
-/**
- * create a WebGL program
- **/
+// create a WebGL program
 function createWebGLProgram(gl, vertexShader, fragmentShader) {
     // create a program object
     var program = gl.createProgram();
@@ -55,9 +51,7 @@ function createWebGLProgram(gl, vertexShader, fragmentShader) {
     return program;
 }
 
-/**
- * extract uniforms
- */
+// extract uniforms
 function extractUniforms(gl, program) {
     var uniforms = {};
 
@@ -73,9 +67,7 @@ function extractUniforms(gl, program) {
     return uniforms;
 }
 
-/**
- * extract attributes
- */
+// extract attributes
 function extractAttributes(gl, program) {
     var attributes = {};
 
@@ -91,10 +83,7 @@ function extractAttributes(gl, program) {
     return attributes;
 }
 
-/**
- * WebGL Program
- * @class Program
- */
+// WebGL Program Class
 function WebGLProgram(gl, vshader, fshader) {
 
     this.uuid = generateUUID();

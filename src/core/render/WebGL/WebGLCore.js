@@ -57,6 +57,11 @@ function WebGLCore(gl) {
     this.properties = properties;
 
     var capabilities = new WebGLCapabilities(gl);
+
+    /**
+     * An object containing details about the capabilities of the current RenderingContext.
+     * @type {zen3d.WebGLCapabilities}
+     */
     this.capabilities = capabilities;
 
     var state = new WebGLState(gl, capabilities);

@@ -5,6 +5,16 @@ import {PlaneGeometry} from '../../geometry/PlaneGeometry.js';
 import {ShaderMaterial} from '../../material/ShaderMaterial.js';
 import {Mesh} from '../../objects/Mesh.js';
 
+/**
+ * Shader post pass.
+ * @constructor
+ * @memberof zen3d
+ * @param {Object} shader - Shader object for the pass.
+ * @param {string} shader.vertexShader -  Vertex shader GLSL code.
+ * @param {string} shader.fragmentShader - Fragment shader GLSL code.
+ * @param {Object} [shader.defines={}] - Defines of the shader.
+ * @param {Object} [shader.uniforms={}] - Uniforms of the shader.
+ */
 function ShaderPostPass(shader) {
     var scene = new Scene();
 
@@ -29,12 +39,12 @@ function ShaderPostPass(shader) {
     this.renderConfig = {};
 }
 
-Object.assign(ShaderPostPass.prototype, {
-
-    render: function(glCore) {
-        glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
-    }
-
-});
+/**
+ * Render the post pass.
+ * @param {zen3d.WebGLCore} glCore 
+ */
+ShaderPostPass.prototype.render = function(glCore) {
+    glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
+}
 
 export {ShaderPostPass};
