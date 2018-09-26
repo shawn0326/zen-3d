@@ -869,19 +869,7 @@
 
                         material = lineMaterial;
 
-                        if (primitive.mode === WEBGL_CONSTANTS.LINES) {
-
-                            mesh = new zen3d.Line(geometry, material);
-
-                        } else if (primitive.mode === WEBGL_CONSTANTS.LINE_STRIP) {
-
-                            mesh = new zen3d.Line(geometry, material);
-
-                        } else {
-
-                            mesh = new zen3d.Line(geometry, material);
-
-                        }
+                        mesh = new zen3d.Mesh(geometry, material);
 
                     } else if (primitive.mode === WEBGL_CONSTANTS.POINTS) {
 
@@ -903,7 +891,7 @@
 
                         material = pointsMaterial;
 
-                        mesh = new zen3d.Points(geometry, material);
+                        mesh = new zen3d.Mesh(geometry, material);
 
                     } else {
 

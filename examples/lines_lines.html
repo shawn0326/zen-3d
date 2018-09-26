@@ -68,7 +68,7 @@
 			for(var i = 0; i < 10; i++) {
 				var lineGeometry = new zen3d.SphereGeometry(3 * i + 2, i == 0 ? 4 : 10,  i == 0 ? 2 : 5);
 
-				var line = new zen3d.Line(lineGeometry, i == 0 ? material : linesMaterial);
+				var line = new zen3d.Mesh(lineGeometry, i == 0 ? material : linesMaterial);
 				
 				if(i > 0) {
 					line.euler.x = Math.PI * 2 * Math.random();

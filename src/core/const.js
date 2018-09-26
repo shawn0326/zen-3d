@@ -11,10 +11,6 @@ export var OBJECT_TYPE = {
     CAMERA: "camera",
     SCENE: "scene",
     GROUP: "group",
-    POINT: "point",
-    LINE: "line",
-    LINE_LOOP: "line_loop",
-    LINE_SEGMENTS: "line_segments",
     CANVAS2D: "canvas2d"
 };
 

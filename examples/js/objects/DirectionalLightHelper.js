@@ -21,7 +21,7 @@
 
         var material = new zen3d.LineLoopMaterial();
 
-        this.lightPlane = new zen3d.Line( geometry, material );
+        this.lightPlane = new zen3d.Mesh( geometry, material );
         this.add( this.lightPlane );
         
         geometry = new zen3d.Geometry();
@@ -33,7 +33,7 @@
 
         var material = new zen3d.LineLoopMaterial();
 
-        this.targetLine = new zen3d.Line( geometry, material );
+        this.targetLine = new zen3d.Mesh( geometry, material );
         this.targetLine.scale.z = size * 5;
         this.add( this.targetLine );
 

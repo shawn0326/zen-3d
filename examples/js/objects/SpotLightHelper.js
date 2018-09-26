@@ -35,7 +35,7 @@
 
         var material = new zen3d.LineMaterial();
 
-        this.cone = new zen3d.Line(geometry, material);
+        this.cone = new zen3d.Mesh(geometry, material);
         this.add(this.cone);
 
         this.update();

@@ -85,7 +85,7 @@
 				pointsMaterial.depthWrite = false;
 				pointsMaterial.transparent = true;
 
-				var points = new zen3d.Points(pointsGeometry, pointsMaterial);
+				var points = new zen3d.Mesh(pointsGeometry, pointsMaterial);
 				scene.add(points);
 
 				points.euler.x = Math.random() * 6;

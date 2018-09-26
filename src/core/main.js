@@ -113,8 +113,6 @@ export {PointLightShadow} from './objects/lights/PointLightShadow.js';
 export {Camera} from './objects/camera/Camera.js';
 export {Mesh} from './objects/Mesh.js';
 export {SkinnedMesh} from './objects/SkinnedMesh.js';
-export {Points} from './objects/Points.js';
-export {Line} from './objects/Line.js';
 
 export {FileLoader} from './loader/FileLoader.js';
 export {ImageLoader} from './loader/ImageLoader.js';

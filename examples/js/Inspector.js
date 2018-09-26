@@ -24,9 +24,6 @@
 
         // cache all type of objects
         switch (object.type) {
-            case OBJECT_TYPE.POINT:
-                result.point++;
-                break;
             case OBJECT_TYPE.CANVAS2D:
                 result.canvas2D++;
                 break;

@@ -210,10 +210,6 @@
 	    CAMERA: "camera",
 	    SCENE: "scene",
 	    GROUP: "group",
-	    POINT: "point",
-	    LINE: "line",
-	    LINE_LOOP: "line_loop",
-	    LINE_SEGMENTS: "line_segments",
 	    CANVAS2D: "canvas2d"
 	};
 
@@ -13811,80 +13807,6 @@
 	});
 
 	/**
-	 * A class for displaying points. 
-	 * The points are rendered using gl.POINTS.
-	 * @constructor
-	 * @memberof zen3d
-	 * @extends zen3d.Object3D
-	 * @param {zen3d.Geometry} geometry — an instance of {@link zen3d.Geometry}.
-	 * @param {zen3d.Material} material - an instance of {@link zen3d.Material}.
-	 */
-	function Points(geometry, material) {
-
-	    Object3D.call(this);
-
-	    /**
-	     * an instance of {@link zen3d.Geometry}.
-	     * @type {zen3d.Geometry}
-	     */
-	    this.geometry = geometry;
-
-	    /**
-	     * an instance of {@link zen3d.Material}.
-	     * @type {zen3d.Material}
-	     */
-	    this.material = material;
-
-	    this.type = OBJECT_TYPE.POINT;
-
-	}
-
-	Points.prototype = Object.create(Object3D.prototype);
-	Points.prototype.constructor = Points;
-
-	/**
-	 * A continuous line.
-	 * The line is rendered using gl.LINES.
-	 * @constructor
-	 * @memberof zen3d
-	 * @extends zen3d.Object3D
-	 * @param {zen3d.Geometry} geometry — an instance of {@link zen3d.Geometry}.
-	 * @param {zen3d.Material} material - an instance of {@link zen3d.Material}.
-	 */
-	function Line(geometry, material) {
-
-	    Object3D.call(this);
-
-	    /**
-	     * an instance of {@link zen3d.Geometry}.
-	     * @type {zen3d.Geometry}
-	     */
-	    this.geometry = geometry;
-
-	    /**
-	     * an instance of {@link zen3d.Material}.
-	     * @type {zen3d.Material}
-	     */
-	    this.material = material;
-
-	    this.type = OBJECT_TYPE.LINE;
-
-	}
-
-	Line.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Line.prototype */{
-
-	    constructor: Line,
-
-	    /**
-	     * @override 
-	     */
-	    raycast: function(raycaster, intersects) {
-	        // TODO
-	    }
-
-	});
-
-	/**
 	 * The zen3d namespace.
 	 * @namespace zen3d
 	 */
@@ -13986,8 +13908,6 @@
 	exports.Camera = Camera;
 	exports.Mesh = Mesh;
 	exports.SkinnedMesh = SkinnedMesh;
-	exports.Points = Points;
-	exports.Line = Line;
 	exports.FileLoader = FileLoader;
 	exports.ImageLoader = ImageLoader;
 	exports.TGALoader = TGALoader;
