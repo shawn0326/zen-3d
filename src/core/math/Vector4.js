@@ -2,6 +2,10 @@
  * a vector 4 class
  * @constructor
  * @memberof zen3d
+ * @param {number} [x=0]
+ * @param {number} [y=0]
+ * @param {number} [z=0]
+ * @param {number} [w=1]
  */
 function Vector4(x, y, z, w) {
     this.x = x || 0;
@@ -12,10 +16,16 @@ function Vector4(x, y, z, w) {
 
 Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 
+    /**
+     * 
+     */
     lerpVectors: function(v1, v2, ratio) {
         return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
     },
 
+    /**
+     * 
+     */
     set: function(x, y, z, w) {
         this.x = x || 0;
         this.y = y || 0;
@@ -25,12 +35,18 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     normalize: function () {
 
         return this.multiplyScalar( 1 / (this.getLength() || 1) );
 
     },
 
+    /**
+     * 
+     */
     multiplyScalar: function ( scalar ) {
 
         this.x *= scalar;
@@ -42,18 +58,27 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 
     },
 
+    /**
+     * 
+     */
     getLengthSquared: function () {
 
         return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
 
     },
 
+    /**
+     * 
+     */
     getLength: function () {
 
         return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
 
     },
 
+    /**
+     * 
+     */
     applyMatrix4: function(m) {
         var x = this.x, y = this.y, z = this.z, w = this.w;
         var e = m.elements;
@@ -66,10 +91,16 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     equals: function(v) {
         return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
     },
 
+    /**
+     * 
+     */
     add: function(v) {
         this.x += v.x;
         this.y += v.y;
@@ -79,6 +110,9 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     multiply: function ( v ) {
         this.x *= v.x;
         this.y *= v.y;
@@ -88,6 +122,9 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     multiplyScalar: function(scalar) {
         this.x *= scalar;
         this.y *= scalar;
@@ -97,6 +134,9 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     subVectors: function(a, b) {
         this.x = a.x - b.x;
         this.y = a.y - b.y;
@@ -106,6 +146,9 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     copy: function(v) {
         this.x = v.x;
         this.y = v.y;

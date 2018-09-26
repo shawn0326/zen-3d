@@ -3,6 +3,9 @@ import {Vector3} from './Vector3.js';
 /**
  * @constructor
  * @memberof zen3d 
+ * @param {zen3d.Vector3} [a=]
+ * @param {zen3d.Vector3} [b=]
+ * @param {zen3d.Vector3} [c=]
  */
 function Triangle(a, b, c) {
     this.a = (a !== undefined) ? a : new Vector3();
@@ -12,6 +15,9 @@ function Triangle(a, b, c) {
 
 Object.assign(Triangle.prototype, /** @lends zen3d.Triangle.prototype */{
 
+    /**
+     * 
+     */
     set: function(a, b, c) {
         this.a.copy(a);
         this.b.copy(b);
@@ -22,6 +28,9 @@ Object.assign(Triangle.prototype, /** @lends zen3d.Triangle.prototype */{
 
 });
 
+/**
+ * @method
+ */
 Triangle.normal = function() {
     var v0 = new Vector3();
 
@@ -41,8 +50,11 @@ Triangle.normal = function() {
     };
 }();
 
-// static/instance method to calculate barycentric coordinates
-// based on: http://www.blackpawn.com/texts/pointinpoly/default.html
+/**
+ * static/instance method to calculate barycentric coordinates.
+ * based on: http://www.blackpawn.com/texts/pointinpoly/default.html
+ * @method
+ */
 Triangle.barycoordFromPoint = function() {
     var v0 = new Vector3();
     var v1 = new Vector3();
@@ -79,6 +91,9 @@ Triangle.barycoordFromPoint = function() {
     };
 }();
 
+/**
+ * @method
+ */
 Triangle.containsPoint = function() {
     var v1 = new Vector3();
 

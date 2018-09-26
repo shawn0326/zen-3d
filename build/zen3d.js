@@ -616,6 +616,9 @@
 
 	Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 
+	    /**
+	     * 
+	     */
 	    identity: function() {
 	        this.set(
 	            1, 0, 0, 0,
@@ -627,6 +630,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    set: function(n11, n12, n13, n14,
 	        n21, n22, n23, n24,
 	        n31, n32, n33, n34,
@@ -653,12 +659,18 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(m) {
 	        this.elements.set(m.elements);
 
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    makeTranslation: function(x, y, z) {
 	        this.set(
 	            1, 0, 0, x,
@@ -670,18 +682,27 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiply: function(m) {
 
 	        return this.multiplyMatrices(this, m);
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    premultiply: function(m) {
 
 	        return this.multiplyMatrices(m, this);
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiplyMatrices: function(a, b) {
 
 	        var ae = a.elements;
@@ -746,6 +767,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    transpose: function() {
 
 	        var te = this.elements;
@@ -774,10 +798,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    inverse: function() {
 	        return this.getInverse(this);
 	    },
 
+	    /**
+	     * 
+	     */
 	    getInverse: function(m) {
 
 	        // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
@@ -843,8 +873,9 @@
 	    },
 
 	    /**
-	     * make transform from pos&scale&rotation(Quaternion)
-	     **/
+	     * Make transform from pos&scale&rotation(Quaternion).
+	     * @method
+	     */
 	    transform: function() {
 
 	        var matrix = new Matrix4();
@@ -880,6 +911,9 @@
 	        }
 	    }(),
 
+	    /**
+	     * 
+	     */
 	    makeRotationFromQuaternion: function(q) {
 
 	        var te = this.elements;
@@ -928,6 +962,9 @@
 
 	    },
 
+	    /**
+	     * @method
+	     */
 	    lookAtRH: function() {
 	        var x = new Vector3();
 	        var y = new Vector3();
@@ -980,6 +1017,9 @@
 	        
 	    }(),
 
+	    /**
+	     * @method
+	     */
 	    decompose: function() {
 	    
 	        var vector = new Vector3(), matrix = new Matrix4();
@@ -1032,6 +1072,9 @@
 	        }
 	    }(),
 
+	    /**
+	     * @method
+	     */
 	    determinant: function() {
 
 	        var te = this.elements;
@@ -1090,6 +1133,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    fromArray: function(array, offset) {
 	        if (offset === undefined) offset = 0;
 
@@ -1100,6 +1146,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    getMaxScaleOnAxis: function() {
 	        var te = this.elements;
 
@@ -1110,6 +1159,9 @@
 	        return Math.sqrt(Math.max(scaleXSq, scaleYSq, scaleZSq));
 	    },
 
+	    /**
+	     * 
+	     */
 	    toArray: function(array, offset) {
 	        if (array === undefined) array = [];
 	        if (offset === undefined) offset = 0;
@@ -1145,6 +1197,9 @@
 	 * a vector 3 class
 	 * @constructor
 	 * @memberof zen3d
+	 * @param {number} [x=0]
+	 * @param {number} [y=0]
+	 * @param {number} [z=0]
 	 */
 	function Vector3(x, y, z) {
 	    this.x = x || 0;
@@ -1154,10 +1209,16 @@
 
 	Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 
+	    /**
+	     * 
+	     */
 	    lerpVectors: function(v1, v2, ratio) {
 	        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
 	    },
 
+	    /**
+	     * 
+	     */
 	    set: function(x, y, z) {
 	        this.x = x || 0;
 	        this.y = y || 0;
@@ -1166,6 +1227,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    min: function(v) {
 	        this.x = Math.min(this.x, v.x);
 	        this.y = Math.min(this.y, v.y);
@@ -1174,6 +1238,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    max: function(v) {
 	        this.x = Math.max(this.x, v.x);
 	        this.y = Math.max(this.y, v.y);
@@ -1182,14 +1249,23 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    getLength: function() {
 	        return Math.sqrt(this.getLengthSquared());
 	    },
 
+	    /**
+	     * 
+	     */
 	    getLengthSquared: function() {
 	        return this.x * this.x + this.y * this.y + this.z * this.z;
 	    },
 
+	    /**
+	     * 
+	     */
 	    normalize: function(thickness) {
 	        thickness = thickness || 1;
 	        var length = this.getLength();
@@ -1202,6 +1278,9 @@
 	        }
 	    },
 
+	    /**
+	     * 
+	     */
 	    subtract: function(a, target) {
 	        if (!target) {
 	            target = new Vector3();
@@ -1210,6 +1289,9 @@
 	        return target;
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiply: function ( v ) {
 	        this.x *= v.x;
 	        this.y *= v.y;
@@ -1218,6 +1300,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    crossVectors: function(a, b) {
 	        var ax = a.x,
 	            ay = a.y,
@@ -1233,6 +1318,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    cross: function(v) {
 	        var x = this.x,
 	            y = this.y,
@@ -1245,10 +1333,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    dot: function(a) {
 	        return this.x * a.x + this.y * a.y + this.z * a.z;
 	    },
 
+	    /**
+	     * 
+	     */
 	    applyQuaternion: function(q) {
 
 	        var x = this.x,
@@ -1275,6 +1369,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    applyMatrix4: function(m) {
 
 	        // input: Matrix4 affine matrix
@@ -1292,6 +1389,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    applyMatrix3: function ( m ) {
 
 	        var x = this.x, y = this.y, z = this.z;
@@ -1305,6 +1405,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    transformDirection: function(m) {
 
 	        // input: Matrix4 affine matrix
@@ -1323,18 +1426,27 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromMatrixPosition: function(m) {
 
 	        return this.setFromMatrixColumn(m, 3);
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromMatrixColumn: function(m, index) {
 
 	        return this.fromArray(m.elements, index * 4);
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    fromArray: function(array, offset) {
 
 	        if (offset === undefined) offset = 0;
@@ -1347,6 +1459,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(v) {
 	        this.x = v.x;
 	        this.y = v.y;
@@ -1355,6 +1470,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    addVectors: function(a, b) {
 	        this.x = a.x + b.x;
 	        this.y = a.y + b.y;
@@ -1363,6 +1481,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    addScalar: function(s) {
 	        this.x += s;
 	        this.y += s;
@@ -1371,6 +1492,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    add: function(v) {
 	        this.x += v.x;
 	        this.y += v.y;
@@ -1379,6 +1503,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    subVectors: function(a, b) {
 	        this.x = a.x - b.x;
 	        this.y = a.y - b.y;
@@ -1387,6 +1514,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    sub: function(v) {
 	        this.x -= v.x;
 	        this.y -= v.y;
@@ -1395,6 +1525,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiplyScalar: function(scalar) {
 	        this.x *= scalar;
 	        this.y *= scalar;
@@ -1403,6 +1536,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    distanceToSquared: function(v) {
 	        var dx = this.x - v.x,
 	            dy = this.y - v.y,
@@ -1411,10 +1547,16 @@
 	        return dx * dx + dy * dy + dz * dz;
 	    },
 
+	    /**
+	     * 
+	     */
 	    distanceTo: function(v) {
 	        return Math.sqrt(this.distanceToSquared(v));
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromSpherical: function (s) {
 	        var sinPhiRadius = Math.sin( s.phi ) * s.radius;
 
@@ -1425,6 +1567,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    unproject: function() {
 	        var matrix;
 
@@ -1436,6 +1581,9 @@
 	        };
 	    }(),
 
+	    /**
+	     * 
+	     */
 	    applyProjection: function(m) {
 	        // input: Matrix4 projection matrix
 	        var x = this.x,
@@ -1451,10 +1599,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    equals: function(v) {
 	        return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
 	    },
 
+	    /**
+	     * 
+	     */
 	    clone: function() {
 	        return new Vector3(this.x, this.y, this.z);
 	    }
@@ -1464,8 +1618,8 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} origin 
-	 * @param {*} direction 
+	 * @param {zen3d.Vector3} [origin=] 
+	 * @param {zen3d.Vector3} [direction=] 
 	 */
 	function Ray(origin, direction) {
 	    this.origin = (origin !== undefined) ? origin : new Vector3();
@@ -1474,17 +1628,26 @@
 
 	Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
 
+	    /**
+	     * 
+	     */
 	    set: function(origin, direction) {
 	        this.origin.copy(origin);
 	        this.direction.copy(direction);
 	    },
 
+	    /**
+	     * 
+	     */
 	    at: function(t, optionalTarget) {
 	        var result = optionalTarget || new Vector3();
 
 	        return result.copy(this.direction).multiplyScalar(t).add(this.origin);
 	    },
 
+	    /**
+	     * @method
+	     */
 	    intersectsSphere: function() {
 	        var v1 = new Vector3();
 
@@ -1521,6 +1684,9 @@
 	        };
 	    }(),
 
+	    /**
+	     * 
+	     */
 	    intersectsBox: function(box, optionalTarget) {
 	        var tmin, tmax, tymin, tymax, tzmin, tzmax;
 
@@ -1588,6 +1754,9 @@
 	        return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
 	    },
 
+	    /**
+	     * @method
+	     */
 	    intersectTriangle: function() {
 
 	        // Compute the offset origin, edges, and normal.
@@ -1667,6 +1836,9 @@
 	        }
 	    }(),
 
+	    /**
+	     * 
+	     */
 	    copy: function(ray) {
 	        this.origin.copy(ray.origin);
 	        this.direction.copy(ray.direction);
@@ -1674,6 +1846,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    applyMatrix4: function(matrix4) {
 	        this.direction.add(this.origin).applyMatrix4(matrix4);
 	        this.origin.applyMatrix4(matrix4);
@@ -1861,6 +2036,9 @@
 
 	Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
+	    /**
+	     * 
+	     */
 	    copyFrom: function(euler) {
 	        this._x = euler._x;
 	        this._y = euler._y;
@@ -1872,6 +2050,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    set: function(x, y, z, order) {
 	        this._x = x || 0;
 	        this._y = y || 0;
@@ -1883,6 +2064,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromRotationMatrix: function(m, order, update) {
 
 	        var clamp = function(value, min, max) {
@@ -2010,6 +2194,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromQuaternion: function() {
 
 	        var matrix = new Matrix4();
@@ -2038,6 +2225,8 @@
 	 * a vector 2 class
 	 * @constructor
 	 * @memberof zen3d
+	 * @param {number} [x=0]
+	 * @param {number} [y=0]
 	 */
 	function Vector2(x, y) {
 	    this.x = x || 0;
@@ -2046,6 +2235,9 @@
 
 	Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
 
+	    /**
+	     * 
+	     */
 	    set: function(x, y) {
 	        this.x = x || 0;
 	        this.y = y || 0;
@@ -2053,10 +2245,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    lerpVectors: function(v1, v2, ratio) {
 	        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
 	    },
 
+	    /**
+	     * 
+	     */
 	    min: function(v) {
 	        this.x = Math.min(this.x, v.x);
 	        this.y = Math.min(this.y, v.y);
@@ -2064,6 +2262,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    max: function(v) {
 	        this.x = Math.max(this.x, v.x);
 	        this.y = Math.max(this.y, v.y);
@@ -2071,14 +2272,23 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    getLength: function() {
 	        return Math.sqrt(this.getLengthSquared());
 	    },
 
+	    /**
+	     * 
+	     */
 	    getLengthSquared: function() {
 	        return this.x * this.x + this.y * this.y;
 	    },
 
+	    /**
+	     * 
+	     */
 	    normalize: function(thickness) {
 	        thickness = thickness || 1;
 	        var length = this.getLength();
@@ -2090,6 +2300,9 @@
 	        }
 	    },
 
+	    /**
+	     * 
+	     */
 	    subtract: function(a, target) {
 	        if (!target) {
 	            target = new Vector2();
@@ -2098,6 +2311,9 @@
 	        return target;
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(v) {
 	        this.x = v.x;
 	        this.y = v.y;
@@ -2105,6 +2321,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    addVectors: function(a, b) {
 	        this.x = a.x + b.x;
 	        this.y = a.y + b.y;
@@ -2112,6 +2331,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    subVectors: function(a, b) {
 	        this.x = a.x - b.x;
 	        this.y = a.y - b.y;
@@ -2119,6 +2341,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiplyScalar: function(scalar) {
 	        this.x *= scalar;
 	        this.y *= scalar;
@@ -2126,6 +2351,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    distanceToSquared: function(v) {
 	        var dx = this.x - v.x,
 	            dy = this.y - v.y;
@@ -2133,10 +2361,16 @@
 	        return dx * dx + dy * dy;
 	    },
 
+	    /**
+	     * 
+	     */
 	    distanceTo: function(v) {
 	        return Math.sqrt(this.distanceToSquared(v));
 	    },
 
+	    /**
+	     * 
+	     */
 	    fromArray: function(array, offset) {
 	        if (offset === undefined) offset = 0;
 
@@ -2146,6 +2380,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    add: function(v) {
 	        this.x += v.x;
 	        this.y += v.y;
@@ -2153,6 +2390,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    clone: function() {
 	        return new Vector2(this.x, this.y);
 	    }
@@ -2163,6 +2403,10 @@
 	 * a vector 4 class
 	 * @constructor
 	 * @memberof zen3d
+	 * @param {number} [x=0]
+	 * @param {number} [y=0]
+	 * @param {number} [z=0]
+	 * @param {number} [w=1]
 	 */
 	function Vector4(x, y, z, w) {
 	    this.x = x || 0;
@@ -2173,10 +2417,16 @@
 
 	Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 
+	    /**
+	     * 
+	     */
 	    lerpVectors: function(v1, v2, ratio) {
 	        return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
 	    },
 
+	    /**
+	     * 
+	     */
 	    set: function(x, y, z, w) {
 	        this.x = x || 0;
 	        this.y = y || 0;
@@ -2186,12 +2436,18 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    normalize: function () {
 
 	        return this.multiplyScalar( 1 / (this.getLength() || 1) );
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiplyScalar: function ( scalar ) {
 
 	        this.x *= scalar;
@@ -2203,18 +2459,27 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    getLengthSquared: function () {
 
 	        return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    getLength: function () {
 
 	        return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    applyMatrix4: function(m) {
 	        var x = this.x, y = this.y, z = this.z, w = this.w;
 	        var e = m.elements;
@@ -2227,10 +2492,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    equals: function(v) {
 	        return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
 	    },
 
+	    /**
+	     * 
+	     */
 	    add: function(v) {
 	        this.x += v.x;
 	        this.y += v.y;
@@ -2240,6 +2511,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiply: function ( v ) {
 	        this.x *= v.x;
 	        this.y *= v.y;
@@ -2249,6 +2523,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiplyScalar: function(scalar) {
 	        this.x *= scalar;
 	        this.y *= scalar;
@@ -2258,6 +2535,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    subVectors: function(a, b) {
 	        this.x = a.x - b.x;
 	        this.y = a.y - b.y;
@@ -2267,6 +2547,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(v) {
 	        this.x = v.x;
 	        this.y = v.y;
@@ -2293,6 +2576,9 @@
 
 	Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
+	    /**
+	     * 
+	     */
 	    identity: function() {
 	        this.set(
 	            1, 0, 0,
@@ -2303,10 +2589,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    inverse: function() {
 	        return this.getInverse(this);
 	    },
 
+	    /**
+	     * 
+	     */
 	    getInverse: function ( matrix ) {
 
 	        var me = matrix.elements,
@@ -2360,6 +2652,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    set: function(n11, n12, n13,
 	        n21, n22, n23,
 	        n31, n32, n33) {
@@ -2380,24 +2675,36 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(m) {
 	        this.elements.set(m.elements);
 
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiply: function(m) {
 
 	        return this.multiplyMatrices(this, m);
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    premultiply: function(m) {
 
 	        return this.multiplyMatrices(m, this);
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiplyMatrices: function(a, b) {
 
 	        var ae = a.elements;
@@ -2440,7 +2747,9 @@
 
 	    },
 
-	    // transform 2d
+	    /**
+	     * Transform 2D
+	     */
 	    transform: function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
 	        var te = this.elements;
 
@@ -2473,6 +2782,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    setUvTransform: function ( tx, ty, sx, sy, rotation, cx, cy ) {
 
 	        var c = Math.cos( rotation );
@@ -2486,6 +2798,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromMatrix4: function ( m ) {
 
 	        var me = m.elements;
@@ -2508,6 +2823,10 @@
 	 * a Quaternion class
 	 * @constructor
 	 * @memberof zen3d
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} z
+	 * @param {number} w
 	 */
 	function Quaternion(x, y, z, w) {
 	    this._x = x || 0;
@@ -2557,6 +2876,9 @@
 
 	Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
+	    /**
+	     * 
+	     */
 	    normalize: function(thickness) {
 	        var l = this.length();
 
@@ -2583,13 +2905,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    length: function () {
 	        return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
 	    },
 
-	    /*
-	    * Linearly interpolates between two quaternions.
-	    */
+	    /**
+	     * Linearly interpolates between two quaternions.
+	     */
 	    lerpQuaternions: function(q1, q2, ratio) {
 	        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
 	        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
@@ -2619,10 +2944,10 @@
 	        return this;
 	    },
 
-	    /*
-	    * Spherically interpolates between two quaternions
-	    * providing an interpolation between rotations with constant angle change rate.
-	    */
+	    /**
+	     * Spherically interpolates between two quaternions
+	     * providing an interpolation between rotations with constant angle change rate.
+	     */
 	    slerpQuaternions: function(q1, q2, ratio) {
 	        var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
 	        var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
@@ -2664,6 +2989,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    set: function(x, y, z, w) {
 	        this._x = x || 0;
 	        this._y = y || 0;
@@ -2675,6 +3003,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(v) {
 	        this._x = v.x;
 	        this._y = v.y;
@@ -2686,6 +3017,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromEuler: function(euler, update) {
 	        var c1 = Math.cos( euler._x / 2 );
 	        var c2 = Math.cos( euler._y / 2 );
@@ -2746,6 +3080,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromRotationMatrix: function ( m ) {
 
 	        var te = m.elements,
@@ -2801,6 +3138,9 @@
 
 	    },
 
+	    /**
+	     * @method
+	     */
 	    setFromUnitVectors: function () {
 
 	        // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
@@ -2849,18 +3189,27 @@
 
 	    }(),
 
+	    /**
+	     * 
+	     */
 	    multiply: function ( q ) {
 
 	        return this.multiplyQuaternions( this, q );
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    premultiply: function ( q ) {
 
 	        return this.multiplyQuaternions( q, this );
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    multiplyQuaternions: function ( a, b ) {
 
 	        // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
@@ -2879,6 +3228,9 @@
 
 	    },
 
+	    /**
+	     * 
+	     */
 	    toMatrix4: function(target) {
 	        if(!target) {
 	            target = new Matrix4();
@@ -2909,6 +3261,9 @@
 	        return target;
 	    },
 
+	    /**
+	     * 
+	     */
 	    dot: function ( v ) {
 
 	        return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
@@ -2916,8 +3271,8 @@
 	    },
 
 	    /**
-	     * set quaternion from axis angle
-	     **/
+	     * Set quaternion from axis angle
+	     */
 	    setFromAxisAngle: function(axis, angle) {
 
 	        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
@@ -2936,6 +3291,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    fromArray: function ( array, offset ) {
 	        if ( offset === undefined ) offset = 0;
 
@@ -2961,6 +3319,9 @@
 
 	Object.assign( Quaternion, {
 
+	    /**
+	     * @memberof zen3d.Quaternion
+	     */
 	    slerpFlat: function ( dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ) {
 
 			// fuzz-free, array-based Quaternion SLERP operation
@@ -3028,8 +3389,8 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} min 
-	 * @param {*} max 
+	 * @param {zen3d.Vector2} min 
+	 * @param {zen3d.Vector2} max 
 	 */
 	function Box2(min, max) {
 	    this.min = (min !== undefined) ? min : new Vector2(+Infinity, +Infinity);
@@ -3038,11 +3399,21 @@
 
 	Object.assign(Box2.prototype, /** @lends zen3d.Box2.prototype */{
 
+	    /**
+	     * @param {number} x1
+	     * @param {number} y1
+	     * @param {number} x2
+	     * @param {number} y2
+	     */
 	    set: function(x1, y1, x2, y2) {
 	        this.min.set(x1, y1);
 	        this.max.set(x2, y2);
 	    },
 
+	    /**
+	     * @param {zen3d.Box2} box
+	     * @return {zen3d.Box2}
+	     */
 	    copy: function(box) {
 	        this.min.copy(box.min);
 	        this.max.copy(box.max);
@@ -3055,8 +3426,8 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} min 
-	 * @param {*} max 
+	 * @param {zen3d.Vector3} min 
+	 * @param {zen3d.Vector3} max 
 	 */
 	function Box3(min, max) {
 	    this.min = (min !== undefined) ? min : new Vector3(+Infinity, +Infinity, +Infinity);
@@ -3065,11 +3436,17 @@
 
 	Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
 
+	    /**
+	     * 
+	     */
 	    set: function(min, max) {
 	        this.min.copy(min);
 	        this.max.copy(max);
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromPoints: function(points) {
 	        this.makeEmpty();
 
@@ -3080,6 +3457,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    makeEmpty: function() {
 	        this.min.x = this.min.y = this.min.z = +Infinity;
 	        this.max.x = this.max.y = this.max.z = -Infinity;
@@ -3087,6 +3467,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    expandByPoint: function(point) {
 	        this.min.min(point);
 	        this.max.max(point);
@@ -3094,6 +3477,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    expandByScalar: function(scalar) {
 	        this.min.addScalar(-scalar);
 	        this.max.addScalar(scalar);
@@ -3101,6 +3487,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromArray: function(array, gap) {
 	        var minX = +Infinity;
 	        var minY = +Infinity;
@@ -3134,20 +3523,32 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    isEmpty: function() {
 	        // this is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
 	        return (this.max.x < this.min.x) || (this.max.y < this.min.y) || (this.max.z < this.min.z);
 	    },
 
+	    /**
+	     * 
+	     */
 	    equals: function(box) {
 	        return box.min.equals(this.min) && box.max.equals(this.max);
 	    },
 
+	    /**
+	     * 
+	     */
 	    getCenter: function(optionalTarget) {
 	        var result = optionalTarget || new Vector3();
 	        return this.isEmpty() ? result.set(0, 0, 0) : result.addVectors(this.min, this.max).multiplyScalar(0.5);
 	    },
 
+	    /**
+	     * @method
+	     */
 	    applyMatrix4: function() {
 	        var points = [
 	            new Vector3(),
@@ -3180,6 +3581,9 @@
 	        };
 	    }(),
 
+	    /**
+	     * 
+	     */
 	    copy: function(box) {
 	        this.min.copy(box.min);
 	        this.max.copy(box.max);
@@ -3192,8 +3596,8 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} center 
-	 * @param {*} radius 
+	 * @param {zen3d.Vector3} [center=Vector3()]
+	 * @param {number} [radius=0] 
 	 */
 	function Sphere(center, radius) {
 	    this.center = (center !== undefined) ? center : new Vector3();
@@ -3202,6 +3606,9 @@
 
 	Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 
+	    /**
+	     * 
+	     */
 	    set: function(center, radius) {
 	        this.center.copy(center);
 	        this.radius = radius;
@@ -3209,6 +3616,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * @method
+	     */
 	    setFromArray: function() {
 	        var box = new Box3();
 	        var point = new Vector3();
@@ -3238,6 +3648,9 @@
 	        }
 	    }(),
 
+	    /**
+	     * 
+	     */
 	    applyMatrix4: function(matrix) {
 	        this.center.applyMatrix4(matrix);
 	        this.radius = this.radius * matrix.getMaxScaleOnAxis();
@@ -3245,6 +3658,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    getBoundingBox: function(optionalTarget) {
 	        var box = optionalTarget || new Box3();
 
@@ -3254,10 +3670,16 @@
 	        return box;
 	    },
 
+	    /**
+	     * 
+	     */
 	    clone: function() {
 	        return new Sphere().copy(this);
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(sphere) {
 	        this.center.copy(sphere.center);
 	        this.radius = sphere.radius;
@@ -3270,8 +3692,8 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} normal 
-	 * @param {*} constant 
+	 * @param {zen3d.Vector3} [normal=Vector3(1, 0, 0)]
+	 * @param {number} [constant=0]
 	 */
 	function Plane(normal, constant) {
 	    this.normal = (normal !== undefined) ? normal : new Vector3(1, 0, 0);
@@ -3280,6 +3702,9 @@
 
 	Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
+	    /**
+	     * 
+	     */
 	    set: function(normal, constant) {
 	        this.normal.copy(normal);
 	        this.constant = constant;
@@ -3287,6 +3712,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    setComponents: function(x, y, z, w) {
 	        this.normal.set(x, y, z);
 	        this.constant = w;
@@ -3294,6 +3722,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    normalize: function() {
 	        // Note: will lead to a divide by zero if the plane is invalid.
 
@@ -3304,22 +3735,34 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    distanceToPoint: function(point) {
 	        return this.normal.dot(point) + this.constant;
 	    },
 
+	    /**
+	     * 
+	     */
 	    coplanarPoint: function ( optionalTarget ) {
 	        var result = optionalTarget || new Vector3();
 
 	        return result.copy( this.normal ).multiplyScalar( - this.constant );
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(plane) {
 	        this.normal.copy(plane.normal);
 	        this.constant = plane.constant;
 	        return this;
 	    },
 
+	    /**
+	     * @method
+	     */
 	    applyMatrix4: function() {
 
 	        var v1 = new Vector3();
@@ -3344,12 +3787,12 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} p0 
-	 * @param {*} p1 
-	 * @param {*} p2 
-	 * @param {*} p3 
-	 * @param {*} p4 
-	 * @param {*} p5 
+	 * @param {zen3d.Plane} p0 
+	 * @param {zen3d.Plane} p1 
+	 * @param {zen3d.Plane} p2 
+	 * @param {zen3d.Plane} p3 
+	 * @param {zen3d.Plane} p4 
+	 * @param {zen3d.Plane} p5 
 	 */
 	function Frustum(p0, p1, p2, p3, p4, p5) {
 	    this.planes = [
@@ -3459,9 +3902,9 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} r 
-	 * @param {*} g 
-	 * @param {*} b 
+	 * @param {number} r 
+	 * @param {number} g 
+	 * @param {number} b 
 	 */
 	function Color3(r, g, b) {
 	    this.r = 0;
@@ -3477,6 +3920,9 @@
 
 	Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
 	    
+	    /**
+	     * 
+	     */
 	    lerpColors: function(c1, c2, ratio) {
 	        this.r = ratio * (c2.r - c1.r) + c1.r;
 	        this.g = ratio * (c2.g - c1.g) + c1.g;
@@ -3487,6 +3933,9 @@
 	        this.b = this.b;
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(v) {
 	        this.r = v.r;
 	        this.g = v.g;
@@ -3495,7 +3944,9 @@
 	        return this;
 	    },
 
-	    // set from hex
+	    /**
+	     * Set from hex.
+	     */
 	    setHex: function(hex) {
 	        hex = Math.floor(hex);
 
@@ -3506,7 +3957,9 @@
 	        return this;
 	    },
 
-	    // set from RGB
+	    /**
+	     * Set from RGB.
+	     */
 	    setRGB: function(r, g, b) {
 	        this.r = r;
 	        this.g = g;
@@ -3515,7 +3968,9 @@
 	        return this;
 	    },
 
-	    // set from HSL
+	    /**
+	     * Set from HSL.
+	     */
 	    setHSL: function() {
 
 	        function euclideanModulo(n, m) {
@@ -3552,6 +4007,9 @@
 
 	    }(),
 
+	    /**
+	     *
+	     */
 	    fromArray: function( array, offset ) {
 	        if ( offset === undefined ) offset = 0;
 
@@ -3562,6 +4020,9 @@
 	        return this;
 	    },
 
+	    /**
+	     *
+	     */
 	    toArray: function ( array, offset ) {
 
 	        if ( array === undefined ) array = [];
@@ -3580,6 +4041,9 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d 
+	 * @param {zen3d.Vector3} [a=]
+	 * @param {zen3d.Vector3} [b=]
+	 * @param {zen3d.Vector3} [c=]
 	 */
 	function Triangle(a, b, c) {
 	    this.a = (a !== undefined) ? a : new Vector3();
@@ -3589,6 +4053,9 @@
 
 	Object.assign(Triangle.prototype, /** @lends zen3d.Triangle.prototype */{
 
+	    /**
+	     * 
+	     */
 	    set: function(a, b, c) {
 	        this.a.copy(a);
 	        this.b.copy(b);
@@ -3599,6 +4066,9 @@
 
 	});
 
+	/**
+	 * @method
+	 */
 	Triangle.normal = function() {
 	    var v0 = new Vector3();
 
@@ -3618,8 +4088,11 @@
 	    };
 	}();
 
-	// static/instance method to calculate barycentric coordinates
-	// based on: http://www.blackpawn.com/texts/pointinpoly/default.html
+	/**
+	 * static/instance method to calculate barycentric coordinates.
+	 * based on: http://www.blackpawn.com/texts/pointinpoly/default.html
+	 * @method
+	 */
 	Triangle.barycoordFromPoint = function() {
 	    var v0 = new Vector3();
 	    var v1 = new Vector3();
@@ -3656,6 +4129,9 @@
 	    };
 	}();
 
+	/**
+	 * @method
+	 */
 	Triangle.containsPoint = function() {
 	    var v1 = new Vector3();
 
@@ -3669,8 +4145,8 @@
 	/**
 	 * @constructor
 	 * @memberof zen3d
-	 * @param {*} posPoints 
-	 * @param {*} ctrlPoints 
+	 * @param {zen3d.Vector2} posPoints 
+	 * @param {zen3d.Vector2} ctrlPoints 
 	 */
 	function Curve(posPoints, ctrlPoints) {
 	    this.posPoints = undefined;
@@ -3683,6 +4159,9 @@
 
 	Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
 
+	    /**
+	     *
+	     */
 	    set: function (posPoints, ctrlPoints) {
 	        this.posPoints = posPoints;
 	        this.ctrlPoints = ctrlPoints;
@@ -3694,6 +4173,9 @@
 	        this.segCount = posPoints.length - 1;
 	    },
 
+	    /**
+	     * @method
+	     */
 	    calc: function () {
 	        var A0 = new Vector2();
 	        var B0 = new Vector2();
@@ -3725,12 +4207,13 @@
 	        }
 	    }(),
 
-	    // TODO: a smarter curve sampler?????
-
-	    // average x sampler
-	    // first x and last x must in result
-	    // samplerNum can't less than 2
-	    // result: [t0, value0, t1, value1, ...]
+	    /**
+	     * Average x sampler.
+	     * First x and last x must in result.
+	     * TODO: a smarter curve sampler?????
+	     * @param {Integer} samplerNum - Can't less than 2.
+	     * @return {Array} - Result: [t0, value0, t1, value1, ...]
+	     */
 	    averageXSampler: function(samplerNum) {
 	        if(samplerNum < 2) {
 	            console.warn("Curve: sampler num less than 2!");
@@ -3755,6 +4238,9 @@
 	        return sampler;
 	    },
 
+	    /**
+	     * 
+	     */
 	    _cubic_bezier: function(p0, p1, p2, p3, t) {
 	        p0 = this._mix(p0, p1, t);
 	        p1 = this._mix(p1, p2, t);
@@ -3768,6 +4254,9 @@
 	        return p0;
 	    },
 
+	    /**
+	     * 
+	     */
 	    _mix: function(value0, value1, t) {
 	        return value0 * (1 - t) + value1 * t;
 	    }
@@ -3783,12 +4272,12 @@
 	 *
 	 * The poles (phi) are at the positive and negative y axis.
 	 * The equator starts at positive z.
+	 * @constructor
+	 * @memberof zen3d 
+	 * @param {number} [radius=1]
+	 * @param {number} [phi=0]
+	 * @param {number} [theta=0]
 	 */
-
-	 /**
-	  * @constructor
-	  * @memberof zen3d 
-	  */
 	function Spherical(radius, phi, theta) {
 	    this.radius = ( radius !== undefined ) ? radius : 1.0;
 	    this.phi = ( phi !== undefined ) ? phi : 0; // up / down towards top and bottom pole
@@ -3797,6 +4286,9 @@
 
 	Object.assign(Spherical.prototype, /** @lends zen3d.Spherical.prototype */{
 
+	    /**
+	     * 
+	     */
 	    set: function(radius, phi, theta) {
 	        this.radius = radius;
 	        this.phi = phi;
@@ -3805,6 +4297,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    copy: function(other) {
 	        this.radius = other.radius;
 	        this.phi = other.phi;
@@ -3813,11 +4308,16 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    clone: function() {
 	        return new this.constructor().copy(this);
 	    },
 
-	    // restrict phi to be betwee EPS and PI-EPS
+	    /**
+	     * Restrict phi to be betwee EPS and PI-EPS.
+	     */
 	    makeSafe: function() {
 	        var EPS = 0.000001;
 	        this.phi = Math.max( EPS, Math.min( Math.PI - EPS, this.phi ) );
@@ -3825,6 +4325,9 @@
 	        return this;
 	    },
 
+	    /**
+	     * 
+	     */
 	    setFromVector3: function(vec3) {
 	        this.radius = vec3.getLength();
 
@@ -8261,8 +8764,11 @@
 	DistanceMaterial.prototype.constructor = DistanceMaterial;
 
 	/**
-	 * WebGL capabilities
+	 * WebGL capabilities.
 	 * @constructor
+	 * @hideconstructor
+	 * @memberof zen3d
+	 * @param {WebGLRenderingContext} gl
 	 */
 	function WebGLCapabilities(gl) {
 
@@ -8270,7 +8776,10 @@
 	    var _extensions = {};
 
 	    /**
-	     * webgl get extension
+	     * Method to get WebGL extensions.
+	     * @memberof zen3d.WebGLCapabilities#
+	     * @param {string} name
+	     * @return {*}
 	     */
 	    function getExtension(name) {
 	    
@@ -8305,9 +8814,11 @@
 	    var targetPrecision = "highp";
 
 	    /**
-	     * get max precision
-	     * @param gl
-	     * @param precision {string} the expect precision, can be: "highp"|"mediump"|"lowp"
+	     * Get max precision.
+	     * @param {WebGLRenderingContext} gl
+	     * @param {string} precision - The expect precision, can be: "highp"|"mediump"|"lowp".
+	     * @return {string}
+	     * @ignore
 	     */
 	    function getMaxPrecision(gl, precision) {
 	        if (precision === 'highp') {
@@ -8328,20 +8839,70 @@
 
 	    var anisotropyExt = getExtension('EXT_texture_filter_anisotropic');
 
-	    return {
+	    return /** @lends zen3d.WebGLCapabilities# */{
+
+	        /**
+	         * @type {string} 
+	         */
 	        version: parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]),
+
+	        /**
+	         * @type {string} 
+	         */
 	        maxPrecision: getMaxPrecision(gl, targetPrecision),
+
+	        /**
+	         * @type {Integer} 
+	         */
 	        maxTextures: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+
+	        /**
+	         * @type {Integer} 
+	         */
 	        maxVertexTextures: gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+
+	        /**
+	         * @type {Integer} 
+	         */
 	        maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+
+	        /**
+	         * @type {Integer} 
+	         */
 	        maxCubemapSize: gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE),
+
+	        /**
+	         * @type {Integer} 
+	         */
 	        maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
+
+	        /**
+	         * @type {boolean} 
+	         */
 	        floatTextures: !!getExtension('OES_texture_float'),
+
+	        /**
+	         * @type {*} 
+	         */
 	        shaderTextureLOD: getExtension('EXT_shader_texture_lod'),
+
+	        /**
+	         * @type {*} 
+	         */
 	        angleInstancedArraysExt: getExtension('ANGLE_instanced_arrays'),
+
+	        /**
+	         * @type {*} 
+	         */
 	        anisotropyExt: anisotropyExt,
+
+	        /**
+	         * @type {Integer} 
+	         */
 	        maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0,
+
 	        getExtension: getExtension
+
 	    }
 
 	}
@@ -9534,9 +10095,7 @@
 
 	}
 
-	/**
-	 * create a shader
-	 **/
+	// create a shader
 	function loadShader(gl, type, source) {
 	    // create a shader object
 	    var shader = gl.createShader(type);
@@ -9553,9 +10112,7 @@
 	    return shader;
 	}
 
-	/**
-	 * create a WebGL program
-	 **/
+	// create a WebGL program
 	function createWebGLProgram(gl, vertexShader, fragmentShader) {
 	    // create a program object
 	    var program = gl.createProgram();
@@ -9573,9 +10130,7 @@
 	    return program;
 	}
 
-	/**
-	 * extract uniforms
-	 */
+	// extract uniforms
 	function extractUniforms(gl, program) {
 	    var uniforms = {};
 
@@ -9591,9 +10146,7 @@
 	    return uniforms;
 	}
 
-	/**
-	 * extract attributes
-	 */
+	// extract attributes
 	function extractAttributes(gl, program) {
 	    var attributes = {};
 
@@ -9609,10 +10162,7 @@
 	    return attributes;
 	}
 
-	/**
-	 * WebGL Program
-	 * @class Program
-	 */
+	// WebGL Program Class
 	function WebGLProgram(gl, vshader, fshader) {
 
 	    this.uuid = generateUUID();
@@ -9894,9 +10444,7 @@
 
 	var programMap = {};
 
-	/**
-	 * generate program code
-	 */
+	// generate program code
 	function generateProgramCode(props, material) {
 	    var code = "";
 	    for (var key in props) {
@@ -9992,9 +10540,7 @@
 
 	}
 
-	/**
-	 * create program
-	 */
+	// create program
 	function createProgram(gl, props, defines) {
 
 	    // create defines
@@ -10227,6 +10773,7 @@
 	 * @param {Material} material
 	 * @param {Object3D} object?
 	 * @param {RenderCache} cache?
+	 * @ignore
 	 */
 	function getProgram(glCore, camera, material, object, cache) {
 	    var gl = glCore.gl;
@@ -10301,6 +10848,11 @@
 	    this.properties = properties;
 
 	    var capabilities = new WebGLCapabilities(gl);
+
+	    /**
+	     * An object containing details about the capabilities of the current RenderingContext.
+	     * @type {zen3d.WebGLCapabilities}
+	     */
 	    this.capabilities = capabilities;
 
 	    var state = new WebGLState(gl, capabilities);
@@ -11307,6 +11859,11 @@
 	RenderTargetCube.prototype = Object.create(RenderTargetBase.prototype);
 	RenderTargetCube.prototype.constructor = RenderTargetCube;
 
+	/**
+	 * environment map pre pass.
+	 * @constructor
+	 * @memberof zen3d
+	 */
 	function EnvironmentMapPass(renderTarget) {
 	    this.camera = new Camera();
 
@@ -11329,6 +11886,11 @@
 	    this.renderTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
 	}
 
+	/**
+	 * Render environment map.
+	 * @param {zen3d.WebGLCore} glCore 
+	 * @param {zen3d.Scene} scene 
+	 */
 	EnvironmentMapPass.prototype.render = function(glCore, scene) {
 	    this.camera.position.copy(this.position);
 
@@ -11350,6 +11912,11 @@
 	    }
 	};
 
+	/**
+	 * Shadow map pre pass.
+	 * @constructor
+	 * @memberof zen3d
+	 */
 	function ShadowMapPass() {
 	    this.depthMaterial = new DepthMaterial();
 	    this.depthMaterial.packToRGBA = true;
@@ -11359,80 +11926,82 @@
 	    this.oldClearColor = new Vector4();
 	}
 
-	Object.assign(ShadowMapPass.prototype, {
-
-	    render: function(glCore, scene) {
+	/**
+	 * Render shadow map.
+	 * @param {zen3d.WebGLCore} glCore 
+	 * @param {zen3d.Scene} scene 
+	 */
+	ShadowMapPass.prototype.render = function(glCore, scene) {
 	    
-	        var gl = glCore.gl;
-	        var state = glCore.state;
+	    var gl = glCore.gl;
+	    var state = glCore.state;
 
-	        // force disable stencil
-	        var useStencil = state.states[gl.STENCIL_TEST];
-	        if(useStencil) {
-	            state.disable(gl.STENCIL_TEST);
-	        }
-
-	        this.oldClearColor.copy(state.currentClearColor);
-	        state.clearColor(1, 1, 1, 1);
-
-	        var lights = scene.lights.shadows;
-	        for (var i = 0; i < lights.length; i++) {
-	            var light = lights[i];
-
-	            var shadow = light.shadow;
-	            var camera = shadow.camera;
-	            var shadowTarget = shadow.renderTarget;
-	            var isPointLight = light.lightType == LIGHT_TYPE.POINT ? true : false;
-	            var faces = isPointLight ? 6 : 1;
-
-	            for (var j = 0; j < faces; j++) {
-
-	                if (isPointLight) {
-	                    shadow.update(light, j);
-	                    shadowTarget.activeCubeFace = j;
-	                } else {
-	                    shadow.update(light);
-	                }
-
-	                var renderList = scene.updateRenderList(camera);
-
-	                glCore.texture.setRenderTarget(shadowTarget);
-
-	                glCore.clear(true, true);
-
-	                var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
-	                material.uniforms = material.uniforms || {};
-	                material.uniforms["nearDistance"] = shadow.cameraNear;
-	                material.uniforms["farDistance"] = shadow.cameraFar;
-
-	                glCore.renderPass(renderList.opaque, camera, {
-	                    getMaterial: function(renderable) {
-	                        // copy draw side
-	                        material.side = renderable.material.side;
-	                        return material;
-	                    },
-	                    ifRender: function(renderable) {
-	                        return renderable.object.castShadow;
-	                    }
-	                });
-
-	                // ignore transparent objects?
-
-	            }
-
-	            // set generateMipmaps false
-	            // this.texture.updateRenderTargetMipmap(shadowTarget);
-
-	        }
-
-	        if(useStencil) {
-	            state.enable(gl.STENCIL_TEST);
-	        }
-
-	        state.clearColor(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
+	    // force disable stencil
+	    var useStencil = state.states[gl.STENCIL_TEST];
+	    if(useStencil) {
+	        state.disable(gl.STENCIL_TEST);
 	    }
 
-	});
+	    this.oldClearColor.copy(state.currentClearColor);
+	    state.clearColor(1, 1, 1, 1);
+
+	    var lights = scene.lights.shadows;
+	    for (var i = 0; i < lights.length; i++) {
+	        var light = lights[i];
+
+	        var shadow = light.shadow;
+	        var camera = shadow.camera;
+	        var shadowTarget = shadow.renderTarget;
+	        var isPointLight = light.lightType == LIGHT_TYPE.POINT ? true : false;
+	        var faces = isPointLight ? 6 : 1;
+
+	        for (var j = 0; j < faces; j++) {
+
+	            if (isPointLight) {
+	                shadow.update(light, j);
+	                shadowTarget.activeCubeFace = j;
+	            } else {
+	                shadow.update(light);
+	            }
+
+	            var renderList = scene.updateRenderList(camera);
+
+	            glCore.texture.setRenderTarget(shadowTarget);
+
+	            glCore.clear(true, true);
+
+	            var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
+	            material.uniforms = material.uniforms || {};
+	            material.uniforms["nearDistance"] = shadow.cameraNear;
+	            material.uniforms["farDistance"] = shadow.cameraFar;
+
+	            glCore.renderPass(renderList.opaque, camera, {
+	                getMaterial: function(renderable) {
+	                    // copy draw side
+	                    material.side = renderable.material.side;
+	                    return material;
+	                },
+	                ifRender: function(renderable) {
+	                    return renderable.object.castShadow;
+	                }
+	            });
+
+	            // ignore transparent objects?
+
+	        }
+
+	        // set generateMipmaps false
+	        // this.texture.updateRenderTargetMipmap(shadowTarget);
+
+	    }
+
+	    if(useStencil) {
+	        state.enable(gl.STENCIL_TEST);
+	    }
+
+	    state.clearColor(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
+	    
+	};
 
 	var helpVector3$1 = new Vector3();
 
@@ -12203,6 +12772,16 @@
 
 	});
 
+	/**
+	 * Shader post pass.
+	 * @constructor
+	 * @memberof zen3d
+	 * @param {Object} shader - Shader object for the pass.
+	 * @param {string} shader.vertexShader -  Vertex shader GLSL code.
+	 * @param {string} shader.fragmentShader - Fragment shader GLSL code.
+	 * @param {Object} [shader.defines={}] - Defines of the shader.
+	 * @param {Object} [shader.uniforms={}] - Uniforms of the shader.
+	 */
 	function ShaderPostPass(shader) {
 	    var scene = new Scene();
 
@@ -12227,13 +12806,13 @@
 	    this.renderConfig = {};
 	}
 
-	Object.assign(ShaderPostPass.prototype, {
-
-	    render: function(glCore) {
-	        glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
-	    }
-
-	});
+	/**
+	 * Render the post pass.
+	 * @param {zen3d.WebGLCore} glCore 
+	 */
+	ShaderPostPass.prototype.render = function(glCore) {
+	    glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
+	};
 
 	/**
 	 * Render Target that render to canvas element.

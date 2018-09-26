@@ -4,8 +4,8 @@ import {Box3} from './Box3.js';
 /**
  * @constructor
  * @memberof zen3d
- * @param {*} center 
- * @param {*} radius 
+ * @param {zen3d.Vector3} [center=Vector3()]
+ * @param {number} [radius=0] 
  */
 function Sphere(center, radius) {
     this.center = (center !== undefined) ? center : new Vector3();
@@ -14,6 +14,9 @@ function Sphere(center, radius) {
 
 Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 
+    /**
+     * 
+     */
     set: function(center, radius) {
         this.center.copy(center);
         this.radius = radius;
@@ -21,6 +24,9 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
         return this;
     },
 
+    /**
+     * @method
+     */
     setFromArray: function() {
         var box = new Box3();
         var point = new Vector3();
@@ -50,6 +56,9 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
         }
     }(),
 
+    /**
+     * 
+     */
     applyMatrix4: function(matrix) {
         this.center.applyMatrix4(matrix);
         this.radius = this.radius * matrix.getMaxScaleOnAxis();
@@ -57,6 +66,9 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     getBoundingBox: function(optionalTarget) {
         var box = optionalTarget || new Box3();
 
@@ -66,10 +78,16 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
         return box;
     },
 
+    /**
+     * 
+     */
     clone: function() {
         return new Sphere().copy(this);
     },
 
+    /**
+     * 
+     */
     copy: function(sphere) {
         this.center.copy(sphere.center);
         this.radius = sphere.radius;

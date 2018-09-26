@@ -13,6 +13,9 @@ function Matrix3() {
 
 Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
+    /**
+     * 
+     */
     identity: function() {
         this.set(
             1, 0, 0,
@@ -23,10 +26,16 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     inverse: function() {
         return this.getInverse(this);
     },
 
+    /**
+     * 
+     */
     getInverse: function ( matrix ) {
 
         var me = matrix.elements,
@@ -80,6 +89,9 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
     },
 
+    /**
+     * 
+     */
     set: function(n11, n12, n13,
         n21, n22, n23,
         n31, n32, n33) {
@@ -100,24 +112,36 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     copy: function(m) {
         this.elements.set(m.elements);
 
         return this;
     },
 
+    /**
+     * 
+     */
     multiply: function(m) {
 
         return this.multiplyMatrices(this, m);
 
     },
 
+    /**
+     * 
+     */
     premultiply: function(m) {
 
         return this.multiplyMatrices(m, this);
 
     },
 
+    /**
+     * 
+     */
     multiplyMatrices: function(a, b) {
 
         var ae = a.elements;
@@ -160,7 +184,9 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
     },
 
-    // transform 2d
+    /**
+     * Transform 2D
+     */
     transform: function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
         var te = this.elements;
 
@@ -193,6 +219,9 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     setUvTransform: function ( tx, ty, sx, sy, rotation, cx, cy ) {
 
         var c = Math.cos( rotation );
@@ -206,6 +235,9 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
     },
 
+    /**
+     * 
+     */
     setFromMatrix4: function ( m ) {
 
         var me = m.elements;

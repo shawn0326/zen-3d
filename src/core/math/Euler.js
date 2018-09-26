@@ -57,6 +57,9 @@ Object.defineProperties(Euler.prototype, {
 
 Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
+    /**
+     * 
+     */
     copyFrom: function(euler) {
         this._x = euler._x;
         this._y = euler._y;
@@ -68,6 +71,9 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     set: function(x, y, z, order) {
         this._x = x || 0;
         this._y = y || 0;
@@ -79,6 +85,9 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     setFromRotationMatrix: function(m, order, update) {
 
         var clamp = function(value, min, max) {
@@ -206,6 +215,9 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
     },
 
+    /**
+     * 
+     */
     setFromQuaternion: function() {
 
         var matrix = new Matrix4();

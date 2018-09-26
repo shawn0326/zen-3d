@@ -3,8 +3,8 @@ import {Vector2} from './Vector2.js';
 /**
  * @constructor
  * @memberof zen3d
- * @param {*} posPoints 
- * @param {*} ctrlPoints 
+ * @param {zen3d.Vector2} posPoints 
+ * @param {zen3d.Vector2} ctrlPoints 
  */
 function Curve(posPoints, ctrlPoints) {
     this.posPoints = undefined;
@@ -17,6 +17,9 @@ function Curve(posPoints, ctrlPoints) {
 
 Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
 
+    /**
+     *
+     */
     set: function (posPoints, ctrlPoints) {
         this.posPoints = posPoints;
         this.ctrlPoints = ctrlPoints;
@@ -28,6 +31,9 @@ Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
         this.segCount = posPoints.length - 1;
     },
 
+    /**
+     * @method
+     */
     calc: function () {
         var A0 = new Vector2();
         var B0 = new Vector2();
@@ -59,12 +65,13 @@ Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
         }
     }(),
 
-    // TODO: a smarter curve sampler?????
-
-    // average x sampler
-    // first x and last x must in result
-    // samplerNum can't less than 2
-    // result: [t0, value0, t1, value1, ...]
+    /**
+     * Average x sampler.
+     * First x and last x must in result.
+     * TODO: a smarter curve sampler?????
+     * @param {Integer} samplerNum - Can't less than 2.
+     * @return {Array} - Result: [t0, value0, t1, value1, ...]
+     */
     averageXSampler: function(samplerNum) {
         if(samplerNum < 2) {
             console.warn("Curve: sampler num less than 2!");
@@ -89,6 +96,9 @@ Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
         return sampler;
     },
 
+    /**
+     * 
+     */
     _cubic_bezier: function(p0, p1, p2, p3, t) {
         p0 = this._mix(p0, p1, t);
         p1 = this._mix(p1, p2, t);
@@ -102,6 +112,9 @@ Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
         return p0;
     },
 
+    /**
+     * 
+     */
     _mix: function(value0, value1, t) {
         return value0 * (1 - t) + value1 * t;
     }

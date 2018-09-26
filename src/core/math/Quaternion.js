@@ -5,6 +5,10 @@ import {Matrix4} from './Matrix4.js';
  * a Quaternion class
  * @constructor
  * @memberof zen3d
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {number} w
  */
 function Quaternion(x, y, z, w) {
     this._x = x || 0;
@@ -54,6 +58,9 @@ Object.defineProperties(Quaternion.prototype, {
 
 Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
+    /**
+     * 
+     */
     normalize: function(thickness) {
         var l = this.length();
 
@@ -80,13 +87,16 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     length: function () {
         return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
     },
 
-    /*
-    * Linearly interpolates between two quaternions.
-    */
+    /**
+     * Linearly interpolates between two quaternions.
+     */
     lerpQuaternions: function(q1, q2, ratio) {
         var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
         var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
@@ -116,10 +126,10 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
         return this;
     },
 
-    /*
-    * Spherically interpolates between two quaternions
-    * providing an interpolation between rotations with constant angle change rate.
-    */
+    /**
+     * Spherically interpolates between two quaternions
+     * providing an interpolation between rotations with constant angle change rate.
+     */
     slerpQuaternions: function(q1, q2, ratio) {
         var w1 = q1._w, x1 = q1._x, y1 = q1._y, z1 = q1._z;
         var w2 = q2._w, x2 = q2._x, y2 = q2._y, z2 = q2._z;
@@ -161,6 +171,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     set: function(x, y, z, w) {
         this._x = x || 0;
         this._y = y || 0;
@@ -172,6 +185,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     copy: function(v) {
         this._x = v.x;
         this._y = v.y;
@@ -183,6 +199,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     setFromEuler: function(euler, update) {
         var c1 = Math.cos( euler._x / 2 );
         var c2 = Math.cos( euler._y / 2 );
@@ -243,6 +262,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
     },
 
+    /**
+     * 
+     */
     setFromRotationMatrix: function ( m ) {
 
         var te = m.elements,
@@ -298,6 +320,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
     },
 
+    /**
+     * @method
+     */
     setFromUnitVectors: function () {
 
         // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
@@ -346,18 +371,27 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
     }(),
 
+    /**
+     * 
+     */
     multiply: function ( q ) {
 
         return this.multiplyQuaternions( this, q );
 
     },
 
+    /**
+     * 
+     */
     premultiply: function ( q ) {
 
         return this.multiplyQuaternions( q, this );
 
     },
 
+    /**
+     * 
+     */
     multiplyQuaternions: function ( a, b ) {
 
         // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
@@ -376,6 +410,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
     },
 
+    /**
+     * 
+     */
     toMatrix4: function(target) {
         if(!target) {
             target = new Matrix4();
@@ -406,6 +443,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
         return target;
     },
 
+    /**
+     * 
+     */
     dot: function ( v ) {
 
         return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
@@ -413,8 +453,8 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * set quaternion from axis angle
-     **/
+     * Set quaternion from axis angle
+     */
     setFromAxisAngle: function(axis, angle) {
 
         // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
@@ -433,6 +473,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     fromArray: function ( array, offset ) {
         if ( offset === undefined ) offset = 0;
 
@@ -458,6 +501,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
 Object.assign( Quaternion, {
 
+    /**
+     * @memberof zen3d.Quaternion
+     */
     slerpFlat: function ( dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ) {
 
 		// fuzz-free, array-based Quaternion SLERP operation

@@ -1,9 +1,9 @@
 /**
  * @constructor
  * @memberof zen3d
- * @param {*} r 
- * @param {*} g 
- * @param {*} b 
+ * @param {number} r 
+ * @param {number} g 
+ * @param {number} b 
  */
 function Color3(r, g, b) {
     this.r = 0;
@@ -19,6 +19,9 @@ function Color3(r, g, b) {
 
 Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
     
+    /**
+     * 
+     */
     lerpColors: function(c1, c2, ratio) {
         this.r = ratio * (c2.r - c1.r) + c1.r;
         this.g = ratio * (c2.g - c1.g) + c1.g;
@@ -29,6 +32,9 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
         this.b = this.b;
     },
 
+    /**
+     * 
+     */
     copy: function(v) {
         this.r = v.r;
         this.g = v.g;
@@ -37,7 +43,9 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
         return this;
     },
 
-    // set from hex
+    /**
+     * Set from hex.
+     */
     setHex: function(hex) {
         hex = Math.floor(hex);
 
@@ -48,7 +56,9 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
         return this;
     },
 
-    // set from RGB
+    /**
+     * Set from RGB.
+     */
     setRGB: function(r, g, b) {
         this.r = r;
         this.g = g;
@@ -57,7 +67,9 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
         return this;
     },
 
-    // set from HSL
+    /**
+     * Set from HSL.
+     */
     setHSL: function() {
 
         function euclideanModulo(n, m) {
@@ -94,6 +106,9 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
 
     }(),
 
+    /**
+     *
+     */
     fromArray: function( array, offset ) {
         if ( offset === undefined ) offset = 0;
 
@@ -104,6 +119,9 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
         return this;
     },
 
+    /**
+     *
+     */
     toArray: function ( array, offset ) {
 
         if ( array === undefined ) array = [];

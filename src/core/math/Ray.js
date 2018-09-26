@@ -3,8 +3,8 @@ import {Vector3} from './Vector3.js';
 /**
  * @constructor
  * @memberof zen3d
- * @param {*} origin 
- * @param {*} direction 
+ * @param {zen3d.Vector3} [origin=] 
+ * @param {zen3d.Vector3} [direction=] 
  */
 function Ray(origin, direction) {
     this.origin = (origin !== undefined) ? origin : new Vector3();
@@ -13,17 +13,26 @@ function Ray(origin, direction) {
 
 Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
 
+    /**
+     * 
+     */
     set: function(origin, direction) {
         this.origin.copy(origin);
         this.direction.copy(direction);
     },
 
+    /**
+     * 
+     */
     at: function(t, optionalTarget) {
         var result = optionalTarget || new Vector3();
 
         return result.copy(this.direction).multiplyScalar(t).add(this.origin);
     },
 
+    /**
+     * @method
+     */
     intersectsSphere: function() {
         var v1 = new Vector3();
 
@@ -60,6 +69,9 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
         };
     }(),
 
+    /**
+     * 
+     */
     intersectsBox: function(box, optionalTarget) {
         var tmin, tmax, tymin, tymax, tzmin, tzmax;
 
@@ -127,6 +139,9 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
         return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
     },
 
+    /**
+     * @method
+     */
     intersectTriangle: function() {
 
         // Compute the offset origin, edges, and normal.
@@ -206,6 +221,9 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
         }
     }(),
 
+    /**
+     * 
+     */
     copy: function(ray) {
         this.origin.copy(ray.origin);
         this.direction.copy(ray.direction);
@@ -213,6 +231,9 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     applyMatrix4: function(matrix4) {
         this.direction.add(this.origin).applyMatrix4(matrix4);
         this.origin.applyMatrix4(matrix4);

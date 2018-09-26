@@ -4,8 +4,8 @@ import {Matrix3} from './Matrix3';
 /**
  * @constructor
  * @memberof zen3d
- * @param {*} normal 
- * @param {*} constant 
+ * @param {zen3d.Vector3} [normal=Vector3(1, 0, 0)]
+ * @param {number} [constant=0]
  */
 function Plane(normal, constant) {
     this.normal = (normal !== undefined) ? normal : new Vector3(1, 0, 0);
@@ -14,6 +14,9 @@ function Plane(normal, constant) {
 
 Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
+    /**
+     * 
+     */
     set: function(normal, constant) {
         this.normal.copy(normal);
         this.constant = constant;
@@ -21,6 +24,9 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     setComponents: function(x, y, z, w) {
         this.normal.set(x, y, z);
         this.constant = w;
@@ -28,6 +34,9 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     normalize: function() {
         // Note: will lead to a divide by zero if the plane is invalid.
 
@@ -38,22 +47,34 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
         return this;
     },
 
+    /**
+     * 
+     */
     distanceToPoint: function(point) {
         return this.normal.dot(point) + this.constant;
     },
 
+    /**
+     * 
+     */
     coplanarPoint: function ( optionalTarget ) {
         var result = optionalTarget || new Vector3();
 
         return result.copy( this.normal ).multiplyScalar( - this.constant );
     },
 
+    /**
+     * 
+     */
     copy: function(plane) {
         this.normal.copy(plane.normal);
         this.constant = plane.constant;
         return this;
     },
 
+    /**
+     * @method
+     */
     applyMatrix4: function() {
 
         var v1 = new Vector3();
