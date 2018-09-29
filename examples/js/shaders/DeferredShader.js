@@ -204,7 +204,7 @@
 
                 "void main() {",
                     "#if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)",
-                        "vec4 texelColor = texture2D( texture, v_Uv );",
+                        "vec4 texelColor = texture2D( diffuseMap, v_Uv );",
 
                         "float alpha = texelColor.a * u_Opacity;",
                         "if(alpha < ALPHATEST) discard;",
@@ -728,7 +728,7 @@
 
                 "void main() {",
                     "#if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)",
-                        "vec4 texelColor = texture2D( texture, v_Uv );",
+                        "vec4 texelColor = texture2D( diffuseMap, v_Uv );",
 
                         "float alpha = texelColor.a * u_Opacity;",
                         "if(alpha < ALPHATEST) discard;",

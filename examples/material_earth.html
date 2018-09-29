@@ -51,7 +51,7 @@
 				'void main() {',
 					'vec3 transformed = vec3(a_Position);',
 					'vec3 objectNormal = vec3(a_Normal);',
-					'v_Normal = (transpose(inverse(u_View * u_Model)) * vec4(objectNormal, 1.0)).xyz;',
+					'v_Normal = (transposeMat4(inverseMat4(u_View * u_Model)) * vec4(objectNormal, 1.0)).xyz;',
 					'gl_Position = u_Projection * u_View * u_Model * vec4(transformed, 1.0);',
 				'}'
 			].join('\n'),

@@ -14,4 +14,4 @@ struct PointLight
     float shadowCameraNear;
     float shadowCameraFar;
 };
-uniform PointLight u_Point[USE_POINT_LIGHT];
+uniform PointLight u_Point[NUM_POINT_LIGHTS];

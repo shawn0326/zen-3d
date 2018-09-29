@@ -1,4 +1,4 @@
-mat4 transpose(mat4 inMatrix) {
+mat4 transposeMat4(mat4 inMatrix) {
     vec4 i0 = inMatrix[0];
     vec4 i1 = inMatrix[1];
     vec4 i2 = inMatrix[2];

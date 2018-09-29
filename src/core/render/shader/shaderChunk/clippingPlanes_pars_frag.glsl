@@ -1,3 +1,3 @@
-#ifdef NUM_CLIPPING_PLANES
+#if NUM_CLIPPING_PLANES > 0
     uniform vec4 clippingPlanes[ NUM_CLIPPING_PLANES ];
 #endif

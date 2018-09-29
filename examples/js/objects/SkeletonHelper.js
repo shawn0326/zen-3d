@@ -56,13 +56,13 @@
         material.depthWrite = false;
         material.transparent = true;
 
-        zen3d.Line.call(this, geometry, material);
+        zen3d.Mesh.call(this, geometry, material);
 
         this.root = object;
         this.bones = bones;
     }
 
-    SkeletonHelper.prototype = Object.create( zen3d.Line.prototype );
+    SkeletonHelper.prototype = Object.create( zen3d.Mesh.prototype );
     SkeletonHelper.prototype.constructor = SkeletonHelper;
 
     SkeletonHelper.prototype.updateMatrix = function () {
@@ -109,7 +109,7 @@
     
             geometry.getAttribute( 'a_Position' ).version++;
     
-            zen3d.Line.prototype.updateMatrix.call( this );
+            zen3d.Mesh.prototype.updateMatrix.call( this );
     
         };
     

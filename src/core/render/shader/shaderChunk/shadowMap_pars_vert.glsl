@@ -1,22 +1,22 @@
 #ifdef USE_SHADOW
 
-    #ifdef USE_DIRECT_LIGHT
+    #if NUM_DIR_LIGHTS > 0
 
-        uniform mat4 directionalShadowMatrix[ USE_DIRECT_LIGHT ];
-        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];
+        uniform mat4 directionalShadowMatrix[ NUM_DIR_LIGHTS ];
+        varying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHTS ];
 
     #endif
 
-    #ifdef USE_POINT_LIGHT
+    #if NUM_POINT_LIGHTS > 0
 
         // nothing
 
     #endif
 
-    #ifdef USE_SPOT_LIGHT
+    #if NUM_SPOT_LIGHTS > 0
 
-        uniform mat4 spotShadowMatrix[ USE_SPOT_LIGHT ];
-        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];
+        uniform mat4 spotShadowMatrix[ NUM_SPOT_LIGHTS ];
+        varying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHTS ];
 
     #endif
 

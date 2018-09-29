@@ -1,13 +1,13 @@
 #ifdef USE_AMBIENT_LIGHT
     #include <ambientlight_pars_frag>
 #endif
-#ifdef USE_DIRECT_LIGHT
+#if NUM_DIR_LIGHTS > 0
     #include <directlight_pars_frag>
 #endif
-#ifdef USE_POINT_LIGHT
+#if NUM_POINT_LIGHTS > 0
     #include <pointlight_pars_frag>
 #endif
-#ifdef USE_SPOT_LIGHT
+#if NUM_SPOT_LIGHTS > 0
     #include <spotlight_pars_frag>
 #endif
 

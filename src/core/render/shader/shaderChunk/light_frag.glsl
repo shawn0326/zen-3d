@@ -45,95 +45,30 @@
         vec3 V = normalize( u_CameraPosition - v_modelPos );
     #endif
 
-    #ifdef USE_DIRECT_LIGHT
-    for(int i = 0; i < USE_DIRECT_LIGHT; i++) {
-        L = -u_Directional[i].direction;
-        light = u_Directional[i].color * u_Directional[i].intensity;
-        L = normalize(L);
+    float dotNL;
+    vec4 irradiance;
+    vec4 reflectLight;
 
-        float dotNL = saturate( dot(N, L) );
-        vec4 irradiance = light * dotNL;
+    #if NUM_DIR_LIGHTS > 0
 
-        #ifdef USE_SHADOW
-            irradiance *= bool( u_Directional[i].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[i].shadowBias, u_Directional[i].shadowRadius, u_Directional[i].shadowMapSize ) : 1.0;
-        #endif
+        #pragma unroll_loop
+        for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+            L = -u_Directional[ i ].direction;
+            light = u_Directional[ i ].color * u_Directional[ i ].intensity;
+            L = normalize(L);
 
-        #ifdef USE_PBR
-            irradiance *= PI;
-        #endif
+            dotNL = saturate( dot(N, L) );
+            irradiance = light * dotNL;
 
-        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
-
-        #ifdef USE_PHONG
-            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;
-        #endif
-
-        #ifdef USE_PBR
-            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
-        #endif
-
-        totalReflect += reflectLight;
-    }
-    #endif
-
-    #ifdef USE_POINT_LIGHT
-    for(int i = 0; i < USE_POINT_LIGHT; i++) {
-        L = u_Point[i].position - v_modelPos;
-        float dist = pow(clamp(1. - length(L) / u_Point[i].distance, 0.0, 1.0), u_Point[i].decay);
-        light = u_Point[i].color * u_Point[i].intensity * dist;
-        L = normalize(L);
-
-        float dotNL = saturate( dot(N, L) );
-        vec4 irradiance = light * dotNL;
-
-        #ifdef USE_PBR
-            irradiance *= PI;
-        #endif
-
-        #ifdef USE_SHADOW
-            vec3 worldV = v_modelPos - u_Point[i].position;
-            irradiance *= bool( u_Point[i].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[i].shadowBias, u_Point[i].shadowRadius, u_Point[i].shadowMapSize, u_Point[i].shadowCameraNear, u_Point[i].shadowCameraFar ) : 1.0;
-        #endif
-
-        vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
-
-        #ifdef USE_PHONG
-            reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;
-        #endif
-
-        #ifdef USE_PBR
-            reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
-        #endif
-
-        totalReflect += reflectLight;
-    }
-    #endif
-
-    #ifdef USE_SPOT_LIGHT
-    for(int i = 0; i < USE_SPOT_LIGHT; i++) {
-        L = u_Spot[i].position - v_modelPos;
-        float lightDistance = length(L);
-        L = normalize(L);
-        float angleCos = dot( L, -normalize(u_Spot[i].direction) );
-
-        if( all( bvec2(angleCos > u_Spot[i].coneCos, lightDistance < u_Spot[i].distance) ) ) {
-
-            float spotEffect = smoothstep( u_Spot[i].coneCos, u_Spot[i].penumbraCos, angleCos );
-            float dist = pow(clamp(1. - lightDistance / u_Spot[i].distance, 0.0, 1.0), u_Spot[i].decay);
-            light = u_Spot[i].color * u_Spot[i].intensity * dist * spotEffect;
-
-            float dotNL = saturate( dot(N, L) );
-            vec4 irradiance = light * dotNL;
+            #ifdef USE_SHADOW
+                irradiance *= bool( u_Directional[ i ].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[ i ].shadowBias, u_Directional[ i ].shadowRadius, u_Directional[ i ].shadowMapSize ) : 1.0;
+            #endif
 
             #ifdef USE_PBR
                 irradiance *= PI;
             #endif
 
-            #ifdef USE_SHADOW
-                irradiance *= bool( u_Spot[i].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[i].shadowBias, u_Spot[i].shadowRadius, u_Spot[i].shadowMapSize ) : 1.0;
-            #endif
-
-            vec4 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
+            reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
 
             #ifdef USE_PHONG
                 reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;
@@ -146,7 +81,91 @@
             totalReflect += reflectLight;
         }
 
-    }
+    #endif
+
+    #if NUM_POINT_LIGHTS > 0
+        vec3 worldV;
+        float dist;
+
+        #pragma unroll_loop
+        for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+            L = u_Point[ i ].position - v_modelPos;
+            dist = pow(clamp(1. - length(L) / u_Point[ i ].distance, 0.0, 1.0), u_Point[ i ].decay);
+            light = u_Point[ i ].color * u_Point[ i ].intensity * dist;
+            L = normalize(L);
+
+            dotNL = saturate( dot(N, L) );
+            irradiance = light * dotNL;
+
+            #ifdef USE_PBR
+                irradiance *= PI;
+            #endif
+
+            #ifdef USE_SHADOW
+                worldV = v_modelPos - u_Point[ i ].position;
+                irradiance *= bool( u_Point[ i ].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[ i ].shadowBias, u_Point[ i ].shadowRadius, u_Point[ i ].shadowMapSize, u_Point[ i ].shadowCameraNear, u_Point[ i ].shadowCameraFar ) : 1.0;
+            #endif
+
+            reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
+
+            #ifdef USE_PHONG
+                reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;
+            #endif
+
+            #ifdef USE_PBR
+                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
+            #endif
+
+            totalReflect += reflectLight;
+        }
+
+    #endif
+
+    #if NUM_SPOT_LIGHTS > 0
+        float lightDistance;
+        float angleCos;
+        float spotEffect;
+        float dist;
+
+        #pragma unroll_loop
+        for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
+            L = u_Spot[ i ].position - v_modelPos;
+            lightDistance = length(L);
+            L = normalize(L);
+            angleCos = dot( L, -normalize(u_Spot[ i ].direction) );
+
+            if( all( bvec2(angleCos > u_Spot[ i ].coneCos, lightDistance < u_Spot[ i ].distance) ) ) {
+
+                spotEffect = smoothstep( u_Spot[ i ].coneCos, u_Spot[ i ].penumbraCos, angleCos );
+                dist = pow(clamp(1. - lightDistance / u_Spot[ i ].distance, 0.0, 1.0), u_Spot[ i ].decay);
+                light = u_Spot[ i ].color * u_Spot[ i ].intensity * dist * spotEffect;
+
+                dotNL = saturate( dot(N, L) );
+                irradiance = light * dotNL;
+
+                #ifdef USE_PBR
+                    irradiance *= PI;
+                #endif
+
+                #ifdef USE_SHADOW
+                    irradiance *= bool( u_Spot[ i ].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[ i ].shadowBias, u_Spot[ i ].shadowRadius, u_Spot[ i ].shadowMapSize ) : 1.0;
+                #endif
+
+                reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
+
+                #ifdef USE_PHONG
+                    reflectLight += irradiance * BRDF_Specular_BlinnPhong(specularColor, N, L, V, shininess) * specularStrength;
+                #endif
+
+                #ifdef USE_PBR
+                    reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
+                #endif
+
+                totalReflect += reflectLight;
+            }
+
+        }
+
     #endif
 
     vec4 indirectDiffuse = indirectIrradiance * BRDF_Diffuse_Lambert(diffuseColor);

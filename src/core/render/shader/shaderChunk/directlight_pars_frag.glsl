@@ -9,4 +9,4 @@ struct DirectLight
     float shadowRadius;
     vec2 shadowMapSize;
 };
-uniform DirectLight u_Directional[USE_DIRECT_LIGHT];
+uniform DirectLight u_Directional[NUM_DIR_LIGHTS];

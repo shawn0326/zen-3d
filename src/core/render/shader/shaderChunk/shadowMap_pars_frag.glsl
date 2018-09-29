@@ -1,22 +1,22 @@
 #ifdef USE_SHADOW
 
-    #ifdef USE_DIRECT_LIGHT
+    #if NUM_DIR_LIGHTS > 0
 
-        uniform sampler2D directionalShadowMap[ USE_DIRECT_LIGHT ];
-        varying vec4 vDirectionalShadowCoord[ USE_DIRECT_LIGHT ];
-
-    #endif
-
-    #ifdef USE_POINT_LIGHT
-
-        uniform samplerCube pointShadowMap[ USE_POINT_LIGHT ];
+        uniform sampler2D directionalShadowMap[ NUM_DIR_LIGHTS ];
+        varying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHTS ];
 
     #endif
 
-    #ifdef USE_SPOT_LIGHT
+    #if NUM_POINT_LIGHTS > 0
 
-        uniform sampler2D spotShadowMap[ USE_SPOT_LIGHT ];
-        varying vec4 vSpotShadowCoord[ USE_SPOT_LIGHT ];
+        uniform samplerCube pointShadowMap[ NUM_POINT_LIGHTS ];
+
+    #endif
+
+    #if NUM_SPOT_LIGHTS > 0
+
+        uniform sampler2D spotShadowMap[ NUM_SPOT_LIGHTS ];
+        varying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHTS ];
 
     #endif
 

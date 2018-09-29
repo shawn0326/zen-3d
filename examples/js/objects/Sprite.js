@@ -85,7 +85,7 @@
 
             "#ifdef USE_DIFFUSE_MAP",
 
-                "uniform sampler2D texture;",
+                "uniform sampler2D diffuseMap;",
                 "varying vec2 vUV;",
 
             "#endif",
@@ -101,7 +101,7 @@
 
                 "#ifdef USE_DIFFUSE_MAP",
 
-                    "outColor *= texture2D( texture, vUV );",
+                    "outColor *= texture2D( diffuseMap, vUV );",
 
                 "#endif",
 

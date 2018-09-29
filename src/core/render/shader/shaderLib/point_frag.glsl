@@ -4,7 +4,7 @@
 void main() {
     #include <begin_frag>
     #ifdef USE_DIFFUSE_MAP
-        outColor *= texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));
+        outColor *= texture2D(diffuseMap, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));
     #endif
     #include <end_frag>
     #include <encodings_frag>

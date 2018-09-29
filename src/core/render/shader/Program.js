@@ -119,9 +119,6 @@ function createProgram(gl, props, defines) {
         props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
         props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
 
-        (props.pointLightNum > 0) ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-        (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
-        (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
         (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
         (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
         (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
@@ -135,7 +132,6 @@ function createProgram(gl, props, defines) {
         props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
         props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
         props.flipSided ? '#define FLIP_SIDED' : '',
-        props.numClippingPlanes > 0 ? ('#define NUM_CLIPPING_PLANES ' + props.numClippingPlanes) : '',
 
         props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
         props.useEnvMap ? '#define USE_ENV_MAP' : '',
@@ -151,8 +147,8 @@ function createProgram(gl, props, defines) {
 
     var prefixFragment = [
 
-        '#extension GL_OES_standard_derivatives : enable',
-        (props.useShaderTextureLOD && props.useEnvMap) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
+        (props.version > 1) ? '' : '#extension GL_OES_standard_derivatives : enable',
+        (props.useShaderTextureLOD && props.useEnvMap && props.version < 2) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
 
         'precision ' + props.precision + ' float;',
         'precision ' + props.precision + ' int;',
@@ -174,9 +170,6 @@ function createProgram(gl, props, defines) {
         props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
         props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
 
-        (props.pointLightNum) > 0 ? ('#define USE_POINT_LIGHT ' + props.pointLightNum) : '',
-        (props.spotLightNum > 0) ? ('#define USE_SPOT_LIGHT ' + props.spotLightNum) : '',
-        (props.directLightNum) > 0 ? ('#define USE_DIRECT_LIGHT ' + props.directLightNum) : '',
         (props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
         (props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
         (props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
@@ -192,7 +185,6 @@ function createProgram(gl, props, defines) {
         props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
         props.doubleSided ? '#define DOUBLE_SIDED' : '',
         (props.envMap && props.useShaderTextureLOD) ? '#define TEXTURE_LOD_EXT' : '',
-        props.numClippingPlanes > 0 ? ('#define NUM_CLIPPING_PLANES ' + props.numClippingPlanes) : '',
 
         props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
         props.useEnvMap ? '#define USE_ENV_MAP' : '',
@@ -232,6 +224,42 @@ function createProgram(gl, props, defines) {
     vshader = parseIncludes(vshader);
     fshader = parseIncludes(fshader);
 
+    vshader = replaceLightNums(vshader, props);
+    fshader = replaceLightNums(fshader, props);
+
+    vshader = replaceClippingPlaneNums(vshader, props);
+    fshader = replaceClippingPlaneNums(fshader, props);
+
+    vshader = unrollLoops(vshader);
+    fshader = unrollLoops(fshader);
+
+    // support glsl version 300 es for webgl ^2.0
+    if (props.version > 1) {
+        vshader = [
+            '#version 300 es\n',
+			'#define attribute in',
+			'#define varying out',
+			'#define texture2D texture'
+        ].join( '\n' ) + '\n' + vshader;
+
+        fshader = [
+            '#version 300 es\n',
+			'#define varying in',
+			'out highp vec4 pc_fragColor;',
+			'#define gl_FragColor pc_fragColor',
+			'#define gl_FragDepthEXT gl_FragDepth',
+			'#define texture2D texture',
+			'#define textureCube texture',
+			'#define texture2DProj textureProj',
+			'#define texture2DLodEXT textureLod',
+			'#define texture2DProjLodEXT textureProjLod',
+			'#define textureCubeLodEXT textureLod',
+			'#define texture2DGradEXT textureGrad',
+			'#define texture2DProjGradEXT textureProjGrad',
+			'#define textureCubeGradEXT textureGrad'
+        ].join( '\n' ) + '\n' + fshader;
+    }
+
     return new WebGLProgram(gl, vshader, fshader);
 }
 
@@ -257,14 +285,53 @@ var parseIncludes = function(string) {
 
 }
 
+function replaceLightNums( string, parameters ) {
+
+	return string
+		.replace( /NUM_DIR_LIGHTS/g, parameters.directLightNum )
+		.replace( /NUM_SPOT_LIGHTS/g, parameters.spotLightNum )
+		.replace( /NUM_POINT_LIGHTS/g, parameters.pointLightNum );
+
+}
+
+function replaceClippingPlaneNums( string, parameters ) {
+
+	return string
+		.replace( /NUM_CLIPPING_PLANES/g, parameters.numClippingPlanes );
+
+}
+
+function unrollLoops( string ) {
+
+	var pattern = /#pragma unroll_loop[\s]+?for \( int i \= (\d+)\; i < (\d+)\; i \+\+ \) \{([\s\S]+?)(?=\})\}/g;
+
+	function replace( match, start, end, snippet ) {
+
+		var unroll = '';
+
+		for ( var i = parseInt( start ); i < parseInt( end ); i ++ ) {
+
+			unroll += snippet.replace( /\[ i \]/g, '[ ' + i + ' ]' );
+
+		}
+
+		return unroll;
+
+	}
+
+	return string.replace( pattern, replace );
+
+}
+
 function generateProps(glCore, camera, material, object, lights, fog, clippingPlanes) {
     var props = {}; // cache this props?
 
     props.materialType = material.type;
     // capabilities
     var capabilities = glCore.capabilities;
+    props.version = capabilities.version;
     props.precision = capabilities.maxPrecision;
-    props.useShaderTextureLOD = !!capabilities.shaderTextureLOD;
+    props.useShaderTextureLOD = !!capabilities.shaderTextureLOD || capabilities.version > 1;
     // maps
     props.useDiffuseMap = !!material.diffuseMap;
     props.useNormalMap = !!material.normalMap;

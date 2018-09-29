@@ -14,4 +14,4 @@ struct SpotLight
     float shadowRadius;
     vec2 shadowMapSize;
 };
-uniform SpotLight u_Spot[USE_SPOT_LIGHT];
+uniform SpotLight u_Spot[NUM_SPOT_LIGHTS];

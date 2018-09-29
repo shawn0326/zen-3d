@@ -245,7 +245,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         uniform.setValue(material.opacity);
                         break;
     
-                    case "texture":
+                    case "diffuseMap":
                         var slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.diffuseMap, slot);
                         uniform.setValue(slot);
