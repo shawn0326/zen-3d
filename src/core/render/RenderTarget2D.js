@@ -26,6 +26,20 @@ function RenderTarget2D(width, height) {
      */
     this.depthTexture = null;
 
+    /**
+     * If set true, attach a depth render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.depthBuffer = true;
+
+    /**
+     * If set true, attach a stencil render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.stencilBuffer = true;
+
 }
 
 RenderTarget2D.prototype = Object.create(RenderTargetBase.prototype);

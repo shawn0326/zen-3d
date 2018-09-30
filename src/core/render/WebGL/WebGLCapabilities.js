@@ -129,6 +129,11 @@ function WebGLCapabilities(gl) {
         /**
          * @type {*} 
          */
+        drawBuffersExt: getExtension('WEBGL_draw_buffers'),
+
+        /**
+         * @type {*} 
+         */
         anisotropyExt: anisotropyExt,
 
         /**

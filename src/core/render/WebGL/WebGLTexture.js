@@ -451,7 +451,7 @@ Object.assign(WebGLTexture.prototype, {
         var gl = this.gl;
         var state = this.state;
     
-        if (!target.texture) { // back RenderTarget
+        if (!!target.view) { // back RenderTarget
             if (state.currentRenderTarget === target) {
     
             } else {

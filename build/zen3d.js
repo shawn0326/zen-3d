@@ -517,6 +517,59 @@
 	};
 
 	/**
+	 * Enum for ATTACHMENT
+	 * @name zen3d.ATTACHMENT
+	 * @readonly
+	 * @enum {number}
+	 */
+	var ATTACHMENT = {
+	    COLOR_ATTACHMENT0: 0x8CE0,
+	    COLOR_ATTACHMENT1: 0x8CE1,
+	    COLOR_ATTACHMENT2: 0x8CE2,
+	    COLOR_ATTACHMENT3: 0x8CE3,
+	    COLOR_ATTACHMENT4: 0x8CE4,
+	    COLOR_ATTACHMENT5: 0x8CE5,
+	    COLOR_ATTACHMENT6: 0x8CE6,
+	    COLOR_ATTACHMENT7: 0x8CE7,
+	    COLOR_ATTACHMENT8: 0x8CE8,
+	    COLOR_ATTACHMENT9: 0x8CE9,
+	    COLOR_ATTACHMENT10: 0x8CE10,
+	    COLOR_ATTACHMENT11: 0x8CE11,
+	    COLOR_ATTACHMENT12: 0x8CE12,
+	    COLOR_ATTACHMENT13: 0x8CE13,
+	    COLOR_ATTACHMENT14: 0x8CE14,
+	    COLOR_ATTACHMENT15: 0x8CE15,
+	    DEPTH_ATTACHMENT: 0x8D00,
+	    STENCIL_ATTACHMENT: 0x8D20,
+	    DEPTH_STENCIL_ATTACHMENT: 0x821A
+	};
+
+	/**
+	 * Enum for DRAW_BUFFER
+	 * @name zen3d.DRAW_BUFFER
+	 * @readonly
+	 * @enum {number}
+	 */
+	var DRAW_BUFFER = {
+	    DRAW_BUFFER0: 0x8825,
+	    DRAW_BUFFER1: 0x8826,
+	    DRAW_BUFFER2: 0x8827,
+	    DRAW_BUFFER3: 0x8828,
+	    DRAW_BUFFER4: 0x8829,
+	    DRAW_BUFFER5: 0x882A,
+	    DRAW_BUFFER6: 0x882B,
+	    DRAW_BUFFER7: 0x882C,
+	    DRAW_BUFFER8: 0x882D,
+	    DRAW_BUFFER9: 0x882E,
+	    DRAW_BUFFER10: 0x882F,
+	    DRAW_BUFFER11: 0x8830,
+	    DRAW_BUFFER12: 0x8831,
+	    DRAW_BUFFER13: 0x8832,
+	    DRAW_BUFFER14: 0x8833,
+	    DRAW_BUFFER15: 0x8834
+	};
+
+	/**
 	 * JavaScript events for custom objects.
 	 * @memberof zen3d
 	 * @constructor
@@ -8890,6 +8943,11 @@
 	        /**
 	         * @type {*} 
 	         */
+	        drawBuffersExt: getExtension('WEBGL_draw_buffers'),
+
+	        /**
+	         * @type {*} 
+	         */
 	        anisotropyExt: anisotropyExt,
 
 	        /**
@@ -9728,7 +9786,7 @@
 	        var gl = this.gl;
 	        var state = this.state;
 	    
-	        if (!target.texture) { // back RenderTarget
+	        if (!!target.view) { // back RenderTarget
 	            if (state.currentRenderTarget === target) ; else {
 	                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	    
@@ -11870,19 +11928,6 @@
 	     */
 	    this.height = height;
 
-	    /**
-	     * If set true, attach a depth render buffer to the redner target.
-	     * @type {boolean}
-	     * @default true
-	     */
-	    this.depthBuffer = true;
-
-	    /**
-	     * If set true, attach a stencil render buffer to the redner target.
-	     * @type {boolean}
-	     * @default true
-	     */
-	    this.stencilBuffer = true;
 	}
 
 	RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{
@@ -11915,16 +11960,60 @@
 	});
 
 	/**
-	 * Render Target that render to cube texture.
+	 * Render Target that render to 2d texture.
 	 * @constructor
 	 * @memberof zen3d
 	 * @extends zen3d.RenderTargetBase
 	 * @param {number} width - The width of the render target.
 	 * @param {number} height - The height of the render target.
 	 */
-	function RenderTargetCube(width, height) {
+	function RenderTarget2D(width, height) {
 
 	    RenderTargetBase.call(this, width, height);
+
+	    /**
+	     * The texture attached to COLOR_ATTACHMENT0.
+	     * @type {zen3d.Texture2D}
+	     * @default Texture2D()
+	     */
+	    this.texture = new Texture2D();
+
+	    /**
+	     * The texture attached to DEPTH_ATTACHMENT.
+	     * @type {zen3d.TextureDepth}
+	     */
+	    this.depthTexture = null;
+
+	    /**
+	     * If set true, attach a depth render buffer to the redner target.
+	     * @type {boolean}
+	     * @default true
+	     */
+	    this.depthBuffer = true;
+
+	    /**
+	     * If set true, attach a stencil render buffer to the redner target.
+	     * @type {boolean}
+	     * @default true
+	     */
+	    this.stencilBuffer = true;
+
+	}
+
+	RenderTarget2D.prototype = Object.create(RenderTargetBase.prototype);
+	RenderTarget2D.prototype.constructor = RenderTarget2D;
+
+	/**
+	 * Render Target that render to cube texture.
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.RenderTarget2D
+	 * @param {number} width - The width of the render target.
+	 * @param {number} height - The height of the render target.
+	 */
+	function RenderTargetCube(width, height) {
+
+	    RenderTarget2D.call(this, width, height);
 
 	    /**
 	     * The cube texture attached to COLOR_ATTACHMENT0.
@@ -11941,7 +12030,7 @@
 	    this.activeCubeFace = 0;
 	}
 
-	RenderTargetCube.prototype = Object.create(RenderTargetBase.prototype);
+	RenderTargetCube.prototype = Object.create(RenderTarget2D.prototype);
 	RenderTargetCube.prototype.constructor = RenderTargetCube;
 
 	/**
@@ -13131,36 +13220,6 @@
 	};
 
 	/**
-	 * Render Target that render to 2d texture.
-	 * @constructor
-	 * @memberof zen3d
-	 * @extends zen3d.RenderTargetBase
-	 * @param {number} width - The width of the render target.
-	 * @param {number} height - The height of the render target.
-	 */
-	function RenderTarget2D(width, height) {
-
-	    RenderTargetBase.call(this, width, height);
-
-	    /**
-	     * The texture attached to COLOR_ATTACHMENT0.
-	     * @type {zen3d.Texture2D}
-	     * @default Texture2D()
-	     */
-	    this.texture = new Texture2D();
-
-	    /**
-	     * The texture attached to DEPTH_ATTACHMENT.
-	     * @type {zen3d.TextureDepth}
-	     */
-	    this.depthTexture = null;
-
-	}
-
-	RenderTarget2D.prototype = Object.create(RenderTargetBase.prototype);
-	RenderTarget2D.prototype.constructor = RenderTarget2D;
-
-	/**
 	 * Linear fog.
 	 * @memberof zen3d
 	 * @constructor
@@ -14030,6 +14089,8 @@
 	exports.TEXEL_ENCODING_TYPE = TEXEL_ENCODING_TYPE;
 	exports.ENVMAP_COMBINE_TYPE = ENVMAP_COMBINE_TYPE;
 	exports.DRAW_MODE = DRAW_MODE;
+	exports.ATTACHMENT = ATTACHMENT;
+	exports.DRAW_BUFFER = DRAW_BUFFER;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
