@@ -105,11 +105,7 @@
                         return normalGlossinessMaterial;
                     },
                     ifRender: function(renderable) {
-                        // todo support more object type
-                        if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
-                            return false;
-                        }
-                        return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
+                        return !!renderable.geometry.getAttribute("a_Normal");
                     }
                 });
 
@@ -147,11 +143,7 @@
                         return albedoMetalnessMaterial;
                     },
                     ifRender: function(renderable) {
-                        // todo support more object type
-                        if (renderable.object.material.type == zen3d.MATERIAL_TYPE.LINE) {
-                            return false;
-                        }
-                        return renderable.object.type == zen3d.OBJECT_TYPE.MESH || renderable.object.type == zen3d.OBJECT_TYPE.SKINNED_MESH;
+                        return !!renderable.geometry.getAttribute("a_Normal");
                     }
                 });
 

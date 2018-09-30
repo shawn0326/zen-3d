@@ -494,7 +494,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var groupCount = group ? group.count : Infinity;
         drawStart = Math.max(drawStart, groupStart);
         drawCount = Math.min(drawCount, groupCount);
-    
+
+        var isWebGL2 = this.capabilities.version === 2;
         var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
     
         if(useIndexBuffer) {
@@ -503,7 +504,13 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             var type = indexProperty.type;
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+                    if(isWebGL2) {
+                        gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+                    } else if (angleInstancedArraysExt) {
+                        angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+                    } else {
+                        console.warn("no support instanced draw.");
+                    }
                 }
             } else {
                 gl.drawElements(material.drawMode, drawCount, type, drawStart * bytesPerElement);
@@ -511,7 +518,13 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         } else {
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    angleInstancedArraysExt.drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+                    if(isWebGL2) {
+                        gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+                    } else if (angleInstancedArraysExt) {
+                        angleInstancedArraysExt.drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+                    } else {
+                        console.warn("no support instanced draw.");
+                    }
                 }
             } else {
                 gl.drawArrays(material.drawMode, drawStart, drawCount);
@@ -722,6 +735,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var attributes = program.attributes;
         var properties = this.properties;
         var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
+        var isWebGL2 = this.capabilities.version === 2;
         for (var key in attributes) {
             var programAttribute = attributes[key];
             var geometryAttribute = geometry.getAttribute(key);
@@ -753,10 +767,14 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(data && data.isInstancedInterleavedBuffer) {
-                        if(!angleInstancedArraysExt) {
-                            console.warn("ANGLE_instanced_arrays not supported");
+                        if (isWebGL2) {
+                            gl.vertexAttribDivisor(programAttribute.location, data.meshPerAttribute);
+                        } else if (angleInstancedArraysExt) {
+                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        } else {
+                            console.warn("vertexAttribDivisor not supported");
                         }
-                        angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        
                         if ( geometry.maxInstancedCount === undefined ) {
                             geometry.maxInstancedCount = data.meshPerAttribute * data.count;
                         }
@@ -768,10 +786,14 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
-                        if(!angleInstancedArraysExt) {
-                            console.warn("ANGLE_instanced_arrays not supported");
+                        if (isWebGL2) {
+                            gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
+                        } else if (angleInstancedArraysExt) {
+                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
+                        } else {
+                            console.warn("vertexAttribDivisor not supported");
                         }
-                        angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
+                        
                         if ( geometry.maxInstancedCount === undefined ) {
                             geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count;
                         }
