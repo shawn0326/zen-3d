@@ -3,7 +3,7 @@ import {nextPowerOfTwo} from '../../base.js';
 import {Vector3} from '../../math/Vector3.js';
 import {Vector4} from '../../math/Vector4.js';
 import {Plane} from '../../math/Plane.js';
-import {TextureData} from '../../texture/TextureData.js';
+import {Texture2D} from '../../texture/Texture2D.js';
 import {getProgram} from '../shader/Program.js';
 import {WebGLProperties} from './WebGLProperties.js';
 import {WebGLCapabilities} from './WebGLCapabilities.js';
@@ -549,7 +549,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     var boneMatrices = new Float32Array(size * size * 4);
                     boneMatrices.set(skeleton.boneMatrices);
     
-                    var boneTexture = new TextureData(boneMatrices, size, size);
+                    var boneTexture = Texture2D.createDataTexture(boneMatrices, size, size);
     
                     skeleton.boneMatrices = boneMatrices;
                     skeleton.boneTexture = boneTexture;

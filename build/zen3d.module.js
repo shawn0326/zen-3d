@@ -5316,14 +5316,14 @@ function Texture2D() {
 
     /**
      * Image data for this texture.
-     * @member {null|HTMLImageElement}
+     * @member {null|HTMLImageElement|Object[]}
      * @default null
      */
     this.image = null;
 
     /**
      * Array of user-specified mipmaps (optional).
-     * @member {HTMLImageElement[]}
+     * @member {HTMLImageElement[]|Object[]}
      * @default []
      */
     this.mipmaps = [];
@@ -5454,6 +5454,56 @@ Texture2D.fromSrc = function(src) {
 };
 
 /**
+ * Creates a texture for use as a Depth Texture. 
+ * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
+ * @return {zen3d.Texture2D}
+ */
+Texture2D.createDepthTexture = function() {
+    var texture = new Texture2D();
+
+    texture.image = {data: null, width: 2, height: 2};
+
+    // for DEPTH_ATTACHMENT
+    texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
+    texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
+
+    // for DEPTH_STENCIL_ATTACHMENT
+    // texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+    // texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+
+    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+
+    texture.generateMipmaps = false;
+    texture.flipY = false;
+
+    return texture;
+};
+
+/**
+ * Creates a texture directly from raw data, width and height.
+ * @param {TypedArray} data - The data of the texture.
+ * @param {number} width - The width of the texture.
+ * @param {number} height - The height of the texture.
+ * @return {zen3d.Texture2D}
+ */
+Texture2D.createDataTexture = function(data, width, height) {
+    var texture = new Texture2D();
+
+    texture.image = {data: data, width: width, height: height};
+
+    texture.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
+
+    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+
+    texture.generateMipmaps = false;
+    texture.flipY = false;
+
+    return texture;
+};
+
+/**
  * Creates a cube texture made up of six images.
  * @constructor
  * @memberof zen3d
@@ -5550,137 +5600,6 @@ TextureCube.fromSrc = function(srcArray) {
 
     return texture;
 };
-
-/**
- * Creates a texture directly from raw data, width and height.
- * @constructor
- * @memberof zen3d
- * @extends zen3d.Texture2D
- * @param {TypedArray} data - The data of the texture.
- * @param {number} width - The width of the texture.
- * @param {number} height - The height of the texture.
- */
-function TextureData(data, width, height) {
-
-    Texture2D.call(this);
-
-    /**
-     * Image data like: {data: TypedArray, width: number, height: number}
-     * @member {Object}
-     */
-    this.image = {data: data, width: width, height: height};
-
-    /**
-     * Default pixel type set to float.
-     * @default zen3d.WEBGL_PIXEL_TYPE.FLOAT
-     */
-    this.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
-
-    /**
-     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
-     */
-    this.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-    /**
-     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
-     */
-    this.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-    /**
-     * Data textures do not use mipmaps.
-     * @default false
-     */
-    this.generateMipmaps = false;
-
-    /**
-     * Data textures do not need to be flipped so this is false by default.
-     * @default false
-     */
-    this.flipY = false;
-}
-
-TextureData.prototype = Object.assign(Object.create(Texture2D.prototype), /** @lends zen3d.TextureData.prototype */{
-
-    constructor: TextureData,
-
-    /**
-     * This is an Data Texture.
-     * @readonly
-     * @type {boolean}
-     * @default true
-     */
-    isDataTexture: true
-
-});
-
-/**
- * Creates a texture for use as a Depth Texture. 
- * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
- * @constructor
- * @memberof zen3d
- * @extends zen3d.Texture2D
- * @param {number} width - The width of the texture.
- * @param {number} height - The height of the texture.
- */
-function TextureDepth(width, height) {
-
-    Texture2D.call(this);
-
-    /**
-     * Image data like: {width: number, height: number}
-     * @member {Object}
-     */
-    this.image = {width: width, height: height};
-
-    /**
-     * Use unsigned_short or unsigned_int.
-     * DEPTH_STENCIL_ATTACHMENT will be set to UNSIGNED_INT_24_8.
-     * @default zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT
-     */
-    this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT;
-
-    /**
-     * Depth textures don't change this.
-     * @default zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT
-     */
-    this.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;   
-
-    /**
-     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
-     */
-    this.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-    /**
-     * @default zen3d.WEBGL_TEXTURE_FILTER.NEAREST
-     */
-    this.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-    /**
-     * Depth textures do not use mipmaps.
-     * @default false
-     */
-    this.generateMipmaps = false;
-
-    /**
-     * Depth textures do not need to be flipped so this is false by default.
-     * @default false
-     */
-    this.flipY = false;
-}
-
-TextureDepth.prototype = Object.assign(Object.create(Texture2D.prototype), /** @lends zen3d.TextureDepth.prototype */{
-
-    constructor: TextureDepth,
-
-    /**
-     * This is an Depth Texture.
-     * @readonly
-     * @type {boolean}
-     * @default true
-     */
-    isDepthTexture: true
-
-});
 
 /**
  * This is the base class for most objects in zen3d
@@ -6090,9 +6009,9 @@ function Skeleton(bones) {
     this.boneMatrices = new Float32Array(16 * this.bones.length);
 
     /**
-     * The {@link zen3d.TextureData} holding the bone data when using a vertex texture. 
+     * The {@link zen3d.Texture2D} holding the bone data when using a vertex texture. 
      * Use vertex texture to update boneMatrices, by that way, we can use more bones on phone.
-     * @type {zen3d.TextureData|undefined}
+     * @type {zen3d.Texture2D|undefined}
      * @default undefined
      */
     this.boneTexture = undefined;
@@ -9408,6 +9327,8 @@ function WebGLTexture(gl, state, properties, capabilities) {
 Object.assign(WebGLTexture.prototype, {
 
     setTexture2D: function(texture, slot) {
+        slot = ( slot !== undefined ) ? slot : 0;
+
         var gl = this.gl;
         var state = this.state;
     
@@ -9423,10 +9344,15 @@ Object.assign(WebGLTexture.prototype, {
             state.activeTexture(gl.TEXTURE0 + slot);
             state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
     
-            var image = clampToMaxSize(texture.image, this.capabilities.maxTextureSize);
-    
-            if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
-                image = makePowerOf2(image);
+            var image = texture.image;
+            var isElement = image instanceof HTMLImageElement || image instanceof HTMLCanvasElement;
+
+            if ( isElement ) {
+                image = clampToMaxSize(image, this.capabilities.maxTextureSize);
+
+                if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
+                    image = makePowerOf2(image);
+                }
             }
     
             var isPowerOfTwoImage = _isPowerOfTwo(image);
@@ -9437,20 +9363,8 @@ Object.assign(WebGLTexture.prototype, {
             var mipmap, mipmaps = texture.mipmaps,
                 pixelFormat = texture.pixelFormat,
                 pixelType = texture.pixelType;
-    
-            if(texture.isDataTexture) {
-                if (mipmaps.length > 0 && isPowerOfTwoImage) {
-    
-                    for (var i = 0, il = mipmaps.length; i < il; i++) {
-                        mipmap = mipmaps[i];
-                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, mipmap.width, mipmap.height, texture.border, pixelFormat, pixelType, mipmap.data);
-                    }
-    
-                    texture.generateMipmaps = false;
-                } else {
-                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
-                }
-            } else {
+
+            if ( isElement ) {
                 if (mipmaps.length > 0 && isPowerOfTwoImage) {
     
                     for (var i = 0, il = mipmaps.length; i < il; i++) {
@@ -9462,6 +9376,18 @@ Object.assign(WebGLTexture.prototype, {
                 } else {
                     gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, pixelFormat, pixelType, image);
                 }
+            } else {
+                if (mipmaps.length > 0 && isPowerOfTwoImage) {
+    
+                    for (var i = 0, il = mipmaps.length; i < il; i++) {
+                        mipmap = mipmaps[i];
+                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, mipmap.width, mipmap.height, texture.border, pixelFormat, pixelType, mipmap.data);
+                    }
+    
+                    texture.generateMipmaps = false;
+                } else {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
+                }
             }
     
             if (texture.generateMipmaps && isPowerOfTwoImage) {
@@ -9470,14 +9396,18 @@ Object.assign(WebGLTexture.prototype, {
     
             textureProperties.__version = texture.version;
     
-            return;
+            return textureProperties;
         }
     
         state.activeTexture(gl.TEXTURE0 + slot);
         state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
+
+        return textureProperties;
     },
 
     setTextureCube: function(texture, slot) {
+        slot = ( slot !== undefined ) ? slot : 0;
+
         var gl = this.gl;
         var state = this.state;
     
@@ -9494,22 +9424,44 @@ Object.assign(WebGLTexture.prototype, {
             state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
     
             var images = [];
+            
+            var pixelFormat = texture.pixelFormat,
+            pixelType = texture.pixelType;
+
+            var isPowerOfTwoImage = true;
     
             for (var i = 0; i < 6; i++) {
-                images[i] = clampToMaxSize(texture.images[i], this.capabilities.maxCubemapSize);
-            }
+                var image = texture.images[i];
+                var isElement = image instanceof HTMLImageElement || image instanceof HTMLCanvasElement;
+
+                if ( isElement ) {
+                    image = clampToMaxSize(image, this.capabilities.maxTextureSize);
     
-            var image = images[0];
-            var isPowerOfTwoImage = _isPowerOfTwo(image);
+                    if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
+                        image = makePowerOf2(image);
+                    }
+                }
+
+                if ( !_isPowerOfTwo(image) ) {
+                    isPowerOfTwoImage = false;
+                }
+
+                images[i] = image;
+                image.__isElement = isElement;
+            }
     
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, isPowerOfTwoImage);
-    
-            var pixelFormat = texture.pixelFormat,
-                pixelType = texture.pixelType;
-    
+
             for (var i = 0; i < 6; i++) {
-                gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, pixelFormat, pixelFormat, pixelType, images[i]);
+                var image = images[i];
+                var isElement = image.__isElement;
+
+                if ( isElement ) {
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, pixelFormat, pixelFormat, pixelType, image);
+                } else {
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
+                }
             }
     
             if (texture.generateMipmaps && isPowerOfTwoImage) {
@@ -9518,11 +9470,13 @@ Object.assign(WebGLTexture.prototype, {
     
             textureProperties.__version = texture.version;
     
-            return;
+            return textureProperties;
         }
     
         state.activeTexture(gl.TEXTURE0 + slot);
         state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
+
+        return textureProperties;
     },
 
     setTextureParameters: function(texture, isPowerOfTwoImage) {
@@ -9566,62 +9520,23 @@ Object.assign(WebGLTexture.prototype, {
         var state = this.state;
     
         var renderTargetProperties = this.properties.get(renderTarget);
-        var textureProperties = this.properties.get(renderTarget.texture);
     
-        if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
+        if (renderTargetProperties.__webglFramebuffer === undefined) {
             renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
-            textureProperties.__webglTexture = gl.createTexture();
+            
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
     
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
-    
-            state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
-    
-            var isTargetPowerOfTwo = _isPowerOfTwo(renderTarget);
-    
-            this.setTextureParameters(renderTarget.texture, isTargetPowerOfTwo);
-    
-            var pixelFormat = renderTarget.texture.pixelFormat,
-                pixelType = renderTarget.texture.pixelType;
-            gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, renderTarget.width, renderTarget.height, 0, pixelFormat, pixelType, null);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
-    
-            if (renderTarget.texture.generateMipmaps && isTargetPowerOfTwo) {
-                gl.generateMipmap(gl.TEXTURE_2D);
+
+            for (var attachment in renderTarget._textures) {
+                var textureProperties = this.setTexture2D(renderTarget._textures[attachment]);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
+                state.bindTexture(gl.TEXTURE_2D, null);
             }
-    
-            state.bindTexture(gl.TEXTURE_2D, null);
     
             if (renderTarget.depthBuffer) {
     
-                // setup depth texture
-                if(renderTarget.depthTexture) {
-                    var depthTextureProperties = this.properties.get(renderTarget.depthTexture);
-    
-                    depthTextureProperties.__webglTexture = gl.createTexture();
-                    state.bindTexture(gl.TEXTURE_2D, depthTextureProperties.__webglTexture);
-                    this.setTextureParameters(renderTarget.depthTexture, isTargetPowerOfTwo);
-    
-                    pixelFormat = renderTarget.depthTexture.pixelFormat;
-                    pixelType = renderTarget.depthTexture.pixelType;
-                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, renderTarget.width, renderTarget.height, 0, pixelFormat, pixelType, null);
-    
-                    if ( pixelType === WEBGL_PIXEL_TYPE.UNSIGNED_SHORT || pixelType === WEBGL_PIXEL_TYPE.UNSIGNED_INT ) {
-    
-                        gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
-            
-                    } else if ( pixelType === WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8 ) {
-            
-                        gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTextureProperties.__webglTexture, 0 );
-            
-                    } else {
-            
-                        throw new Error( 'Unknown depthTexture format' );
-            
-                    }
-    
-                    state.bindTexture(gl.TEXTURE_2D, null);
-                } else {
+                if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
                     renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
     
                     var renderbuffer = renderTargetProperties.__webglDepthbuffer;
@@ -9671,27 +9586,14 @@ Object.assign(WebGLTexture.prototype, {
     
         if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
             renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
-            textureProperties.__webglTexture = gl.createTexture();
+            
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
     
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
     
-            state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
-    
-            var isTargetPowerOfTwo = _isPowerOfTwo(renderTarget);
-    
-            this.setTextureParameters(renderTarget.texture, isTargetPowerOfTwo);
-    
-            var pixelFormat = renderTarget.texture.pixelFormat,
-                pixelType = renderTarget.texture.pixelType;
-            for (var i = 0; i < 6; i++) {
-                gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, pixelFormat, renderTarget.width, renderTarget.height, 0, pixelFormat, pixelType, null);
-            }
+            textureProperties = this.setTextureCube(renderTarget.texture);
+
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
-    
-            if (renderTarget.texture.generateMipmaps && isTargetPowerOfTwo) {
-                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-            }
     
             state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
     
@@ -9711,6 +9613,21 @@ Object.assign(WebGLTexture.prototype, {
                 }
     
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+            }
+
+            var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+            if(status !== gl.FRAMEBUFFER_COMPLETE) {
+                if(status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+                } else if(status === gl.FRAMEBUFFER_UNSUPPORTED) {
+                    console.warn("framebuffer not complete: FRAMEBUFFER_UNSUPPORTED");
+                } else {
+                    console.warn("framebuffer not complete.");
+                }
             }
     
             return;
@@ -9760,10 +9677,6 @@ Object.assign(WebGLTexture.prototype, {
         var renderTargetProperties = this.properties.get(renderTarget);
     
         renderTarget.removeEventListener('dispose', this.onRenderTargetDispose, this);
-    
-        if(renderTargetProperties.__webglTexture) {
-            gl.deleteTexture(textureProperties.__webglTexture);
-        }
     
         if(renderTargetProperties.__webglFramebuffer) {
             gl.deleteFramebuffer(renderTargetProperties.__webglFramebuffer);
@@ -11455,7 +11368,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     var boneMatrices = new Float32Array(size * size * 4);
                     boneMatrices.set(skeleton.boneMatrices);
     
-                    var boneTexture = new TextureData(boneMatrices, size, size);
+                    var boneTexture = Texture2D.createDataTexture(boneMatrices, size, size);
     
                     skeleton.boneMatrices = boneMatrices;
                     skeleton.boneTexture = boneTexture;
@@ -11954,60 +11867,16 @@ RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototy
 });
 
 /**
- * Render Target that render to 2d texture.
+ * Render Target that render to cube texture.
  * @constructor
  * @memberof zen3d
  * @extends zen3d.RenderTargetBase
  * @param {number} width - The width of the render target.
  * @param {number} height - The height of the render target.
  */
-function RenderTarget2D(width, height) {
-
-    RenderTargetBase.call(this, width, height);
-
-    /**
-     * The texture attached to COLOR_ATTACHMENT0.
-     * @type {zen3d.Texture2D}
-     * @default Texture2D()
-     */
-    this.texture = new Texture2D();
-
-    /**
-     * The texture attached to DEPTH_ATTACHMENT.
-     * @type {zen3d.TextureDepth}
-     */
-    this.depthTexture = null;
-
-    /**
-     * If set true, attach a depth render buffer to the redner target.
-     * @type {boolean}
-     * @default true
-     */
-    this.depthBuffer = true;
-
-    /**
-     * If set true, attach a stencil render buffer to the redner target.
-     * @type {boolean}
-     * @default true
-     */
-    this.stencilBuffer = true;
-
-}
-
-RenderTarget2D.prototype = Object.create(RenderTargetBase.prototype);
-RenderTarget2D.prototype.constructor = RenderTarget2D;
-
-/**
- * Render Target that render to cube texture.
- * @constructor
- * @memberof zen3d
- * @extends zen3d.RenderTarget2D
- * @param {number} width - The width of the render target.
- * @param {number} height - The height of the render target.
- */
 function RenderTargetCube(width, height) {
 
-    RenderTarget2D.call(this, width, height);
+    RenderTargetBase.call(this, width, height);
 
     /**
      * The cube texture attached to COLOR_ATTACHMENT0.
@@ -12024,8 +11893,53 @@ function RenderTargetCube(width, height) {
     this.activeCubeFace = 0;
 }
 
-RenderTargetCube.prototype = Object.create(RenderTarget2D.prototype);
+RenderTargetCube.prototype = Object.create(RenderTargetBase.prototype);
 RenderTargetCube.prototype.constructor = RenderTargetCube;
+
+RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.prototype), /** @lends zen3d.RenderTargetCube.prototype */{
+
+    constructor: RenderTargetCube,
+
+    /**
+     * @override   
+     */
+    resize: function(width, height) {
+
+        RenderTargetBase.prototype.resize.call(this, width, height);
+
+        if (this._texture) {
+            this._texture.version++;
+            for (var i = 0; i < 6; i++) {
+                this._texture.images[i] = {data: null, width: this.width, height: this.height};
+            }
+        }
+
+    },
+
+});
+
+Object.defineProperties(RenderTargetCube.prototype, {
+
+    texture: {
+
+        set: function(texture) {
+            if (texture) {
+                texture.version++;
+                for (var i = 0; i < 6; i++) {
+                    texture.images[i] = {data: null, width: this.width, height: this.height};
+                }
+            }
+            
+            this._texture = texture;
+        },
+
+        get: function() {
+            return this._texture;
+        }
+
+    }
+
+});
 
 /**
  * environment map pre pass.
@@ -13214,6 +13128,107 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
 };
 
 /**
+ * Render Target that render to 2d texture.
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.RenderTargetBase
+ * @param {number} width - The width of the render target.
+ * @param {number} height - The height of the render target.
+ */
+function RenderTarget2D(width, height) {
+
+    RenderTargetBase.call(this, width, height);
+
+    this._textures = {};
+
+    /**
+     * The texture attached to COLOR_ATTACHMENT0.
+     * @type {zen3d.Texture2D}
+     * @default Texture2D()
+     */
+    this.texture = new Texture2D();
+
+    /**
+     * If set true, attach a depth render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.depthBuffer = true;
+
+    /**
+     * If set true, attach a stencil render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.stencilBuffer = true;
+
+}
+
+RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototype), /** @lends zen3d.RenderTarget2D.prototype */{
+
+    constructor: RenderTarget2D,
+
+    /**
+     * Attach a texture(RTT) to the framebuffer.
+     * Notice: For now, dynamic Attachment during rendering is not supported.
+     * @param  {zen3d.Texture2D} texture
+     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
+     */
+    attach: function(texture, attachment) {
+        texture.version++;
+        texture.image = {data: null, width: this.width, height: this.height};
+        this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
+    },
+
+    /**
+     * Detach a texture.
+     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
+     */
+    detach: function(attachment) {
+        delete this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
+    },
+
+    /**
+     * @override   
+     */
+    resize: function(width, height) {
+
+        RenderTargetBase.prototype.resize.call(this, width, height);
+
+        for (var attachment in this._textures) {
+            var texture = this._textures[attachment];
+
+            if (texture) {
+                texture.version++;
+                texture.image = {data: null, width: this.width, height: this.height};
+            }
+        }
+
+    },
+
+});
+
+Object.defineProperties(RenderTarget2D.prototype, {
+
+    texture: {
+
+        set: function(texture) {
+            if (texture) {
+                this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+            } else {
+                this.detach(ATTACHMENT.COLOR_ATTACHMENT0);
+            }
+        },
+
+        get: function() {
+            return this._textures[ATTACHMENT.COLOR_ATTACHMENT0];
+        }
+
+    }
+
+});
+
+/**
  * Linear fog.
  * @memberof zen3d
  * @constructor
@@ -13953,4 +13968,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
  * @namespace zen3d
  */
 
-export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, TextureData, TextureDepth, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniform, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };
+export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniform, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };

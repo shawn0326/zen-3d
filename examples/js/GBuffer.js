@@ -18,9 +18,15 @@
         this._renderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
         this._renderTarget1.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT;
         this._renderTarget1.texture.generateMipmaps = false;
-        this._renderTarget1.depthTexture = new zen3d.TextureDepth(width, height);
-        this._renderTarget1.depthTexture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8; // higher precision for depth
-        this._renderTarget1.depthTexture.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+
+        this._depthTexture = zen3d.Texture2D.createDepthTexture();
+        this._depthTexture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8; // higher precision for depth
+        this._depthTexture.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+
+        this._renderTarget1.attach(
+            this._depthTexture,
+            zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+        );
 
         this._renderTarget2 = new zen3d.RenderTarget2D(width, height);
         this._renderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
@@ -197,7 +203,7 @@
          * @return {zen3d.TextureDepth}
          */
         getDepthTexture: function() {
-            return this._renderTarget1.depthTexture;
+            return this._depthTexture;
         },
 
         /**

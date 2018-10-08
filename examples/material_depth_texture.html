@@ -99,15 +99,18 @@
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.generateMipmaps = false;
-			tempRenderTarget.depthTexture = new zen3d.TextureDepth();
-			// tempRenderTarget.depthTexture.pixelType === zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8
+			var depthTexture = zen3d.Texture2D.createDepthTexture();
+			tempRenderTarget.attach(
+				depthTexture,
+				zen3d.ATTACHMENT.DEPTH_ATTACHMENT
+			);
 
 			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
 			copyPass.uniforms['tDiffuse'] = tempRenderTarget.texture;
-			// copyPass.uniforms['tDiffuse'] = tempRenderTarget.depthTexture;
+			// copyPass.uniforms['tDiffuse'] = depthTexture;
 
 			var depthLinearPass = new zen3d.ShaderPostPass(zen3d.DepthLinearShader);
-			depthLinearPass.uniforms['depthTex'] = tempRenderTarget.depthTexture;
+			depthLinearPass.uniforms['depthTex'] = depthTexture;
 			depthLinearPass.uniforms['cameraNear'] = 2;
 			depthLinearPass.uniforms['cameraFar'] = 300;
 

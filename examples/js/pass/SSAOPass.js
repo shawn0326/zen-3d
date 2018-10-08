@@ -20,7 +20,7 @@
 
     // 生成一张随机噪声的二维纹理，size为方形纹理的边长
     function generateNoiseTexture(size) {
-        var texture = new zen3d.TextureData(
+        var texture = new zen3d.Texture2D.createDataTexture(
             generateNoiseData(size), size, size
         );
         texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;

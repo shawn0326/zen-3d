@@ -58,6 +58,8 @@
 
         zen3d.Mesh.call(this, geometry, material);
 
+        this.frustumCulled = false;
+
         this.root = object;
         this.bones = bones;
     }

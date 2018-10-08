@@ -24,9 +24,9 @@ function Skeleton(bones) {
     this.boneMatrices = new Float32Array(16 * this.bones.length);
 
     /**
-     * The {@link zen3d.TextureData} holding the bone data when using a vertex texture. 
+     * The {@link zen3d.Texture2D} holding the bone data when using a vertex texture. 
      * Use vertex texture to update boneMatrices, by that way, we can use more bones on phone.
-     * @type {zen3d.TextureData|undefined}
+     * @type {zen3d.Texture2D|undefined}
      * @default undefined
      */
     this.boneTexture = undefined;

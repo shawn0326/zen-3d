@@ -1,7 +1,7 @@
 import {TextureBase} from './TextureBase.js';
 import {Vector2} from '../math/Vector2.js';
 import {Matrix3} from '../math/Matrix3.js';
-import {WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT} from '../const.js';
+import {WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER} from '../const.js';
 import {ImageLoader} from '../loader/ImageLoader.js';
 import {TGALoader} from '../loader/TGALoader.js';
 
@@ -19,14 +19,14 @@ function Texture2D() {
 
     /**
      * Image data for this texture.
-     * @member {null|HTMLImageElement}
+     * @member {null|HTMLImageElement|Object[]}
      * @default null
      */
     this.image = null;
 
     /**
      * Array of user-specified mipmaps (optional).
-     * @member {HTMLImageElement[]}
+     * @member {HTMLImageElement[]|Object[]}
      * @default []
      */
     this.mipmaps = [];
@@ -152,6 +152,56 @@ Texture2D.fromSrc = function(src) {
 
         texture.dispatchEvent({type: 'onload'});
     });
+
+    return texture;
+}
+
+/**
+ * Creates a texture for use as a Depth Texture. 
+ * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
+ * @return {zen3d.Texture2D}
+ */
+Texture2D.createDepthTexture = function() {
+    var texture = new Texture2D();
+
+    texture.image = {data: null, width: 2, height: 2};
+
+    // for DEPTH_ATTACHMENT
+    texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
+    texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
+
+    // for DEPTH_STENCIL_ATTACHMENT
+    // texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+    // texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+
+    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+
+    texture.generateMipmaps = false;
+    texture.flipY = false;
+
+    return texture;
+}
+
+/**
+ * Creates a texture directly from raw data, width and height.
+ * @param {TypedArray} data - The data of the texture.
+ * @param {number} width - The width of the texture.
+ * @param {number} height - The height of the texture.
+ * @return {zen3d.Texture2D}
+ */
+Texture2D.createDataTexture = function(data, width, height) {
+    var texture = new Texture2D();
+
+    texture.image = {data: data, width: width, height: height};
+
+    texture.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
+
+    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+
+    texture.generateMipmaps = false;
+    texture.flipY = false;
 
     return texture;
 }
