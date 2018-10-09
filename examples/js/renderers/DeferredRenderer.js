@@ -2,13 +2,17 @@
 
     function DeferredRenderer(view, options) {
     
-        var gl = view.getContext("webgl", options || {
+        var defaultContextParams = {
             antialias: true, // antialias
             alpha: false, // effect performance, default false
             // premultipliedAlpha: false, // effect performance, default false
             stencil: true
-        });
+        };
+        
+        var gl = view.getContext("webgl2", options || defaultContextParams) || view.getContext("webgl", options || defaultContextParams);
         this.glCore = new zen3d.WebGLCore(gl);
+
+        console.info("DeferredRenderer use WebGL Version: " + this.glCore.capabilities.version);
 
         this.shadowMapPass = new zen3d.ShadowMapPass();
 

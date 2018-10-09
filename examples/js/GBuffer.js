@@ -17,16 +17,20 @@
         this._renderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
         this._renderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
         this._renderTarget1.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT;
-        this._renderTarget1.texture.generateMipmaps = false;
+        this._renderTarget1.texture.generateMipmaps = false;  
 
-        this._depthTexture = zen3d.Texture2D.createDepthTexture();
-        this._depthTexture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8; // higher precision for depth
-        this._depthTexture.pixelFormat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
-
+        this._depthTexture = zen3d.Texture2D.createDepthTexture(false); // higher precision for depth
         this._renderTarget1.attach(
             this._depthTexture,
-            zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+            zen3d.ATTACHMENT.DEPTH_ATTACHMENT
         );
+
+        this._texture2 = new zen3d.Texture2D();
+        this._texture2.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        this._texture2.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        this._texture2.generateMipmaps = false;
+
+        this._useMRT = false;
 
         this._renderTarget2 = new zen3d.RenderTarget2D(width, height);
         this._renderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
@@ -36,6 +40,8 @@
         this._normalGlossinessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.normalGlossiness);
 
         this._albedoMetalnessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.albedoMetalness);
+
+        this._MRTMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.MRT);
 
         this._debugPass = new zen3d.ShaderPostPass(zen3d.GBufferShader.debug);
 
@@ -61,9 +67,96 @@
 
         update: function(glCore, scene, camera) {
 
-            // TODO Use MRT if support
-
             var renderList = scene.getRenderList(camera);
+
+            // Use MRT if support
+            if (glCore.capabilities.version === 2 || glCore.capabilities.drawBuffersExt) {
+
+                if (!this._useMRT) {
+                    this._useMRT = true;
+
+                    if (glCore.capabilities.version === 2) {
+                        // todo webgl2 pixel type
+                        this._renderTarget1.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+
+                        this._renderTarget1.detach(zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
+                        this._depthTexture.pixelFormat =  zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
+                        this._depthTexture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT;
+                        this._renderTarget1.attach(
+                            this._depthTexture,
+                            zen3d.ATTACHMENT.DEPTH_ATTACHMENT
+                        );
+                    }
+
+                    this._renderTarget1.attach(
+                        this._texture2,
+                        zen3d.ATTACHMENT.COLOR_ATTACHMENT1
+                    );
+                }
+
+                var mrtMaterial = this._MRTMaterial;
+
+                glCore.texture.setRenderTarget(this._renderTarget1);
+
+                glCore.state.clearColor(0, 0, 0, 0);
+                glCore.clear(true, true, true);
+
+                glCore.renderPass(renderList.opaque, camera, {
+                    scene: scene,
+                    getMaterial: function(renderable) {
+                        if(!renderable.geometry.attributes["a_Normal"]) {
+                            mrtMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
+                        } else {
+                            mrtMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
+                        }
+
+                        mrtMaterial.diffuse.copy(renderable.material.diffuse);
+
+                        // ignore if alpha < 0.99
+                        if(renderable.material.diffuseMap) { 
+                            mrtMaterial.defines["USE_DIFFUSE_MAP"] = "";
+                            mrtMaterial.defines["ALPHATEST"] = 0.999;
+                            mrtMaterial.diffuseMap = renderable.material.diffuseMap;
+                        } else {
+                            mrtMaterial.defines["USE_DIFFUSE_MAP"] = false;
+                            mrtMaterial.defines["ALPHATEST"] = false;
+                            mrtMaterial.diffuseMap = null;
+                        }
+
+                        if (renderable.material.roughness !== undefined) {
+                            mrtMaterial.uniforms["roughness"] = renderable.material.roughness;
+                        } else {
+                            mrtMaterial.uniforms["roughness"] = 0.5;
+                        }
+
+                        if (renderable.material.roughnessMap) {
+                            mrtMaterial.roughnessMap = renderable.material.roughnessMap;
+                        } else {
+                            mrtMaterial.roughnessMap = null;
+                        }
+
+                        if (renderable.material.metalness !== undefined) {
+                            mrtMaterial.uniforms["metalness"] = renderable.material.metalness;
+                        } else {
+                            mrtMaterial.uniforms["metalness"] = 0.5;
+                        }
+    
+                        if (renderable.material.metalnessMap) {
+                            mrtMaterial.metalnessMap = renderable.material.metalnessMap;
+                        } else {
+                            mrtMaterial.metalnessMap = null;
+                        }
+
+                        return mrtMaterial;
+                    },
+                    ifRender: function(renderable) {
+                        return !!renderable.geometry.getAttribute("a_Normal");
+                    }
+                });
+
+                return;
+
+            }
 
             // render normalDepthRenderTarget
 
@@ -216,13 +309,16 @@
          * @return {zen3d.Texture2D}
          */
         getAlbedoMetalnessTexture: function() {
-            return this._renderTarget2.texture;
+            return this._useMRT ? this._texture2 : this._renderTarget2.texture;
         },
 
         dispose: function() {
 
             this._renderTarget1.dispose();
             this._renderTarget2.dispose();
+
+            this._depthTexture.dispose();
+            this._texture2.dispose();
 
         }
 

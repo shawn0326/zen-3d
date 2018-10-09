@@ -155,12 +155,14 @@
 
 			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
 
-			var gl = canvas.getContext("webgl", {
+			var contextParams = {
 				antialias: true, // antialias
 				alpha: false, // effect performance, default false
 				// premultipliedAlpha: false, // effect performance, default false
 				stencil: true
-			});
+			};
+
+			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
 			var glCore = new zen3d.WebGLCore(gl);
 
 			var shadowMapPass = new zen3d.ShadowMapPass();
@@ -168,8 +170,9 @@
 			var gBuffer = new zen3d.GBuffer(width, height);
 
 			// gui
-			var params = {debug: "normal"};
+			var params = {version: "WebGL " + glCore.capabilities.version, debug: "normal"};
 			var gui = new dat.GUI();
+			gui.add(params, "version");
 			gui.add(params, "debug", ['normal', 'depth', 'position', 'glossiness', 'metalness', 'albedo']);
 
 	        function loop(count) {

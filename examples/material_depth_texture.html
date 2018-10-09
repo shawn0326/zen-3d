@@ -99,7 +99,7 @@
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.generateMipmaps = false;
-			var depthTexture = zen3d.Texture2D.createDepthTexture();
+			var depthTexture = zen3d.Texture2D.createDepthTexture(false);
 			tempRenderTarget.attach(
 				depthTexture,
 				zen3d.ATTACHMENT.DEPTH_ATTACHMENT

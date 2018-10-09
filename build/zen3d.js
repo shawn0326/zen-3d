@@ -5462,20 +5462,21 @@
 	/**
 	 * Creates a texture for use as a Depth Texture. 
 	 * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
+	 * @param {boolean} stencil
 	 * @return {zen3d.Texture2D}
 	 */
-	Texture2D.createDepthTexture = function() {
+	Texture2D.createDepthTexture = function(stencil) {
 	    var texture = new Texture2D();
 
-	    texture.image = {data: null, width: 2, height: 2};
+	    texture.image = {data: null, width: 4, height: 4};
 
-	    // for DEPTH_ATTACHMENT
-	    texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
-	    texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
-
-	    // for DEPTH_STENCIL_ATTACHMENT
-	    // texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
-	    // texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+	    if (stencil) { // for DEPTH_STENCIL_ATTACHMENT
+	        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+	        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+	    } else { // for DEPTH_ATTACHMENT
+	        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
+	        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
+	    }
 
 	    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
 	    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
@@ -9340,7 +9341,7 @@
 	    
 	        var textureProperties = this.properties.get(texture);
 	    
-	        if (texture.version > 0 && textureProperties.__version !== texture.version) {
+	        if (texture.image && textureProperties.__version !== texture.version) {
 	    
 	            if (textureProperties.__webglTexture === undefined) {
 	                texture.addEventListener('dispose', this.onTextureDispose, this);
@@ -9392,7 +9393,8 @@
 	    
 	                    texture.generateMipmaps = false;
 	                } else {
-	                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
+	                    var internalFormat = (this.capabilities.version === 2 && pixelFormat === gl.DEPTH_COMPONENT) ? gl.DEPTH_COMPONENT24 : pixelFormat;
+	                    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
 	                }
 	            }
 	    
@@ -9534,10 +9536,24 @@
 	    
 	            gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
+	            var buffers = [];
 	            for (var attachment in renderTarget._textures) {
 	                var textureProperties = this.setTexture2D(renderTarget._textures[attachment]);
 	                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
 	                state.bindTexture(gl.TEXTURE_2D, null);
+
+	                if ((Number(attachment) <= 0x8CE9 && Number(attachment) >= 0x8CE0) || (Number(attachment) <= 0x8CE15 && Number(attachment) >= 0x8CE10)) {
+	                    buffers.push(attachment);
+	                }
+	            }
+
+	            if ( buffers.length > 1 ) {
+	                if (this.capabilities.version === 2) {
+	                    gl.drawBuffers(buffers);
+	                } else if (this.capabilities.drawBuffersExt) {
+	                    var ext = this.capabilities.drawBuffersExt;
+	                    ext.drawBuffersWEBGL(buffers);
+	                }
 	            }
 	    
 	            if (renderTarget.depthBuffer) {
@@ -10641,6 +10657,22 @@
 
 	    // support glsl version 300 es for webgl ^2.0
 	    if (props.version > 1) {
+
+	        fshader = fshader.replace("#extension GL_EXT_draw_buffers : require", "");
+
+	        // replace gl_FragData by layout
+	        var i = 0;
+	        var layout = [];
+	        while ( fshader.indexOf("gl_FragData[" + i + "]") > -1 ) {
+	            fshader = fshader.replace("gl_FragData[" + i + "]", "pc_fragData" + i);
+	            layout.push("layout(location = " + i + ") out vec4 pc_fragData" + i + ";");
+	            i++;
+	        }
+	        fshader = fshader.replace(
+	            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
+	            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )' + '\n' + layout.join( '\n' ) + '\n'
+	        );
+
 	        vshader = [
 	            '#version 300 es\n',
 				'#define attribute in',
@@ -10651,7 +10683,7 @@
 	        fshader = [
 	            '#version 300 es\n',
 				'#define varying in',
-				'out highp vec4 pc_fragColor;',
+				fshader.indexOf("layout") > -1 ? '': 'out highp vec4 pc_fragColor;',
 				'#define gl_FragColor pc_fragColor',
 				'#define gl_FragDepthEXT gl_FragDepth',
 				'#define texture2D texture',
@@ -11851,15 +11883,19 @@
 	     * Resize the render target.
 	     * @param {number} width - The width of the render target.
 	     * @param {number} height - The height of the render target.    
+	     * @return {boolean} - If size changed.
 	     */
 	    resize: function(width, height) {
 
 	        if(this.width !== width || this.height !== height) {
 	            this.dispose();
+	            this.width = width;
+	            this.height = height;
+
+	            return true;
 	        }
 
-	        this.width = width;
-	        this.height = height;
+	        return false;
 
 	    },
 
@@ -11911,9 +11947,9 @@
 	     */
 	    resize: function(width, height) {
 
-	        RenderTargetBase.prototype.resize.call(this, width, height);
+	        var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
-	        if (this._texture) {
+	        if (changed && this._texture) {
 	            this._texture.version++;
 	            for (var i = 0; i < 6; i++) {
 	                this._texture.images[i] = {data: null, width: this.width, height: this.height};
@@ -13032,15 +13068,19 @@
 	 * @param {Object} [options=] - The {@link https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext options for webgl context}.
 	 */
 	function Renderer(view, options) {
-	    
-	    var gl = view.getContext("webgl", options || {
+
+	    var defaultContextParams = {
 	        antialias: true, // antialias
 	        alpha: false, // effect performance, default false
 	        // premultipliedAlpha: false, // effect performance, default false
 	        stencil: true
-	    });
+	    };
+	    
+	    var gl = view.getContext("webgl2", options || defaultContextParams) || view.getContext("webgl", options || defaultContextParams);
 
 	    this.glCore = new WebGLCore(gl);
+
+	    console.info("ForwardRenderer use WebGL Version: " + this.glCore.capabilities.version);
 
 	    this.backRenderTarget = new RenderTargetBack(view);
 
@@ -13181,8 +13221,16 @@
 	     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
 	     */
 	    attach: function(texture, attachment) {
-	        texture.version++;
-	        texture.image = {data: null, width: this.width, height: this.height};
+	        if (texture.image && texture.image.rtt) {
+	            if (texture.image.width !== this.width || texture.image.height !== this.height) {
+	                texture.version++;
+	                texture.image.width = this.width;
+	                texture.image.height = this.height;
+	            }
+	        } else {
+	            texture.version++;
+	            texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+	        }
 	        this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
 	    },
 
@@ -13199,16 +13247,20 @@
 	     */
 	    resize: function(width, height) {
 
-	        RenderTargetBase.prototype.resize.call(this, width, height);
+	        var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
-	        for (var attachment in this._textures) {
-	            var texture = this._textures[attachment];
-
-	            if (texture) {
-	                texture.version++;
-	                texture.image = {data: null, width: this.width, height: this.height};
+	        if (changed) {
+	            for (var attachment in this._textures) {
+	                var texture = this._textures[attachment];
+	    
+	                if (texture) {
+	                    texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+	                    texture.version++;
+	                }
 	            }
 	        }
+
+	        return changed;
 
 	    },
 

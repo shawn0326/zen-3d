@@ -1,4 +1,4 @@
-import {WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_PIXEL_TYPE, ATTACHMENT} from '../../const.js';
+import {WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, ATTACHMENT} from '../../const.js';
 import {isWeb, isPowerOfTwo, nearestPowerOfTwo} from '../../base.js';
 
 function textureNeedsPowerOfTwo(texture) {
@@ -86,7 +86,7 @@ Object.assign(WebGLTexture.prototype, {
     
         var textureProperties = this.properties.get(texture);
     
-        if (texture.version > 0 && textureProperties.__version !== texture.version) {
+        if (texture.image && textureProperties.__version !== texture.version) {
     
             if (textureProperties.__webglTexture === undefined) {
                 texture.addEventListener('dispose', this.onTextureDispose, this);
@@ -138,7 +138,8 @@ Object.assign(WebGLTexture.prototype, {
     
                     texture.generateMipmaps = false;
                 } else {
-                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
+                    var internalFormat = (this.capabilities.version === 2 && pixelFormat === gl.DEPTH_COMPONENT) ? gl.DEPTH_COMPONENT24 : pixelFormat;
+                    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
                 }
             }
     
@@ -280,10 +281,24 @@ Object.assign(WebGLTexture.prototype, {
     
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
+            var buffers = [];
             for (var attachment in renderTarget._textures) {
                 var textureProperties = this.setTexture2D(renderTarget._textures[attachment]);
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
                 state.bindTexture(gl.TEXTURE_2D, null);
+
+                if ((Number(attachment) <= 0x8CE9 && Number(attachment) >= 0x8CE0) || (Number(attachment) <= 0x8CE15 && Number(attachment) >= 0x8CE10)) {
+                    buffers.push(attachment);
+                }
+            }
+
+            if ( buffers.length > 1 ) {
+                if (this.capabilities.version === 2) {
+                    gl.drawBuffers(buffers);
+                } else if (this.capabilities.drawBuffersExt) {
+                    var ext = this.capabilities.drawBuffersExt;
+                    ext.drawBuffersWEBGL(buffers);
+                }
             }
     
             if (renderTarget.depthBuffer) {

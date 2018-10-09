@@ -93,12 +93,15 @@
 			// custom pass
 			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
 
-			var gl = canvas.getContext("webgl", {
+			var contextParams = {
 				antialias: true, // antialias
 				alpha: false, // effect performance, default false
 				// premultipliedAlpha: false, // effect performance, default false
 				stencil: true
-			});
+			};
+
+			// todo webgl 1.0 has bug on android here?
+			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
 			var glCore = new zen3d.WebGLCore(gl);
 
 			var gBuffer = new zen3d.GBuffer(width, height);

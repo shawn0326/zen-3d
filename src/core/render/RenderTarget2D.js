@@ -50,8 +50,16 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
      * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
      */
     attach: function(texture, attachment) {
-        texture.version++;
-        texture.image = {data: null, width: this.width, height: this.height};
+        if (texture.image && texture.image.rtt) {
+            if (texture.image.width !== this.width || texture.image.height !== this.height) {
+                texture.version++;
+                texture.image.width = this.width;
+                texture.image.height = this.height;
+            }
+        } else {
+            texture.version++;
+            texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+        }
         this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
     },
 
@@ -68,16 +76,20 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
      */
     resize: function(width, height) {
 
-        RenderTargetBase.prototype.resize.call(this, width, height);
+        var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
-        for (var attachment in this._textures) {
-            var texture = this._textures[attachment];
-
-            if (texture) {
-                texture.version++;
-                texture.image = {data: null, width: this.width, height: this.height};
+        if (changed) {
+            for (var attachment in this._textures) {
+                var texture = this._textures[attachment];
+    
+                if (texture) {
+                    texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+                    texture.version++;
+                }
             }
         }
+
+        return changed;
 
     },
 

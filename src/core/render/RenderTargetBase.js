@@ -43,15 +43,19 @@ RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototy
      * Resize the render target.
      * @param {number} width - The width of the render target.
      * @param {number} height - The height of the render target.    
+     * @return {boolean} - If size changed.
      */
     resize: function(width, height) {
 
         if(this.width !== width || this.height !== height) {
             this.dispose();
+            this.width = width;
+            this.height = height;
+
+            return true;
         }
 
-        this.width = width;
-        this.height = height;
+        return false;
 
     },
 

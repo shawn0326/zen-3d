@@ -159,20 +159,21 @@ Texture2D.fromSrc = function(src) {
 /**
  * Creates a texture for use as a Depth Texture. 
  * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
+ * @param {boolean} stencil
  * @return {zen3d.Texture2D}
  */
-Texture2D.createDepthTexture = function() {
+Texture2D.createDepthTexture = function(stencil) {
     var texture = new Texture2D();
 
-    texture.image = {data: null, width: 2, height: 2};
+    texture.image = {data: null, width: 4, height: 4};
 
-    // for DEPTH_ATTACHMENT
-    texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
-    texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
-
-    // for DEPTH_STENCIL_ATTACHMENT
-    // texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
-    // texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+    if (stencil) { // for DEPTH_STENCIL_ATTACHMENT
+        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+    } else { // for DEPTH_ATTACHMENT
+        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
+        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
+    }
 
     texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
     texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;

@@ -131,6 +131,93 @@
 
         },
 
+        MRT: {
+
+            uniforms: {
+
+                roughness: 0.5,
+                metalness: 0.5
+
+            },
+
+            vertexShader: [
+                "#define USE_NORMAL",
+                "#include <common_vert>",
+                "#include <uv_pars_vert>",
+                "#include <normal_pars_vert>",
+                "#include <color_pars_vert>",
+                "#include <envMap_pars_vert>",
+                "#include <skinning_pars_vert>",
+                "void main() {",
+                    "#include <begin_vert>",
+                    "#include <skinning_vert>",
+                    "#include <pvm_vert>",
+                    "#include <uv_vert>",
+                    "#include <normal_vert>",
+                    "#include <color_vert>",
+                "}"
+            ].join( "\n" ),
+
+            fragmentShader: [
+
+                "#extension GL_EXT_draw_buffers : require",
+        
+                "#include <common_frag>",
+                "#include <diffuseMap_pars_frag>",
+
+                "#include <uv_pars_frag>",
+
+                "#define USE_NORMAL",
+
+                "#include <packing>",
+                "#include <normal_pars_frag>",
+
+                "uniform float roughness;",
+                "uniform float metalness;",
+
+                "#ifdef USE_ROUGHNESSMAP",
+                    "uniform sampler2D roughnessMap;",
+                "#endif",
+
+                "#ifdef USE_METALNESSMAP",
+                    "uniform sampler2D metalnessMap;",
+                "#endif",
+
+                "void main() {",
+                    "vec4 outColor = vec4( u_Color, 1.0 );",
+                    "#include <diffuseMap_frag>",
+                    "vec3 diffuseColor = outColor.xyz * outColor.a;",
+
+                    "float metalnessFactor = metalness;",
+                    "#ifdef USE_METALNESSMAP",
+                        "metalnessFactor *= texture2D( metalnessMap, v_Uv ).b;",
+                    "#endif",
+
+                    "gl_FragData[1] = vec4( outColor.xyz, metalnessFactor );",
+
+                    "#if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)",
+                        "float alpha = outColor.a * u_Opacity;",
+                        "if(alpha < ALPHATEST) discard;",
+                    "#endif",
+
+                    "vec3 normal = normalize(v_Normal);",
+
+                    "float roughnessFactor = roughness;",
+                    "#ifdef USE_ROUGHNESSMAP",
+                        "roughnessFactor *= texture2D( roughnessMap, v_Uv ).g;",
+                    "#endif",
+
+                    "vec4 packedNormalGlossiness;",
+                    "packedNormalGlossiness.xyz = normal * 0.5 + 0.5;",
+                    "packedNormalGlossiness.w = clamp(1. - roughnessFactor, 0., 1.);",
+                    
+                    "gl_FragData[0] = packedNormalGlossiness;",
+                "}"
+        
+            ].join( "\n" )
+
+        },
+
         debug: {
 
             uniforms: {

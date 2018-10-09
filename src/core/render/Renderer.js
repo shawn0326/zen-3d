@@ -11,15 +11,19 @@ import {ShadowMapPass} from './prePass/ShadowMapPass.js';
  * @param {Object} [options=] - The {@link https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext options for webgl context}.
  */
 function Renderer(view, options) {
-    
-    var gl = view.getContext("webgl", options || {
+
+    var defaultContextParams = {
         antialias: true, // antialias
         alpha: false, // effect performance, default false
         // premultipliedAlpha: false, // effect performance, default false
         stencil: true
-    });
+    };
+    
+    var gl = view.getContext("webgl2", options || defaultContextParams) || view.getContext("webgl", options || defaultContextParams);
 
     this.glCore = new WebGLCore(gl);
+
+    console.info("ForwardRenderer use WebGL Version: " + this.glCore.capabilities.version);
 
     this.backRenderTarget = new RenderTargetBack(view);
 

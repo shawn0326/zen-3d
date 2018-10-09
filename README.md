@@ -25,6 +25,27 @@ The aim of the project is to create an easy to use, lightweight, 3D/2D library. 
 [![image](./examples/resources/screenshot/screenshot7.png)](https://shawn0326.github.io/zen-3d/examples/#material_shadermaterial)
 [![image](./examples/resources/screenshot/screenshot8.png)](https://shawn0326.github.io/zen-3d/examples/#particle_particle)
 
+### Usage ###
+
+you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
+
+````html
+<script src="zen3d.min.js"></script>
+````
+
+### 3D Format Support ###
+
+[GLTF](https://github.com/KhronosGroup/glTF) /
+[assimp2json](https://github.com/acgessler/assimp2json)
+
+### WebGL2 Support ###
+
+* [Multiple Render Targets](https://shawn0326.github.io/zen-3d/examples/#custompass_gbuffer). (WebGL 1.0 extension / WebGL 2.0)
+* [Instancing](https://shawn0326.github.io/zen-3d/examples/#webgl_instanced_draw). (WebGL 1.0 extension / WebGL 2.0)
+* Vertex Array Object. (TODO)
+* Shader Texture LOD. (TODO)
+* Fragment Depth. (TODO)
+
 ### Build ###
 
 * install [Node.js](https://nodejs.org) (include NPM).
@@ -49,19 +70,6 @@ npm run example
 ````
 
 build path is `./build`.
-
-### Usage ###
-
-you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
-
-````html
-<script src="zen3d.min.js"></script>
-````
-
-### 3D Format Support ###
-
-[GLTF](https://github.com/KhronosGroup/glTF) /
-[assimp2json](https://github.com/acgessler/assimp2json)
 
 ### About Me ###
 

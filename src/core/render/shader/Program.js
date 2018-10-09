@@ -235,6 +235,22 @@ function createProgram(gl, props, defines) {
 
     // support glsl version 300 es for webgl ^2.0
     if (props.version > 1) {
+
+        fshader = fshader.replace("#extension GL_EXT_draw_buffers : require", "");
+
+        // replace gl_FragData by layout
+        var i = 0;
+        var layout = [];
+        while ( fshader.indexOf("gl_FragData[" + i + "]") > -1 ) {
+            fshader = fshader.replace("gl_FragData[" + i + "]", "pc_fragData" + i);
+            layout.push("layout(location = " + i + ") out vec4 pc_fragData" + i + ";");
+            i++;
+        }
+        fshader = fshader.replace(
+            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
+            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )' + '\n' + layout.join( '\n' ) + '\n'
+        );
+
         vshader = [
             '#version 300 es\n',
 			'#define attribute in',
@@ -245,7 +261,7 @@ function createProgram(gl, props, defines) {
         fshader = [
             '#version 300 es\n',
 			'#define varying in',
-			'out highp vec4 pc_fragColor;',
+			fshader.indexOf("layout") > -1 ? '': 'out highp vec4 pc_fragColor;',
 			'#define gl_FragColor pc_fragColor',
 			'#define gl_FragDepthEXT gl_FragDepth',
 			'#define texture2D texture',

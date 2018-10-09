@@ -40,9 +40,9 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
      */
     resize: function(width, height) {
 
-        RenderTargetBase.prototype.resize.call(this, width, height);
+        var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
-        if (this._texture) {
+        if (changed && this._texture) {
             this._texture.version++;
             for (var i = 0; i < 6; i++) {
                 this._texture.images[i] = {data: null, width: this.width, height: this.height};
