@@ -19,7 +19,7 @@ function Texture2D() {
 
     /**
      * Image data for this texture.
-     * @member {null|HTMLImageElement|Object[]}
+     * @member {null|HTMLImageElement|Object}
      * @default null
      */
     this.image = null;
@@ -146,63 +146,12 @@ Texture2D.fromSrc = function(src) {
 
     var loader = isTGA ? new TGALoader() : new ImageLoader();
     loader.load(src, function(image) {
-        texture.pixelFormat = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+        texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
         texture.image = image;
         texture.version++;
 
         texture.dispatchEvent({type: 'onload'});
     });
-
-    return texture;
-}
-
-/**
- * Creates a texture for use as a Depth Texture. 
- * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
- * @param {boolean} stencil
- * @return {zen3d.Texture2D}
- */
-Texture2D.createDepthTexture = function(stencil) {
-    var texture = new Texture2D();
-
-    texture.image = {data: null, width: 4, height: 4};
-
-    if (stencil) { // for DEPTH_STENCIL_ATTACHMENT
-        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
-        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
-    } else { // for DEPTH_ATTACHMENT
-        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
-        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
-    }
-
-    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-    texture.generateMipmaps = false;
-    texture.flipY = false;
-
-    return texture;
-}
-
-/**
- * Creates a texture directly from raw data, width and height.
- * @param {TypedArray} data - The data of the texture.
- * @param {number} width - The width of the texture.
- * @param {number} height - The height of the texture.
- * @return {zen3d.Texture2D}
- */
-Texture2D.createDataTexture = function(data, width, height) {
-    var texture = new Texture2D();
-
-    texture.image = {data: data, width: width, height: height};
-
-    texture.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
-
-    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-    texture.generateMipmaps = false;
-    texture.flipY = false;
 
     return texture;
 }

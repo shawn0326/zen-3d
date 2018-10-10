@@ -16,13 +16,20 @@
         this._renderTarget1 = new zen3d.RenderTarget2D(width, height);
         this._renderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
         this._renderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-        this._renderTarget1.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT;
+        this._renderTarget1.texture.type = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT;
         this._renderTarget1.texture.generateMipmaps = false;  
 
-        this._depthTexture = zen3d.Texture2D.createDepthTexture(false); // higher precision for depth
+        this._depthTexture = new zen3d.Texture2D();
+        this._depthTexture.image = {data: null, width: 4, height: 4};
+        this._depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8; // higher precision for depth
+        this._depthTexture.format = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+        this._depthTexture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+        this._depthTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+        this._depthTexture.generateMipmaps = false;
+        this._depthTexture.flipY = false;
         this._renderTarget1.attach(
             this._depthTexture,
-            zen3d.ATTACHMENT.DEPTH_ATTACHMENT
+            zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
         );
 
         this._texture2 = new zen3d.Texture2D();
@@ -76,16 +83,19 @@
                     this._useMRT = true;
 
                     if (glCore.capabilities.version === 2) {
-                        // todo webgl2 pixel type
-                        this._renderTarget1.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+                        var ext = glCore.capabilities.getExtension("EXT_color_buffer_float");
+                        if (ext) {
+                            this._renderTarget1.texture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.RGBA16F;
+                            this._renderTarget1.texture.type = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT2; // webgl2 use HALF_FLOAT2
+                        } else {
+                            this._renderTarget1.texture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+                        }
 
-                        this._renderTarget1.detach(zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
-                        this._depthTexture.pixelFormat =  zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
-                        this._depthTexture.pixelType = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT;
-                        this._renderTarget1.attach(
-                            this._depthTexture,
-                            zen3d.ATTACHMENT.DEPTH_ATTACHMENT
-                        );
+                        this._depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH24_STENCIL8;
+                        this._depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+
+                        // this._depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
+                        // this._depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
                     }
 
                     this._renderTarget1.attach(

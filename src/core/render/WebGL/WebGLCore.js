@@ -1,4 +1,4 @@
-import {CULL_FACE_TYPE, BLEND_TYPE, DRAW_SIDE, WEBGL_UNIFORM_TYPE, OBJECT_TYPE, FOG_TYPE} from '../../const.js';
+import {CULL_FACE_TYPE, BLEND_TYPE, DRAW_SIDE, WEBGL_UNIFORM_TYPE, OBJECT_TYPE, WEBGL_PIXEL_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_TEXTURE_FILTER} from '../../const.js';
 import {nextPowerOfTwo} from '../../base.js';
 import {Vector3} from '../../math/Vector3.js';
 import {Vector4} from '../../math/Vector4.js';
@@ -537,10 +537,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
             var gl = this.gl;
+            var capabilities = this.capabilities;
 
             skeleton.updateBones();
     
-            if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
+            if( (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2) {
                 if(skeleton.boneTexture === undefined) {
                     var size = Math.sqrt(skeleton.bones.length * 4);
                     size = nextPowerOfTwo(Math.ceil(size));
@@ -548,9 +549,18 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
                     var boneMatrices = new Float32Array(size * size * 4);
                     boneMatrices.set(skeleton.boneMatrices);
-    
-                    var boneTexture = Texture2D.createDataTexture(boneMatrices, size, size);
-    
+                    var boneTexture = new Texture2D();
+                    boneTexture.image = {data: boneMatrices, width: size, height: size};
+                    if (capabilities.version === 2) {
+                        boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
+                        boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
+                    }
+                    boneTexture.type = WEBGL_PIXEL_TYPE.FLOAT;
+                    boneTexture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+                    boneTexture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+                    boneTexture.generateMipmaps = false;
+                    boneTexture.flipY = false;
+
                     skeleton.boneMatrices = boneMatrices;
                     skeleton.boneTexture = boneTexture;
                 }

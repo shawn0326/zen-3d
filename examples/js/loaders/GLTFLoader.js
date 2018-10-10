@@ -1606,9 +1606,9 @@
 
             // if ( textureDef.name !== undefined ) texture.name = textureDef.name;
 
-            texture.pixelFormat = textureDef.format !== undefined ? WEBGL_TEXTURE_FORMATS[textureDef.format] : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
+            texture.format = textureDef.format !== undefined ? WEBGL_TEXTURE_FORMATS[textureDef.format] : zen3d.WEBGL_PIXEL_FORMAT.RGBA;
 
-            if (textureDef.internalFormat !== undefined && texture.pixelFormat !== WEBGL_TEXTURE_FORMATS[textureDef.internalFormat]) {
+            if (textureDef.internalFormat !== undefined && texture.format !== WEBGL_TEXTURE_FORMATS[textureDef.internalFormat]) {
 
                 console.warn('zen3d.GLTFLoader: zen3d.js does not support texture internalFormat which is different from texture format. ' +
                     'internalFormat will be forced to be the same value as format.');

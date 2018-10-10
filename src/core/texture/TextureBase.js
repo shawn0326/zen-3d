@@ -32,18 +32,27 @@ function TextureBase() {
     this.border = 0;
 
     /**
-     * WebGLTexture pixel format.
+     * WebGLTexture texel data format.
      * @type {zen3d.WEBGL_PIXEL_FORMAT}
      * @default zen3d.WEBGL_PIXEL_FORMAT.RGBA
      */
-    this.pixelFormat = WEBGL_PIXEL_FORMAT.RGBA;
+    this.format = WEBGL_PIXEL_FORMAT.RGBA;
 
     /**
-     * WebGLTexture pixel type.
+     * WebGLTexture texel data internal format.
+     * If null, internalformat is set to be same as format.
+     * This must be null in WebGL 1.0.
+     * @type {null|zen3d.WEBGL_PIXEL_FORMAT}
+     * @default null
+     */
+    this.internalformat = null;
+
+    /**
+     * WebGLTexture texel data type.
      * @type {zen3d.WEBGL_PIXEL_TYPE}
      * @default zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE
      */
-    this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+    this.type = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 
     /**
      * How the texture is sampled when a texel covers more than one pixel.
@@ -133,8 +142,8 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
     copy: function( source ) {
         this.textureType = source.textureType;
         this.border = source.border;
-        this.pixelFormat = source.pixelFormat;
-        this.pixelType = source.pixelType;
+        this.format = source.format;
+        this.type = source.type;
         this.magFilter = source.magFilter;
         this.minFilter = source.minFilter;
         this.wrapS = source.wrapS;

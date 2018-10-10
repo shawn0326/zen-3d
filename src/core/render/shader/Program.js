@@ -388,7 +388,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     // skinned mesh
     var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
     var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
-    var useVertexTexture = capabilities.maxVertexTextures > 0 && capabilities.floatTextures;
+    var useVertexTexture = (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2;
     var maxBones = 0;
     if(useVertexTexture) {
         maxBones = 1024;

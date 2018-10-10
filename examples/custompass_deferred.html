@@ -140,19 +140,19 @@
 			var normalDepthRenderTarget = new zen3d.RenderTarget2D(width, height);
 			normalDepthRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			normalDepthRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			normalDepthRenderTarget.texture.pixelType = zen3d.isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			normalDepthRenderTarget.texture.type = zen3d.isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			normalDepthRenderTarget.texture.generateMipmaps = false;
 
 			var colorRenderTarget = new zen3d.RenderTarget2D(width, height);
 			colorRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			colorRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			colorRenderTarget.texture.pixelType = zen3d.isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			colorRenderTarget.texture.type = zen3d.isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			colorRenderTarget.texture.generateMipmaps = false;
 
 			var resultRenderTarget = new zen3d.RenderTarget2D(width, height);
 			resultRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 			resultRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			// resultRenderTarget.texture.pixelType = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			// resultRenderTarget.texture.type = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			resultRenderTarget.texture.generateMipmaps = false;
 
 			var gl = canvas.getContext("webgl", {

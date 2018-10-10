@@ -362,7 +362,14 @@
 	    RGB: 0x1907,
 	    RGBA: 0x1908,
 	    LUMINANCE: 0x1909,
-	    LUMINANCE_ALPHA: 0x190A
+	    LUMINANCE_ALPHA: 0x190A,
+	    // only for internal formats
+	    RGBA16F: 0x881A,
+	    RGBA32F: 0x8814,
+	    DEPTH_COMPONENT24: 0x81A6,
+	    DEPTH_COMPONENT32F: 0x8CAC,
+	    DEPTH24_STENCIL8: 0x88F0,
+	    DEPTH32F_STENCIL8: 0x8CAD
 	};
 
 	/**
@@ -379,11 +386,13 @@
 	    INT: 0x1404,
 	    UNSIGNED_INT: 0x1405,
 	    FLOAT: 0x1406,
-	    HALF_FLOAT: 36193, // WebGL2 0x140B
+	    HALF_FLOAT: 36193,
+	    HALF_FLOAT2: 0x140B, // fro WebGL2
 	    UNSIGNED_INT_24_8: 0x84FA,
 	    UNSIGNED_SHORT_4_4_4_4:	0x8033,
 	    UNSIGNED_SHORT_5_5_5_1: 0x8034,
-	    UNSIGNED_SHORT_5_6_5: 0x8363
+	    UNSIGNED_SHORT_5_6_5: 0x8363,
+	    FLOAT_32_UNSIGNED_INT_24_8_REV: 0x8DAD
 	};
 
 	/**
@@ -4427,18 +4436,27 @@
 	    this.border = 0;
 
 	    /**
-	     * WebGLTexture pixel format.
+	     * WebGLTexture texel data format.
 	     * @type {zen3d.WEBGL_PIXEL_FORMAT}
 	     * @default zen3d.WEBGL_PIXEL_FORMAT.RGBA
 	     */
-	    this.pixelFormat = WEBGL_PIXEL_FORMAT.RGBA;
+	    this.format = WEBGL_PIXEL_FORMAT.RGBA;
 
 	    /**
-	     * WebGLTexture pixel type.
+	     * WebGLTexture texel data internal format.
+	     * If null, internalformat is set to be same as format.
+	     * This must be null in WebGL 1.0.
+	     * @type {null|zen3d.WEBGL_PIXEL_FORMAT}
+	     * @default null
+	     */
+	    this.internalformat = null;
+
+	    /**
+	     * WebGLTexture texel data type.
 	     * @type {zen3d.WEBGL_PIXEL_TYPE}
 	     * @default zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE
 	     */
-	    this.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+	    this.type = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 
 	    /**
 	     * How the texture is sampled when a texel covers more than one pixel.
@@ -4528,8 +4546,8 @@
 	    copy: function( source ) {
 	        this.textureType = source.textureType;
 	        this.border = source.border;
-	        this.pixelFormat = source.pixelFormat;
-	        this.pixelType = source.pixelType;
+	        this.format = source.format;
+	        this.type = source.type;
 	        this.magFilter = source.magFilter;
 	        this.minFilter = source.minFilter;
 	        this.wrapS = source.wrapS;
@@ -5322,7 +5340,7 @@
 
 	    /**
 	     * Image data for this texture.
-	     * @member {null|HTMLImageElement|Object[]}
+	     * @member {null|HTMLImageElement|Object}
 	     * @default null
 	     */
 	    this.image = null;
@@ -5449,63 +5467,12 @@
 
 	    var loader = isTGA ? new TGALoader() : new ImageLoader();
 	    loader.load(src, function(image) {
-	        texture.pixelFormat = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+	        texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
 	        texture.image = image;
 	        texture.version++;
 
 	        texture.dispatchEvent({type: 'onload'});
 	    });
-
-	    return texture;
-	};
-
-	/**
-	 * Creates a texture for use as a Depth Texture. 
-	 * Require support for the {@link https://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/ WEBGL_depth_texture extension}.
-	 * @param {boolean} stencil
-	 * @return {zen3d.Texture2D}
-	 */
-	Texture2D.createDepthTexture = function(stencil) {
-	    var texture = new Texture2D();
-
-	    texture.image = {data: null, width: 4, height: 4};
-
-	    if (stencil) { // for DEPTH_STENCIL_ATTACHMENT
-	        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
-	        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
-	    } else { // for DEPTH_ATTACHMENT
-	        texture.pixelType = WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
-	        texture.pixelFormat = WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
-	    }
-
-	    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-	    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-	    texture.generateMipmaps = false;
-	    texture.flipY = false;
-
-	    return texture;
-	};
-
-	/**
-	 * Creates a texture directly from raw data, width and height.
-	 * @param {TypedArray} data - The data of the texture.
-	 * @param {number} width - The width of the texture.
-	 * @param {number} height - The height of the texture.
-	 * @return {zen3d.Texture2D}
-	 */
-	Texture2D.createDataTexture = function(data, width, height) {
-	    var texture = new Texture2D();
-
-	    texture.image = {data: data, width: width, height: height};
-
-	    texture.pixelType = WEBGL_PIXEL_TYPE.FLOAT;
-
-	    texture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-	    texture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
-
-	    texture.generateMipmaps = false;
-	    texture.flipY = false;
 
 	    return texture;
 	};
@@ -5600,7 +5567,7 @@
 	    next();
 
 	    function loaded() {
-	        texture.pixelFormat = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+	        texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
 	        texture.version++;
 	        texture.dispatchEvent({type: 'onload'});
 	    }
@@ -9338,6 +9305,7 @@
 
 	        var gl = this.gl;
 	        var state = this.state;
+	        var capabilities = this.capabilities;
 	    
 	        var textureProperties = this.properties.get(texture);
 	    
@@ -9355,7 +9323,7 @@
 	            var isElement = image instanceof HTMLImageElement || image instanceof HTMLCanvasElement;
 
 	            if ( isElement ) {
-	                image = clampToMaxSize(image, this.capabilities.maxTextureSize);
+	                image = clampToMaxSize(image, capabilities.maxTextureSize);
 
 	                if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
 	                    image = makePowerOf2(image);
@@ -9368,33 +9336,37 @@
 	            this.setTextureParameters(texture, isPowerOfTwoImage);
 	    
 	            var mipmap, mipmaps = texture.mipmaps,
-	                pixelFormat = texture.pixelFormat,
-	                pixelType = texture.pixelType;
+	                format = texture.format,
+	                internalformat = texture.internalformat || texture.format,
+	                type = texture.type;
+
+	            if (capabilities.version === 1 && format !== internalformat) {
+	                console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+	            }
 
 	            if ( isElement ) {
 	                if (mipmaps.length > 0 && isPowerOfTwoImage) {
 	    
 	                    for (var i = 0, il = mipmaps.length; i < il; i++) {
 	                        mipmap = mipmaps[i];
-	                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, pixelFormat, pixelType, mipmap);
+	                        gl.texImage2D(gl.TEXTURE_2D, i, internalformat, format, type, mipmap);
 	                    }
 	    
 	                    texture.generateMipmaps = false;
 	                } else {
-	                    gl.texImage2D(gl.TEXTURE_2D, 0, pixelFormat, pixelFormat, pixelType, image);
+	                    gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, format, type, image);
 	                }
 	            } else {
 	                if (mipmaps.length > 0 && isPowerOfTwoImage) {
 	    
 	                    for (var i = 0, il = mipmaps.length; i < il; i++) {
 	                        mipmap = mipmaps[i];
-	                        gl.texImage2D(gl.TEXTURE_2D, i, pixelFormat, mipmap.width, mipmap.height, texture.border, pixelFormat, pixelType, mipmap.data);
+	                        gl.texImage2D(gl.TEXTURE_2D, i, internalformat, mipmap.width, mipmap.height, texture.border, format, type, mipmap.data);
 	                    }
 	    
 	                    texture.generateMipmaps = false;
 	                } else {
-	                    var internalFormat = (this.capabilities.version === 2 && pixelFormat === gl.DEPTH_COMPONENT) ? gl.DEPTH_COMPONENT24 : pixelFormat;
-	                    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
+	                    gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
 	                }
 	            }
 	    
@@ -9418,6 +9390,7 @@
 
 	        var gl = this.gl;
 	        var state = this.state;
+	        var capabilities = this.capabilities;
 	    
 	        var textureProperties = this.properties.get(texture);
 	    
@@ -9433,8 +9406,13 @@
 	    
 	            var images = [];
 	            
-	            var pixelFormat = texture.pixelFormat,
-	            pixelType = texture.pixelType;
+	            var format = texture.format,
+	            internalformat = texture.internalformat || texture.format,
+	            type = texture.type;
+
+	            if (capabilities.version === 1 && format !== internalformat) {
+	                console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+	            }
 
 	            var isPowerOfTwoImage = true;
 	    
@@ -9443,7 +9421,7 @@
 	                var isElement = image instanceof HTMLImageElement || image instanceof HTMLCanvasElement;
 
 	                if ( isElement ) {
-	                    image = clampToMaxSize(image, this.capabilities.maxTextureSize);
+	                    image = clampToMaxSize(image, capabilities.maxTextureSize);
 	    
 	                    if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
 	                        image = makePowerOf2(image);
@@ -9466,9 +9444,9 @@
 	                var isElement = image.__isElement;
 
 	                if ( isElement ) {
-	                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, pixelFormat, pixelFormat, pixelType, image);
+	                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, image);
 	                } else {
-	                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, pixelFormat, image.width, image.height, texture.border, pixelFormat, pixelType, image.data);
+	                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
 	                }
 	            }
 	    
@@ -10810,7 +10788,7 @@
 	    // skinned mesh
 	    var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
 	    var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
-	    var useVertexTexture = capabilities.maxVertexTextures > 0 && capabilities.floatTextures;
+	    var useVertexTexture = (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2;
 	    var maxBones = 0;
 	    if(useVertexTexture) {
 	        maxBones = 1024;
@@ -11394,10 +11372,11 @@
 	        if(object.skeleton && object.skeleton.bones.length > 0) {
 	            var skeleton = object.skeleton;
 	            var gl = this.gl;
+	            var capabilities = this.capabilities;
 
 	            skeleton.updateBones();
 	    
-	            if(this.capabilities.maxVertexTextures > 0 && this.capabilities.floatTextures) {
+	            if( (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2) {
 	                if(skeleton.boneTexture === undefined) {
 	                    var size = Math.sqrt(skeleton.bones.length * 4);
 	                    size = nextPowerOfTwo(Math.ceil(size));
@@ -11405,9 +11384,18 @@
 	    
 	                    var boneMatrices = new Float32Array(size * size * 4);
 	                    boneMatrices.set(skeleton.boneMatrices);
-	    
-	                    var boneTexture = Texture2D.createDataTexture(boneMatrices, size, size);
-	    
+	                    var boneTexture = new Texture2D();
+	                    boneTexture.image = {data: boneMatrices, width: size, height: size};
+	                    if (capabilities.version === 2) {
+	                        boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
+	                        boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
+	                    }
+	                    boneTexture.type = WEBGL_PIXEL_TYPE.FLOAT;
+	                    boneTexture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+	                    boneTexture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+	                    boneTexture.generateMipmaps = false;
+	                    boneTexture.flipY = false;
+
 	                    skeleton.boneMatrices = boneMatrices;
 	                    skeleton.boneTexture = boneTexture;
 	                }

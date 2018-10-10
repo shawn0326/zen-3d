@@ -93,7 +93,7 @@ TextureCube.fromSrc = function(srcArray) {
     next();
 
     function loaded() {
-        texture.pixelFormat = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+        texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
         texture.version++;
         texture.dispatchEvent({type: 'onload'});
     }

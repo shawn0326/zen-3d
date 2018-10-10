@@ -99,7 +99,18 @@
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget.texture.generateMipmaps = false;
-			var depthTexture = zen3d.Texture2D.createDepthTexture(false);
+
+			var depthTexture = new zen3d.Texture2D();
+			depthTexture.image = {data: null, width: 4, height: 4};
+			depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
+			depthTexture.format = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
+			if (glCore.capabilities.version === 2) {
+				depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT24;
+			}
+			depthTexture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			depthTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			depthTexture.generateMipmaps = false;
+			depthTexture.flipY = false;
 			tempRenderTarget.attach(
 				depthTexture,
 				zen3d.ATTACHMENT.DEPTH_ATTACHMENT
