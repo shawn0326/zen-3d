@@ -148,7 +148,7 @@ function createProgram(gl, props, defines) {
     var prefixFragment = [
 
         (props.version > 1) ? '' : '#extension GL_OES_standard_derivatives : enable',
-        (props.useShaderTextureLOD && props.useEnvMap && props.version < 2) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
+        (props.useShaderTextureLOD && props.version < 2) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
 
         'precision ' + props.precision + ' float;',
         'precision ' + props.precision + ' int;',
@@ -184,7 +184,7 @@ function createProgram(gl, props, defines) {
         props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
         props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
         props.doubleSided ? '#define DOUBLE_SIDED' : '',
-        (props.envMap && props.useShaderTextureLOD) ? '#define TEXTURE_LOD_EXT' : '',
+        props.useShaderTextureLOD ? '#define TEXTURE_LOD_EXT' : '',
 
         props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
         props.useEnvMap ? '#define USE_ENV_MAP' : '',
