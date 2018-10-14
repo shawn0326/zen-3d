@@ -3,7 +3,7 @@
 zen3d.SkyBoxShader = {
 
     uniforms: {
-        "level": 4.
+        "level": 0.
     },
 
     vertexShader: [
