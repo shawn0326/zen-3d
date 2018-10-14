@@ -283,30 +283,31 @@ Object.assign(WebGLTexture.prototype, {
 
         var parameters = getTextureParameters(texture, isPowerOfTwoImage);
         
-        if (capabilities.version >= 2) {
-            var samplerKey = parameters.join("_");
+        // TODO sampler bug
+        // if (capabilities.version >= 2) {
+        //     var samplerKey = parameters.join("_");
 
-            if (!this.samplers[samplerKey]) {
-                var samplerA = gl.createSampler();
+        //     if (!this.samplers[samplerKey]) {
+        //         var samplerA = gl.createSampler();
 
-                gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_S, parameters[0]);
-                gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_T, parameters[1]);
+        //         gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_S, parameters[0]);
+        //         gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_T, parameters[1]);
 
-                gl.samplerParameteri(samplerA, gl.TEXTURE_MAG_FILTER, parameters[2]);
-                gl.samplerParameteri(samplerA, gl.TEXTURE_MIN_FILTER, parameters[3]);
+        //         gl.samplerParameteri(samplerA, gl.TEXTURE_MAG_FILTER, parameters[2]);
+        //         gl.samplerParameteri(samplerA, gl.TEXTURE_MIN_FILTER, parameters[3]);
 
-                // anisotropy if EXT_texture_filter_anisotropic exist
-                // TODO bug here: https://github.com/KhronosGroup/WebGL/issues/2006
-                // var extension = capabilities.anisotropyExt;
-                // if (extension) {
-                //     gl.samplerParameterf(samplerA, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(parameters[4], capabilities.maxAnisotropy));
-                // }
+        //         // anisotropy if EXT_texture_filter_anisotropic exist
+        //         // TODO bug here: https://github.com/KhronosGroup/WebGL/issues/2006
+        //         // var extension = capabilities.anisotropyExt;
+        //         // if (extension) {
+        //         //     gl.samplerParameterf(samplerA, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(parameters[4], capabilities.maxAnisotropy));
+        //         // }
 
-                this.samplers[samplerKey] = samplerA;
-            }
+        //         this.samplers[samplerKey] = samplerA;
+        //     }
 
-            gl.bindSampler(this.state.currentTextureSlot - gl.TEXTURE0, this.samplers[samplerKey]);
-        } else {
+        //     gl.bindSampler(this.state.currentTextureSlot - gl.TEXTURE0, this.samplers[samplerKey]);
+        // } else {
             gl.texParameteri(textureType, gl.TEXTURE_WRAP_S, parameters[0]);
             gl.texParameteri(textureType, gl.TEXTURE_WRAP_T, parameters[1]);
 
@@ -318,7 +319,7 @@ Object.assign(WebGLTexture.prototype, {
             if (extension) {
                 gl.texParameterf(textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(parameters[4], capabilities.maxAnisotropy));
             }
-        }
+        // }
     },
 
     setRenderTarget2D: function(renderTarget) {
