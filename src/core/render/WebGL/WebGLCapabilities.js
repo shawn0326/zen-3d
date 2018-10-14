@@ -72,6 +72,7 @@ function WebGLCapabilities(gl) {
         return 'lowp';
     }
 
+    // This extension is available to both, WebGL1 and WebGL2 contexts.
     var anisotropyExt = getExtension('EXT_texture_filter_anisotropic');
 
     return /** @lends zen3d.WebGLCapabilities# */{

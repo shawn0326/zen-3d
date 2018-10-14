@@ -66,6 +66,37 @@ function clampToMaxSize(image, maxSize) {
     return image;
 }
 
+function getTextureParameters(texture, isPowerOfTwoImage) {
+
+    var wrapS = texture.wrapS,
+    wrapT = texture.wrapT,
+    magFilter = texture.magFilter,
+    minFilter = texture.minFilter,
+    anisotropy = texture.anisotropy;
+
+    // fix for non power of 2 image
+    if (!isPowerOfTwoImage) {
+        wrapS = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+        wrapT = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
+
+        if (texture.wrapS !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE || texture.wrapT !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE) {
+            console.warn('Texture is not power of two. Texture.wrapS and Texture.wrapT should be set to zen3d.TEXTURE_WRAP.CLAMP_TO_EDGE.', texture);
+        }
+
+        magFilter = filterFallback(texture.magFilter);
+        minFilter = filterFallback(texture.minFilter);
+
+        if (
+            (texture.minFilter !== WEBGL_TEXTURE_FILTER.NEAREST && texture.minFilter !== WEBGL_TEXTURE_FILTER.LINEAR) ||
+            (texture.magFilter !== WEBGL_TEXTURE_FILTER.NEAREST && texture.magFilter !== WEBGL_TEXTURE_FILTER.LINEAR)
+        ) {
+            console.warn('Texture is not power of two. Texture.minFilter and Texture.magFilter should be set to zen3d.TEXTURE_FILTER.NEAREST or zen3d.TEXTURE_FILTER.LINEAR.', texture);
+        }
+    }
+
+    return [wrapS, wrapT, magFilter, minFilter, anisotropy];
+}
+
 function WebGLTexture(gl, state, properties, capabilities) {
     this.gl = gl;
 
@@ -74,6 +105,8 @@ function WebGLTexture(gl, state, properties, capabilities) {
     this.properties = properties;
 
     this.capabilities = capabilities;
+
+    this.samplers = {};
 }
 
 Object.assign(WebGLTexture.prototype, {
@@ -245,37 +278,46 @@ Object.assign(WebGLTexture.prototype, {
 
     setTextureParameters: function(texture, isPowerOfTwoImage) {
         var gl = this.gl;
+        var capabilities = this.capabilities;
         var textureType = texture.textureType;
-    
-        if (isPowerOfTwoImage) {
-            gl.texParameteri(textureType, gl.TEXTURE_WRAP_S, texture.wrapS);
-            gl.texParameteri(textureType, gl.TEXTURE_WRAP_T, texture.wrapT);
-    
-            gl.texParameteri(textureType, gl.TEXTURE_MAG_FILTER, texture.magFilter);
-            gl.texParameteri(textureType, gl.TEXTURE_MIN_FILTER, texture.minFilter);
+
+        var parameters = getTextureParameters(texture, isPowerOfTwoImage);
+        
+        if (capabilities.version >= 2) {
+            var samplerKey = parameters.join("_");
+
+            if (!this.samplers[samplerKey]) {
+                var samplerA = gl.createSampler();
+
+                gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_S, parameters[0]);
+                gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_T, parameters[1]);
+
+                gl.samplerParameteri(samplerA, gl.TEXTURE_MAG_FILTER, parameters[2]);
+                gl.samplerParameteri(samplerA, gl.TEXTURE_MIN_FILTER, parameters[3]);
+
+                // anisotropy if EXT_texture_filter_anisotropic exist
+                // TODO bug here: https://github.com/KhronosGroup/WebGL/issues/2006
+                // var extension = capabilities.anisotropyExt;
+                // if (extension) {
+                //     gl.samplerParameterf(samplerA, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(parameters[4], capabilities.maxAnisotropy));
+                // }
+
+                this.samplers[samplerKey] = samplerA;
+            }
+
+            gl.bindSampler(this.state.currentTextureSlot - gl.TEXTURE0, this.samplers[samplerKey]);
         } else {
-            gl.texParameteri(textureType, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(textureType, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    
-            if (texture.wrapS !== gl.CLAMP_TO_EDGE || texture.wrapT !== gl.CLAMP_TO_EDGE) {
-                console.warn('Texture is not power of two. Texture.wrapS and Texture.wrapT should be set to zen3d.TEXTURE_WRAP.CLAMP_TO_EDGE.', texture);
+            gl.texParameteri(textureType, gl.TEXTURE_WRAP_S, parameters[0]);
+            gl.texParameteri(textureType, gl.TEXTURE_WRAP_T, parameters[1]);
+
+            gl.texParameteri(textureType, gl.TEXTURE_MAG_FILTER, parameters[2]);
+            gl.texParameteri(textureType, gl.TEXTURE_MIN_FILTER, parameters[3]);
+
+            // anisotropy if EXT_texture_filter_anisotropic exist
+            var extension = capabilities.anisotropyExt;
+            if (extension) {
+                gl.texParameterf(textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(parameters[4], capabilities.maxAnisotropy));
             }
-    
-            gl.texParameteri(textureType, gl.TEXTURE_MAG_FILTER, filterFallback(texture.magFilter));
-            gl.texParameteri(textureType, gl.TEXTURE_MIN_FILTER, filterFallback(texture.minFilter));
-    
-            if (
-                (texture.minFilter !== gl.NEAREST && texture.minFilter !== gl.LINEAR) ||
-                (texture.magFilter !== gl.NEAREST && texture.magFilter !== gl.LINEAR)
-            ) {
-                console.warn('Texture is not power of two. Texture.minFilter and Texture.magFilter should be set to zen3d.TEXTURE_FILTER.NEAREST or zen3d.TEXTURE_FILTER.LINEAR.', texture);
-            }
-        }
-    
-        // EXT_texture_filter_anisotropic
-        var extension = this.capabilities.anisotropyExt;
-        if(extension && texture.anisotropy > 1) {
-            gl.texParameterf( textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(texture.anisotropy, this.capabilities.maxAnisotropy));
         }
     },
 

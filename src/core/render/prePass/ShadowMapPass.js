@@ -82,7 +82,7 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
         }
 
         // set generateMipmaps false
-        // this.texture.updateRenderTargetMipmap(shadowTarget);
+        // glCore.texture.updateRenderTargetMipmap(shadowTarget);
 
     }
 
