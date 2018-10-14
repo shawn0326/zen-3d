@@ -59,7 +59,6 @@ Object.defineProperties(RenderTargetCube.prototype, {
 
         set: function(texture) {
             if (texture) {
-                texture.version++;
                 for (var i = 0; i < 6; i++) {
                     texture.images[i] = {data: null, width: this.width, height: this.height};
                 }

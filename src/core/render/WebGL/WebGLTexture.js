@@ -112,22 +112,24 @@ function WebGLTexture(gl, state, properties, capabilities) {
 Object.assign(WebGLTexture.prototype, {
 
     setTexture2D: function(texture, slot) {
-        slot = ( slot !== undefined ) ? slot : 0;
-
         var gl = this.gl;
         var state = this.state;
         var capabilities = this.capabilities;
+
+        if (slot !== undefined) {
+            slot = gl.TEXTURE0 + slot;
+        }
     
         var textureProperties = this.properties.get(texture);
     
-        if (texture.image && textureProperties.__version !== texture.version) {
+        if (texture.image && (!texture.image.rtt || slot === undefined) && textureProperties.__version !== texture.version) {
     
             if (textureProperties.__webglTexture === undefined) {
                 texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
     
-            state.activeTexture(gl.TEXTURE0 + slot);
+            state.activeTexture(slot);
             state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
     
             var image = texture.image;
@@ -190,29 +192,31 @@ Object.assign(WebGLTexture.prototype, {
             return textureProperties;
         }
     
-        state.activeTexture(gl.TEXTURE0 + slot);
+        state.activeTexture(slot);
         state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
 
         return textureProperties;
     },
 
     setTextureCube: function(texture, slot) {
-        slot = ( slot !== undefined ) ? slot : 0;
-
         var gl = this.gl;
         var state = this.state;
         var capabilities = this.capabilities;
+
+        if (slot !== undefined) {
+            slot = gl.TEXTURE0 + slot;
+        }
     
         var textureProperties = this.properties.get(texture);
     
-        if (texture.version > 0 && textureProperties.__version !== texture.version) {
+        if ( (texture.version > 0 || slot === undefined) && textureProperties.__version !== texture.version) {
     
             if (textureProperties.__webglTexture === undefined) {
                 texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
     
-            state.activeTexture(gl.TEXTURE0 + slot);
+            state.activeTexture(slot);
             state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
     
             var images = [];
@@ -270,7 +274,7 @@ Object.assign(WebGLTexture.prototype, {
             return textureProperties;
         }
     
-        state.activeTexture(gl.TEXTURE0 + slot);
+        state.activeTexture(slot);
         state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
 
         return textureProperties;
