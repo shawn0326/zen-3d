@@ -103,6 +103,7 @@ Object.assign(WebGLGeometry.prototype, {
         if (!geometryProperties.created) {
             geometry.addEventListener('dispose', this.onGeometryDispose2, this);
             geometryProperties.created = true;
+            geometryProperties._vaos = {};
         }
 
         if (geometry.index !== null) {
@@ -112,6 +113,8 @@ Object.assign(WebGLGeometry.prototype, {
         for (var name in geometry.attributes) {
             updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
         }
+
+        return geometryProperties;
     },
 
     onGeometryDispose: function(event) {
@@ -128,6 +131,21 @@ Object.assign(WebGLGeometry.prototype, {
         for (var name in geometry.attributes) {
             removeAttribute(gl, properties, geometry.attributes[name]);
         }
+
+        // dispose vaos
+        for (var key in geometryProperties._vaos) {
+            var vao = geometryProperties[key];
+            if (vao) {
+                if (this.capabilities.version >= 2) { 
+                    gl.deleteVertexArray(vao);
+                } else if (this.capabilities.vaoExt) { 
+                    gl.deleteVertexArrayOES(vao);
+                }
+            }
+        }
+        geometryProperties._vaos = {};
+        
+        geometryProperties.created = false;
 
         this.properties.delete(geometry);
     }

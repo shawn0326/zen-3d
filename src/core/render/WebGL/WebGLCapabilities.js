@@ -135,6 +135,11 @@ function WebGLCapabilities(gl) {
         /**
          * @type {*} 
          */
+        vaoExt: getExtension("OES_vertex_array_object"),
+
+        /**
+         * @type {*} 
+         */
         anisotropyExt: anisotropyExt,
 
         /**

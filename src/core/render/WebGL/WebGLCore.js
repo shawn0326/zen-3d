@@ -181,11 +181,31 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             var program = getProgram(this, camera, material, object, scene);
             state.setProgram(program);
     
-            this.geometry.setGeometry(geometry);
-    
-            var geometryProgram = program.uuid + "_" + geometry.uuid;
-            if(geometryProgram !== this._currentGeometryProgram) {
-                this.setupVertexAttributes(program, geometry);
+            var geometryProperties = this.geometry.setGeometry(geometry);
+
+            if (this.capabilities.version >= 2) { // use VAO
+                if (!geometryProperties._vaos[program.uuid]) {
+                    geometryProperties._vaos[program.uuid] = gl.createVertexArray();
+                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                    this.setupVertexAttributes(program, geometry);
+                } else {
+                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                }
+            } else if (this.capabilities.vaoExt) { // use VAO extension
+                var ext = this.capabilities.vaoExt;
+                if (!geometryProperties._vaos[program.uuid]) {
+                    geometryProperties._vaos[program.uuid] = ext.createVertexArrayOES();
+                    ext.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    this.setupVertexAttributes(program, geometry);
+                } else {
+                    ext.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                }
+            } else {
+                var geometryProgram = program.uuid + "_" + geometry.uuid;
+                if(geometryProgram !== this._currentGeometryProgram) {
+                    this.setupVertexAttributes(program, geometry);
+                    this._currentGeometryProgram = geometryProgram;
+                }
                 this._currentGeometryProgram = geometryProgram;
             }
     
@@ -426,6 +446,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
     
                 this.draw(geometry, material, group);
+            }
+
+            if (this.capabilities.version >= 2) {
+                gl.bindVertexArray(null);
+            } else if (this.capabilities.vaoExt) {
+                this.capabilities.vaoExt.bindVertexArrayOES(null);
             }
     
             // reset used tex Unit
