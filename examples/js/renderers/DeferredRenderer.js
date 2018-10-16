@@ -44,6 +44,16 @@
         spotLightPass.material.depthTest = false;
         this.spotLightPass = spotLightPass;
 
+        var ambientCubemapLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader2.ambientCubemapLight);
+        ambientCubemapLightPass.material.transparent = true;
+        ambientCubemapLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
+        ambientCubemapLightPass.material.depthWrite = false;
+        ambientCubemapLightPass.material.depthTest = false;
+        this.ambientCubemapLightPass = ambientCubemapLightPass;
+
+        this.ambientCubemap = null;
+        this.ambientCubemapIntensity = 1.0;
+
     }
 
     var matProjViewInverse = new zen3d.Matrix4();
@@ -194,6 +204,20 @@
                 } else {
                     pass.material.defines["SHADOW"] = 0;
                 }
+
+                pass.render(glCore);
+
+            }
+
+            // ambientCubemap
+
+            if (this.ambientCubemap) {
+
+                var pass = this.ambientCubemapLightPass;
+                uploadCommonUniforms(pass);
+
+                pass.uniforms["cubeMap"] = this.ambientCubemap;
+                pass.uniforms["intensity"] = this.ambientCubemapIntensity;
 
                 pass.render(glCore);
 

@@ -86,7 +86,8 @@
 			var plane_geometry = new zen3d.PlaneGeometry(500, 500);
 	        var material = new zen3d.LambertMaterial();
 			material.diffuse.setHex(0xffffff);
-			material.roughness = 0.8;
+			material.roughness = 0.9;
+			material.metalness = 0.9;
 			// material.emissive.setRGB(1, 0, 0);
 			// material.specular.setRGB(0, 0, 0);
 			var plane = new zen3d.Mesh(plane_geometry, material);
@@ -147,6 +148,15 @@
 			var controller = new zen3d.OrbitControls(camera, canvas);
 
 			var renderer = new zen3d.DeferredRenderer(canvas);
+			renderer.ambientCubemap = zen3d.TextureCube.fromSrc([
+				"resources/Bridge2/posx.jpg",
+			    "resources/Bridge2/negx.jpg",
+			    "resources/Bridge2/posy.jpg",
+			    "resources/Bridge2/negy.jpg",
+			    "resources/Bridge2/posz.jpg",
+			    "resources/Bridge2/negz.jpg"
+			]);
+			renderer.ambientCubemapIntensity = 1;
 
 	        function loop(count) {
 

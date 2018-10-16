@@ -85,8 +85,10 @@
                     if (glCore.capabilities.version === 2) {
                         var ext = glCore.capabilities.getExtension("EXT_color_buffer_float");
                         if (ext) {
-                            this._renderTarget1.texture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.RGBA16F;
-                            this._renderTarget1.texture.type = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT2; // webgl2 use HALF_FLOAT2
+                            this._renderTarget1.texture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.RGBA32F;
+                            this._renderTarget1.texture.type = zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+                            // this._renderTarget1.texture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.RGBA16F;
+                            // this._renderTarget1.texture.type = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT2; // webgl2 use HALF_FLOAT2
                         } else {
                             this._renderTarget1.texture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
                         }

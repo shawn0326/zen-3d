@@ -414,6 +414,82 @@
 
             ].join( '\n' )
 
+        },
+
+        ambientCubemapLight: {
+
+            defines: {
+
+            },
+
+            uniforms: {
+
+                normalGlossinessTexture: null,
+                depthTexture: null,
+                albedoMetalnessTexture: null,
+
+                windowSize: [800, 600],
+
+                matProjViewInverse: new Float32Array(16),
+
+                cubeMap: null,
+                intensity: 1.0,
+
+                eyePosition: [0, 1, 0]
+
+            },
+
+            vertexShader: DeferredShaderChunk.light_vertex,
+
+            fragmentShader: [
+
+                DeferredShaderChunk.light_head,
+                DeferredShaderChunk.light_equation,
+
+                "uniform samplerCube cubeMap;",
+                "uniform float intensity;",
+
+                "uniform vec3 eyePosition;",
+
+                "void main() {",
+
+                    DeferredShaderChunk.gbuffer_read,
+
+                    "vec3 V = normalize(eyePosition - position);",
+                    "vec3 L = reflect(-V, N);",
+
+                    "vec3 H = normalize(L + V);",
+
+                    "float ndv = clamp(dot(N, V), 0.0, 1.0);",
+                    "float ndh = clamp(dot(N, H), 0.0, 1.0);",
+                    "float rough = clamp(1.0 - glossiness, 0.0, 1.0);",
+
+                    // FIXME fixed maxMipmapLevel ?
+                    "float level = rough * 5.0;",
+
+                    "#ifdef TEXTURE_LOD_EXT",
+
+                        "vec4 cubeMapColor1 = textureCubeLodEXT( cubeMap, L, 8. );",
+                        "vec4 cubeMapColor2 = textureCubeLodEXT( cubeMap, L, level );",
+
+                    "#else",
+
+                        // force the bias high to get the last LOD level as it is the most blurred.
+                        "vec4 cubeMapColor1 = textureCubeLodEXT( cubeMap, L, 8. );",
+                        "vec4 cubeMapColor2 = textureCube( cubeMap, L, level );",
+
+                    "#endif",
+
+                    // Diffuse term
+                    // TODO
+                    "gl_FragColor.rgb = intensity * (cubeMapColor2.xyz * F_Schlick(ndv, specularColor) + cubeMapColor1.xyz * diffuseColor / PI);",
+
+                    "gl_FragColor.a = 1.0;",
+
+                "}"
+
+            ].join( '\n' )
+
         }
 
     };
