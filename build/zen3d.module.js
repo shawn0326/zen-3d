@@ -381,7 +381,6 @@ var WEBGL_PIXEL_TYPE = {
     UNSIGNED_INT: 0x1405,
     FLOAT: 0x1406,
     HALF_FLOAT: 36193,
-    HALF_FLOAT2: 0x140B, // fro WebGL2
     UNSIGNED_INT_24_8: 0x84FA,
     UNSIGNED_SHORT_4_4_4_4:	0x8033,
     UNSIGNED_SHORT_5_5_5_1: 0x8034,
@@ -8729,17 +8728,6 @@ function WebGLCapabilities(gl) {
         return ext;
     
     }
-
-    // use dfdx and dfdy must enable OES_standard_derivatives
-    getExtension("OES_standard_derivatives");
-    // GL_OES_standard_derivatives
-    getExtension("GL_OES_standard_derivatives");
-    // WEBGL_depth_texture
-    getExtension("WEBGL_depth_texture");
-    // draw elements support uint
-    getExtension('OES_element_index_uint');
-    // use half float
-    getExtension('OES_texture_half_float');
     
     var targetPrecision = "highp";
 
@@ -8773,74 +8761,58 @@ function WebGLCapabilities(gl) {
     return /** @lends zen3d.WebGLCapabilities# */{
 
         /**
-         * @type {string} 
+         * WebGL version.
+         * @type {number} 
          */
         version: parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]),
 
         /**
+         * The max precision supported in shaders.
          * @type {string} 
          */
         maxPrecision: getMaxPrecision(gl, targetPrecision),
 
         /**
+         * The max texture units.
          * @type {Integer} 
          */
         maxTextures: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
 
         /**
+         * Max vertex texture units.
          * @type {Integer} 
          */
         maxVertexTextures: gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
 
         /**
+         * The max texture size.
          * @type {Integer} 
          */
         maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
 
         /**
+         * The max cube map texture size.
          * @type {Integer} 
          */
         maxCubemapSize: gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE),
 
         /**
+         * The max vertex uniform vectors.
          * @type {Integer} 
          */
         maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
 
         /**
-         * @type {boolean} 
-         */
-        floatTextures: !!getExtension('OES_texture_float'),
-
-        /**
-         * @type {*} 
-         */
-        shaderTextureLOD: getExtension('EXT_shader_texture_lod'),
-
-        /**
-         * @type {*} 
-         */
-        angleInstancedArraysExt: getExtension('ANGLE_instanced_arrays'),
-
-        /**
-         * @type {*} 
-         */
-        drawBuffersExt: getExtension('WEBGL_draw_buffers'),
-
-        /**
-         * @type {*} 
-         */
-        vaoExt: getExtension("OES_vertex_array_object"),
-
-        /**
+         * The EXT_texture_filter_anisotropic extension.
          * @type {*} 
          */
         anisotropyExt: anisotropyExt,
 
         /**
+         * The max anisotropic value.
          * @type {Integer} 
          */
-        maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0,
+        maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1,
 
         getExtension: getExtension
 
@@ -9288,7 +9260,7 @@ function clampToMaxSize(image, maxSize) {
     return image;
 }
 
-function getTextureParameters(texture, isPowerOfTwoImage) {
+function getTextureParameters(texture, needFallback) {
 
     var wrapS = texture.wrapS,
     wrapT = texture.wrapT,
@@ -9296,8 +9268,8 @@ function getTextureParameters(texture, isPowerOfTwoImage) {
     minFilter = texture.minFilter,
     anisotropy = texture.anisotropy;
 
-    // fix for non power of 2 image
-    if (!isPowerOfTwoImage) {
+    // fix for non power of 2 image in WebGL 1.0
+    if (needFallback) {
         wrapS = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
         wrapT = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
@@ -9360,27 +9332,53 @@ Object.assign(WebGLTexture.prototype, {
             if ( isElement ) {
                 image = clampToMaxSize(image, capabilities.maxTextureSize);
 
-                if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
+                if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
                     image = makePowerOf2(image);
                 }
             }
     
-            var isPowerOfTwoImage = _isPowerOfTwo(image);
+            var needFallback = !_isPowerOfTwo(image) && capabilities.version < 2;
     
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
-            this.setTextureParameters(texture, isPowerOfTwoImage);
+            this.setTextureParameters(texture, needFallback);
     
             var mipmap, mipmaps = texture.mipmaps,
                 format = texture.format,
                 internalformat = texture.internalformat || texture.format,
                 type = texture.type;
 
-            if (capabilities.version === 1 && format !== internalformat) {
-                console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+            if (capabilities.version < 2) {
+
+                if (format !== internalformat) {
+                    console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_half_float')) {
+                        console.warn("extension OES_texture_half_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_float')) {
+                        console.warn("extension OES_texture_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (format === WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT || format === WEBGL_PIXEL_FORMAT.DEPTH_STENCIL) {
+                    if (!capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
+                }
+                
+            } else {
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    type = 0x140B; // webgl2 half float value
+                }
             }
 
             if ( isElement ) {
-                if (mipmaps.length > 0 && isPowerOfTwoImage) {
+                if (mipmaps.length > 0 && !needFallback) {
     
                     for (var i = 0, il = mipmaps.length; i < il; i++) {
                         mipmap = mipmaps[i];
@@ -9392,7 +9390,7 @@ Object.assign(WebGLTexture.prototype, {
                     gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, format, type, image);
                 }
             } else {
-                if (mipmaps.length > 0 && isPowerOfTwoImage) {
+                if (mipmaps.length > 0 && !needFallback) {
     
                     for (var i = 0, il = mipmaps.length; i < il; i++) {
                         mipmap = mipmaps[i];
@@ -9405,7 +9403,7 @@ Object.assign(WebGLTexture.prototype, {
                 }
             }
     
-            if (texture.generateMipmaps && isPowerOfTwoImage) {
+            if (texture.generateMipmaps && !needFallback) {
                 gl.generateMipmap(gl.TEXTURE_2D);
             }
     
@@ -9447,11 +9445,37 @@ Object.assign(WebGLTexture.prototype, {
             internalformat = texture.internalformat || texture.format,
             type = texture.type;
 
-            if (capabilities.version === 1 && format !== internalformat) {
-                console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+            if (capabilities.version < 2) {
+
+                if (format !== internalformat) {
+                    console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_half_float')) {
+                        console.warn("extension OES_texture_half_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_float')) {
+                        console.warn("extension OES_texture_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (format === WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT || format === WEBGL_PIXEL_FORMAT.DEPTH_STENCIL) {
+                    if (!capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
+                }
+                
+            } else {
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    type = 0x140B; // webgl2 half float value
+                }
             }
 
-            var isPowerOfTwoImage = true;
+            var needFallback = false;
     
             for (var i = 0; i < 6; i++) {
                 var image = texture.images[i];
@@ -9460,13 +9484,13 @@ Object.assign(WebGLTexture.prototype, {
                 if ( isElement ) {
                     image = clampToMaxSize(image, capabilities.maxTextureSize);
     
-                    if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
+                    if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
                         image = makePowerOf2(image);
                     }
                 }
 
-                if ( !_isPowerOfTwo(image) ) {
-                    isPowerOfTwoImage = false;
+                if ( !_isPowerOfTwo(image) && capabilities.version < 2 ) {
+                    needFallback = true;
                 }
 
                 images[i] = image;
@@ -9474,7 +9498,7 @@ Object.assign(WebGLTexture.prototype, {
             }
     
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
-            this.setTextureParameters(texture, isPowerOfTwoImage);
+            this.setTextureParameters(texture, needFallback);
 
             for (var i = 0; i < 6; i++) {
                 var image = images[i];
@@ -9487,7 +9511,7 @@ Object.assign(WebGLTexture.prototype, {
                 }
             }
     
-            if (texture.generateMipmaps && isPowerOfTwoImage) {
+            if (texture.generateMipmaps && !needFallback) {
                 gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             }
     
@@ -9502,12 +9526,12 @@ Object.assign(WebGLTexture.prototype, {
         return textureProperties;
     },
 
-    setTextureParameters: function(texture, isPowerOfTwoImage) {
+    setTextureParameters: function(texture, needFallback) {
         var gl = this.gl;
         var capabilities = this.capabilities;
         var textureType = texture.textureType;
 
-        var parameters = getTextureParameters(texture, isPowerOfTwoImage);
+        var parameters = getTextureParameters(texture, needFallback);
         
         // TODO sampler bug
         // if (capabilities.version >= 2) {
@@ -9551,6 +9575,7 @@ Object.assign(WebGLTexture.prototype, {
     setRenderTarget2D: function(renderTarget) {
         var gl = this.gl;
         var state = this.state;
+        var capabilities = this.capabilities;
     
         var renderTargetProperties = this.properties.get(renderTarget);
     
@@ -9564,20 +9589,28 @@ Object.assign(WebGLTexture.prototype, {
             var buffers = [];
             for (var attachment in renderTarget._textures) {
                 var textureProperties = this.setTexture2D(renderTarget._textures[attachment]);
+
+                attachment = Number(attachment);
+
+                if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
+                    if (capabilities.version < 2 && !capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
+                }
+
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
                 state.bindTexture(gl.TEXTURE_2D, null);
 
-                if ((Number(attachment) <= 0x8CE9 && Number(attachment) >= 0x8CE0) || (Number(attachment) <= 0x8CE15 && Number(attachment) >= 0x8CE10)) {
+                if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
                     buffers.push(attachment);
                 }
             }
 
             if ( buffers.length > 1 ) {
-                if (this.capabilities.version === 2) {
+                if (capabilities.version >= 2) {
                     gl.drawBuffers(buffers);
-                } else if (this.capabilities.drawBuffersExt) {
-                    var ext = this.capabilities.drawBuffersExt;
-                    ext.drawBuffersWEBGL(buffers);
+                } else if (capabilities.getExtension('WEBGL_draw_buffers')) {
+                    capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
                 }
             }
     
@@ -9910,7 +9943,7 @@ Object.assign(WebGLGeometry.prototype, {
             if (vao) {
                 if (this.capabilities.version >= 2) { 
                     gl.deleteVertexArray(vao);
-                } else if (this.capabilities.vaoExt) { 
+                } else { 
                     gl.deleteVertexArrayOES(vao);
                 }
             }
@@ -10612,7 +10645,8 @@ function createProgram(gl, props, defines) {
 
     var prefixFragment = [
 
-        (props.version > 1) ? '' : '#extension GL_OES_standard_derivatives : enable',
+        // use dfdx and dfdy must enable OES_standard_derivatives
+        (props.useStandardDerivatives && props.version < 2) ? '#extension GL_OES_standard_derivatives : enable' : '',
         (props.useShaderTextureLOD && props.version < 2) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
 
         'precision ' + props.precision + ' float;',
@@ -10812,7 +10846,8 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     var capabilities = glCore.capabilities;
     props.version = capabilities.version;
     props.precision = capabilities.maxPrecision;
-    props.useShaderTextureLOD = !!capabilities.shaderTextureLOD || capabilities.version > 1;
+    props.useStandardDerivatives = capabilities.version >= 2 || !!capabilities.getExtension('OES_standard_derivatives') || !!capabilities.getExtension('GL_OES_standard_derivatives');
+    props.useShaderTextureLOD =  capabilities.version >= 2 || !!capabilities.getExtension('EXT_shader_texture_lod');
     // maps
     props.useDiffuseMap = !!material.diffuseMap;
     props.useNormalMap = !!material.normalMap;
@@ -10853,7 +10888,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     // skinned mesh
     var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
     var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
-    var useVertexTexture = (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2;
+    var useVertexTexture = capabilities.maxVertexTextures > 0 && ( !!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2 );
     var maxBones = 0;
     if(useVertexTexture) {
         maxBones = 1024;
@@ -11054,6 +11089,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
         var gl = this.gl;
         var state = this.state;
+        var vaoExt = this.capabilities.getExtension("OES_vertex_array_object");
     
         var getMaterial = config.getMaterial || defaultGetMaterial;
         var beforeRender = config.beforeRender || noop;
@@ -11091,14 +11127,13 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 } else {
                     gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
                 }
-            } else if (this.capabilities.vaoExt) { // use VAO extension
-                var ext = this.capabilities.vaoExt;
+            } else if (vaoExt) { // use VAO extension
                 if (!geometryProperties._vaos[program.uuid]) {
-                    geometryProperties._vaos[program.uuid] = ext.createVertexArrayOES();
-                    ext.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    geometryProperties._vaos[program.uuid] = vaoExt.createVertexArrayOES();
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
                     this.setupVertexAttributes(program, geometry);
                 } else {
-                    ext.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
                 }
             } else {
                 var geometryProgram = program.uuid + "_" + geometry.uuid;
@@ -11350,8 +11385,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             if (this.capabilities.version >= 2) {
                 gl.bindVertexArray(null);
-            } else if (this.capabilities.vaoExt) {
-                this.capabilities.vaoExt.bindVertexArrayOES(null);
+            } else if (vaoExt) {
+                vaoExt.bindVertexArrayOES(null);
             }
     
             // reset used tex Unit
@@ -11411,6 +11446,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     draw: function(geometry, material, group) {
         var gl = this.gl;
         var properties = this.properties;
+        var capabilities = this.capabilities;
     
         var useIndexBuffer = geometry.index !== null;
     
@@ -11420,20 +11456,24 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var groupCount = group ? group.count : Infinity;
         drawStart = Math.max(drawStart, groupStart);
         drawCount = Math.min(drawCount, groupCount);
-
-        var isWebGL2 = this.capabilities.version === 2;
-        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
     
         if(useIndexBuffer) {
             var indexProperty = properties.get(geometry.index);
             var bytesPerElement = indexProperty.bytesPerElement;
             var type = indexProperty.type;
+
+            if (type === gl.UNSIGNED_INT) {
+                if (capabilities.version < 2 && !capabilities.getExtension('OES_element_index_uint')) {
+                    console.warn("draw elements type not support UNSIGNED_INT!");
+                }
+            }
+
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    if(isWebGL2) {
+                    if(capabilities.version >= 2) {
                         gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
-                    } else if (angleInstancedArraysExt) {
-                        angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+                    } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                        capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
                     } else {
                         console.warn("no support instanced draw.");
                     }
@@ -11444,10 +11484,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         } else {
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    if(isWebGL2) {
+                    if(capabilities.version >= 2) {
                         gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
-                    } else if (angleInstancedArraysExt) {
-                        angleInstancedArraysExt.drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+                    } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                        capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
                     } else {
                         console.warn("no support instanced draw.");
                     }
@@ -11467,7 +11507,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             skeleton.updateBones();
     
-            if( (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2) {
+            if( capabilities.maxVertexTextures > 0 && ( !!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2 ) ) {
                 if(skeleton.boneTexture === undefined) {
                     var size = Math.sqrt(skeleton.bones.length * 4);
                     size = nextPowerOfTwo(Math.ceil(size));
@@ -11477,7 +11517,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     boneMatrices.set(skeleton.boneMatrices);
                     var boneTexture = new Texture2D();
                     boneTexture.image = {data: boneMatrices, width: size, height: size};
-                    if (capabilities.version === 2) {
+                    if (capabilities.version >= 2) {
                         boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
                         boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
                     }
@@ -11670,8 +11710,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var gl = this.gl;
         var attributes = program.attributes;
         var properties = this.properties;
-        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
-        var isWebGL2 = this.capabilities.version === 2;
+        var capabilities = this.capabilities;
         for (var key in attributes) {
             var programAttribute = attributes[key];
             var geometryAttribute = geometry.getAttribute(key);
@@ -11701,10 +11740,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(data && data.isInstancedInterleavedBuffer) {
-                        if (isWebGL2) {
+                        if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, data.meshPerAttribute);
-                        } else if (angleInstancedArraysExt) {
-                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                            capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }
@@ -11720,10 +11759,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
-                        if (isWebGL2) {
+                        if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
-                        } else if (angleInstancedArraysExt) {
-                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
+                        } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                            capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }

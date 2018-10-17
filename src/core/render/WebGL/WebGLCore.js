@@ -154,6 +154,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
         var gl = this.gl;
         var state = this.state;
+        var vaoExt = this.capabilities.getExtension("OES_vertex_array_object");
     
         var getMaterial = config.getMaterial || defaultGetMaterial;
         var beforeRender = config.beforeRender || noop;
@@ -191,14 +192,13 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 } else {
                     gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
                 }
-            } else if (this.capabilities.vaoExt) { // use VAO extension
-                var ext = this.capabilities.vaoExt;
+            } else if (vaoExt) { // use VAO extension
                 if (!geometryProperties._vaos[program.uuid]) {
-                    geometryProperties._vaos[program.uuid] = ext.createVertexArrayOES();
-                    ext.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    geometryProperties._vaos[program.uuid] = vaoExt.createVertexArrayOES();
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
                     this.setupVertexAttributes(program, geometry);
                 } else {
-                    ext.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
                 }
             } else {
                 var geometryProgram = program.uuid + "_" + geometry.uuid;
@@ -450,8 +450,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             if (this.capabilities.version >= 2) {
                 gl.bindVertexArray(null);
-            } else if (this.capabilities.vaoExt) {
-                this.capabilities.vaoExt.bindVertexArrayOES(null);
+            } else if (vaoExt) {
+                vaoExt.bindVertexArrayOES(null);
             }
     
             // reset used tex Unit
@@ -511,6 +511,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     draw: function(geometry, material, group) {
         var gl = this.gl;
         var properties = this.properties;
+        var capabilities = this.capabilities;
     
         var useIndexBuffer = geometry.index !== null;
     
@@ -520,20 +521,24 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var groupCount = group ? group.count : Infinity;
         drawStart = Math.max(drawStart, groupStart);
         drawCount = Math.min(drawCount, groupCount);
-
-        var isWebGL2 = this.capabilities.version === 2;
-        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
     
         if(useIndexBuffer) {
             var indexProperty = properties.get(geometry.index);
             var bytesPerElement = indexProperty.bytesPerElement;
             var type = indexProperty.type;
+
+            if (type === gl.UNSIGNED_INT) {
+                if (capabilities.version < 2 && !capabilities.getExtension('OES_element_index_uint')) {
+                    console.warn("draw elements type not support UNSIGNED_INT!");
+                }
+            }
+
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    if(isWebGL2) {
+                    if(capabilities.version >= 2) {
                         gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
-                    } else if (angleInstancedArraysExt) {
-                        angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+                    } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                        capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
                     } else {
                         console.warn("no support instanced draw.");
                     }
@@ -544,10 +549,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         } else {
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    if(isWebGL2) {
+                    if(capabilities.version >= 2) {
                         gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
-                    } else if (angleInstancedArraysExt) {
-                        angleInstancedArraysExt.drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+                    } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                        capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
                     } else {
                         console.warn("no support instanced draw.");
                     }
@@ -567,7 +572,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             skeleton.updateBones();
     
-            if( (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2) {
+            if( capabilities.maxVertexTextures > 0 && ( !!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2 ) ) {
                 if(skeleton.boneTexture === undefined) {
                     var size = Math.sqrt(skeleton.bones.length * 4);
                     size = nextPowerOfTwo(Math.ceil(size));
@@ -577,7 +582,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     boneMatrices.set(skeleton.boneMatrices);
                     var boneTexture = new Texture2D();
                     boneTexture.image = {data: boneMatrices, width: size, height: size};
-                    if (capabilities.version === 2) {
+                    if (capabilities.version >= 2) {
                         boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
                         boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
                     }
@@ -770,8 +775,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var gl = this.gl;
         var attributes = program.attributes;
         var properties = this.properties;
-        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
-        var isWebGL2 = this.capabilities.version === 2;
+        var capabilities = this.capabilities;
         for (var key in attributes) {
             var programAttribute = attributes[key];
             var geometryAttribute = geometry.getAttribute(key);
@@ -803,10 +807,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(data && data.isInstancedInterleavedBuffer) {
-                        if (isWebGL2) {
+                        if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, data.meshPerAttribute);
-                        } else if (angleInstancedArraysExt) {
-                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                            capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }
@@ -822,10 +826,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
-                        if (isWebGL2) {
+                        if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
-                        } else if (angleInstancedArraysExt) {
-                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
+                        } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                            capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }

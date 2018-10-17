@@ -138,7 +138,7 @@ Object.assign(WebGLGeometry.prototype, {
             if (vao) {
                 if (this.capabilities.version >= 2) { 
                     gl.deleteVertexArray(vao);
-                } else if (this.capabilities.vaoExt) { 
+                } else { 
                     gl.deleteVertexArrayOES(vao);
                 }
             }

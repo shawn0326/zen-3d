@@ -34,17 +34,6 @@ function WebGLCapabilities(gl) {
         return ext;
     
     }
-
-    // use dfdx and dfdy must enable OES_standard_derivatives
-    getExtension("OES_standard_derivatives");
-    // GL_OES_standard_derivatives
-    getExtension("GL_OES_standard_derivatives");
-    // WEBGL_depth_texture
-    getExtension("WEBGL_depth_texture");
-    // draw elements support uint
-    getExtension('OES_element_index_uint');
-    // use half float
-    getExtension('OES_texture_half_float');
     
     var targetPrecision = "highp";
 
@@ -78,74 +67,58 @@ function WebGLCapabilities(gl) {
     return /** @lends zen3d.WebGLCapabilities# */{
 
         /**
-         * @type {string} 
+         * WebGL version.
+         * @type {number} 
          */
         version: parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]),
 
         /**
+         * The max precision supported in shaders.
          * @type {string} 
          */
         maxPrecision: getMaxPrecision(gl, targetPrecision),
 
         /**
+         * The max texture units.
          * @type {Integer} 
          */
         maxTextures: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
 
         /**
+         * Max vertex texture units.
          * @type {Integer} 
          */
         maxVertexTextures: gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
 
         /**
+         * The max texture size.
          * @type {Integer} 
          */
         maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
 
         /**
+         * The max cube map texture size.
          * @type {Integer} 
          */
         maxCubemapSize: gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE),
 
         /**
+         * The max vertex uniform vectors.
          * @type {Integer} 
          */
         maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
 
         /**
-         * @type {boolean} 
-         */
-        floatTextures: !!getExtension('OES_texture_float'),
-
-        /**
-         * @type {*} 
-         */
-        shaderTextureLOD: getExtension('EXT_shader_texture_lod'),
-
-        /**
-         * @type {*} 
-         */
-        angleInstancedArraysExt: getExtension('ANGLE_instanced_arrays'),
-
-        /**
-         * @type {*} 
-         */
-        drawBuffersExt: getExtension('WEBGL_draw_buffers'),
-
-        /**
-         * @type {*} 
-         */
-        vaoExt: getExtension("OES_vertex_array_object"),
-
-        /**
+         * The EXT_texture_filter_anisotropic extension.
          * @type {*} 
          */
         anisotropyExt: anisotropyExt,
 
         /**
+         * The max anisotropic value.
          * @type {Integer} 
          */
-        maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0,
+        maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1,
 
         getExtension: getExtension
 

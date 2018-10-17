@@ -182,6 +182,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
         var gl = this.gl;
         var state = this.state;
+        var vaoExt = this.capabilities.getExtension("OES_vertex_array_object");
     
         var getMaterial = config.getMaterial || defaultGetMaterial;
         var beforeRender = config.beforeRender || noop;
@@ -209,11 +210,30 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             var program = getProgram(this, camera, material, object, scene);
             state.setProgram(program);
     
-            this.geometry.setGeometry(geometry);
-    
-            var geometryProgram = program.uuid + "_" + geometry.uuid;
-            if(geometryProgram !== this._currentGeometryProgram) {
-                this.setupVertexAttributes(program, geometry);
+            var geometryProperties = this.geometry.setGeometry(geometry);
+
+            if (this.capabilities.version >= 2) { // use VAO
+                if (!geometryProperties._vaos[program.uuid]) {
+                    geometryProperties._vaos[program.uuid] = gl.createVertexArray();
+                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                    this.setupVertexAttributes(program, geometry);
+                } else {
+                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                }
+            } else if (vaoExt) { // use VAO extension
+                if (!geometryProperties._vaos[program.uuid]) {
+                    geometryProperties._vaos[program.uuid] = vaoExt.createVertexArrayOES();
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    this.setupVertexAttributes(program, geometry);
+                } else {
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                }
+            } else {
+                var geometryProgram = program.uuid + "_" + geometry.uuid;
+                if(geometryProgram !== this._currentGeometryProgram) {
+                    this.setupVertexAttributes(program, geometry);
+                    this._currentGeometryProgram = geometryProgram;
+                }
                 this._currentGeometryProgram = geometryProgram;
             }
     
@@ -455,6 +475,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
                 this.draw(geometry, material, group);
             }
+
+            if (this.capabilities.version >= 2) {
+                gl.bindVertexArray(null);
+            } else if (vaoExt) {
+                vaoExt.bindVertexArrayOES(null);
+            }
     
             // reset used tex Unit
             this._usedTextureUnits = 0;
@@ -513,6 +539,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     draw: function(geometry, material, group) {
         var gl = this.gl;
         var properties = this.properties;
+        var capabilities = this.capabilities;
     
         var useIndexBuffer = geometry.index !== null;
     
@@ -522,20 +549,24 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var groupCount = group ? group.count : Infinity;
         drawStart = Math.max(drawStart, groupStart);
         drawCount = Math.min(drawCount, groupCount);
-
-        var isWebGL2 = this.capabilities.version === 2;
-        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
     
         if(useIndexBuffer) {
             var indexProperty = properties.get(geometry.index);
             var bytesPerElement = indexProperty.bytesPerElement;
             var type = indexProperty.type;
+
+            if (type === gl.UNSIGNED_INT) {
+                if (capabilities.version &lt; 2 &amp;&amp; !capabilities.getExtension('OES_element_index_uint')) {
+                    console.warn("draw elements type not support UNSIGNED_INT!");
+                }
+            }
+
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    if(isWebGL2) {
+                    if(capabilities.version >= 2) {
                         gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
-                    } else if (angleInstancedArraysExt) {
-                        angleInstancedArraysExt.drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+                    } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                        capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
                     } else {
                         console.warn("no support instanced draw.");
                     }
@@ -546,10 +577,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         } else {
             if(geometry.isInstancedGeometry) {
                 if(geometry.maxInstancedCount > 0) {
-                    if(isWebGL2) {
+                    if(capabilities.version >= 2) {
                         gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
-                    } else if (angleInstancedArraysExt) {
-                        angleInstancedArraysExt.drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+                    } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                        capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
                     } else {
                         console.warn("no support instanced draw.");
                     }
@@ -569,7 +600,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             skeleton.updateBones();
     
-            if( (capabilities.maxVertexTextures > 0 &amp;&amp; capabilities.floatTextures) || capabilities.version === 2) {
+            if( capabilities.maxVertexTextures > 0 &amp;&amp; ( !!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2 ) ) {
                 if(skeleton.boneTexture === undefined) {
                     var size = Math.sqrt(skeleton.bones.length * 4);
                     size = nextPowerOfTwo(Math.ceil(size));
@@ -579,7 +610,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     boneMatrices.set(skeleton.boneMatrices);
                     var boneTexture = new Texture2D();
                     boneTexture.image = {data: boneMatrices, width: size, height: size};
-                    if (capabilities.version === 2) {
+                    if (capabilities.version >= 2) {
                         boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
                         boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
                     }
@@ -772,8 +803,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var gl = this.gl;
         var attributes = program.attributes;
         var properties = this.properties;
-        var angleInstancedArraysExt = this.capabilities.angleInstancedArraysExt;
-        var isWebGL2 = this.capabilities.version === 2;
+        var capabilities = this.capabilities;
         for (var key in attributes) {
             var programAttribute = attributes[key];
             var geometryAttribute = geometry.getAttribute(key);
@@ -805,10 +835,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(data &amp;&amp; data.isInstancedInterleavedBuffer) {
-                        if (isWebGL2) {
+                        if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, data.meshPerAttribute);
-                        } else if (angleInstancedArraysExt) {
-                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
+                        } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                            capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }
@@ -824,10 +854,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     gl.enableVertexAttribArray(programAttribute.location);
     
                     if(geometryAttribute &amp;&amp; geometryAttribute.isInstancedBufferAttribute) {
-                        if (isWebGL2) {
+                        if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
-                        } else if (angleInstancedArraysExt) {
-                            angleInstancedArraysExt.vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
+                        } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
+                            capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }
@@ -870,7 +900,7 @@ export {WebGLCore};</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Oct 10 2018 14:46:43 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Oct 17 2018 15:25:03 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

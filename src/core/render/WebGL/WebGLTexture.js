@@ -1,4 +1,4 @@
-import {WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, ATTACHMENT} from '../../const.js';
+import {WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_PIXEL_FORMAT} from '../../const.js';
 import {isWeb, isPowerOfTwo, nearestPowerOfTwo} from '../../base.js';
 
 function textureNeedsPowerOfTwo(texture) {
@@ -66,7 +66,7 @@ function clampToMaxSize(image, maxSize) {
     return image;
 }
 
-function getTextureParameters(texture, isPowerOfTwoImage) {
+function getTextureParameters(texture, needFallback) {
 
     var wrapS = texture.wrapS,
     wrapT = texture.wrapT,
@@ -74,8 +74,8 @@ function getTextureParameters(texture, isPowerOfTwoImage) {
     minFilter = texture.minFilter,
     anisotropy = texture.anisotropy;
 
-    // fix for non power of 2 image
-    if (!isPowerOfTwoImage) {
+    // fix for non power of 2 image in WebGL 1.0
+    if (needFallback) {
         wrapS = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
         wrapT = WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE;
 
@@ -138,27 +138,53 @@ Object.assign(WebGLTexture.prototype, {
             if ( isElement ) {
                 image = clampToMaxSize(image, capabilities.maxTextureSize);
 
-                if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
+                if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
                     image = makePowerOf2(image);
                 }
             }
     
-            var isPowerOfTwoImage = _isPowerOfTwo(image);
+            var needFallback = !_isPowerOfTwo(image) && capabilities.version < 2;
     
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
-            this.setTextureParameters(texture, isPowerOfTwoImage);
+            this.setTextureParameters(texture, needFallback);
     
             var mipmap, mipmaps = texture.mipmaps,
                 format = texture.format,
                 internalformat = texture.internalformat || texture.format,
                 type = texture.type;
 
-            if (capabilities.version === 1 && format !== internalformat) {
-                console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+            if (capabilities.version < 2) {
+
+                if (format !== internalformat) {
+                    console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_half_float')) {
+                        console.warn("extension OES_texture_half_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_float')) {
+                        console.warn("extension OES_texture_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (format === WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT || format === WEBGL_PIXEL_FORMAT.DEPTH_STENCIL) {
+                    if (!capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
+                }
+                
+            } else {
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    type = 0x140B; // webgl2 half float value
+                }
             }
 
             if ( isElement ) {
-                if (mipmaps.length > 0 && isPowerOfTwoImage) {
+                if (mipmaps.length > 0 && !needFallback) {
     
                     for (var i = 0, il = mipmaps.length; i < il; i++) {
                         mipmap = mipmaps[i];
@@ -170,7 +196,7 @@ Object.assign(WebGLTexture.prototype, {
                     gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, format, type, image);
                 }
             } else {
-                if (mipmaps.length > 0 && isPowerOfTwoImage) {
+                if (mipmaps.length > 0 && !needFallback) {
     
                     for (var i = 0, il = mipmaps.length; i < il; i++) {
                         mipmap = mipmaps[i];
@@ -183,7 +209,7 @@ Object.assign(WebGLTexture.prototype, {
                 }
             }
     
-            if (texture.generateMipmaps && isPowerOfTwoImage) {
+            if (texture.generateMipmaps && !needFallback) {
                 gl.generateMipmap(gl.TEXTURE_2D);
             }
     
@@ -225,11 +251,37 @@ Object.assign(WebGLTexture.prototype, {
             internalformat = texture.internalformat || texture.format,
             type = texture.type;
 
-            if (capabilities.version === 1 && format !== internalformat) {
-                console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+            if (capabilities.version < 2) {
+
+                if (format !== internalformat) {
+                    console.warn("texture format " + format + " not same as internalformat " + internalformat + " in webgl 1.0.");
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_half_float')) {
+                        console.warn("extension OES_texture_half_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (type === WEBGL_PIXEL_TYPE.FLOAT) {
+                    if (!capabilities.getExtension('OES_texture_float')) {
+                        console.warn("extension OES_texture_float is not support in webgl 1.0.");
+                    }
+                }
+
+                if (format === WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT || format === WEBGL_PIXEL_FORMAT.DEPTH_STENCIL) {
+                    if (!capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
+                }
+                
+            } else {
+                if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
+                    type = 0x140B; // webgl2 half float value
+                }
             }
 
-            var isPowerOfTwoImage = true;
+            var needFallback = false;
     
             for (var i = 0; i < 6; i++) {
                 var image = texture.images[i];
@@ -238,13 +290,13 @@ Object.assign(WebGLTexture.prototype, {
                 if ( isElement ) {
                     image = clampToMaxSize(image, capabilities.maxTextureSize);
     
-                    if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false) {
+                    if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
                         image = makePowerOf2(image);
                     }
                 }
 
-                if ( !_isPowerOfTwo(image) ) {
-                    isPowerOfTwoImage = false;
+                if ( !_isPowerOfTwo(image) && capabilities.version < 2 ) {
+                    needFallback = true;
                 }
 
                 images[i] = image;
@@ -252,7 +304,7 @@ Object.assign(WebGLTexture.prototype, {
             }
     
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
-            this.setTextureParameters(texture, isPowerOfTwoImage);
+            this.setTextureParameters(texture, needFallback);
 
             for (var i = 0; i < 6; i++) {
                 var image = images[i];
@@ -265,7 +317,7 @@ Object.assign(WebGLTexture.prototype, {
                 }
             }
     
-            if (texture.generateMipmaps && isPowerOfTwoImage) {
+            if (texture.generateMipmaps && !needFallback) {
                 gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             }
     
@@ -280,12 +332,12 @@ Object.assign(WebGLTexture.prototype, {
         return textureProperties;
     },
 
-    setTextureParameters: function(texture, isPowerOfTwoImage) {
+    setTextureParameters: function(texture, needFallback) {
         var gl = this.gl;
         var capabilities = this.capabilities;
         var textureType = texture.textureType;
 
-        var parameters = getTextureParameters(texture, isPowerOfTwoImage);
+        var parameters = getTextureParameters(texture, needFallback);
         
         // TODO sampler bug
         // if (capabilities.version >= 2) {
@@ -329,6 +381,7 @@ Object.assign(WebGLTexture.prototype, {
     setRenderTarget2D: function(renderTarget) {
         var gl = this.gl;
         var state = this.state;
+        var capabilities = this.capabilities;
     
         var renderTargetProperties = this.properties.get(renderTarget);
     
@@ -342,20 +395,28 @@ Object.assign(WebGLTexture.prototype, {
             var buffers = [];
             for (var attachment in renderTarget._textures) {
                 var textureProperties = this.setTexture2D(renderTarget._textures[attachment]);
+
+                attachment = Number(attachment);
+
+                if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
+                    if (capabilities.version < 2 && !capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
+                }
+
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
                 state.bindTexture(gl.TEXTURE_2D, null);
 
-                if ((Number(attachment) <= 0x8CE9 && Number(attachment) >= 0x8CE0) || (Number(attachment) <= 0x8CE15 && Number(attachment) >= 0x8CE10)) {
+                if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
                     buffers.push(attachment);
                 }
             }
 
             if ( buffers.length > 1 ) {
-                if (this.capabilities.version === 2) {
+                if (capabilities.version >= 2) {
                     gl.drawBuffers(buffers);
-                } else if (this.capabilities.drawBuffersExt) {
-                    var ext = this.capabilities.drawBuffersExt;
-                    ext.drawBuffersWEBGL(buffers);
+                } else if (capabilities.getExtension('WEBGL_draw_buffers')) {
+                    capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
                 }
             }
     

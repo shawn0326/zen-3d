@@ -104,7 +104,7 @@
 			depthTexture.image = {data: null, width: 4, height: 4};
 			depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
 			depthTexture.format = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
-			if (glCore.capabilities.version === 2) {
+			if (glCore.capabilities.version >= 2) {
 				depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT24;
 			}
 			depthTexture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;

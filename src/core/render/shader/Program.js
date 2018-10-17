@@ -147,7 +147,8 @@ function createProgram(gl, props, defines) {
 
     var prefixFragment = [
 
-        (props.version > 1) ? '' : '#extension GL_OES_standard_derivatives : enable',
+        // use dfdx and dfdy must enable OES_standard_derivatives
+        (props.useStandardDerivatives && props.version < 2) ? '#extension GL_OES_standard_derivatives : enable' : '',
         (props.useShaderTextureLOD && props.version < 2) ? '#extension GL_EXT_shader_texture_lod : enable' : '',
 
         'precision ' + props.precision + ' float;',
@@ -347,7 +348,8 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     var capabilities = glCore.capabilities;
     props.version = capabilities.version;
     props.precision = capabilities.maxPrecision;
-    props.useShaderTextureLOD = !!capabilities.shaderTextureLOD || capabilities.version > 1;
+    props.useStandardDerivatives = capabilities.version >= 2 || !!capabilities.getExtension('OES_standard_derivatives') || !!capabilities.getExtension('GL_OES_standard_derivatives');
+    props.useShaderTextureLOD =  capabilities.version >= 2 || !!capabilities.getExtension('EXT_shader_texture_lod');
     // maps
     props.useDiffuseMap = !!material.diffuseMap;
     props.useNormalMap = !!material.normalMap;
@@ -388,7 +390,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     // skinned mesh
     var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
     var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
-    var useVertexTexture = (capabilities.maxVertexTextures > 0 && capabilities.floatTextures) || capabilities.version === 2;
+    var useVertexTexture = capabilities.maxVertexTextures > 0 && ( !!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2 );
     var maxBones = 0;
     if(useVertexTexture) {
         maxBones = 1024;
