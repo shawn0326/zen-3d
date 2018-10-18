@@ -10,7 +10,7 @@ float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {
 
 }
 
-float getShadow( sampler2D shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
+float getShadow( sampler2DShadow shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
     shadowCoord.xyz /= shadowCoord.w;
 
     float depth = shadowCoord.z + shadowBias;
@@ -23,22 +23,43 @@ float getShadow( sampler2D shadowMap, vec4 shadowCoord, float shadowBias, float 
     bool frustumTest = all( frustumTestVec );
 
     if ( frustumTest ) {
-        #ifdef USE_PCF_SOFT_SHADOW
-            // TODO x, y not equal
-            float texelSize = shadowRadius / shadowMapSize.x;
+        #ifdef WEBGL2
+            shadowCoord.z += shadowBias;
+            #ifdef USE_PCF_SOFT_SHADOW
+                // TODO x, y not equal
+                float texelSize = shadowRadius / shadowMapSize.x;
 
-            vec2 poissonDisk[4];
-            poissonDisk[0] = vec2(-0.94201624, -0.39906216);
-            poissonDisk[1] = vec2(0.94558609, -0.76890725);
-            poissonDisk[2] = vec2(-0.094184101, -0.92938870);
-            poissonDisk[3] = vec2(0.34495938, 0.29387760);
+                vec3 poissonDisk[4];
+                poissonDisk[0] = vec3(-0.94201624, -0.39906216, 0);
+                poissonDisk[1] = vec3(0.94558609, -0.76890725, 0);
+                poissonDisk[2] = vec3(-0.094184101, -0.92938870, 0);
+                poissonDisk[3] = vec3(0.34495938, 0.29387760, 0);
 
-            return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, depth ) * 0.25 +
-                texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, depth ) * 0.25 +
-                texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, depth ) * 0.25 +
-                texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, depth ) * 0.25;
+                return texture2D( shadowMap, shadowCoord.xyz + poissonDisk[0] * texelSize ) * 0.25 +
+                    texture2D( shadowMap, shadowCoord.xyz + poissonDisk[1] * texelSize ) * 0.25 +
+                    texture2D( shadowMap, shadowCoord.xyz + poissonDisk[2] * texelSize ) * 0.25 +
+                    texture2D( shadowMap, shadowCoord.xyz + poissonDisk[3] * texelSize ) * 0.25;
+            #else
+                return texture2D( shadowMap, shadowCoord.xyz );
+            #endif
         #else
-            return texture2DCompare( shadowMap, shadowCoord.xy, depth );
+            #ifdef USE_PCF_SOFT_SHADOW
+                // TODO x, y not equal
+                float texelSize = shadowRadius / shadowMapSize.x;
+
+                vec2 poissonDisk[4];
+                poissonDisk[0] = vec2(-0.94201624, -0.39906216);
+                poissonDisk[1] = vec2(0.94558609, -0.76890725);
+                poissonDisk[2] = vec2(-0.094184101, -0.92938870);
+                poissonDisk[3] = vec2(0.34495938, 0.29387760);
+
+                return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, depth ) * 0.25 +
+                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, depth ) * 0.25 +
+                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, depth ) * 0.25 +
+                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, depth ) * 0.25;
+            #else
+                return texture2DCompare( shadowMap, shadowCoord.xy, depth );
+            #endif
         #endif
     }
 

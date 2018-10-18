@@ -56,7 +56,7 @@
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+			var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 	        scene.add(plane);
 
@@ -93,6 +93,7 @@
 			// gui
 			var params = {intensity: 1, color: [255, 255, 255], useShadow: true};
 			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
 			gui.add(params, "intensity", 0, 1).onChange(function(value) {directionalLight.intensity = value;});
 			gui.addColor(params, "color").onChange(function(value) {
 				directionalLight.color.r = value[0] / 255;
@@ -102,6 +103,7 @@
 			gui.add(params, "useShadow").onChange(function() {
 				toggleShadow()
 			});
+			gui.add(plane, "shadowType", ["hard", "pcf_soft"]);
 			gui.close();
 
 			var clock = new zen3d.Clock();

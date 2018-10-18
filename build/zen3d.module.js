@@ -416,6 +416,24 @@ var WEBGL_TEXTURE_WRAP = {
 };
 
 /**
+ * Enum for WebGL Texture compare.
+ * @name zen3d.WEBGL_TEXTURE_COMPARE
+ * @readonly
+ * @enum {number}
+ */
+var WEBGL_TEXTURE_COMPARE = {
+    NONE: 0,
+    LEQUAL: 0x0203,
+    GEQUAL: 0x0206,
+    LESS: 0x0201,
+    GREATER: 0x0204,
+    EQUAL: 0x0202,
+    NOTEQUAL: 0x0205,
+    ALWAYS: 0x0207,
+    NEVER: 0x0200
+};
+
+/**
  * Enum for WebGL Uniform Type.
  * Taken from the {@link http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14 WebGl spec}.
  * @name zen3d.WEBGL_UNIFORM_TYPE
@@ -4487,6 +4505,13 @@ function TextureBase() {
      * @default 1
      */
     this.anisotropy = 1;
+
+    /**
+     * Use for shadow sampler (WebGL 2.0 Only).
+     * @type {zen3d.WEBGL_TEXTURE_COMPARE}
+     * @default zen3d.WEBGL_TEXTURE_COMPARE.NONE
+     */
+    this.compare = zen3d.WEBGL_TEXTURE_COMPARE.NONE;
 
     /**
      * Whether to generate mipmaps (if possible) for a texture.
@@ -9266,7 +9291,8 @@ function getTextureParameters(texture, needFallback) {
     wrapT = texture.wrapT,
     magFilter = texture.magFilter,
     minFilter = texture.minFilter,
-    anisotropy = texture.anisotropy;
+    anisotropy = texture.anisotropy,
+    compare = texture.compare;
 
     // fix for non power of 2 image in WebGL 1.0
     if (needFallback) {
@@ -9288,7 +9314,7 @@ function getTextureParameters(texture, needFallback) {
         }
     }
 
-    return [wrapS, wrapT, magFilter, minFilter, anisotropy];
+    return [wrapS, wrapT, magFilter, minFilter, anisotropy, compare];
 }
 
 function WebGLTexture(gl, state, properties, capabilities) {
@@ -9568,6 +9594,15 @@ Object.assign(WebGLTexture.prototype, {
             var extension = capabilities.anisotropyExt;
             if (extension) {
                 gl.texParameterf(textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(parameters[4], capabilities.maxAnisotropy));
+            }
+
+            if (capabilities.version >= 2) {
+                if (parameters[5] > 0) {
+                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_FUNC, parameters[5]);
+                } else {
+                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+                }
             }
         // }
     },
@@ -10337,11 +10372,11 @@ var premultipliedAlpha_frag = "#ifdef USE_PREMULTIPLIED_ALPHA\r\n    gl_FragColo
 
 var pvm_vert = "gl_Position = u_Projection * u_View * u_Model * vec4(transformed, 1.0);";
 
-var shadow = "float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\r\n\r\n    return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\r\n\r\n}\r\n\r\nfloat textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {\r\n\r\n    return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );\r\n\r\n}\r\n\r\nfloat getShadow( sampler2D shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {\r\n    shadowCoord.xyz /= shadowCoord.w;\r\n\r\n    float depth = shadowCoord.z + shadowBias;\r\n\r\n    bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\r\n    bool inFrustum = all( inFrustumVec );\r\n\r\n    bvec2 frustumTestVec = bvec2( inFrustum, depth <= 1.0 );\r\n\r\n    bool frustumTest = all( frustumTestVec );\r\n\r\n    if ( frustumTest ) {\r\n        #ifdef USE_PCF_SOFT_SHADOW\r\n            // TODO x, y not equal\r\n            float texelSize = shadowRadius / shadowMapSize.x;\r\n\r\n            vec2 poissonDisk[4];\r\n            poissonDisk[0] = vec2(-0.94201624, -0.39906216);\r\n            poissonDisk[1] = vec2(0.94558609, -0.76890725);\r\n            poissonDisk[2] = vec2(-0.094184101, -0.92938870);\r\n            poissonDisk[3] = vec2(0.34495938, 0.29387760);\r\n\r\n            return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, depth ) * 0.25 +\r\n                texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, depth ) * 0.25 +\r\n                texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, depth ) * 0.25 +\r\n                texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, depth ) * 0.25;\r\n        #else\r\n            return texture2DCompare( shadowMap, shadowCoord.xy, depth );\r\n        #endif\r\n    }\r\n\r\n    return 1.0;\r\n\r\n}\r\n\r\nfloat getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize, float shadowCameraNear, float shadowCameraFar ) {\r\n\r\n    // depth = normalized distance from light to fragment position\r\n    float depth = ( length( V ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear ); // need to clamp?\r\n    depth += shadowBias;\r\n\r\n    #ifdef USE_PCF_SOFT_SHADOW\r\n        // TODO x, y equal force\r\n        float texelSize = shadowRadius / shadowMapSize.x;\r\n\r\n        vec3 poissonDisk[4];\r\n        poissonDisk[0] = vec3(-1.0, 1.0, -1.0);\r\n        poissonDisk[1] = vec3(1.0, -1.0, -1.0);\r\n        poissonDisk[2] = vec3(-1.0, -1.0, -1.0);\r\n        poissonDisk[3] = vec3(1.0, -1.0, 1.0);\r\n\r\n        return textureCubeCompare( shadowMap, normalize(V) + poissonDisk[0] * texelSize, depth ) * 0.25 +\r\n            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[1] * texelSize, depth ) * 0.25 +\r\n            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[2] * texelSize, depth ) * 0.25 +\r\n            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[3] * texelSize, depth ) * 0.25;\r\n    #else\r\n        return textureCubeCompare( shadowMap, normalize(V), depth);\r\n    #endif\r\n}";
+var shadow = "float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\r\n\r\n    return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\r\n\r\n}\r\n\r\nfloat textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {\r\n\r\n    return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );\r\n\r\n}\r\n\r\nfloat getShadow( sampler2DShadow shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {\r\n    shadowCoord.xyz /= shadowCoord.w;\r\n\r\n    float depth = shadowCoord.z + shadowBias;\r\n\r\n    bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\r\n    bool inFrustum = all( inFrustumVec );\r\n\r\n    bvec2 frustumTestVec = bvec2( inFrustum, depth <= 1.0 );\r\n\r\n    bool frustumTest = all( frustumTestVec );\r\n\r\n    if ( frustumTest ) {\r\n        #ifdef WEBGL2\r\n            shadowCoord.z += shadowBias;\r\n            #ifdef USE_PCF_SOFT_SHADOW\r\n                // TODO x, y not equal\r\n                float texelSize = shadowRadius / shadowMapSize.x;\r\n\r\n                vec3 poissonDisk[4];\r\n                poissonDisk[0] = vec3(-0.94201624, -0.39906216, 0);\r\n                poissonDisk[1] = vec3(0.94558609, -0.76890725, 0);\r\n                poissonDisk[2] = vec3(-0.094184101, -0.92938870, 0);\r\n                poissonDisk[3] = vec3(0.34495938, 0.29387760, 0);\r\n\r\n                return texture2D( shadowMap, shadowCoord.xyz + poissonDisk[0] * texelSize ) * 0.25 +\r\n                    texture2D( shadowMap, shadowCoord.xyz + poissonDisk[1] * texelSize ) * 0.25 +\r\n                    texture2D( shadowMap, shadowCoord.xyz + poissonDisk[2] * texelSize ) * 0.25 +\r\n                    texture2D( shadowMap, shadowCoord.xyz + poissonDisk[3] * texelSize ) * 0.25;\r\n            #else\r\n                return texture2D( shadowMap, shadowCoord.xyz );\r\n            #endif\r\n        #else\r\n            #ifdef USE_PCF_SOFT_SHADOW\r\n                // TODO x, y not equal\r\n                float texelSize = shadowRadius / shadowMapSize.x;\r\n\r\n                vec2 poissonDisk[4];\r\n                poissonDisk[0] = vec2(-0.94201624, -0.39906216);\r\n                poissonDisk[1] = vec2(0.94558609, -0.76890725);\r\n                poissonDisk[2] = vec2(-0.094184101, -0.92938870);\r\n                poissonDisk[3] = vec2(0.34495938, 0.29387760);\r\n\r\n                return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, depth ) * 0.25 +\r\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, depth ) * 0.25 +\r\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, depth ) * 0.25 +\r\n                    texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, depth ) * 0.25;\r\n            #else\r\n                return texture2DCompare( shadowMap, shadowCoord.xy, depth );\r\n            #endif\r\n        #endif\r\n    }\r\n\r\n    return 1.0;\r\n\r\n}\r\n\r\nfloat getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize, float shadowCameraNear, float shadowCameraFar ) {\r\n\r\n    // depth = normalized distance from light to fragment position\r\n    float depth = ( length( V ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear ); // need to clamp?\r\n    depth += shadowBias;\r\n\r\n    #ifdef USE_PCF_SOFT_SHADOW\r\n        // TODO x, y equal force\r\n        float texelSize = shadowRadius / shadowMapSize.x;\r\n\r\n        vec3 poissonDisk[4];\r\n        poissonDisk[0] = vec3(-1.0, 1.0, -1.0);\r\n        poissonDisk[1] = vec3(1.0, -1.0, -1.0);\r\n        poissonDisk[2] = vec3(-1.0, -1.0, -1.0);\r\n        poissonDisk[3] = vec3(1.0, -1.0, 1.0);\r\n\r\n        return textureCubeCompare( shadowMap, normalize(V) + poissonDisk[0] * texelSize, depth ) * 0.25 +\r\n            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[1] * texelSize, depth ) * 0.25 +\r\n            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[2] * texelSize, depth ) * 0.25 +\r\n            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[3] * texelSize, depth ) * 0.25;\r\n    #else\r\n        return textureCubeCompare( shadowMap, normalize(V), depth);\r\n    #endif\r\n}";
 
 var shadowMap_frag = "#ifdef USE_SHADOW\r\n    // outColor *= getShadowMask();\r\n#endif";
 
-var shadowMap_pars_frag = "#ifdef USE_SHADOW\r\n\r\n    #if NUM_DIR_LIGHTS > 0\r\n\r\n        uniform sampler2D directionalShadowMap[ NUM_DIR_LIGHTS ];\r\n        varying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #if NUM_POINT_LIGHTS > 0\r\n\r\n        uniform samplerCube pointShadowMap[ NUM_POINT_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #if NUM_SPOT_LIGHTS > 0\r\n\r\n        uniform sampler2D spotShadowMap[ NUM_SPOT_LIGHTS ];\r\n        varying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #include <packing>\r\n    #include <shadow>\r\n\r\n#endif";
+var shadowMap_pars_frag = "#ifdef USE_SHADOW\r\n\r\n    #if NUM_DIR_LIGHTS > 0\r\n\r\n        uniform sampler2DShadow directionalShadowMap[ NUM_DIR_LIGHTS ];\r\n        varying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #if NUM_POINT_LIGHTS > 0\r\n\r\n        uniform samplerCube pointShadowMap[ NUM_POINT_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #if NUM_SPOT_LIGHTS > 0\r\n\r\n        uniform sampler2DShadow spotShadowMap[ NUM_SPOT_LIGHTS ];\r\n        varying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #include <packing>\r\n    #include <shadow>\r\n\r\n#endif";
 
 var shadowMap_pars_vert = "#ifdef USE_SHADOW\r\n\r\n    #if NUM_DIR_LIGHTS > 0\r\n\r\n        uniform mat4 directionalShadowMatrix[ NUM_DIR_LIGHTS ];\r\n        varying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #if NUM_POINT_LIGHTS > 0\r\n\r\n        // nothing\r\n\r\n    #endif\r\n\r\n    #if NUM_SPOT_LIGHTS > 0\r\n\r\n        uniform mat4 spotShadowMatrix[ NUM_SPOT_LIGHTS ];\r\n        varying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHTS ];\r\n\r\n    #endif\r\n\r\n#endif";
 
@@ -10614,6 +10649,8 @@ function createProgram(gl, props, defines) {
 
         defines,
 
+        (props.version >= 2) ? '#define WEBGL2' : '',
+
         props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
         props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
 
@@ -10653,6 +10690,7 @@ function createProgram(gl, props, defines) {
         'precision ' + props.precision + ' int;',
         // depth texture may have precision problem on iOS device.
         'precision ' + props.precision + ' sampler2D;',
+        (props.version >= 2) ? 'precision ' + props.precision + ' sampler2DShadow;' : '',
 
         '#define SHADER_NAME ' + props.materialType,
         
@@ -10665,6 +10703,9 @@ function createProgram(gl, props, defines) {
         '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
 
         defines,
+
+        (props.version >= 2) ? '#define WEBGL2' : '',
+        (props.version < 2) ? '#define sampler2DShadow sampler2D' : '',
 
         props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
         props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
@@ -12153,6 +12194,24 @@ EnvironmentMapPass.prototype.render = function(glCore, scene) {
     }
 };
 
+function convertLightShadowToWebGL2(lightShadow) {
+    if (!lightShadow.depthMap) {
+        var depthTexture = new Texture2D();
+        depthTexture.type = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+        depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+        depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH24_STENCIL8;
+        depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+        depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+        depthTexture.compare = WEBGL_TEXTURE_COMPARE.LESS;
+        depthTexture.generateMipmaps = false;
+        lightShadow.renderTarget.attach(
+            depthTexture,
+            ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+        );
+        lightShadow.depthMap = depthTexture;
+    }
+}
+
 /**
  * Shadow map pre pass.
  * @constructor
@@ -12195,6 +12254,14 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
         var shadowTarget = shadow.renderTarget;
         var isPointLight = light.lightType == LIGHT_TYPE.POINT ? true : false;
         var faces = isPointLight ? 6 : 1;
+
+        if (glCore.capabilities.version >= 2) {
+
+            if (!isPointLight) {
+                convertLightShadowToWebGL2(shadow);
+            }
+
+        }
 
         for (var j = 0; j < faces; j++) {
 
@@ -12428,7 +12495,7 @@ Object.assign(LightCache.prototype, {
             }
 
             this.directionalShadowMatrix.set(object.shadow.matrix.elements, this.directsNum * 16);
-            this.directionalShadowMap[this.directsNum] = object.shadow.map;
+            this.directionalShadowMap[this.directsNum] = object.shadow.depthMap || object.shadow.map;
         }
 
         this.directional[this.directsNum] = cache;
@@ -12544,7 +12611,7 @@ Object.assign(LightCache.prototype, {
             }
 
             this.spotShadowMatrix.set(object.shadow.matrix.elements, this.spotsNum * 16);
-            this.spotShadowMap[this.spotsNum] = object.shadow.map;
+            this.spotShadowMap[this.spotsNum] = object.shadow.depthMap || object.shadow.map;
         }
 
         this.spot[this.spotsNum] = cache;
@@ -14143,4 +14210,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
  * @namespace zen3d
  */
 
-export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniform, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };
+export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniform, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_TEXTURE_COMPARE, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };

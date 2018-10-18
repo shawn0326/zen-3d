@@ -116,6 +116,8 @@ function createProgram(gl, props, defines) {
 
         defines,
 
+        (props.version >= 2) ? '#define WEBGL2' : '',
+
         props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
         props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
 
@@ -155,6 +157,7 @@ function createProgram(gl, props, defines) {
         'precision ' + props.precision + ' int;',
         // depth texture may have precision problem on iOS device.
         'precision ' + props.precision + ' sampler2D;',
+        (props.version >= 2) ? 'precision ' + props.precision + ' sampler2DShadow;' : '',
 
         '#define SHADER_NAME ' + props.materialType,
         
@@ -167,6 +170,9 @@ function createProgram(gl, props, defines) {
         '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
 
         defines,
+
+        (props.version >= 2) ? '#define WEBGL2' : '',
+        (props.version < 2) ? '#define sampler2DShadow sampler2D' : '',
 
         props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
         props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',

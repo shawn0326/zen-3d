@@ -223,6 +223,24 @@ export var WEBGL_TEXTURE_WRAP = {
 }
 
 /**
+ * Enum for WebGL Texture compare.
+ * @name zen3d.WEBGL_TEXTURE_COMPARE
+ * @readonly
+ * @enum {number}
+ */
+export var WEBGL_TEXTURE_COMPARE = {
+    NONE: 0,
+    LEQUAL: 0x0203,
+    GEQUAL: 0x0206,
+    LESS: 0x0201,
+    GREATER: 0x0204,
+    EQUAL: 0x0202,
+    NOTEQUAL: 0x0205,
+    ALWAYS: 0x0207,
+    NEVER: 0x0200
+}
+
+/**
  * Enum for WebGL Uniform Type.
  * Taken from the {@link http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14 WebGl spec}.
  * @name zen3d.WEBGL_UNIFORM_TYPE

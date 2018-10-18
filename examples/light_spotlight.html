@@ -102,6 +102,7 @@
 			// gui
 			var params = {intensity: 1, decay: 2, distance: 200, color: [255, 255, 255], penumbra: 1, angle: 30, useShadow: true};
 			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
 			gui.add(params, "intensity", 0, 1).onChange(function(value) {spotLight.intensity = value;});
 			gui.add(params, "decay", 0, 4).onChange(function(value) {spotLight.decay = value;});
 			gui.add(params, "distance", 1, 500).onChange(function(value) {spotLight.distance = value;});
@@ -115,6 +116,7 @@
 			gui.add(params, "useShadow").onChange(function() {
 				toggleShadow()
 			});
+			gui.add(plane, "shadowType", ["hard", "pcf_soft"]);
 			gui.close();
 
 			var clock = new zen3d.Clock();

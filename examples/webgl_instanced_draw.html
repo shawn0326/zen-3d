@@ -161,7 +161,7 @@
 			}
 
 			var gui = new dat.GUI( { width: 350 } );
-			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" )
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
 			gui.add( instancedGeometry, 'maxInstancedCount', 0, instances );
 
 			var lastTime = 0;

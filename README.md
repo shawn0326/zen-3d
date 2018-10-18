@@ -44,6 +44,7 @@ you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
 * [Instancing](https://shawn0326.github.io/zen-3d/examples/#webgl_instanced_draw). (WebGL 1.0 extension / WebGL 2.0)
 * Vertex Array Object. (WebGL 1.0 extension / WebGL 2.0)
 * [Shader Texture LOD](https://shawn0326.github.io/zen-3d/examples/#material_cubetexture_skybox). (WebGL 1.0 extension / WebGL 2.0)
+* [Shadow Sampler](https://shawn0326.github.io/zen-3d/examples/#light_shadow). (WebGL 2.0)
 * Fragment Depth. (TODO)
 * Transform Feedback. (TODO)
 * Sampler Objects. (TODO)

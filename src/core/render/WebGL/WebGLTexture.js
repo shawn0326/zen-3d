@@ -72,7 +72,8 @@ function getTextureParameters(texture, needFallback) {
     wrapT = texture.wrapT,
     magFilter = texture.magFilter,
     minFilter = texture.minFilter,
-    anisotropy = texture.anisotropy;
+    anisotropy = texture.anisotropy,
+    compare = texture.compare;
 
     // fix for non power of 2 image in WebGL 1.0
     if (needFallback) {
@@ -94,7 +95,7 @@ function getTextureParameters(texture, needFallback) {
         }
     }
 
-    return [wrapS, wrapT, magFilter, minFilter, anisotropy];
+    return [wrapS, wrapT, magFilter, minFilter, anisotropy, compare];
 }
 
 function WebGLTexture(gl, state, properties, capabilities) {
@@ -374,6 +375,15 @@ Object.assign(WebGLTexture.prototype, {
             var extension = capabilities.anisotropyExt;
             if (extension) {
                 gl.texParameterf(textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(parameters[4], capabilities.maxAnisotropy));
+            }
+
+            if (capabilities.version >= 2) {
+                if (parameters[5] > 0) {
+                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_FUNC, parameters[5]);
+                } else {
+                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+                }
             }
         // }
     },

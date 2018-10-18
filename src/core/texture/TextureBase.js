@@ -92,6 +92,13 @@ function TextureBase() {
     this.anisotropy = 1;
 
     /**
+     * Use for shadow sampler (WebGL 2.0 Only).
+     * @type {zen3d.WEBGL_TEXTURE_COMPARE}
+     * @default zen3d.WEBGL_TEXTURE_COMPARE.NONE
+     */
+    this.compare = zen3d.WEBGL_TEXTURE_COMPARE.NONE;
+
+    /**
      * Whether to generate mipmaps (if possible) for a texture.
      * Set this to false if you are creating mipmaps manually.
      * @type {boolean}
