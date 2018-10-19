@@ -221,11 +221,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
                 // upload custom uniforms
                 if(material.uniforms && material.uniforms[key] !== undefined) {
-                    if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D) {
+                    if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW) {
                         var slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.uniforms[key], slot);
                         uniform.setValue(slot);
-                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE) {
+                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW) {
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.uniforms[key], slot);
                         uniform.setValue(slot);

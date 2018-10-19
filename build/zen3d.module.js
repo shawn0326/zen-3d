@@ -455,7 +455,9 @@ var WEBGL_UNIFORM_TYPE = {
     FLOAT_MAT3: 0x8B5B,
     FLOAT_MAT4: 0x8B5C,
     SAMPLER_2D: 0x8B5E,
+    SAMPLER_2D_SHADOW: 0x8B62,
     SAMPLER_CUBE: 0x8B60,
+    SAMPLER_CUBE_SHADOW: 0x8DC5,
     BYTE: 0xffff,
     UNSIGNED_BYTE: 0x1401,
     SHORT: 0x1402,
@@ -9815,6 +9817,8 @@ Object.assign(WebGLUniform.prototype, {
                 break;
             case WEBGL_UNIFORM_TYPE.SAMPLER_2D:
             case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW:
             case WEBGL_UNIFORM_TYPE.BOOL:
             case WEBGL_UNIFORM_TYPE.INT:
                 this.setValue = this.set = function(value) {
@@ -11218,11 +11222,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
                 // upload custom uniforms
                 if(material.uniforms && material.uniforms[key] !== undefined) {
-                    if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D) {
+                    if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW) {
                         var slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.uniforms[key], slot);
                         uniform.setValue(slot);
-                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE) {
+                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW) {
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.uniforms[key], slot);
                         uniform.setValue(slot);

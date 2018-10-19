@@ -165,7 +165,7 @@
 
                 "#if SHADOW == 1",
 
-                    "uniform sampler2D shadowMap;",
+                    "uniform sampler2DShadow shadowMap;",
                     "uniform mat4 shadowMatrix;",
 
                     "uniform float shadowBias;",
@@ -363,7 +363,7 @@
 
                 "#if SHADOW == 1",
 
-                    "uniform sampler2D shadowMap;",
+                    "uniform sampler2DShadow shadowMap;",
                     "uniform mat4 shadowMatrix;",
 
                     "uniform float shadowBias;",
