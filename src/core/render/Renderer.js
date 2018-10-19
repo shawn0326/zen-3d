@@ -99,7 +99,7 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
     if (renderTarget === undefined) {
         renderTarget = this.backRenderTarget;
     }
-    this.glCore.texture.setRenderTarget(renderTarget);
+    this.glCore.renderTarget.setRenderTarget(renderTarget);
 
     if (this.autoClear || forceClear) {
         this.glCore.clear(true, true, true);
@@ -110,7 +110,7 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
     performance.endCounter("renderList");
 
     if (!!renderTarget.texture) {
-        this.glCore.texture.updateRenderTargetMipmap(renderTarget);
+        this.glCore.renderTarget.updateRenderTargetMipmap(renderTarget);
     }
 
     this.performance.endCounter("render");

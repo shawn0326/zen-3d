@@ -135,14 +135,14 @@
 				scene.updateMatrix();
 				scene.updateLights();
 
-				glCore.texture.setRenderTarget(tempRenderTarget);
+				glCore.renderTarget.setRenderTarget(tempRenderTarget);
 
 				glCore.state.clearColor(0.2, 0.2, 0.2, 1);
             	glCore.clear(true, true, true);
 
 				glCore.render(scene, camera);
 
-				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 				glCore.state.clearColor(0, 0, 0, 0);
 				glCore.clear(true, true, true);

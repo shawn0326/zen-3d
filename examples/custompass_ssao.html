@@ -209,7 +209,7 @@
 
 				gBuffer.update(glCore, scene, camera);
 
-				glCore.texture.setRenderTarget(tempRenderTarget2);
+				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
 
 				glCore.state.clearColor(1, 1, 1, 1);
 				glCore.clear(true, true, true);
@@ -221,7 +221,7 @@
 
 				ssaoPass.render(glCore);
 
-				glCore.texture.setRenderTarget(tempRenderTarget3);
+				glCore.renderTarget.setRenderTarget(tempRenderTarget3);
 
 				glCore.state.clearColor(0, 0, 0, 0);
             	glCore.clear(true, true, true);
@@ -230,7 +230,7 @@
 				blurPass.uniforms["direction"] = 0;
 				blurPass.render(glCore);
 
-				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 				glCore.state.clearColor(0.5, 0.5, 0.5, 1);
 				glCore.clear(true, true, true);

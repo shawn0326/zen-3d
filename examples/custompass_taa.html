@@ -129,7 +129,7 @@
 
 					shadowMapPass.render(glCore, scene);
 
-					glCore.texture.setRenderTarget(tempRenderTarget);
+					glCore.renderTarget.setRenderTarget(tempRenderTarget);
 
 					glCore.state.clearColor(0.3, 0.3, 0.3, 1);
 					glCore.clear(true, true, true);
@@ -148,7 +148,7 @@
 
 				copyPass.uniforms["tDiffuse"] = tex;
 
-				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 				glCore.state.clearColor(0, 0, 0, 0);
 				glCore.clear(true, true, true);

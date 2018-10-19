@@ -85,7 +85,7 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 
             var renderList = scene.updateRenderList(camera);
 
-            glCore.texture.setRenderTarget(shadowTarget);
+            glCore.renderTarget.setRenderTarget(shadowTarget);
 
             glCore.clear(true, true);
 
@@ -110,7 +110,7 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
         }
 
         // set generateMipmaps false
-        // glCore.texture.updateRenderTargetMipmap(shadowTarget);
+        // glCore.renderTarget.updateRenderTargetMipmap(shadowTarget);
 
     }
 

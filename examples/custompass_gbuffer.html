@@ -195,7 +195,7 @@
 
 				gBuffer.update(glCore, scene, camera);
 
-				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 				glCore.state.clearColor(0, 0, 0, 1);
 				glCore.clear(true, true, true);

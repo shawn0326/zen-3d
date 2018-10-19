@@ -154,28 +154,28 @@
 
 				shadowMapPass.render(glCore, scene);
 
-				glCore.texture.setRenderTarget(tempRenderTarget1);
+				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
 
 				glCore.state.clearColor(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
 				glCore.render(scene, camera);
 
-				glCore.texture.setRenderTarget(tempRenderTarget2);
+				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
 
 				glCore.state.clearColor(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
 				colorAdjustPass.render(glCore);
 
-				glCore.texture.setRenderTarget(tempRenderTarget1);
+				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
 
 				glCore.state.clearColor(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 
 				filmPass.render(glCore);
 
-				glCore.texture.setRenderTarget(backRenderTarget);
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 				glCore.state.clearColor(0, 0, 0, 0);
 				glCore.clear(true, true, true);

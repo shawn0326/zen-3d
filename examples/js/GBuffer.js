@@ -108,7 +108,7 @@
 
                 var mrtMaterial = this._MRTMaterial;
 
-                glCore.texture.setRenderTarget(this._renderTarget1);
+                glCore.renderTarget.setRenderTarget(this._renderTarget1);
 
                 glCore.state.clearColor(0, 0, 0, 0);
                 glCore.clear(true, true, true);
@@ -176,7 +176,7 @@
 
                 var normalGlossinessMaterial = this._normalGlossinessMaterial;
 
-                glCore.texture.setRenderTarget(this._renderTarget1);
+                glCore.renderTarget.setRenderTarget(this._renderTarget1);
 
                 glCore.state.clearColor(0, 0, 0, 0);
                 glCore.clear(true, true, true);
@@ -228,7 +228,7 @@
 
                 var albedoMetalnessMaterial = this._albedoMetalnessMaterial;
 
-                glCore.texture.setRenderTarget(this._renderTarget2);
+                glCore.renderTarget.setRenderTarget(this._renderTarget2);
     
                 glCore.state.clearColor(0, 0, 0, 0);
                 glCore.clear(true, true, true);

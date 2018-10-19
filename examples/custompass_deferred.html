@@ -254,7 +254,7 @@
 
 				if ( params.render === "forward" ) {
 
-					glCore.texture.setRenderTarget(backRenderTarget);
+					glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 					glCore.state.clearColor(0, 0, 0, 1);
 					glCore.clear(true, true, true);
@@ -271,7 +271,7 @@
 
 					// render normalDepth texture
 
-					glCore.texture.setRenderTarget(normalDepthRenderTarget);
+					glCore.renderTarget.setRenderTarget(normalDepthRenderTarget);
 
 					glCore.state.clearColor(0, 0, 0, 0);
 					glCore.clear(true, true, true);
@@ -315,7 +315,7 @@
 
 						// render color texture
 
-						glCore.texture.setRenderTarget(colorRenderTarget);
+						glCore.renderTarget.setRenderTarget(colorRenderTarget);
 
 						glCore.state.clearColor(0, 0, 0, 0);
 						glCore.clear(true, true, true);
@@ -357,7 +357,7 @@
 
 						// render emissive light
 
-						glCore.texture.setRenderTarget(resultRenderTarget);
+						glCore.renderTarget.setRenderTarget(resultRenderTarget);
 
 						glCore.state.clearColor(0, 0, 0, 0);
 						glCore.clear(true, true, true);
@@ -376,7 +376,7 @@
 
 					if (params.render == "prelight-deferred") {
 
-						glCore.texture.setRenderTarget(colorRenderTarget);
+						glCore.renderTarget.setRenderTarget(colorRenderTarget);
 
 						glCore.state.clearColor(0, 0, 0, 0);
 						glCore.clear(true, true, true);
@@ -519,7 +519,7 @@
 
 						// reconstruction
 
-						glCore.texture.setRenderTarget(resultRenderTarget);
+						glCore.renderTarget.setRenderTarget(resultRenderTarget);
 
 						glCore.state.clearColor(0, 0, 0, 1);
 						glCore.clear(true, true, true);
@@ -572,7 +572,7 @@
 
 					// output
 
-					glCore.texture.setRenderTarget(backRenderTarget);
+					glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 					glCore.state.clearColor(0, 0, 0, 1);
 					glCore.clear(true, true, true);

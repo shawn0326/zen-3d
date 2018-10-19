@@ -46,13 +46,13 @@ EnvironmentMapPass.prototype.render = function(glCore, scene) {
 
         this.renderTarget.activeCubeFace = i;
 
-        glCore.texture.setRenderTarget(this.renderTarget);
+        glCore.renderTarget.setRenderTarget(this.renderTarget);
 
         glCore.clear(true, true, true);
 
         glCore.render(scene, this.camera);
 
-        glCore.texture.updateRenderTargetMipmap(this.renderTarget);
+        glCore.renderTarget.updateRenderTargetMipmap(this.renderTarget);
     }
 }
 

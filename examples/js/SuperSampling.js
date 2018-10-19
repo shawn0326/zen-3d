@@ -91,7 +91,7 @@
             this._blendPass.uniforms["opacity1"] = first ? 1 : 0.1;
             this._blendPass.uniforms["opacity2"] = first ? 0 : 0.9;
 
-            glCore.texture.setRenderTarget(this._output);
+            glCore.renderTarget.setRenderTarget(this._output);
 
             glCore.state.clearColor(0, 0, 0, 0);
             glCore.clear(true, true, true);

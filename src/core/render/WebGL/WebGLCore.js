@@ -9,6 +9,7 @@ import {WebGLProperties} from './WebGLProperties.js';
 import {WebGLCapabilities} from './WebGLCapabilities.js';
 import {WebGLState} from './WebGLState.js';
 import {WebGLTexture} from './WebGLTexture.js';
+import {WebGLRenderTarget} from './WebGLRenderTarget.js';
 import {WebGLGeometry} from './WebGLGeometry.js';
 
 var helpVector3 = new Vector3();
@@ -73,7 +74,10 @@ function WebGLCore(gl) {
     state.clearColor(0, 0, 0, 0);
     this.state = state;
 
-    this.texture = new WebGLTexture(gl, state, properties, capabilities);
+    var texture = new WebGLTexture(gl, state, properties, capabilities);
+    this.texture = texture;
+
+    this.renderTarget = new WebGLRenderTarget(gl, state, texture, properties, capabilities);
 
     this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
 

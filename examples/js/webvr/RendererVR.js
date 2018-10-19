@@ -76,7 +76,7 @@
         if (renderTarget === undefined) {
             renderTarget = this.backRenderTarget;
         }
-        this.glCore.texture.setRenderTarget(renderTarget);
+        this.glCore.renderTarget.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
             this.glCore.state.clearColor(0, 0, 0, 0);
@@ -87,7 +87,7 @@
         this.glCore.render(scene, cameraR);
 
         if (!!renderTarget.texture) {
-            this.glCore.texture.updateRenderTargetMipmap(renderTarget);
+            this.glCore.renderTarget.updateRenderTargetMipmap(renderTarget);
         }
 
         vrDisplay.submitFrame();
