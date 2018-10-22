@@ -13,6 +13,8 @@ function RenderTargetCube(width, height) {
 
     RenderTargetBase.call(this, width, height);
 
+    this._textures = {};
+
     /**
      * The cube texture attached to COLOR_ATTACHMENT0.
      * @type {zen3d.TextureCube}
@@ -36,16 +38,59 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
     constructor: RenderTargetCube,
 
     /**
+     * Attach a texture(RTT) to the framebuffer.
+     * Notice: For now, dynamic Attachment during rendering is not supported.
+     * @param  {zen3d.TextureCube} texture
+     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
+     */
+    attach: function(texture, attachment) {
+        var changed = false;
+
+        for (var i = 0; i < 6; i++) {
+            if (texture.images[i] && texture.images[i].rtt) {
+                if (texture.images[i].width !== this.width || texture.images[i].height !== this.height) {
+                    texture.images[i].width = this.width;
+                    texture.images[i].height = this.height;
+                    changed = true;
+                }
+            } else {
+                texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            texture.version++;
+        }
+
+        this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
+    },
+
+    /**
+     * Detach a texture.
+     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
+     */
+    detach: function(attachment) {
+        delete this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
+    },
+
+    /**
      * @override   
      */
     resize: function(width, height) {
 
         var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
-        if (changed && this._texture) {
-            this._texture.version++;
-            for (var i = 0; i < 6; i++) {
-                this._texture.images[i] = {data: null, width: this.width, height: this.height};
+        if (changed) {
+            for (var attachment in this._textures) {
+                var texture = this._textures[attachment];
+    
+                if (texture) {
+                    for (var i = 0; i < 6; i++) {
+                        texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                    }
+                    texture.version++;
+                }
             }
         }
 
@@ -53,22 +98,20 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
 
 });
 
-Object.defineProperties(RenderTargetCube.prototype, {
+Object.defineProperties(RenderTarget2D.prototype, {
 
     texture: {
 
         set: function(texture) {
             if (texture) {
-                for (var i = 0; i < 6; i++) {
-                    texture.images[i] = {data: null, width: this.width, height: this.height};
-                }
+                this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+            } else {
+                this.detach(ATTACHMENT.COLOR_ATTACHMENT0);
             }
-            
-            this._texture = texture;
         },
 
         get: function() {
-            return this._texture;
+            return this._textures[ATTACHMENT.COLOR_ATTACHMENT0];
         }
 
     }

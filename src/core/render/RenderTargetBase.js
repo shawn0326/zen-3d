@@ -33,6 +33,20 @@ function RenderTargetBase(width, height) {
      */
     this.height = height;
 
+    /**
+     * If set true, attach a depth render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.depthBuffer = true;
+
+    /**
+     * If set true, attach a stencil render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.stencilBuffer = true;
+
 }
 
 RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{
