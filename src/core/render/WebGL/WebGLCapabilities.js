@@ -18,7 +18,7 @@ function WebGLCapabilities(gl) {
      */
     function getExtension(name) {
     
-        if(_extensions[name]) {
+        if(_extensions[name] || _extensions[name] === null) {
             return _extensions[name];
         }
     

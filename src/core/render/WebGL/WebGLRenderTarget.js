@@ -109,41 +109,68 @@ Object.assign(WebGLRenderTarget.prototype, {
         var gl = this.gl;
         var state = this.state;
         var texture = this.texture;
+        var capabilities = this.capabilities;
     
         var renderTargetProperties = this.properties.get(renderTarget);
-        var textureProperties = this.properties.get(renderTarget.texture);
     
-        if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
+        if (renderTargetProperties.__webglFramebuffer === undefined) {
             renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
             
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
+            renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
     
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
-    
-            textureProperties = texture.setTextureCube(renderTarget.texture);
 
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
-    
-            state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-    
-            if (renderTarget.depthBuffer) {
-                renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-    
-                var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-    
-                gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    
-                if (renderTarget.stencilBuffer) {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-                } else {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+            var buffers = [];
+            for (var attachment in renderTarget._textures) {
+                var textureProperties = texture.setTextureCube(renderTarget._textures[attachment]);
+
+                attachment = Number(attachment);
+
+                if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
+                    if (capabilities.version < 2 && !capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
                 }
-    
-                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+                state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+
+                if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
+                    buffers.push(attachment);
+                }
             }
 
+            if ( buffers.length > 1 ) {
+                if (capabilities.version >= 2) {
+                    gl.drawBuffers(buffers);
+                } else if (capabilities.getExtension('WEBGL_draw_buffers')) {
+                    capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
+                }
+            }
+    
+            if (renderTarget.depthBuffer) {
+    
+                if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
+                    renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
+    
+                    var renderbuffer = renderTargetProperties.__webglDepthbuffer;
+    
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+    
+                    if (renderTarget.stencilBuffer) {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    } else {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    }
+    
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                }
+                
+            }
+    
             var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             if(status !== gl.FRAMEBUFFER_COMPLETE) {
                 if(status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
@@ -163,8 +190,13 @@ Object.assign(WebGLRenderTarget.prototype, {
         }
     
         gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
-    
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+
+        for (var attachment in renderTarget._textures) {
+            var textureProperties = this.properties.get(renderTarget._textures[attachment]);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+        }
+        renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
+
     },
 
     updateRenderTargetMipmap: function(renderTarget) {
@@ -232,8 +264,14 @@ Object.assign(WebGLRenderTarget.prototype, {
             state.currentRenderTarget = target;
         } else {
             if (isCube) {
-                var textureProperties = this.properties.get(target.texture);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+                var renderTargetProperties = this.properties.get(target);
+                if (renderTargetProperties.__currentActiveCubeFace !== target.activeCubeFace) {
+                    for (var attachment in target._textures) {
+                        var textureProperties = this.properties.get(target._textures[attachment]);
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+                    }
+                    renderTargetProperties.__currentActiveCubeFace = target.activeCubeFace;
+                }
             }
         }
     }

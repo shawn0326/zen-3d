@@ -236,7 +236,7 @@ Object.assign(WebGLTexture.prototype, {
     
         var textureProperties = this.properties.get(texture);
     
-        if ( (texture.version > 0 || slot === undefined) && textureProperties.__version !== texture.version) {
+        if ( texture.images.length === 6 && (!texture.images[0].rtt || slot === undefined) && textureProperties.__version !== texture.version ) {
     
             if (textureProperties.__webglTexture === undefined) {
                 texture.addEventListener('dispose', this.onTextureDispose, this);

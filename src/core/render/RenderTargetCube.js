@@ -1,5 +1,6 @@
 import {RenderTargetBase} from './RenderTargetBase.js';
 import {TextureCube} from '../texture/TextureCube.js';
+import {ATTACHMENT} from '../const.js';
 
 /**
  * Render Target that render to cube texture.
@@ -98,7 +99,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
 
 });
 
-Object.defineProperties(RenderTarget2D.prototype, {
+Object.defineProperties(RenderTargetCube.prototype, {
 
     texture: {
 

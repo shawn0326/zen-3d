@@ -8739,7 +8739,7 @@ function WebGLCapabilities(gl) {
      */
     function getExtension(name) {
     
-        if(_extensions[name]) {
+        if(_extensions[name] || _extensions[name] === null) {
             return _extensions[name];
         }
     
@@ -9457,7 +9457,7 @@ Object.assign(WebGLTexture.prototype, {
     
         var textureProperties = this.properties.get(texture);
     
-        if ( (texture.version > 0 || slot === undefined) && textureProperties.__version !== texture.version) {
+        if ( texture.images.length === 6 && (!texture.images[0].rtt || slot === undefined) && textureProperties.__version !== texture.version ) {
     
             if (textureProperties.__webglTexture === undefined) {
                 texture.addEventListener('dispose', this.onTextureDispose, this);
@@ -10480,6 +10480,7 @@ function createProgram(gl, props, defines) {
         // depth texture may have precision problem on iOS device.
         'precision ' + props.precision + ' sampler2D;',
         (props.version >= 2) ? 'precision ' + props.precision + ' sampler2DShadow;' : '',
+        (props.version >= 2) ? 'precision ' + props.precision + ' samplerCubeShadow;' : '',
 
         '#define SHADER_NAME ' + props.materialType,
         
@@ -10886,41 +10887,68 @@ Object.assign(WebGLRenderTarget.prototype, {
         var gl = this.gl;
         var state = this.state;
         var texture = this.texture;
+        var capabilities = this.capabilities;
     
         var renderTargetProperties = this.properties.get(renderTarget);
-        var textureProperties = this.properties.get(renderTarget.texture);
     
-        if (textureProperties.__webglTexture === undefined || renderTargetProperties.__webglFramebuffer === undefined) {
+        if (renderTargetProperties.__webglFramebuffer === undefined) {
             renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
             
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
+            renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
     
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
-    
-            textureProperties = texture.setTextureCube(renderTarget.texture);
 
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
-    
-            state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-    
-            if (renderTarget.depthBuffer) {
-                renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-    
-                var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-    
-                gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    
-                if (renderTarget.stencilBuffer) {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-                } else {
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+            var buffers = [];
+            for (var attachment in renderTarget._textures) {
+                var textureProperties = texture.setTextureCube(renderTarget._textures[attachment]);
+
+                attachment = Number(attachment);
+
+                if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
+                    if (capabilities.version < 2 && !capabilities.getExtension('WEBGL_depth_texture')) {
+                        console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
+                    }
                 }
-    
-                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+                state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+
+                if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
+                    buffers.push(attachment);
+                }
             }
 
+            if ( buffers.length > 1 ) {
+                if (capabilities.version >= 2) {
+                    gl.drawBuffers(buffers);
+                } else if (capabilities.getExtension('WEBGL_draw_buffers')) {
+                    capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
+                }
+            }
+    
+            if (renderTarget.depthBuffer) {
+    
+                if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
+                    renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
+    
+                    var renderbuffer = renderTargetProperties.__webglDepthbuffer;
+    
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+    
+                    if (renderTarget.stencilBuffer) {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    } else {
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                    }
+    
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                }
+                
+            }
+    
             var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             if(status !== gl.FRAMEBUFFER_COMPLETE) {
                 if(status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
@@ -10940,8 +10968,13 @@ Object.assign(WebGLRenderTarget.prototype, {
         }
     
         gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
-    
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+
+        for (var attachment in renderTarget._textures) {
+            var textureProperties = this.properties.get(renderTarget._textures[attachment]);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+        }
+        renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
+
     },
 
     updateRenderTargetMipmap: function(renderTarget) {
@@ -11007,8 +11040,14 @@ Object.assign(WebGLRenderTarget.prototype, {
             state.currentRenderTarget = target;
         } else {
             if (isCube) {
-                var textureProperties = this.properties.get(target.texture);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+                var renderTargetProperties = this.properties.get(target);
+                if (renderTargetProperties.__currentActiveCubeFace !== target.activeCubeFace) {
+                    for (var attachment in target._textures) {
+                        var textureProperties = this.properties.get(target._textures[attachment]);
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
+                    }
+                    renderTargetProperties.__currentActiveCubeFace = target.activeCubeFace;
+                }
             }
         }
     }
@@ -12061,6 +12100,20 @@ function RenderTargetBase(width, height) {
      */
     this.height = height;
 
+    /**
+     * If set true, attach a depth render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.depthBuffer = true;
+
+    /**
+     * If set true, attach a stencil render buffer to the redner target.
+     * @type {boolean}
+     * @default true
+     */
+    this.stencilBuffer = true;
+
 }
 
 RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{
@@ -12108,6 +12161,8 @@ function RenderTargetCube(width, height) {
 
     RenderTargetBase.call(this, width, height);
 
+    this._textures = {};
+
     /**
      * The cube texture attached to COLOR_ATTACHMENT0.
      * @type {zen3d.TextureCube}
@@ -12131,16 +12186,59 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
     constructor: RenderTargetCube,
 
     /**
+     * Attach a texture(RTT) to the framebuffer.
+     * Notice: For now, dynamic Attachment during rendering is not supported.
+     * @param  {zen3d.TextureCube} texture
+     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
+     */
+    attach: function(texture, attachment) {
+        var changed = false;
+
+        for (var i = 0; i < 6; i++) {
+            if (texture.images[i] && texture.images[i].rtt) {
+                if (texture.images[i].width !== this.width || texture.images[i].height !== this.height) {
+                    texture.images[i].width = this.width;
+                    texture.images[i].height = this.height;
+                    changed = true;
+                }
+            } else {
+                texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            texture.version++;
+        }
+
+        this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
+    },
+
+    /**
+     * Detach a texture.
+     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
+     */
+    detach: function(attachment) {
+        delete this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
+    },
+
+    /**
      * @override   
      */
     resize: function(width, height) {
 
         var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
-        if (changed && this._texture) {
-            this._texture.version++;
-            for (var i = 0; i < 6; i++) {
-                this._texture.images[i] = {data: null, width: this.width, height: this.height};
+        if (changed) {
+            for (var attachment in this._textures) {
+                var texture = this._textures[attachment];
+    
+                if (texture) {
+                    for (var i = 0; i < 6; i++) {
+                        texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                    }
+                    texture.version++;
+                }
             }
         }
 
@@ -12154,16 +12252,14 @@ Object.defineProperties(RenderTargetCube.prototype, {
 
         set: function(texture) {
             if (texture) {
-                for (var i = 0; i < 6; i++) {
-                    texture.images[i] = {data: null, width: this.width, height: this.height};
-                }
+                this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+            } else {
+                this.detach(ATTACHMENT.COLOR_ATTACHMENT0);
             }
-            
-            this._texture = texture;
         },
 
         get: function() {
-            return this._texture;
+            return this._textures[ATTACHMENT.COLOR_ATTACHMENT0];
         }
 
     }
@@ -13406,20 +13502,6 @@ function RenderTarget2D(width, height) {
      * @default Texture2D()
      */
     this.texture = new Texture2D();
-
-    /**
-     * If set true, attach a depth render buffer to the redner target.
-     * @type {boolean}
-     * @default true
-     */
-    this.depthBuffer = true;
-
-    /**
-     * If set true, attach a stencil render buffer to the redner target.
-     * @type {boolean}
-     * @default true
-     */
-    this.stencilBuffer = true;
 
 }
 

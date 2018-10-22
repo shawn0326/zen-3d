@@ -158,6 +158,7 @@ function createProgram(gl, props, defines) {
         // depth texture may have precision problem on iOS device.
         'precision ' + props.precision + ' sampler2D;',
         (props.version >= 2) ? 'precision ' + props.precision + ' sampler2DShadow;' : '',
+        (props.version >= 2) ? 'precision ' + props.precision + ' samplerCubeShadow;' : '',
 
         '#define SHADER_NAME ' + props.materialType,
         
