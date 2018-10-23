@@ -186,7 +186,13 @@ function createProgram(gl, props, defines) {
         ((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
         props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
         props.useShadow ? '#define USE_SHADOW' : '',
-        props.usePCFSoftShadow ? '#define USE_PCF_SOFT_SHADOW' : '',
+        props.shadowType === SHADOW_TYPE.HARD ? '#define USE_HARD_SHADOW' : '',
+        props.shadowType === SHADOW_TYPE.POISSON_SOFT ? '#define USE_POISSON_SOFT_SHADOW' : '',
+        props.shadowType === SHADOW_TYPE.PCF3_SOFT ? '#define USE_PCF3_SOFT_SHADOW' : '',
+        props.shadowType === SHADOW_TYPE.PCF5_SOFT ? '#define USE_PCF5_SOFT_SHADOW' : '',
+        props.shadowType === SHADOW_TYPE.PCSS16_SOFT ? '#define USE_PCSS16_SOFT_SHADOW' : '',
+        props.shadowType === SHADOW_TYPE.PCSS32_SOFT ? '#define USE_PCSS32_SOFT_SHADOW' : '',
+        props.shadowType === SHADOW_TYPE.PCSS64_SOFT ? '#define USE_PCSS64_SOFT_SHADOW' : '',
         props.flatShading ? '#define FLAT_SHADED' : '',
         props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
         props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
@@ -374,7 +380,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     props.pointLightNum = !!lights ? lights.pointsNum : 0;
     props.spotLightNum = !!lights ? lights.spotsNum : 0;
     props.useShadow = object.receiveShadow;
-    props.usePCFSoftShadow = object.shadowType === SHADOW_TYPE.PCF_SOFT;
+    props.shadowType = object.shadowType;
     // encoding
     var currentRenderTarget = glCore.state.currentRenderTarget;
     props.gammaFactor = camera.gammaFactor;

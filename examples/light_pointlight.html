@@ -57,7 +57,8 @@
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
+			plane.position.y = -10;
+			plane.shadowType = zen3d.SHADOW_TYPE.POISSON_SOFT;
 	        scene.add(plane);
 
 	        var ambientLight = new zen3d.AmbientLight();
@@ -104,7 +105,7 @@
 			gui.add(params, "useShadow").onChange(function() {
 				toggleShadow()
 			});
-			gui.add(plane, "shadowType", ["hard", "pcf_soft"]);
+			gui.add(plane, "shadowType", ["hard", "poisson_soft"]);
 			gui.close();
 
 			var clock = new zen3d.Clock();

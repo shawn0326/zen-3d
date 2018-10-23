@@ -115,9 +115,9 @@ function Object3D() {
     /**
      * Defines shadow map type.
      * @type {zen3d.SHADOW_TYPE}
-     * @default SHADOW_TYPE.PCF_SOFT
+     * @default SHADOW_TYPE.PCF3_SOFT
      */
-    this.shadowType = SHADOW_TYPE.PCF_SOFT;
+    this.shadowType = SHADOW_TYPE.PCF3_SOFT;
 
     /**
      * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 

@@ -298,7 +298,12 @@ export var WEBGL_ATTRIBUTE_TYPE = {
  */
 export var SHADOW_TYPE = {
     HARD: "hard",
-    PCF_SOFT: "pcf_soft"
+    POISSON_SOFT: "poisson_soft",
+    PCF3_SOFT: "pcf3_soft", // webgl2
+    PCF5_SOFT: "pcf5_soft", // webgl2
+    PCSS16_SOFT: "pcss16_soft", // webgl2 todo
+    PCSS32_SOFT: "pcss32_soft", // webgl2 todo
+    PCSS64_SOFT: "pcss64_soft" // webgl2 todo
 }
 
 /**
