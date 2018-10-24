@@ -88,8 +88,10 @@ function WebGLCore(gl) {
 }
 
 var directShadowMaps = [];
+var directDepthMaps = [];
 var pointShadowMaps = [];
 var spotShadowMaps = [];
+var spotDepthMaps = [];
 
 Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
@@ -656,6 +658,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
                 directShadowMaps[k] = slot;
+
+                if (uniforms["directionalDepthMap[0]"]) {
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
+                    directDepthMaps[k] = slot;
+                }
             }
         }
         if(directShadowMaps.length > 0) {
@@ -666,6 +674,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
             var directionalShadowMatrix = uniforms["directionalShadowMatrix[0]"];
             gl.uniformMatrix4fv(directionalShadowMatrix.location, false, lights.directionalShadowMatrix);
+        }
+        if (directDepthMaps.length > 0) {
+            var directionalDepthMap = uniforms["directionalDepthMap[0]"];
+            gl.uniform1iv(directionalDepthMap.location, directDepthMaps);
+
+            directDepthMaps.length = 0;
         }
     
         for (var k = 0; k < lights.pointsNum; k++) {
@@ -747,6 +761,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(lights.spotShadowMap[k], slot);
                 spotShadowMaps[k] = slot;
+
+                if (uniforms["spotDepthMap[0]"]) {
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(lights.spotDepthMap[k], slot);
+                    spotDepthMaps[k] = slot;
+                }
             }
         }
         if(spotShadowMaps.length > 0) {
@@ -757,6 +777,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
             var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
             gl.uniformMatrix4fv(spotShadowMatrix.location, false, lights.spotShadowMatrix);
+        }
+        if (spotDepthMaps.length > 0) {
+            var spotDepthMap = uniforms["spotDepthMap[0]"];
+            gl.uniform1iv(spotDepthMap.location, spotDepthMaps);
+
+            spotDepthMaps.length = 0;
         }
     },
 

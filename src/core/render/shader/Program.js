@@ -193,6 +193,7 @@ function createProgram(gl, props, defines) {
         props.shadowType === SHADOW_TYPE.PCSS16_SOFT ? '#define USE_PCSS16_SOFT_SHADOW' : '',
         props.shadowType === SHADOW_TYPE.PCSS32_SOFT ? '#define USE_PCSS32_SOFT_SHADOW' : '',
         props.shadowType === SHADOW_TYPE.PCSS64_SOFT ? '#define USE_PCSS64_SOFT_SHADOW' : '',
+        (props.shadowType === SHADOW_TYPE.PCSS16_SOFT || props.shadowType === SHADOW_TYPE.PCSS32_SOFT || props.shadowType === SHADOW_TYPE.PCSS64_SOFT) ? '#define USE_PCSS_SOFT_SHADOW' : '',
         props.flatShading ? '#define FLAT_SHADED' : '',
         props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
         props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
@@ -380,7 +381,12 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     props.pointLightNum = !!lights ? lights.pointsNum : 0;
     props.spotLightNum = !!lights ? lights.spotsNum : 0;
     props.useShadow = object.receiveShadow;
-    props.shadowType = object.shadowType;
+    if (object.shadowType.indexOf("pcss") > -1 && capabilities.version < 2) {
+        console.warn("WebGL 1.0 not support PCSS soft shadow, fallback to POISSON_SOFT");
+        props.shadowType = SHADOW_TYPE.POISSON_SOFT
+    } else {
+        props.shadowType = object.shadowType;
+    }
     // encoding
     var currentRenderTarget = glCore.state.currentRenderTarget;
     props.gammaFactor = camera.gammaFactor;

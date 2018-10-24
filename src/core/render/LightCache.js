@@ -68,12 +68,14 @@ function LightCache() {
     this.ambient = new Float32Array([0, 0, 0, 1]);
     this.directional = [];
     this.directionalShadowMap = [];
+    this.directionalDepthMap = [];
     this.directionalShadowMatrix = [];
     this.point = [];
     this.pointShadowMap = [];
     this.pointShadowMatrix = [];
     this.spot = [];
     this.spotShadowMap = [];
+    this.spotDepthMap = [];
     this.spotShadowMatrix = [];
     this.shadows = [];
     this.ambientsNum = 0;
@@ -186,6 +188,7 @@ Object.assign(LightCache.prototype, {
 
             this.directionalShadowMatrix.set(object.shadow.matrix.elements, this.directsNum * 16);
             this.directionalShadowMap[this.directsNum] = object.shadow.depthMap || object.shadow.map;
+            this.directionalDepthMap[this.directsNum] = object.shadow.map;
         }
 
         this.directional[this.directsNum] = cache;
@@ -302,6 +305,7 @@ Object.assign(LightCache.prototype, {
 
             this.spotShadowMatrix.set(object.shadow.matrix.elements, this.spotsNum * 16);
             this.spotShadowMap[this.spotsNum] = object.shadow.depthMap || object.shadow.map;
+            this.spotDepthMap[this.spotsNum] = object.shadow.map;
         }
 
         this.spot[this.spotsNum] = cache;

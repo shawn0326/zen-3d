@@ -8,9 +8,9 @@ import {WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, 
 function convertLightShadowToWebGL2(lightShadow) {
     if (!lightShadow.depthMap) {
         var depthTexture = new Texture2D();
-        depthTexture.type = WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+        depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
         depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
-        depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH24_STENCIL8;
+        depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
         depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
         depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
         depthTexture.compare = WEBGL_TEXTURE_COMPARE.LESS;

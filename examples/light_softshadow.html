@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - soft shadow</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+	<script src="./js/Clock.js"></script>
+
+	<script src="./js/controls/OrbitControls.js"></script>
+
+	<script src="./js/objects/SpotLightHelper.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - soft shadow
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var cube_geometry = new zen3d.CubeGeometry(5, 40, 5);
+			var lambert = new zen3d.LambertMaterial();
+			lambert.diffuse.setHex(0xffffff);
+			var cube = new zen3d.Mesh(cube_geometry, lambert);
+			cube.position.y = 25;
+			cube.castShadow = true;
+			cube.receiveShadow = true;
+			scene.add(cube);
+
+	        var plane_geometry = new zen3d.PlaneGeometry(500, 500);
+	        var lambert = new zen3d.LambertMaterial();
+	        lambert.diffuse.setHex(0xffffff);
+			var plane = new zen3d.Mesh(plane_geometry, lambert);
+			plane.receiveShadow = true;
+			plane.shadowType = renderer.glCore.capabilities.version >= 2 ? zen3d.SHADOW_TYPE.PCSS32_SOFT : zen3d.SHADOW_TYPE.POISSON_SOFT;
+			scene.add(plane);
+
+			var spotLight = new zen3d.SpotLight();
+	        spotLight.color.setHex(0xffffff);
+			spotLight.angle = Math.PI / 5;
+			spotLight.position.set(50, 50, 50);
+			spotLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			spotLight.penumbra = 0.2;
+			spotLight.distance = 400;
+			spotLight.castShadow = true;
+			spotLight.shadow.bias = -0.0001;
+			scene.add(spotLight);
+			
+			var spotLightHelper = new zen3d.SpotLightHelper(spotLight);
+			spotLight.add(spotLightHelper);
+
+			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
+	        camera.position.set(0, 80, 100);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+			var controller = new zen3d.OrbitControls(camera, canvas);
+
+			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
+			gui.add(plane, "shadowType", ["hard", "poisson_soft", "pcf3_soft", "pcf5_soft", "pcss16_soft", "pcss32_soft", "pcss64_soft"]);
+
+			var clock = new zen3d.Clock();
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				controller.update();
+
+				var elapsedTime = clock.getElapsedTime();
+
+				cube.position.y = 25 * Math.sin(elapsedTime * 1.2) + 25;
+
+				spotLightHelper.update();
+
+				renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

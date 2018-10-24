@@ -36,7 +36,7 @@ function LightShadow() {
     /**
      * Setting this to values greater than 1 will blur the edges of the shadow.
      * High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.
-     * Note that this has no effect if the {@link @zen3d.Object3D#shadowType} is set to zen3d.SHADOW_TYPE.PCF3_SOFT.
+     * Note that this has no effect if the {@link @zen3d.Object3D#shadowType} is set to PCF or PCSS.
      * @type {number}
      * @default 2
      */

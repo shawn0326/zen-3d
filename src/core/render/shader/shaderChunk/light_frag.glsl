@@ -48,6 +48,7 @@
     float dotNL;
     vec4 irradiance;
     vec4 reflectLight;
+    float dist;
 
     #if NUM_DIR_LIGHTS > 0
 
@@ -61,7 +62,11 @@
             irradiance = light * dotNL;
 
             #ifdef USE_SHADOW
-                irradiance *= bool( u_Directional[ i ].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[ i ].shadowBias, u_Directional[ i ].shadowRadius, u_Directional[ i ].shadowMapSize ) : 1.0;
+                #ifdef USE_PCSS_SOFT_SHADOW
+                    irradiance *= bool( u_Directional[ i ].shadow ) ? getShadowWithPCSS( directionalDepthMap[ i ], directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[ i ].shadowBias, u_Directional[ i ].shadowRadius, u_Directional[ i ].shadowMapSize ) : 1.0;
+                #else
+                    irradiance *= bool( u_Directional[ i ].shadow ) ? getShadow( directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[ i ].shadowBias, u_Directional[ i ].shadowRadius, u_Directional[ i ].shadowMapSize ) : 1.0;
+                #endif
             #endif
 
             #ifdef USE_PBR
@@ -85,7 +90,6 @@
 
     #if NUM_POINT_LIGHTS > 0
         vec3 worldV;
-        float dist;
 
         #pragma unroll_loop
         for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
@@ -125,7 +129,6 @@
         float lightDistance;
         float angleCos;
         float spotEffect;
-        float dist;
 
         #pragma unroll_loop
         for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
@@ -148,7 +151,11 @@
                 #endif
 
                 #ifdef USE_SHADOW
-                    irradiance *= bool( u_Spot[ i ].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[ i ].shadowBias, u_Spot[ i ].shadowRadius, u_Spot[ i ].shadowMapSize ) : 1.0;
+                    #ifdef USE_PCSS_SOFT_SHADOW
+                        irradiance *= bool( u_Spot[ i ].shadow ) ? getShadowWithPCSS( spotDepthMap[ i ], spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[ i ].shadowBias, u_Spot[ i ].shadowRadius, u_Spot[ i ].shadowMapSize ) : 1.0;
+                    #else
+                        irradiance *= bool( u_Spot[ i ].shadow ) ? getShadow( spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[ i ].shadowBias, u_Spot[ i ].shadowRadius, u_Spot[ i ].shadowMapSize ) : 1.0;
+                    #endif
                 #endif
 
                 reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);

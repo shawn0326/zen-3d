@@ -1,91 +1,162 @@
-#ifdef WEBGL2
 
+#ifdef WEBGL2
     float computeShadow(sampler2DShadow shadowMap, vec3 shadowCoord) {
         return texture2D( shadowMap, shadowCoord );
     }
+#else
+    float computeShadow(sampler2D shadowMap, vec3 shadowCoord) {
+        return step( shadowCoord.z, unpackRGBAToDepth( texture2D( shadowMap, shadowCoord.xy ) ) );
+    }
+#endif
 
-    float computeShadowWithPoissonSampling( sampler2DShadow shadowMap, vec3 shadowCoord, float texelSize ) {
+float computeShadowWithPoissonSampling( sampler2DShadow shadowMap, vec3 shadowCoord, float texelSize ) {
+    vec3 poissonDisk[4];
+    poissonDisk[0] = vec3(-0.94201624, -0.39906216, 0);
+    poissonDisk[1] = vec3(0.94558609, -0.76890725, 0);
+    poissonDisk[2] = vec3(-0.094184101, -0.92938870, 0);
+    poissonDisk[3] = vec3(0.34495938, 0.29387760, 0);
+
+    return computeShadow( shadowMap, shadowCoord + poissonDisk[0] * texelSize ) * 0.25 +
+        computeShadow( shadowMap, shadowCoord + poissonDisk[1] * texelSize ) * 0.25 +
+        computeShadow( shadowMap, shadowCoord + poissonDisk[2] * texelSize ) * 0.25 +
+        computeShadow( shadowMap, shadowCoord + poissonDisk[3] * texelSize ) * 0.25;
+}
+
+// Shadow PCF kernel size 1 with a single tap (lowest quality)
+float computeShadowWithPCF1(sampler2DShadow shadowSampler, vec3 shadowCoord) {
+    return computeShadow(shadowSampler, shadowCoord);
+}
+
+// Shadow PCF kernel 3*3 in only 4 taps (medium quality)
+// This uses a well distributed taps to allow a gaussian distribution covering a 3*3 kernel
+// https://mynameismjp.wordpress.com/2013/09/10/shadow-maps/
+float computeShadowWithPCF3(sampler2DShadow shadowSampler, vec3 shadowCoord, vec2 shadowMapSizeAndInverse) {
+    vec2 uv = shadowCoord.xy * shadowMapSizeAndInverse.x;	// uv in texel units
+    uv += 0.5;											// offset of half to be in the center of the texel
+    vec2 st = fract(uv);								// how far from the center
+    vec2 base_uv = floor(uv) - 0.5;						// texel coord
+    base_uv *= shadowMapSizeAndInverse.y;				// move back to uv coords
+
+    // Equation resolved to fit in a 3*3 distribution like 
+    // 1 2 1
+    // 2 4 2 
+    // 1 2 1
+    vec2 uvw0 = 3. - 2. * st;
+    vec2 uvw1 = 1. + 2. * st;
+    vec2 u = vec2((2. - st.x) / uvw0.x - 1., st.x / uvw1.x + 1.) * shadowMapSizeAndInverse.y;
+    vec2 v = vec2((2. - st.y) / uvw0.y - 1., st.y / uvw1.y + 1.) * shadowMapSizeAndInverse.y;
+
+    float shadow = 0.;
+    shadow += uvw0.x * uvw0.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[0]), shadowCoord.z));
+    shadow += uvw1.x * uvw0.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[0]), shadowCoord.z));
+    shadow += uvw0.x * uvw1.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[1]), shadowCoord.z));
+    shadow += uvw1.x * uvw1.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[1]), shadowCoord.z));
+    shadow = shadow / 16.;
+
+    return shadow;
+}
+
+// Shadow PCF kernel 5*5 in only 9 taps (high quality)
+// This uses a well distributed taps to allow a gaussian distribution covering a 5*5 kernel
+// https://mynameismjp.wordpress.com/2013/09/10/shadow-maps/
+float computeShadowWithPCF5(sampler2DShadow shadowSampler, vec3 shadowCoord, vec2 shadowMapSizeAndInverse) {
+
+    vec2 uv = shadowCoord.xy * shadowMapSizeAndInverse.x;	// uv in texel units
+    uv += 0.5;											// offset of half to be in the center of the texel
+    vec2 st = fract(uv);								// how far from the center
+    vec2 base_uv = floor(uv) - 0.5;						// texel coord
+    base_uv *= shadowMapSizeAndInverse.y;				// move back to uv coords
+
+    // Equation resolved to fit in a 5*5 distribution like 
+    // 1 2 4 2 1
+    vec2 uvw0 = 4. - 3. * st;
+    vec2 uvw1 = vec2(7.);
+    vec2 uvw2 = 1. + 3. * st;
+
+    vec3 u = vec3((3. - 2. * st.x) / uvw0.x - 2., (3. + st.x) / uvw1.x, st.x / uvw2.x + 2.) * shadowMapSizeAndInverse.y;
+    vec3 v = vec3((3. - 2. * st.y) / uvw0.y - 2., (3. + st.y) / uvw1.y, st.y / uvw2.y + 2.) * shadowMapSizeAndInverse.y;
+
+    float shadow = 0.;
+    shadow += uvw0.x * uvw0.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[0]), shadowCoord.z));
+    shadow += uvw1.x * uvw0.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[0]), shadowCoord.z));
+    shadow += uvw2.x * uvw0.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[2], v[0]), shadowCoord.z));
+    shadow += uvw0.x * uvw1.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[1]), shadowCoord.z));
+    shadow += uvw1.x * uvw1.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[1]), shadowCoord.z));
+    shadow += uvw2.x * uvw1.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[2], v[1]), shadowCoord.z));
+    shadow += uvw0.x * uvw2.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[2]), shadowCoord.z));
+    shadow += uvw1.x * uvw2.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[2]), shadowCoord.z));
+    shadow += uvw2.x * uvw2.y * computeShadow(shadowSampler, vec3(base_uv.xy + vec2(u[2], v[2]), shadowCoord.z));
+    shadow = shadow / 144.;
+
+    return shadow;
+}
+
+float getShadow( sampler2DShadow shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
+    shadowCoord.xyz /= shadowCoord.w;
+
+    shadowCoord.z += shadowBias;
+
+    bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );
+    bool inFrustum = all( inFrustumVec );
+
+    bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );
+
+    bool frustumTest = all( frustumTestVec );
+
+    if ( frustumTest ) {
+        #ifdef USE_HARD_SHADOW
+            return computeShadow(shadowMap, shadowCoord.xyz);
+        #else
+            #ifdef USE_PCF3_SOFT_SHADOW
+                vec2 shadowMapSizeAndInverse = vec2(shadowMapSize.x, 1. / shadowMapSize.x);
+                return computeShadowWithPCF3(shadowMap, shadowCoord.xyz, shadowMapSizeAndInverse);
+            #else
+                #ifdef USE_PCF5_SOFT_SHADOW
+                    vec2 shadowMapSizeAndInverse = vec2(shadowMapSize.x, 1. / shadowMapSize.x);
+                    return computeShadowWithPCF5(shadowMap, shadowCoord.xyz, shadowMapSizeAndInverse);
+                #else
+                    float texelSize = shadowRadius / shadowMapSize.x;
+                    return computeShadowWithPoissonSampling(shadowMap, shadowCoord.xyz, texelSize);
+                #endif
+            #endif
+        #endif
+    }
+
+    return 1.0;
+
+}
+
+float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {
+
+    return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );
+
+}
+
+float getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize, float shadowCameraNear, float shadowCameraFar ) {
+
+    // depth = normalized distance from light to fragment position
+    float depth = ( length( V ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear ); // need to clamp?
+    depth += shadowBias;
+
+    #ifdef USE_HARD_SHADOW
+        return textureCubeCompare( shadowMap, normalize(V), depth);
+    #else
+        float texelSize = shadowRadius / shadowMapSize.x;
+
         vec3 poissonDisk[4];
-        poissonDisk[0] = vec3(-0.94201624, -0.39906216, 0);
-        poissonDisk[1] = vec3(0.94558609, -0.76890725, 0);
-        poissonDisk[2] = vec3(-0.094184101, -0.92938870, 0);
-        poissonDisk[3] = vec3(0.34495938, 0.29387760, 0);
+        poissonDisk[0] = vec3(-1.0, 1.0, -1.0);
+        poissonDisk[1] = vec3(1.0, -1.0, -1.0);
+        poissonDisk[2] = vec3(-1.0, -1.0, -1.0);
+        poissonDisk[3] = vec3(1.0, -1.0, 1.0);
 
-        return texture2D( shadowMap, shadowCoord + poissonDisk[0] * texelSize ) * 0.25 +
-            texture2D( shadowMap, shadowCoord + poissonDisk[1] * texelSize ) * 0.25 +
-            texture2D( shadowMap, shadowCoord + poissonDisk[2] * texelSize ) * 0.25 +
-            texture2D( shadowMap, shadowCoord + poissonDisk[3] * texelSize ) * 0.25;
-    }
+        return textureCubeCompare( shadowMap, normalize(V) + poissonDisk[0] * texelSize, depth ) * 0.25 +
+            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[1] * texelSize, depth ) * 0.25 +
+            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[2] * texelSize, depth ) * 0.25 +
+            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[3] * texelSize, depth ) * 0.25;
+    #endif
+}
 
-    // Shadow PCF kernel size 1 with a single tap (lowest quality)
-    float computeShadowWithPCF1(sampler2DShadow shadowSampler, vec3 shadowCoord) {
-        return texture2D(shadowSampler, shadowCoord);
-    }
-
-    // Shadow PCF kernel 3*3 in only 4 taps (medium quality)
-    // This uses a well distributed taps to allow a gaussian distribution covering a 3*3 kernel
-    // https://mynameismjp.wordpress.com/2013/09/10/shadow-maps/
-    float computeShadowWithPCF3(sampler2DShadow shadowSampler, vec3 shadowCoord, vec2 shadowMapSizeAndInverse) {
-        vec2 uv = shadowCoord.xy * shadowMapSizeAndInverse.x;	// uv in texel units
-        uv += 0.5;											// offset of half to be in the center of the texel
-        vec2 st = fract(uv);								// how far from the center
-        vec2 base_uv = floor(uv) - 0.5;						// texel coord
-        base_uv *= shadowMapSizeAndInverse.y;				// move back to uv coords
-
-        // Equation resolved to fit in a 3*3 distribution like 
-        // 1 2 1
-        // 2 4 2 
-        // 1 2 1
-        vec2 uvw0 = 3. - 2. * st;
-        vec2 uvw1 = 1. + 2. * st;
-        vec2 u = vec2((2. - st.x) / uvw0.x - 1., st.x / uvw1.x + 1.) * shadowMapSizeAndInverse.y;
-        vec2 v = vec2((2. - st.y) / uvw0.y - 1., st.y / uvw1.y + 1.) * shadowMapSizeAndInverse.y;
-
-        float shadow = 0.;
-        shadow += uvw0.x * uvw0.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[0]), shadowCoord.z));
-        shadow += uvw1.x * uvw0.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[0]), shadowCoord.z));
-        shadow += uvw0.x * uvw1.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[1]), shadowCoord.z));
-        shadow += uvw1.x * uvw1.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[1]), shadowCoord.z));
-        shadow = shadow / 16.;
-
-        return shadow;
-    }
-
-    // Shadow PCF kernel 5*5 in only 9 taps (high quality)
-    // This uses a well distributed taps to allow a gaussian distribution covering a 5*5 kernel
-    // https://mynameismjp.wordpress.com/2013/09/10/shadow-maps/
-    float computeShadowWithPCF5(sampler2DShadow shadowSampler, vec3 shadowCoord, vec2 shadowMapSizeAndInverse)
-    {
-
-        vec2 uv = shadowCoord.xy * shadowMapSizeAndInverse.x;	// uv in texel units
-        uv += 0.5;											// offset of half to be in the center of the texel
-        vec2 st = fract(uv);								// how far from the center
-        vec2 base_uv = floor(uv) - 0.5;						// texel coord
-        base_uv *= shadowMapSizeAndInverse.y;				// move back to uv coords
-
-        // Equation resolved to fit in a 5*5 distribution like 
-        // 1 2 4 2 1
-        vec2 uvw0 = 4. - 3. * st;
-        vec2 uvw1 = vec2(7.);
-        vec2 uvw2 = 1. + 3. * st;
-
-        vec3 u = vec3((3. - 2. * st.x) / uvw0.x - 2., (3. + st.x) / uvw1.x, st.x / uvw2.x + 2.) * shadowMapSizeAndInverse.y;
-        vec3 v = vec3((3. - 2. * st.y) / uvw0.y - 2., (3. + st.y) / uvw1.y, st.y / uvw2.y + 2.) * shadowMapSizeAndInverse.y;
-
-        float shadow = 0.;
-        shadow += uvw0.x * uvw0.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[0]), shadowCoord.z));
-        shadow += uvw1.x * uvw0.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[0]), shadowCoord.z));
-        shadow += uvw2.x * uvw0.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[2], v[0]), shadowCoord.z));
-        shadow += uvw0.x * uvw1.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[1]), shadowCoord.z));
-        shadow += uvw1.x * uvw1.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[1]), shadowCoord.z));
-        shadow += uvw2.x * uvw1.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[2], v[1]), shadowCoord.z));
-        shadow += uvw0.x * uvw2.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[0], v[2]), shadowCoord.z));
-        shadow += uvw1.x * uvw2.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[1], v[2]), shadowCoord.z));
-        shadow += uvw2.x * uvw2.y * texture2D(shadowSampler, vec3(base_uv.xy + vec2(u[2], v[2]), shadowCoord.z));
-        shadow = shadow / 144.;
-
-        return shadow;
-    }
+#ifdef USE_PCSS_SOFT_SHADOW
 
     const vec3 PoissonSamplers32[64] = vec3[64](
         vec3(0.06407013, 0.05409927, 0.),
@@ -239,7 +310,7 @@
         float sumBlockerDepth = 0.0;
         float numBlocker = 0.0;
         for (int i = 0; i < searchTapCount; i ++) {
-            blockerDepth = texture(depthSampler, shadowCoord.xy + (lightSizeUV * shadowMapSizeInverse * PoissonSamplers32[i].xy)).r;
+            blockerDepth = unpackRGBAToDepth( texture( depthSampler, shadowCoord.xy + (lightSizeUV * shadowMapSizeInverse * PoissonSamplers32[i].xy) ) );
             if (blockerDepth < depthMetric) {
                 sumBlockerDepth += blockerDepth;
                 numBlocker++;
@@ -267,7 +338,7 @@
             vec3 offset = poissonSamplers[i];
             // Rotated offset.
             offset = vec3(offset.x * rotationVector.x - offset.y * rotationVector.y, offset.y * rotationVector.x + offset.x * rotationVector.y, 0.);
-            shadow += texture2D(shadowSampler, shadowCoord + offset * filterRadius);
+            shadow += texture(shadowSampler, shadowCoord + offset * filterRadius);
         }
         shadow /= float(pcfTapCount);
 
@@ -277,118 +348,33 @@
         return shadow;
     }
 
-#else
+    float getShadowWithPCSS( sampler2D depthSampler, sampler2DShadow shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
 
-    float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {
+        shadowCoord.xyz /= shadowCoord.w;
 
-        return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );
+        shadowCoord.z += shadowBias;
 
-    }
+        bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );
+        bool inFrustum = all( inFrustumVec );
 
-    float computeShadow(sampler2D shadowMap, vec3 shadowCoord) {
-        return texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );
-    }
+        bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );
 
-    float computeShadowWithPoissonSampling( sampler2D shadowMap, vec3 shadowCoord, float texelSize ) {
-        vec2 poissonDisk[4];
-        poissonDisk[0] = vec2(-0.94201624, -0.39906216);
-        poissonDisk[1] = vec2(0.94558609, -0.76890725);
-        poissonDisk[2] = vec2(-0.094184101, -0.92938870);
-        poissonDisk[3] = vec2(0.34495938, 0.29387760);
+        bool frustumTest = all( frustumTestVec );
 
-        return texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[0] * texelSize, shadowCoord.z ) * 0.25 +
-            texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[1] * texelSize, shadowCoord.z ) * 0.25 +
-            texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[2] * texelSize, shadowCoord.z ) * 0.25 +
-            texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[3] * texelSize, shadowCoord.z ) * 0.25;
+        if ( frustumTest ) {
+            #ifdef USE_PCSS16_SOFT_SHADOW
+                return computeShadowWithPCSS(depthSampler, shadowMap, shadowCoord.xyz, 1. / shadowMapSize.x, 0.1 * shadowMapSize.x, 16, 16, PoissonSamplers32);
+            #else
+                #ifdef USE_PCSS32_SOFT_SHADOW
+                    return computeShadowWithPCSS(depthSampler, shadowMap, shadowCoord.xyz, 1. / shadowMapSize.x, 0.1 * shadowMapSize.x, 16, 32, PoissonSamplers32);
+                #else
+                    return computeShadowWithPCSS(depthSampler, shadowMap, shadowCoord.xyz, 1. / shadowMapSize.x, 0.1 * shadowMapSize.x, 32, 64, PoissonSamplers64);
+                #endif
+            #endif
+        }
+
+        return 1.0;
+
     }
 
 #endif
-
-float textureCubeCompare( samplerCube depths, vec3 uv, float compare ) {
-
-    return step( compare, unpackRGBAToDepth( textureCube( depths, uv ) ) );
-
-}
-
-float getShadow( sampler2DShadow shadowMap, vec4 shadowCoord, float shadowBias, float shadowRadius, vec2 shadowMapSize ) {
-    shadowCoord.xyz /= shadowCoord.w;
-
-    shadowCoord.z += shadowBias;
-
-    bvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );
-    bool inFrustum = all( inFrustumVec );
-
-    bvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );
-
-    bool frustumTest = all( frustumTestVec );
-
-    if ( frustumTest ) {
-        #ifdef WEBGL2
-            #ifdef USE_HARD_SHADOW
-                return computeShadow(shadowMap, shadowCoord.xyz);
-            #else
-                #ifdef USE_PCF3_SOFT_SHADOW
-                    vec2 shadowMapSizeAndInverse = vec2(shadowMapSize.x, 1. / shadowMapSize.x);
-                    return computeShadowWithPCF3(shadowMap, shadowCoord.xyz, shadowMapSizeAndInverse);
-                #else
-                    #ifdef USE_PCF5_SOFT_SHADOW
-                        vec2 shadowMapSizeAndInverse = vec2(shadowMapSize.x, 1. / shadowMapSize.x);
-                        return computeShadowWithPCF5(shadowMap, shadowCoord.xyz, shadowMapSizeAndInverse);
-                    #else
-                        float texelSize = shadowRadius / shadowMapSize.x; // TODO x, y not equal
-                        return computeShadowWithPoissonSampling(shadowMap, shadowCoord.xyz, texelSize);
-                        // #ifdef USE_PCSS16_SOFT_SHADOW
-                        //     return computeShadowWithPCSS(shadowMap, shadowMap, shadowCoord.xyz, 1. / shadowMapSize.x, 0.1 * shadowMapSize.x, 16, 16, PoissonSamplers32);
-                        // #else
-                        //     #ifdef USE_PCSS32_SOFT_SHADOW
-                        //         return computeShadowWithPCSS(shadowMap, shadowMap, shadowCoord.xyz, 1. / shadowMapSize.x, 0.1 * shadowMapSize.x, 16, 32, PoissonSamplers32);
-                        //     #else
-                        //         #ifdef USE_PCSS64_SOFT_SHADOW
-                        //             return computeShadowWithPCSS(shadowMap, shadowMap, shadowCoord.xyz, 1. / shadowMapSize.x, 0.1 * shadowMapSize.x, 32, 64, PoissonSamplers32);
-                        //         #else
-                        //             float texelSize = shadowRadius / shadowMapSize.x; // TODO x, y not equal
-                        //             return computeShadowWithPoissonSampling(shadowMap, shadowCoord.xyz, texelSize);
-                        //         #endif
-                        //     #endif
-                        // #endif
-                    #endif
-                #endif
-            #endif
-        #else
-            #ifdef USE_HARD_SHADOW
-                return computeShadow(shadowMap, shadowCoord.xyz);
-            #else
-                float texelSize = shadowRadius / shadowMapSize.x; // TODO x, y not equal
-                return computeShadowWithPoissonSampling(shadowMap, shadowCoord.xyz, texelSize);
-            #endif
-        #endif
-    }
-
-    return 1.0;
-
-}
-
-float getPointShadow( samplerCube shadowMap, vec3 V, float shadowBias, float shadowRadius, vec2 shadowMapSize, float shadowCameraNear, float shadowCameraFar ) {
-
-    // depth = normalized distance from light to fragment position
-    float depth = ( length( V ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear ); // need to clamp?
-    depth += shadowBias;
-
-    #ifdef USE_HARD_SHADOW
-        return textureCubeCompare( shadowMap, normalize(V), depth);
-    #else
-        // TODO x, y equal force
-        float texelSize = shadowRadius / shadowMapSize.x;
-
-        vec3 poissonDisk[4];
-        poissonDisk[0] = vec3(-1.0, 1.0, -1.0);
-        poissonDisk[1] = vec3(1.0, -1.0, -1.0);
-        poissonDisk[2] = vec3(-1.0, -1.0, -1.0);
-        poissonDisk[3] = vec3(1.0, -1.0, 1.0);
-
-        return textureCubeCompare( shadowMap, normalize(V) + poissonDisk[0] * texelSize, depth ) * 0.25 +
-            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[1] * texelSize, depth ) * 0.25 +
-            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[2] * texelSize, depth ) * 0.25 +
-            textureCubeCompare( shadowMap, normalize(V) + poissonDisk[3] * texelSize, depth ) * 0.25;
-    #endif
-}

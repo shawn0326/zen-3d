@@ -5,6 +5,12 @@
         uniform sampler2DShadow directionalShadowMap[ NUM_DIR_LIGHTS ];
         varying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHTS ];
 
+        #ifdef USE_PCSS_SOFT_SHADOW
+
+            uniform sampler2D directionalDepthMap[ NUM_DIR_LIGHTS ];
+
+        #endif
+
     #endif
 
     #if NUM_POINT_LIGHTS > 0
@@ -17,6 +23,12 @@
 
         uniform sampler2DShadow spotShadowMap[ NUM_SPOT_LIGHTS ];
         varying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHTS ];
+
+        #ifdef USE_PCSS_SOFT_SHADOW
+
+            uniform sampler2D spotDepthMap[ NUM_SPOT_LIGHTS ];
+
+        #endif
 
     #endif
 
