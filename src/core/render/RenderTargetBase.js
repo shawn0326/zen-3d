@@ -47,6 +47,14 @@ function RenderTargetBase(width, height) {
      */
     this.stencilBuffer = true;
 
+    /**
+     * If bigger than zero, this render target will attach renderBuffer for multipleSampling. (Only usable in WebGL 2.0)
+     * Texture witch attached to ATTACHMENT0 will be detached.
+     * @type {number}
+     * @default 0
+     */
+    this.multipleSampling = 0;
+
 }
 
 RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{

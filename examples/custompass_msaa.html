@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - custom pass msaa</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./js/shaders/CopyShader.js"></script>
+	<script src="./js/objects/GridHelper.js"></script>
+</head>
+<body>
+
+    <div id="info">
+		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass msaa
+		<br/> only for WebGL 2.0
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var scene = new zen3d.Scene();
+
+			var grid = new zen3d.GridHelper(50, 20, 0xffffff, 0xffffff);
+			scene.add(grid);
+
+			var camera = new zen3d.Camera();
+	        camera.position.set(10, 10, 30);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+			scene.add(camera);
+
+			var controller = new zen3d.OrbitControls(camera, canvas);
+			
+			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
+
+			// custom pass
+			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+			var tempRenderTarget1 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget2.multipleSampling = 4;
+        
+			var contextParams = {
+				antialias: false, // antialias
+				alpha: false, // effect performance, default false
+				// premultipliedAlpha: false, // effect performance, default false
+				stencil: true
+			};
+
+			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+			var glCore = new zen3d.WebGLCore(gl);
+
+			var params = {"msaa": true};
+			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + glCore.capabilities.version }, "version" );
+			gui.add(params, "msaa");
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+
+				controller.update();
+
+				// do render pass
+				scene.updateMatrix();
+				scene.updateLights();
+
+				if (params.msaa) {
+					glCore.renderTarget.setRenderTarget(tempRenderTarget2);
+
+					glCore.state.clearColor(0, 0, 0, 0);
+					glCore.clear(true, true, true);
+
+					glCore.render(scene, camera);
+
+					glCore.renderTarget.setRenderTarget(tempRenderTarget1);
+					glCore.renderTarget.blitRenderTarget(tempRenderTarget2, tempRenderTarget1);
+				}
+
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+				glCore.state.clearColor(0, 0, 0, 0);
+            	glCore.clear(true, true, true);
+
+				if (params.msaa) {
+					copyPass.uniforms.tDiffuse = tempRenderTarget1.texture;
+					copyPass.render(glCore);
+				} else {
+					glCore.render(scene, camera);
+				}
+				
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				backRenderTarget.resize(width, height);
+				tempRenderTarget1.resize(width, height);
+				tempRenderTarget2.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

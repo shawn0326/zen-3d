@@ -61,8 +61,20 @@ Object.assign(WebGLRenderTarget.prototype, {
                     capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
                 }
             }
+
+            if ( capabilities.version >= 2 ) {
+                if (renderTarget.multipleSampling > 0) {
+                    var renderbuffer = gl.createRenderbuffer();
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+                    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, renderTarget.multipleSampling, gl.RGBA8, renderTarget.width, renderTarget.height);
+                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
+
+                    renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
+                }
+            }
     
-            if (renderTarget.depthBuffer) {
+            // use __multipleSamplingbuffer cause unknow error.
+            if (renderTarget.depthBuffer &&!renderTargetProperties.__multipleSamplingbuffer) {
     
                 if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
                     renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
@@ -197,6 +209,23 @@ Object.assign(WebGLRenderTarget.prototype, {
         }
         renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
 
+    },
+
+    // Blit framebuffers.
+    blitRenderTarget: function(read, draw) {
+        var gl = this.gl;
+        var properties = this.properties;
+
+        var readBuffer = properties.get(read).__webglFramebuffer;
+        var drawBuffer = properties.get(draw).__webglFramebuffer;
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, readBuffer);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, drawBuffer);
+        gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+        gl.blitFramebuffer(
+            0, 0, read.width, read.height,
+            0, 0, draw.width, draw.height,
+            gl.COLOR_BUFFER_BIT, gl.NEAREST
+        );
     },
 
     updateRenderTargetMipmap: function(renderTarget) {
