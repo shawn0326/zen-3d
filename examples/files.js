@@ -95,7 +95,8 @@ var files = {
 		"custompass_gbuffer",
 		"custompass_ssao",
 		"custompass_taa",
-		"custompass_bloom"
+		"custompass_bloom",
+		"custompass_msaa"
 	],
 	"deferred": [
 		"deferred_renderer",

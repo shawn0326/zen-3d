@@ -29,8 +29,8 @@
 <body>
 
     <div id="info">
-		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass msaa
-		<br/> only for WebGL 2.0
+		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - MSAA by Multisampled Renderbuffers
+		<br/> Available only for WebGL 2.0
     </div>
 
 	<script>
@@ -44,10 +44,29 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
+			var contextParams = {
+				antialias: false, // antialias
+				alpha: false, // effect performance, default false
+				// premultipliedAlpha: false, // effect performance, default false
+				stencil: true
+			};
+
+			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+			var glCore = new zen3d.WebGLCore(gl);
+
 	        var scene = new zen3d.Scene();
 
 			var grid = new zen3d.GridHelper(50, 20, 0xffffff, 0xffffff);
 			scene.add(grid);
+
+			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			texture.anisotropy = glCore.capabilities.maxAnisotropy;
+
+			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
+			var material = new zen3d.BasicMaterial();
+			material.diffuseMap = texture;
+			var cube = new zen3d.Mesh(cube_geometry, material);
+			scene.add(cube);
 
 			var camera = new zen3d.Camera();
 	        camera.position.set(10, 10, 30);
@@ -59,30 +78,31 @@
 			
 			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
 
-			// custom pass
 			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
-			var tempRenderTarget1 = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			tempRenderTarget2.multipleSampling = 4;
-        
-			var contextParams = {
-				antialias: false, // antialias
-				alpha: false, // effect performance, default false
-				// premultipliedAlpha: false, // effect performance, default false
-				stencil: true
-			};
 
-			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
-			var glCore = new zen3d.WebGLCore(gl);
+			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 
-			var params = {"msaa": true};
+			var renderTargets = {};
+			function getMultipleSamplingRenderTarget(value) {
+				if (!renderTargets[value]) {
+					var renderTarget = new zen3d.RenderTarget2D(width, height);
+					renderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+					renderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+					renderTarget.multipleSampling = value;
+
+					renderTargets[value] = renderTarget;
+				}
+
+				return renderTargets[value];
+			}
+
+			var params = {"msaa": true, "samplers": 5};
 			var gui = new dat.GUI();
 			gui.add( { version: "WebGL " + glCore.capabilities.version }, "version" );
 			gui.add(params, "msaa");
+			gui.add(params, "samplers", 1, 8, 1);
 
 	        function loop(count) {
 
@@ -95,15 +115,20 @@
 				scene.updateLights();
 
 				if (params.msaa) {
-					glCore.renderTarget.setRenderTarget(tempRenderTarget2);
+					glCore.renderTarget.setRenderTarget(getMultipleSamplingRenderTarget(params.samplers));
 
 					glCore.state.clearColor(0, 0, 0, 0);
 					glCore.clear(true, true, true);
 
 					glCore.render(scene, camera);
 
-					glCore.renderTarget.setRenderTarget(tempRenderTarget1);
-					glCore.renderTarget.blitRenderTarget(tempRenderTarget2, tempRenderTarget1);
+					glCore.renderTarget.setRenderTarget(tempRenderTarget);
+
+					if (glCore.capabilities.version < 2) {
+						console.warn("blitFramebuffer not support by WebGL" + glCore.capabilities.version);
+					} else {
+						glCore.renderTarget.blitRenderTarget(getMultipleSamplingRenderTarget(params.samplers), tempRenderTarget);
+					}
 				}
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
@@ -112,7 +137,7 @@
             	glCore.clear(true, true, true);
 
 				if (params.msaa) {
-					copyPass.uniforms.tDiffuse = tempRenderTarget1.texture;
+					copyPass.uniforms.tDiffuse = tempRenderTarget.texture;
 					copyPass.render(glCore);
 				} else {
 					glCore.render(scene, camera);
@@ -129,8 +154,12 @@
 				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
 				backRenderTarget.resize(width, height);
-				tempRenderTarget1.resize(width, height);
-				tempRenderTarget2.resize(width, height);
+				tempRenderTarget.resize(width, height);
+
+				for (var key in renderTargets) {
+					var renderTarget = renderTargets[key];
+					renderTarget && renderTarget.resize(width, height);
+				}
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();

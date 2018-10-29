@@ -10867,16 +10867,14 @@
 	                if (renderTarget.multipleSampling > 0) {
 	                    var renderbuffer = gl.createRenderbuffer();
 	                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-	                    console.log(renderTarget.multipleSampling);
-	                    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, renderTarget.multipleSampling, gl.RGBA8, renderTarget.width, renderTarget.height);
+	                    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.RGBA8, renderTarget.width, renderTarget.height);
 	                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
 
 	                    renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
 	                }
 	            }
 	    
-	            // use __multipleSamplingbuffer cause unknow error.
-	            if (renderTarget.depthBuffer &&!renderTargetProperties.__multipleSamplingbuffer) {
+	            if (renderTarget.depthBuffer) {
 	    
 	                if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
 	                    renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
@@ -10886,10 +10884,20 @@
 	                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
 	    
 	                    if (renderTarget.stencilBuffer) {
-	                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+	                        if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
+	                            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
+	                        } else {
+	                            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+	                        }
+	                        
 	                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 	                    } else {
-	                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+	                        if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
+	                            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+	                        } else {
+	                            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+	                        }
+	                        
 	                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 	                    }
 	    
@@ -10908,6 +10916,8 @@
 	                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
 	                } else if(status === gl.FRAMEBUFFER_UNSUPPORTED) {
 	                    console.warn("framebuffer not complete: FRAMEBUFFER_UNSUPPORTED");
+	                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+	                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
 	                } else {
 	                    console.warn("framebuffer not complete.");
 	                }
@@ -10962,6 +10972,17 @@
 	                    capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
 	                }
 	            }
+
+	            if ( capabilities.version >= 2 ) {
+	                if (renderTarget.multipleSampling > 0) {
+	                    var renderbuffer = gl.createRenderbuffer();
+	                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+	                    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.RGBA8, renderTarget.width, renderTarget.height);
+	                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
+
+	                    renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
+	                }
+	            }
 	    
 	            if (renderTarget.depthBuffer) {
 	    
@@ -10973,10 +10994,20 @@
 	                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
 	    
 	                    if (renderTarget.stencilBuffer) {
-	                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+	                        if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
+	                            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
+	                        } else {
+	                            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
+	                        }
+	                        
 	                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 	                    } else {
-	                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+	                        if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
+	                            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+	                        } else {
+	                            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+	                        }
+	                        
 	                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 	                    }
 	    
@@ -10995,6 +11026,8 @@
 	                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
 	                } else if(status === gl.FRAMEBUFFER_UNSUPPORTED) {
 	                    console.warn("framebuffer not complete: FRAMEBUFFER_UNSUPPORTED");
+	                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+	                    console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
 	                } else {
 	                    console.warn("framebuffer not complete.");
 	                }
@@ -11017,6 +11050,12 @@
 	    blitRenderTarget: function(read, draw) {
 	        var gl = this.gl;
 	        var properties = this.properties;
+	        var capabilities = this.capabilities;
+
+	        if (capabilities.version < 2) {
+	            console.warn("blitFramebuffer not support by WebGL" + capabilities.version);
+	            return;
+	        }
 
 	        var readBuffer = properties.get(read).__webglFramebuffer;
 	        var drawBuffer = properties.get(draw).__webglFramebuffer;
@@ -12196,6 +12235,7 @@
 	    /**
 	     * If bigger than zero, this render target will attach renderBuffer for multipleSampling. (Only usable in WebGL 2.0)
 	     * Texture witch attached to ATTACHMENT0 will be detached.
+	     * Max support 8.
 	     * @type {number}
 	     * @default 0
 	     */

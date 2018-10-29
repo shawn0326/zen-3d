@@ -50,6 +50,7 @@ function RenderTargetBase(width, height) {
     /**
      * If bigger than zero, this render target will attach renderBuffer for multipleSampling. (Only usable in WebGL 2.0)
      * Texture witch attached to ATTACHMENT0 will be detached.
+     * Max support 8.
      * @type {number}
      * @default 0
      */
