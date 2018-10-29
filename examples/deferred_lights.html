@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/objects/PointLightHelper.js"></script>
@@ -151,6 +152,19 @@
 			]);
 			renderer.ambientCubemapIntensity = 1;
 
+			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			
+			var fxaaPass = new zen3d.ShaderPostPass(zen3d.FXAAShader);
+			fxaaPass.uniforms["tDiffuse"] = tempRenderTarget.texture;
+			fxaaPass.uniforms["resolution"] = [1 / width, 1 / height];
+
+			var params = {fxaa: true};
+			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
+			gui.add(params, "fxaa");
+
 	        function loop(count) {
 
 				requestAnimationFrame(loop);
@@ -166,7 +180,19 @@
 					pointLight.position.z = Math.sin(pointLight._angle) * pointLight._radius;
 				}
 
-				renderer.render(scene, camera);
+				if (params.fxaa) {
+
+					renderer.render(scene, camera, tempRenderTarget);
+
+					renderer.glCore.renderTarget.setRenderTarget(renderer.backRenderTarget);
+
+					fxaaPass.render(renderer.glCore);
+
+				} else {
+
+					renderer.render(scene, camera);
+
+				}
 
 	        }
 
@@ -179,6 +205,8 @@
 				camera.setPerspective(45 / 180 * Math.PI, width / height, 5, 300);
 
 				renderer.resize(width, height);
+
+				fxaaPass.uniforms["resolution"] = [1 / width, 1 / height];
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();
