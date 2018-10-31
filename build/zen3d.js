@@ -2385,7 +2385,7 @@
 	    /**
 	     * 
 	     */
-	    subtract: function(a, target) {
+	    sub: function(a, target) {
 	        if (!target) {
 	            target = new Vector2();
 	        }
@@ -4009,10 +4009,13 @@
 	        this.r = ratio * (c2.r - c1.r) + c1.r;
 	        this.g = ratio * (c2.g - c1.g) + c1.g;
 	        this.b = ratio * (c2.b - c1.b) + c1.b;
+	    },
 
-	        this.r = this.r;
-	        this.g = this.g;
-	        this.b = this.b;
+	    /**
+	     * 
+	     */
+	    lerp: function(c, ratio) {
+	        this.lerpColors(this, c, ratio);
 	    },
 
 	    /**

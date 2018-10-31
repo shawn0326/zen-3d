@@ -80,7 +80,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     /**
      * 
      */
-    subtract: function(a, target) {
+    sub: function(a, target) {
         if (!target) {
             target = new Vector2();
         }
