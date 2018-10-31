@@ -61,17 +61,12 @@
 			plane.shadowType = renderer.glCore.capabilities.version >= 2 ? zen3d.SHADOW_TYPE.PCSS32_SOFT : zen3d.SHADOW_TYPE.POISSON_SOFT;
 	        scene.add(plane);
 
-	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xffffff);
+	        var ambientLight = new zen3d.AmbientLight(0xffffff);
 	        scene.add(ambientLight);
 
-	        var spotLight = new zen3d.SpotLight();
+	        var spotLight = new zen3d.SpotLight(0xffffff, 1, 400, Math.PI / 6, 0.2);
 	        spotLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        spotLight.color.setHex(0xffffff);
-			spotLight.angle = Math.PI / 6;
 	        spotLight.position.set(-40, 40, 0);
-			spotLight.penumbra = 0.2;
-			spotLight.distance = 400;
 			spotLight.shadow.bias = -0.003;
 			scene.add(spotLight);
 			

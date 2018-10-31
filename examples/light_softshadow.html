@@ -83,17 +83,12 @@
 			lightSphere.position.set(50, 50, 50);
 			scene.add(lightSphere);
 
-			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x111111);
+			var ambientLight = new zen3d.AmbientLight(0x111111);
 	        scene.add(ambientLight);
 
-			var spotLight = new zen3d.SpotLight();
-	        spotLight.color.setHex(0xffffff);
-			spotLight.angle = Math.PI / 5;
+			var spotLight = new zen3d.SpotLight(0xffffff, 1, 400, Math.PI / 5, 0.2);
 			spotLight.position.set(50, 50, 50);
 			spotLight.lookAt(new zen3d.Vector3(0, 10, 0), new zen3d.Vector3(0, 1, 0));
-			spotLight.penumbra = 0.2;
-			spotLight.distance = 400;
 			spotLight.castShadow = true;
 			spotLight.shadow.bias = -0.0003;
 			spotLight.shadow.cameraNear = 20; // because PCSS soft shadow need a bigger value range

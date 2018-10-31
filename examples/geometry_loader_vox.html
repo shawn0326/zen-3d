@@ -68,13 +68,11 @@
 			plane.receiveShadow = true;
 	        scene.add(plane);
 
-			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xaaaaaa);
+			var ambientLight = new zen3d.AmbientLight(0xaaaaaa);
 	        scene.add(ambientLight);
 
-			var directionalLight = new zen3d.DirectionalLight();
+			var directionalLight = new zen3d.DirectionalLight(0xffffff);
 	        directionalLight.euler.set(Math.PI / 4, Math.PI / 4, 0);
-	        directionalLight.color.setHex(0xffffff);
 	        directionalLight.position.set(-40, 40, 0);
 			directionalLight.shadow.windowSize = 100;
 			directionalLight.castShadow = true;

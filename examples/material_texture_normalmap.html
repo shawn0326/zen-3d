@@ -53,15 +53,10 @@
 			var couch = new zen3d.Mesh(couch_geom, couch_material);
 			scene.add(couch);
 
-			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x9c9c9c);
+			var ambientLight = new zen3d.AmbientLight(0x9c9c9c);
 	        scene.add(ambientLight);
 
-			var pointLight = new zen3d.PointLight();
-			pointLight.intensity = 1;
-			pointLight.color.setHex(0xffffff);
-			pointLight.decay = 1;
-			pointLight.distance = 300;
+			var pointLight = new zen3d.PointLight(0xffffff, 1, 300, 1);
 			pointLight.position.set(0, 5, 0);
 			scene.add(pointLight);
 

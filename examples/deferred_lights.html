@@ -94,15 +94,11 @@
 	        plane.position.y = -10;
 	        scene.add(plane);
 
-			// var ambientLight = new zen3d.AmbientLight();
-			// ambientLight.color.setHex(0xffffff);
-			// ambientLight.intensity = 0.5;
+			// var ambientLight = new zen3d.AmbientLight(0xffffff, 0.5);
 			// scene.add(ambientLight);
 
-			var directionalLight = new zen3d.DirectionalLight();
-	        directionalLight.color.setHex(0xffffff);
+			var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.6);
 			directionalLight.position.set(-30, 30, 0);
-			directionalLight.intensity = 0.6;
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.castShadow = true;
 			directionalLight.shadow.bias = -0.03;
@@ -112,12 +108,9 @@
 			var lights = [];
 			var geometry = new zen3d.SphereGeometry(0.4, 10, 10);
 			for(var i = 0; i < 50; i++) {
-				var pointLight = new zen3d.PointLight();
+				var pointLight = new zen3d.PointLight(undefined, 1, 25, 1);
 				pointLight.color.setHSL(Math.random(), Math.random(), 0.5);
 				pointLight.position.y = Math.random() * 10;
-				pointLight.decay = 1;
-				pointLight.distance = 25;
-				pointLight.intensity = 1;
 				scene.add(pointLight);
 				lights.push(pointLight);
 

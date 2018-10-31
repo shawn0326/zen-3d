@@ -90,15 +90,12 @@
 			var cube = new zen3d.Mesh(cube_geometry, [phong1, phong2, phong3, phong4, phong5, phong6]);
 			scene.add(cube);
 
-	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x3c3c3c);
+	        var ambientLight = new zen3d.AmbientLight(0x3c3c3c);
 	        scene.add(ambientLight);
 
-	        var directLight = new zen3d.DirectionalLight();
+	        var directLight = new zen3d.DirectionalLight(0xffffff, 1.5);
 	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        directLight.color.setHex(0xffffff);
 	        directLight.position.set(-40, 40, 0);
-			directLight.intensity = 1.5;
 	        scene.add(directLight);
 
 			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);

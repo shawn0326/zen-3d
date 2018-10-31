@@ -13797,8 +13797,10 @@
 	 * @abstract
 	 * @memberof zen3d
 	 * @extends zen3d.Object3D
+	 * @param {number} [color=0xffffff]
+	 * @param {number} [intensity=1]
 	 */
-	function Light() {
+	function Light( color, intensity ) {
 
 	    Object3D.call(this);
 
@@ -13811,14 +13813,14 @@
 	     * @type {zen3d.Color3}
 	     * @default zen3d.Color3(0xffffff) 
 	     */
-	    this.color = new Color3(0xffffff);
+	    this.color = new Color3( color !== undefined ? color : 0xffffff );
 
 	    /**
 	     * The light's intensity, or strength.
 	     * @type {number}
 	     * @default 1
 	     */
-	    this.intensity = 1;
+	    this.intensity = ( intensity !== undefined ) ? intensity : 1;
 
 	}
 
@@ -13850,10 +13852,12 @@
 	 * @constructor
 	 * @memberof zen3d
 	 * @extends zen3d.Light
+	 * @param {number} [color=0xffffff]
+	 * @param {number} [intensity=1]
 	 */
-	function AmbientLight() {
+	function AmbientLight( color, intensity ) {
 
-	    Light.call(this);
+	    Light.call(this, color, intensity);
 
 	    this.lightType = LIGHT_TYPE.AMBIENT;
 	    
@@ -14058,10 +14062,12 @@
 	 * @constructor
 	 * @memberof zen3d
 	 * @extends zen3d.Light
+	 * @param {number} [color=0xffffff]
+	 * @param {number} [intensity=1]
 	 */
-	function DirectionalLight() {
+	function DirectionalLight( color, intensity ) {
 
-	    Light.call(this);
+	    Light.call(this, color, intensity);
 
 	    this.lightType = LIGHT_TYPE.DIRECT;
 
@@ -14177,10 +14183,14 @@
 	 * @constructor
 	 * @memberof zen3d
 	 * @extends zen3d.Light
+	 * @param {number} [color=0xffffff]
+	 * @param {number} [intensity=1]
+	 * @param {number} [distance=200]
+	 * @param {number} [decay=1]
 	 */
-	function PointLight() {
+	function PointLight( color, intensity, distance, decay ) {
 
-	    Light.call(this);
+	    Light.call(this, color, intensity);
 
 	    this.lightType = LIGHT_TYPE.POINT;
 
@@ -14189,14 +14199,14 @@
 	     * @type {number}
 	     * @default 1
 	     */
-	    this.decay = 1;
+	    this.decay = ( decay !== undefined ) ? decay : 1;
 
 	    /**
 	     * The distance from the light where the intensity is 0.
 	     * @type {number}
 	     * @default 200
 	     */
-	    this.distance = 200;
+	    this.distance = ( distance !== undefined ) ? distance : 200;
 
 	    /**
 	     * A {@link zen3d.PointLightShadow} used to calculate shadows for this light. 
@@ -14300,10 +14310,16 @@
 	 * @constructor
 	 * @memberof zen3d
 	 * @extends zen3d.Light
+	 * @param {number} [color=0xffffff]
+	 * @param {number} [intensity=1]
+	 * @param {number} [distance=200]
+	 * @param {number} [angle=Math.PI/6]
+	 * @param {number} [penumbra=0]
+	 * @param {number} [decay=1]
 	 */
-	function SpotLight() {
+	function SpotLight( color, intensity, distance, angle, penumbra, decay ) {
 
-	    Light.call(this);
+	    Light.call(this, color, intensity);
 
 	    this.lightType = LIGHT_TYPE.SPOT;
 
@@ -14312,14 +14328,14 @@
 	     * @type {number}
 	     * @default 1
 	     */
-	    this.decay = 1;
+	    this.decay = ( decay !== undefined ) ? decay : 1;
 
 	    /**
 	     * The distance from the light where the intensity is 0.
 	     * @type {number}
 	     * @default 200
 	     */
-	    this.distance = 200;
+	    this.distance = ( distance !== undefined ) ? distance : 200;
 
 	    /**
 	     * Percent of the spotlight cone that is attenuated due to penumbra. 
@@ -14327,7 +14343,7 @@
 	     * @type {number}
 	     * @default 0
 	     */
-	    this.penumbra = 0;
+	    this.penumbra = ( penumbra !== undefined ) ? penumbra : 0;
 
 	    /**
 	     * Maximum extent of the spotlight, in radians, from its direction. 
@@ -14335,7 +14351,7 @@
 	     * @type {number}
 	     * @default Math.PI/6
 	     */
-	    this.angle = Math.PI / 6;
+	    this.angle = ( angle !== undefined ) ? angle : Math.PI / 6;
 
 	    /**
 	     * A {@link zen3d.SpotLightShadow} used to calculate shadows for this light. 

@@ -9,10 +9,14 @@ import {PointLightShadow} from './PointLightShadow.js';
  * @constructor
  * @memberof zen3d
  * @extends zen3d.Light
+ * @param {number} [color=0xffffff]
+ * @param {number} [intensity=1]
+ * @param {number} [distance=200]
+ * @param {number} [decay=1]
  */
-function PointLight() {
+function PointLight( color, intensity, distance, decay ) {
 
-    Light.call(this);
+    Light.call(this, color, intensity);
 
     this.lightType = LIGHT_TYPE.POINT;
 
@@ -21,14 +25,14 @@ function PointLight() {
      * @type {number}
      * @default 1
      */
-    this.decay = 1;
+    this.decay = ( decay !== undefined ) ? decay : 1;
 
     /**
      * The distance from the light where the intensity is 0.
      * @type {number}
      * @default 200
      */
-    this.distance = 200;
+    this.distance = ( distance !== undefined ) ? distance : 200;
 
     /**
      * A {@link zen3d.PointLightShadow} used to calculate shadows for this light. 

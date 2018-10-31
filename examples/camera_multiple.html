@@ -58,12 +58,10 @@
 	        plane.position.y = -10;
 	        scene.add(plane);
 
-	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xbbcccc);
+	        var ambientLight = new zen3d.AmbientLight(0xbbcccc);
 	        scene.add(ambientLight);
 
-	        var directionalLight = new zen3d.DirectionalLight();
-	        directionalLight.color.setHex(0xffffff);
+	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
 			directionalLight.position.set(-40, 40, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.shadow.windowSize = 100;
@@ -100,8 +98,7 @@
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			sceneMini.add(sphere);
 
-			var directionalLight = new zen3d.DirectionalLight();
-	        directionalLight.color.setHex(0xffffff);
+			var directionalLight = new zen3d.DirectionalLight(0xffffff);
 			directionalLight.position.set(-40, 40, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.shadow.windowSize = 100;

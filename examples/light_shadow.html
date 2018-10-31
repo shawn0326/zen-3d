@@ -70,9 +70,7 @@
 	        plane.position.y = -10;
 	        scene.add(plane);
 
-			var pointLight = new zen3d.PointLight();
-	        pointLight.color.setHex(0x00ff00);
-			pointLight.distance = 100;
+			var pointLight = new zen3d.PointLight(0x00ff00, 1, 100);
 	        pointLight.position.set(20, 10, -20);
 			pointLight.shadow.bias = -0.003;
 			pointLight.shadow.cameraFar = 200;
@@ -81,9 +79,7 @@
 			var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
 			pointLight.add(pointLightHelper);
 
-			var pointLight2 = new zen3d.PointLight();
-	        pointLight2.color.setHex(0xff0000);
-			pointLight2.distance = 100;
+			var pointLight2 = new zen3d.PointLight(0xff0000, 1, 100);
 	        pointLight2.position.set(20, 10, 20);
 			pointLight2.shadow.bias = -0.003;
 			pointLight2.shadow.cameraFar = 200;
@@ -92,9 +88,7 @@
 			var pointLightHelper2 = new zen3d.PointLightHelper(pointLight2, 2);
 			pointLight2.add(pointLightHelper2);
 
-			var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.intensity = 0.8;
-	        directionalLight.color.setHex(0xffffff);
+			var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.8);
 			directionalLight.position.set(-30, 30, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.shadow.windowSize = 100;

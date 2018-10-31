@@ -63,8 +63,7 @@
 			var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 
-			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x1c1c1c);
+			var ambientLight = new zen3d.AmbientLight(0x1c1c1c);
 	        scene.add(ambientLight);
 
 			var camera = new zen3d.Camera();

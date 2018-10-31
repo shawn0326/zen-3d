@@ -106,22 +106,18 @@
 
 			}
 
-	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x222222);
+	        var ambientLight = new zen3d.AmbientLight(0x222222);
 	        scene.add(ambientLight);
 
-	        var directLight = new zen3d.DirectionalLight();
+	        var directLight = new zen3d.DirectionalLight(0xffffff);
 	        directLight.euler.set(Math.PI / 2, -Math.PI / 4, 0);
-	        directLight.color.setHex(0xffffff);
 	        directLight.position.set(-40, 40, 0);
 	        scene.add(directLight);
 
 			var particleLight = new zen3d.Group();
 			scene.add(particleLight);
 
-			var pointLight = new zen3d.PointLight();
-			pointLight.intensity = 2;
-			pointLight.distance = 800;
+			var pointLight = new zen3d.PointLight(0xffffff, 2, 800);
 			particleLight.add( pointLight );
 
 			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);

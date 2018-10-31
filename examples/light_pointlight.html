@@ -61,13 +61,10 @@
 			plane.shadowType = zen3d.SHADOW_TYPE.POISSON_SOFT;
 	        scene.add(plane);
 
-	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xffffff);
+	        var ambientLight = new zen3d.AmbientLight(0xffffff);
 	        scene.add(ambientLight);
 
-	        var pointLight = new zen3d.PointLight();
-	        pointLight.color.setHex(0xffffff);
-			pointLight.distance = 200;
+	        var pointLight = new zen3d.PointLight(0xffffff, 1, 200);
 	        pointLight.position.set(-20, 20, 0);
 			pointLight.shadow.bias = -0.003;
 			scene.add(pointLight);

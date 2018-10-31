@@ -60,13 +60,10 @@
 	        plane.position.y = -8;
 	        scene.add(plane);
 
-			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x3c3c3c);
+			var ambientLight = new zen3d.AmbientLight(0x3c3c3c);
 	        scene.add(ambientLight);
 
-			var pointLight = new zen3d.PointLight();
-	        pointLight.color.setHex(0x00ff00);
-			pointLight.distance = 100;
+			var pointLight = new zen3d.PointLight(0x00ff00, 1, 100);
 	        pointLight.position.set(20, 10, -20);
 	        scene.add(pointLight);
 

@@ -10,10 +10,12 @@ import {DirectionalLightShadow} from './DirectionalLightShadow.js';
  * @constructor
  * @memberof zen3d
  * @extends zen3d.Light
+ * @param {number} [color=0xffffff]
+ * @param {number} [intensity=1]
  */
-function DirectionalLight() {
+function DirectionalLight( color, intensity ) {
 
-    Light.call(this);
+    Light.call(this, color, intensity);
 
     this.lightType = LIGHT_TYPE.DIRECT;
 

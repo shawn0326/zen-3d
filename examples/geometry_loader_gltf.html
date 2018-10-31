@@ -82,17 +82,13 @@
 			});
 
 			// top light
-			var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.color.setHex(0xbbbbff);
+			var directionalLight = new zen3d.DirectionalLight(0xbbbbff, 0.5);
 			directionalLight.euler.set(Math.PI / 2, 0, 0);
-			directionalLight.intensity = 0.5;
 	        scene.add(directionalLight);
 
 			// bottom light
-			var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.color.setHex(0x444422);
+			var directionalLight = new zen3d.DirectionalLight(0x444422, 0.5);
 			directionalLight.euler.set(-Math.PI / 2, 0, 0);
-			directionalLight.intensity = 0.5;
 	        scene.add(directionalLight);
 
 			var camera = new zen3d.Camera();

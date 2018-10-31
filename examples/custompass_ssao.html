@@ -66,14 +66,10 @@
 		        scene.add(cube);
 			}
 
-			var ambientLight = new zen3d.AmbientLight();
-			ambientLight.color.setHex(0xffffff);
-			ambientLight.intensity = 1.5;
+			var ambientLight = new zen3d.AmbientLight(0xffffff, 1.5);
 	        scene.add(ambientLight);
 
-	        var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.intensity = 0.8;
-	        directionalLight.color.setHex(0xffffff);
+	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.8);
 			directionalLight.position.set(-40, 40, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			scene.add(directionalLight);

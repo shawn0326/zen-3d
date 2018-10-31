@@ -70,14 +70,10 @@
 	        plane.position.y = -10;
 	        scene.add(plane);
 
-			var ambientLight = new zen3d.AmbientLight();
-			ambientLight.color.setHex(0xffffff);
-			ambientLight.intensity = 0.5;
+			var ambientLight = new zen3d.AmbientLight(0xffffff, 0.5);
 	        scene.add(ambientLight);
 
-	        var directionalLight = new zen3d.DirectionalLight();
-			directionalLight.intensity = 0.8;
-	        directionalLight.color.setHex(0xffffff);
+	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.8);
 			directionalLight.position.set(-30, 30, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.shadow.windowSize = 100;

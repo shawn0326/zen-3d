@@ -136,21 +136,11 @@
 	        var cloud2 = new zen3d.Mesh(cloud2_geo, cloud_mat);
 			scene.add(cloud2);
 
-	        var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0x393939);
+	        var ambientLight = new zen3d.AmbientLight(0x393939);
 	        scene.add(ambientLight);
 
-			var spotLight = new zen3d.SpotLight();
-			spotLight.color.setHex(0xffffff);
-		    spotLight.intensity = 1.2;
-		    spotLight.position.x = -22;
-		    spotLight.position.y = 20;
-		    spotLight.position.z = 42;
-		    spotLight.angle = 0.2;
-			spotLight.intensity = 2;
-		    spotLight.penumbra = 0.4;
-		    spotLight.distance = 200;
-		    spotLight.decay = 1;
+			var spotLight = new zen3d.SpotLight(0xffffff, 2, 200, 0.2, 0.4, 1);
+			spotLight.position.set(-22, 20, 42);
 			scene.add(spotLight);
 			// spotLight look at pos 0,0,0
 			var target = new zen3d.Vector3(0, 0, 0);

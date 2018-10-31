@@ -9,8 +9,10 @@ import {Object3D} from '../Object3D.js';
  * @abstract
  * @memberof zen3d
  * @extends zen3d.Object3D
+ * @param {number} [color=0xffffff]
+ * @param {number} [intensity=1]
  */
-function Light() {
+function Light( color, intensity ) {
 
     Object3D.call(this);
 
@@ -23,14 +25,14 @@ function Light() {
      * @type {zen3d.Color3}
      * @default zen3d.Color3(0xffffff) 
      */
-    this.color = new Color3(0xffffff);
+    this.color = new Color3( color !== undefined ? color : 0xffffff );
 
     /**
      * The light's intensity, or strength.
      * @type {number}
      * @default 1
      */
-    this.intensity = 1;
+    this.intensity = ( intensity !== undefined ) ? intensity : 1;
 
 }
 

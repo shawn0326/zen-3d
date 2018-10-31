@@ -61,12 +61,10 @@
 
 			scene.add(group);
 
-			var ambientLight = new zen3d.AmbientLight();
-	        ambientLight.color.setHex(0xffffff);
+			var ambientLight = new zen3d.AmbientLight(0xffffff);
 	        scene.add(ambientLight);
 
-			var pointLight = new zen3d.PointLight();
-	        pointLight.color.setHex(0xffffff);
+			var pointLight = new zen3d.PointLight(0xffffff);
 	        scene.add(pointLight);
 
 	        var camera = new zen3d.Camera();
