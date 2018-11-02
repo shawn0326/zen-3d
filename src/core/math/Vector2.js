@@ -170,6 +170,21 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     /**
      * 
      */
+    angle: function () {
+
+		// computes the angle in radians with respect to the positive x-axis
+
+		var angle = Math.atan2( this.y, this.x );
+
+		if ( angle < 0 ) angle += 2 * Math.PI;
+
+		return angle;
+
+	},
+
+    /**
+     * 
+     */
     clone: function() {
         return new Vector2(this.x, this.y);
     }
