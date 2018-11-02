@@ -80,12 +80,22 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     /**
      * 
      */
-    sub: function(a, target) {
+    subtract: function(a, target) {
         if (!target) {
             target = new Vector2();
         }
         target.set(this.x - a.x, this.y - a.y);
         return target;
+    },
+
+    /**
+     * 
+     */
+    sub: function(v) {
+        this.x -= v.x;
+        this.y -= v.y;
+
+        return this;
     },
 
     /**
