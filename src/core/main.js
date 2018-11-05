@@ -31,6 +31,7 @@ export {Spherical} from './math/Spherical.js';
 export {TextureBase} from './texture/TextureBase.js';
 export {Texture2D} from './texture/Texture2D.js';
 export {TextureCube} from './texture/TextureCube.js';
+export {Texture3D} from './texture/Texture3D.js';
 
 export {Bone} from './animation/armature/Bone.js';
 export {Skeleton} from './animation/armature/Skeleton.js';

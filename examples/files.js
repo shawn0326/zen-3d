@@ -32,6 +32,7 @@ var files = {
 		"material_cubetexture_skybox_tga",
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",
+		"material_texture3d",
 		"material_transparent",
 		"material_shadermaterial",
 		"material_shader_sky",

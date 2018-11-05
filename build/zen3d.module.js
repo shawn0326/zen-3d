@@ -340,7 +340,8 @@ var SHADING_TYPE = {
  */
 var WEBGL_TEXTURE_TYPE = {
     TEXTURE_2D: 0x0DE1,
-    TEXTURE_CUBE_MAP: 0x8513
+    TEXTURE_CUBE_MAP: 0x8513,
+    TEXTURE_3D: 0x806F // webgl2
 };
 
 /**
@@ -353,11 +354,13 @@ var WEBGL_PIXEL_FORMAT = {
     DEPTH_COMPONENT: 0x1902,
     DEPTH_STENCIL: 0x84F9,
     ALPHA: 0x1906,
+    RED: 0x1903, // webgl2
     RGB: 0x1907,
     RGBA: 0x1908,
     LUMINANCE: 0x1909,
     LUMINANCE_ALPHA: 0x190A,
     // only for internal formats
+    R8: 0x8229, // webgl2
     RGBA16F: 0x881A,
     RGBA32F: 0x8814,
     DEPTH_COMPONENT24: 0x81A6,
@@ -458,6 +461,7 @@ var WEBGL_UNIFORM_TYPE = {
     SAMPLER_2D_SHADOW: 0x8B62,
     SAMPLER_CUBE: 0x8B60,
     SAMPLER_CUBE_SHADOW: 0x8DC5,
+    SAMPLER_3D: 0x8B5F,
     BYTE: 0xffff,
     UNSIGNED_BYTE: 0x1401,
     SHORT: 0x1402,
@@ -5629,6 +5633,60 @@ TextureCube.fromSrc = function(srcArray) {
 };
 
 /**
+ * Creates a 3D texture. (WebGL 2.0)
+ * @constructor
+ * @memberof zen3d
+ * @extends zen3d.TextureBase
+ */
+function Texture3D() {
+
+    TextureBase.call(this);
+
+    this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_3D;
+
+    /**
+     * Image data for this texture.
+     * @member {Object}
+     * @default null
+     */
+    this.image = {data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2};
+
+    /**
+     * WebGLTexture texel data format.
+     * @type {zen3d.WEBGL_PIXEL_FORMAT}
+     * @default zen3d.WEBGL_PIXEL_FORMAT.RED
+     */
+    this.format = WEBGL_PIXEL_FORMAT.RED;
+
+    /**
+     * WebGLTexture texel data internal format.
+     * If null, internalformat is set to be same as format.
+     * This must be null in WebGL 1.0.
+     * @type {null|zen3d.WEBGL_PIXEL_FORMAT}
+     * @default zen3d.WEBGL_PIXEL_FORMAT.R8
+     */
+    this.internalformat = WEBGL_PIXEL_FORMAT.R8;
+
+    /**
+     * WebGLTexture texel data type.
+     * @type {zen3d.WEBGL_PIXEL_TYPE}
+     * @default zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE
+     */
+    this.type = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+
+    /**
+     * @default false
+     */
+    this.flipY = false;
+}
+
+Texture3D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.TextureCube.prototype */{
+
+    constructor: Texture3D
+
+});
+
+/**
  * This is the base class for most objects in zen3d
  * and provides a set of properties and methods for manipulating objects in 3D space.
  * @constructor
@@ -9587,6 +9645,59 @@ Object.assign(WebGLTexture.prototype, {
         return textureProperties;
     },
 
+    setTexture3D: function(texture, slot) {
+
+        var gl = this.gl;
+        var state = this.state;
+        var capabilities = this.capabilities;
+
+        if (capabilities.version < 2) {
+            console.warn("Try to use Texture3D but browser not support WebGL2.0");
+            return;
+        }
+
+        if (slot !== undefined) {
+            slot = gl.TEXTURE0 + slot;
+        }
+    
+        var textureProperties = this.properties.get(texture);
+
+        if (texture.image && textureProperties.__version !== texture.version) {
+            if (textureProperties.__webglTexture === undefined) {
+                texture.addEventListener('dispose', this.onTextureDispose, this);
+                textureProperties.__webglTexture = gl.createTexture();
+            }
+    
+            state.activeTexture(slot);
+            state.bindTexture(gl.TEXTURE_3D, textureProperties.__webglTexture);
+    
+            var image = texture.image;
+
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
+            this.setTextureParameters(texture, false);
+    
+            var format = texture.format,
+                internalformat = texture.internalformat || texture.format,
+                type = texture.type;
+
+            gl.texImage3D(gl.TEXTURE_3D, 0, internalformat, image.width, image.height, image.depth, texture.border, format, type, image.data);
+
+            if (texture.generateMipmaps) {
+                gl.generateMipmap(gl.TEXTURE_3D);
+            }
+
+            textureProperties.__version = texture.version;
+    
+            return textureProperties;
+        }
+
+        state.activeTexture(slot);
+        state.bindTexture(gl.TEXTURE_3D, textureProperties.__webglTexture);
+
+        return textureProperties;
+
+    },
+
     setTextureParameters: function(texture, needFallback) {
         var gl = this.gl;
         var capabilities = this.capabilities;
@@ -9852,6 +9963,7 @@ Object.assign(WebGLUniform.prototype, {
             case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
             case WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW:
             case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_3D:
             case WEBGL_UNIFORM_TYPE.BOOL:
             case WEBGL_UNIFORM_TYPE.INT:
                 this.setValue = this.set = function(value) {
@@ -11384,6 +11496,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW) {
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.uniforms[key], slot);
+                        uniform.setValue(slot);
+                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_3D) {
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture3D(material.uniforms[key], slot);
                         uniform.setValue(slot);
                     } else {
                         uniform.set(material.uniforms[key]);
@@ -14490,4 +14606,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
  * @namespace zen3d
  */
 
-export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniform, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_TEXTURE_COMPARE, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };
+export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniform, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_TEXTURE_COMPARE, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };

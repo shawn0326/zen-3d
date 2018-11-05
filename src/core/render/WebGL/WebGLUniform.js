@@ -40,6 +40,7 @@ Object.assign(WebGLUniform.prototype, {
             case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
             case WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW:
             case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW:
+            case WEBGL_UNIFORM_TYPE.SAMPLER_3D:
             case WEBGL_UNIFORM_TYPE.BOOL:
             case WEBGL_UNIFORM_TYPE.INT:
                 this.setValue = this.set = function(value) {

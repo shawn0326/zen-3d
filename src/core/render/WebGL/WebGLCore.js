@@ -231,6 +231,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         var slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.uniforms[key], slot);
                         uniform.setValue(slot);
+                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_3D) {
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture3D(material.uniforms[key], slot);
+                        uniform.setValue(slot);
                     } else {
                         uniform.set(material.uniforms[key]);
                     }

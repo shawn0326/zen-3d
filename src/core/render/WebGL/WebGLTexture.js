@@ -333,6 +333,59 @@ Object.assign(WebGLTexture.prototype, {
         return textureProperties;
     },
 
+    setTexture3D: function(texture, slot) {
+
+        var gl = this.gl;
+        var state = this.state;
+        var capabilities = this.capabilities;
+
+        if (capabilities.version < 2) {
+            console.warn("Try to use Texture3D but browser not support WebGL2.0");
+            return;
+        }
+
+        if (slot !== undefined) {
+            slot = gl.TEXTURE0 + slot;
+        }
+    
+        var textureProperties = this.properties.get(texture);
+
+        if (texture.image && textureProperties.__version !== texture.version) {
+            if (textureProperties.__webglTexture === undefined) {
+                texture.addEventListener('dispose', this.onTextureDispose, this);
+                textureProperties.__webglTexture = gl.createTexture();
+            }
+    
+            state.activeTexture(slot);
+            state.bindTexture(gl.TEXTURE_3D, textureProperties.__webglTexture);
+    
+            var image = texture.image;
+
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
+            this.setTextureParameters(texture, false);
+    
+            var format = texture.format,
+                internalformat = texture.internalformat || texture.format,
+                type = texture.type;
+
+            gl.texImage3D(gl.TEXTURE_3D, 0, internalformat, image.width, image.height, image.depth, texture.border, format, type, image.data);
+
+            if (texture.generateMipmaps) {
+                gl.generateMipmap(gl.TEXTURE_3D);
+            }
+
+            textureProperties.__version = texture.version;
+    
+            return textureProperties;
+        }
+
+        state.activeTexture(slot);
+        state.bindTexture(gl.TEXTURE_3D, textureProperties.__webglTexture);
+
+        return textureProperties;
+
+    },
+
     setTextureParameters: function(texture, needFallback) {
         var gl = this.gl;
         var capabilities = this.capabilities;

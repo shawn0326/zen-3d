@@ -147,7 +147,8 @@ export var SHADING_TYPE = {
  */
 export var WEBGL_TEXTURE_TYPE = {
     TEXTURE_2D: 0x0DE1,
-    TEXTURE_CUBE_MAP: 0x8513
+    TEXTURE_CUBE_MAP: 0x8513,
+    TEXTURE_3D: 0x806F // webgl2
 };
 
 /**
@@ -160,11 +161,13 @@ export var WEBGL_PIXEL_FORMAT = {
     DEPTH_COMPONENT: 0x1902,
     DEPTH_STENCIL: 0x84F9,
     ALPHA: 0x1906,
+    RED: 0x1903, // webgl2
     RGB: 0x1907,
     RGBA: 0x1908,
     LUMINANCE: 0x1909,
     LUMINANCE_ALPHA: 0x190A,
     // only for internal formats
+    R8: 0x8229, // webgl2
     RGBA16F: 0x881A,
     RGBA32F: 0x8814,
     DEPTH_COMPONENT24: 0x81A6,
@@ -265,6 +268,7 @@ export var WEBGL_UNIFORM_TYPE = {
     SAMPLER_2D_SHADOW: 0x8B62,
     SAMPLER_CUBE: 0x8B60,
     SAMPLER_CUBE_SHADOW: 0x8DC5,
+    SAMPLER_3D: 0x8B5F,
     BYTE: 0xffff,
     UNSIGNED_BYTE: 0x1401,
     SHORT: 0x1402,
