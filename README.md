@@ -48,7 +48,7 @@ you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
 * Fragment Depth. (TODO)
 * Transform Feedback. (TODO)
 * Sampler Objects. (TODO)
-* 3D Texture. (TODO)
+* [3D Texture](https://shawn0326.github.io/zen-3d/examples/#material_texture3d). (WebGL 2.0)
 * [Multisampled Renderbuffers](https://shawn0326.github.io/zen-3d/examples/#custompass_msaa). (WebGL 2.0)
 
 ### Build ###
