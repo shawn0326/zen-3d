@@ -13,7 +13,7 @@ zen3d.SSAOShader = {
         'projection': new Float32Array(16),
         'projectionInv': new Float32Array(16),
         'viewInverseTranspose': new Float32Array(16),
-        'kernel[0]': null,
+        'kernel': null,
 		'radius': 0.2,
 		'power': 1,
 		'bias': 0.0001,

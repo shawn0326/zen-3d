@@ -1,5 +1,5 @@
 import {generateUUID} from '../../base.js';
-import {WebGLUniform} from './WebGLUniform.js';
+import {WebGLUniforms} from './WebGLUniforms.js';
 import {WebGLAttribute} from './WebGLAttribute.js';
 
 function addLineNumbers( string ) {
@@ -51,22 +51,6 @@ function createWebGLProgram(gl, vertexShader, fragmentShader) {
     return program;
 }
 
-// extract uniforms
-function extractUniforms(gl, program) {
-    var uniforms = {};
-
-    var totalUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-
-    for (var i = 0; i < totalUniforms; i++) {
-        var uniformData = gl.getActiveUniform(program, i);
-        var name = uniformData.name;
-        var uniform = new WebGLUniform(gl, program, uniformData);
-        uniforms[name] = uniform;
-    }
-
-    return uniforms;
-}
-
 // extract attributes
 function extractAttributes(gl, program) {
     var attributes = {};
@@ -103,7 +87,7 @@ function WebGLProgram(gl, vshader, fshader) {
     // program id
     this.id = createWebGLProgram(gl, vertexShader, fragmentShader);
 
-    this.uniforms = extractUniforms(gl, this.id);
+    this.uniforms = new WebGLUniforms(gl, this.id);
 
     this.attributes = extractAttributes(gl, this.id);
 

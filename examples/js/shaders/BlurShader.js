@@ -12,7 +12,7 @@ zen3d.BlurShader = {
 		'textureSize': [512, 512],
 		'direction': 0, // 0 horizontal, 1 vertical
 		'blurSize': 1,
-		'kernel[0]': [0.122581, 0.233062, 0.288713, 0.233062, 0.122581],
+		'kernel': [0.122581, 0.233062, 0.288713, 0.233062, 0.122581],
 		'normalTex': null,
 		'depthTex': null,
 		'projection': new Float32Array(16),

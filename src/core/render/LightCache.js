@@ -16,7 +16,7 @@ function getLightCache(light) {
             cache = {
                 direction: new Float32Array(3),
                 color: new Float32Array([0, 0, 0, 1]),
-                shadow: false,
+                shadow: 0,
                 shadowBias: 0,
                 shadowRadius: 1,
                 shadowMapSize: new Float32Array(2)
@@ -28,7 +28,7 @@ function getLightCache(light) {
                 color: new Float32Array([0, 0, 0, 1]),
                 distance: 0,
                 decay: 0,
-                shadow: false,
+                shadow: 0,
                 shadowBias: 0,
                 shadowRadius: 1,
                 shadowMapSize: new Float32Array(2),
@@ -45,7 +45,7 @@ function getLightCache(light) {
                 coneCos: 0,
                 penumbraCos: 0,
                 decay: 0,
-                shadow: false,
+                shadow: 0,
                 shadowBias: 0,
                 shadowRadius: 1,
                 shadowMapSize: new Float32Array(2)
@@ -167,13 +167,13 @@ Object.assign(LightCache.prototype, {
         cache.direction[2] = direction.z;
 
         if(object.castShadow) {
-            cache.shadow = true;
+            cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
             cache.shadowMapSize[0] = object.shadow.mapSize.x;
             cache.shadowMapSize[1] = object.shadow.mapSize.y;
         } else {
-            cache.shadow = false;
+            cache.shadow = 0;
         }
 
         if(object.castShadow) {
@@ -218,7 +218,7 @@ Object.assign(LightCache.prototype, {
         cache.position[2] = position.z;
 
         if(object.castShadow) {
-            cache.shadow = true;
+            cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
             cache.shadowMapSize[0] = object.shadow.mapSize.x;
@@ -226,7 +226,7 @@ Object.assign(LightCache.prototype, {
             cache.shadowCameraNear = object.shadow.cameraNear;
             cache.shadowCameraFar = object.shadow.cameraFar;
         } else {
-            cache.shadow = false;
+            cache.shadow = 0;
         }
 
         if(object.castShadow) {
@@ -284,13 +284,13 @@ Object.assign(LightCache.prototype, {
         cache.penumbraCos = penumbraCos;
 
         if(object.castShadow) {
-            cache.shadow = true;
+            cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
             cache.shadowMapSize[0] = object.shadow.mapSize.x;
             cache.shadowMapSize[1] = object.shadow.mapSize.y;
         } else {
-            cache.shadow = false;
+            cache.shadow = 0;
         }
 
         if(object.castShadow) {

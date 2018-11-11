@@ -85,7 +85,7 @@
         }
 
         this.material.defines["KERNEL_SIZE"] = size;
-        this.material.uniforms["kernel[0]"] = this._kernels[code];
+        this.material.uniforms["kernel"] = this._kernels[code];
     }
 
     SSAOPass.prototype.setNoiseSize = function(size) {

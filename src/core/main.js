@@ -77,7 +77,7 @@ export {WebGLState} from './render/WebGL/WebGLState.js';
 export {WebGLProperties} from './render/WebGL/WebGLProperties.js';
 export {WebGLTexture} from './render/WebGL/WebGLTexture.js';
 export {WebGLGeometry} from './render/WebGL/WebGLGeometry.js';
-export {WebGLUniform} from './render/WebGL/WebGLUniform.js';
+export {WebGLUniforms} from './render/WebGL/WebGLUniforms.js';
 export {WebGLAttribute} from './render/WebGL/WebGLAttribute.js';
 export {WebGLProgram} from './render/WebGL/WebGLProgram.js';
 export {WebGLCore} from './render/WebGL/WebGLCore.js';

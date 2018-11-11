@@ -9923,24 +9923,13 @@ Object.assign(WebGLGeometry.prototype, {
 
 });
 
-function WebGLUniform(gl, program, uniformData) {
-    this.gl = gl;
+// --- Base for inner nodes (including the root) ---
 
-    this.name = uniformData.name;
+function UniformContainer() {
 
-    // WEBGL_UNIFORM_TYPE
-    this.type = uniformData.type;
+	this.seq = [];
+	this.map = {};
 
-    this.size = uniformData.size;
-
-    this.location = gl.getUniformLocation(program, this.name);
-
-    this.setValue = undefined;
-    this.set = undefined;
-    this.cache = [];
-
-    this._generateSetValue();
-    
 }
 
 function arraysEqual( a, b ) {
@@ -9967,162 +9956,338 @@ function copyArray( a, b ) {
 
 }
 
-Object.assign(WebGLUniform.prototype, {
+// Helper to pick the right setter for uniform
 
-    _generateSetValue: function() {
-        var gl = this.gl;
-        var type = this.type;
-        var location = this.location;
-        var cache = this.cache;
+function generateSetter( uniform, pureArray ) {
 
-        switch (type) {
-            case WEBGL_UNIFORM_TYPE.FLOAT:
-                if(this.size > 1) {
-                    this.setValue = this.set = function(value) {
-                        if ( arraysEqual( cache, value ) ) return;
-                        gl.uniform1fv(location, value);
-                        copyArray( cache, value );
-                    };
-                } else {
-                    this.setValue = this.set = function(value) {
-                        if ( cache[ 0 ] === value ) return;
-                        gl.uniform1f(location, value);
-                        cache[ 0 ] = value;
-                    };
+    var gl = uniform.gl;
+    var type = uniform.type;
+    var location = uniform.location;
+    var cache = uniform.cache;
+
+    switch (type) {
+        case WEBGL_UNIFORM_TYPE.FLOAT:
+            uniform.setValue = function(value) {
+                if ( cache[ 0 ] === value ) return;
+                gl.uniform1f(location, value);
+                cache[ 0 ] = value;
+            };
+            if (pureArray) {
+                uniform.set = function(value) {
+                    if ( arraysEqual( cache, value ) ) return;
+                    gl.uniform1fv(location, value);
+                    copyArray( cache, value );
+                };
+            } else {
+                uniform.set = uniform.setValue;
+            }
+            break;
+        case WEBGL_UNIFORM_TYPE.SAMPLER_2D:
+        case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
+        case WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW:
+        case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW:
+        case WEBGL_UNIFORM_TYPE.SAMPLER_3D:
+        case WEBGL_UNIFORM_TYPE.BOOL:
+        case WEBGL_UNIFORM_TYPE.INT:
+            uniform.setValue = function(value) {
+                if ( cache[ 0 ] === value ) return;
+                gl.uniform1i(location, value);
+                cache[ 0 ] = value;
+            };
+            if (pureArray) {
+                uniform.set = function(value) {
+                    if ( arraysEqual( cache, value ) ) return;
+                    gl.uniform1iv(location, value);
+                    copyArray( cache, value );
+                };
+            } else {
+                uniform.set = uniform.setValue;
+            }
+            break;
+        case WEBGL_UNIFORM_TYPE.FLOAT_VEC2:
+            uniform.setValue = function(p1, p2) {
+                if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 ) {
+                    gl.uniform2f(location, p1, p2);
+                    cache[ 0 ] = p1;
+                    cache[ 1 ] = p2;
                 }
-                break;
-            case WEBGL_UNIFORM_TYPE.SAMPLER_2D:
-            case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
-            case WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW:
-            case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW:
-            case WEBGL_UNIFORM_TYPE.SAMPLER_3D:
-            case WEBGL_UNIFORM_TYPE.BOOL:
-            case WEBGL_UNIFORM_TYPE.INT:
-                this.setValue = this.set = function(value) {
-                    if ( cache[ 0 ] === value ) return;
-                    gl.uniform1i(location, value);
-                    cache[ 0 ] = value;
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.FLOAT_VEC2:
-                this.setValue = function(p1, p2) {
-                    if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 ) {
-                        gl.uniform2f(location, p1, p2);
-                        cache[ 0 ] = p1;
-                        cache[ 1 ] = p2;
-                    }
-                };
-                this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniform2fv(location, value);
-                    copyArray( cache, value );
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.BOOL_VEC2:
-            case WEBGL_UNIFORM_TYPE.INT_VEC2:
-                this.setValue = function(p1, p2) {
-                    if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 ) {
-                        gl.uniform2i(location, p1, p2);
-                        cache[ 0 ] = p1;
-                        cache[ 1 ] = p2;
-                    }
-                };
-                this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniform2iv(location, value);
-                    copyArray( cache, value );
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.FLOAT_VEC3:
-                this.setValue = function(p1, p2, p3) {
-                    if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 ) {
-                        gl.uniform3f(location, p1, p2, p3);
-                        cache[ 0 ] = p1;
-                        cache[ 1 ] = p2;
-                        cache[ 2 ] = p3;
-                    }
-                };
-                this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniform3fv(location, value);
-                    copyArray( cache, value );
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.BOOL_VEC3:
-            case WEBGL_UNIFORM_TYPE.INT_VEC3:
-                this.setValue = function(p1, p2, p3) {
-                    if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 ) {
-                        gl.uniform3i(location, p1, p2, p3);
-                        cache[ 0 ] = p1;
-                        cache[ 1 ] = p2;
-                        cache[ 2 ] = p3;
-                    }
-                };
-                this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniform3iv(location, value);
-                    copyArray( cache, value );
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.FLOAT_VEC4:
-                this.setValue = function(p1, p2, p3, p4) {
-                    if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 || cache[ 3 ] !== p4 ) {
-                        gl.uniform4f(location, p1, p2, p3, p4);
-                        cache[ 0 ] = p1;
-                        cache[ 1 ] = p2;
-                        cache[ 2 ] = p3;
-                        cache[ 3 ] = p4;
-                    }
-                };
-                this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniform4fv(location, value);
-                    copyArray( cache, value );
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.BOOL_VEC4:
-            case WEBGL_UNIFORM_TYPE.INT_VEC4:
-                this.setValue = function(p1, p2, p3, p4) {
-                    if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 || cache[ 3 ] !== p4 ) {
-                        gl.uniform4i(location, p1, p2, p3, p4);
-                        cache[ 0 ] = p1;
-                        cache[ 1 ] = p2;
-                        cache[ 2 ] = p3;
-                        cache[ 3 ] = p4;
-                    }
-                };
-                this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniform4iv(location, value);
-                    copyArray( cache, value );
-                };
-                break;
+            };
+            uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniform2fv(location, value);
+                copyArray( cache, value );
+            };
+            break;
+        case WEBGL_UNIFORM_TYPE.BOOL_VEC2:
+        case WEBGL_UNIFORM_TYPE.INT_VEC2:
+            uniform.setValue = function(p1, p2) {
+                if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 ) {
+                    gl.uniform2i(location, p1, p2);
+                    cache[ 0 ] = p1;
+                    cache[ 1 ] = p2;
+                }
+            };
+            uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniform2iv(location, value);
+                copyArray( cache, value );
+            };
+            break;
+        case WEBGL_UNIFORM_TYPE.FLOAT_VEC3:
+            uniform.setValue = function(p1, p2, p3) {
+                if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 ) {
+                    gl.uniform3f(location, p1, p2, p3);
+                    cache[ 0 ] = p1;
+                    cache[ 1 ] = p2;
+                    cache[ 2 ] = p3;
+                }
+            };
+            uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniform3fv(location, value);
+                copyArray( cache, value );
+            };
+            break;
+        case WEBGL_UNIFORM_TYPE.BOOL_VEC3:
+        case WEBGL_UNIFORM_TYPE.INT_VEC3:
+            uniform.setValue = function(p1, p2, p3) {
+                if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 ) {
+                    gl.uniform3i(location, p1, p2, p3);
+                    cache[ 0 ] = p1;
+                    cache[ 1 ] = p2;
+                    cache[ 2 ] = p3;
+                }
+            };
+            uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniform3iv(location, value);
+                copyArray( cache, value );
+            };
+            break;
+        case WEBGL_UNIFORM_TYPE.FLOAT_VEC4:
+            uniform.setValue = function(p1, p2, p3, p4) {
+                if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 || cache[ 3 ] !== p4 ) {
+                    gl.uniform4f(location, p1, p2, p3, p4);
+                    cache[ 0 ] = p1;
+                    cache[ 1 ] = p2;
+                    cache[ 2 ] = p3;
+                    cache[ 3 ] = p4;
+                }
+            };
+            uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniform4fv(location, value);
+                copyArray( cache, value );
+            };
+            break;
+        case WEBGL_UNIFORM_TYPE.BOOL_VEC4:
+        case WEBGL_UNIFORM_TYPE.INT_VEC4:
+            uniform.setValue = function(p1, p2, p3, p4) {
+                if ( cache[ 0 ] !== p1 || cache[ 1 ] !== p2 || cache[ 2 ] !== p3 || cache[ 3 ] !== p4 ) {
+                    gl.uniform4i(location, p1, p2, p3, p4);
+                    cache[ 0 ] = p1;
+                    cache[ 1 ] = p2;
+                    cache[ 2 ] = p3;
+                    cache[ 3 ] = p4;
+                }
+            };
+            uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniform4iv(location, value);
+                copyArray( cache, value );
+            };
+            break;
 
-            case WEBGL_UNIFORM_TYPE.FLOAT_MAT2:
-                this.setValue = this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniformMatrix2fv(location, false, value);
-                    copyArray( cache, value );
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.FLOAT_MAT3:
-                this.setValue = this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniformMatrix3fv(location, false, value);
-                    copyArray( cache, value );
-                };
-                break;
-            case WEBGL_UNIFORM_TYPE.FLOAT_MAT4:
-                this.setValue = this.set = function(value) {
-                    if ( arraysEqual( cache, value ) ) return;
-                    gl.uniformMatrix4fv(location, false, value);
-                    copyArray( cache, value );
-                };
-                break;
-        }
+        case WEBGL_UNIFORM_TYPE.FLOAT_MAT2:
+            uniform.setValue = uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniformMatrix2fv(location, false, value);
+                copyArray( cache, value );
+            };
+            break;
+        case WEBGL_UNIFORM_TYPE.FLOAT_MAT3:
+            uniform.setValue = uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniformMatrix3fv(location, false, value);
+                copyArray( cache, value );
+            };
+            break;
+        case WEBGL_UNIFORM_TYPE.FLOAT_MAT4:
+            uniform.setValue = uniform.set = function(value) {
+                if ( arraysEqual( cache, value ) ) return;
+                gl.uniformMatrix4fv(location, false, value);
+                copyArray( cache, value );
+            };
+            break;
     }
 
-});
+}
+
+// --- Uniform Classes ---
+
+function SingleUniform( gl, id, activeInfo, location ) {
+
+    this.gl = gl;
+
+    this.id = id;
+
+    // WEBGL_UNIFORM_TYPE
+    this.type = activeInfo.type;
+
+    // this.size = activeInfo.size; // always be 1
+
+    this.location = location;
+
+    this.setValue = undefined;
+    this.set = undefined;
+    this.cache = [];
+
+    generateSetter(this);
+    
+}
+
+function PureArrayUniform( gl, id, activeInfo, location ) {
+
+	this.gl = gl;
+
+    this.id = id;
+
+    // WEBGL_UNIFORM_TYPE
+    this.type = activeInfo.type;
+
+    this.size = activeInfo.size;
+
+    this.location = location;
+
+    this.setValue = undefined;
+    this.set = undefined;
+    this.cache = [];
+
+    generateSetter(this, true);
+
+}
+
+function StructuredUniform( id ) {
+
+	this.id = id;
+
+	UniformContainer.call( this ); // mix-in
+
+}
+
+StructuredUniform.prototype.set = function ( value ) {
+
+	var seq = this.seq;
+
+	for ( var i = 0, n = seq.length; i !== n; ++ i ) {
+
+		var u = seq[ i ];
+		u.set( value[ u.id ] );
+
+	}
+
+};
+
+// --- Top-level ---
+
+// Parser - builds up the property tree from the path strings
+
+var RePathPart = /([\w\d_]+)(\])?(\[|\.)?/g;
+
+// extracts
+// 	- the identifier (member name or array index)
+//  - followed by an optional right bracket (found when array index)
+//  - followed by an optional left bracket or dot (type of subscript)
+//
+// Note: These portions can be read in a non-overlapping fashion and
+// allow straightforward parsing of the hierarchy that WebGL encodes
+// in the uniform names.
+
+function addUniform( container, uniformObject ) {
+
+    container.seq.push( uniformObject );
+    container.map[ uniformObject.id ] = uniformObject;
+
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getActiveUniform
+function parseUniform( gl, activeInfo, location, container ) {
+
+	var path = activeInfo.name,
+		pathLength = path.length;
+
+	// reset RegExp object, because of the early exit of a previous run
+	RePathPart.lastIndex = 0;
+
+	while ( true ) {
+
+		var match = RePathPart.exec( path ),
+			matchEnd = RePathPart.lastIndex,
+
+			id = match[ 1 ],
+			idIsIndex = match[ 2 ] === ']',
+			subscript = match[ 3 ];
+
+		if ( idIsIndex ) id = id | 0; // convert to integer
+
+		if ( subscript === undefined || subscript === '[' && matchEnd + 2 === pathLength ) {
+
+			// bare name or "pure" bottom-level array "[0]" suffix
+
+			addUniform( container, subscript === undefined ?
+				new SingleUniform( gl, id, activeInfo, location ) :
+				new PureArrayUniform( gl, id, activeInfo, location ) );
+
+			break;
+
+		} else {
+
+			// step into inner node / create it in case it doesn't exist
+
+			var map = container.map, next = map[ id ];
+
+			if ( next === undefined ) {
+
+				next = new StructuredUniform( id );
+				addUniform( container, next );
+
+			}
+
+			container = next;
+
+		}
+
+	}
+
+}
+
+// Root Container
+
+function WebGLUniforms( gl, program ) {
+
+	UniformContainer.call( this );
+
+	var n = gl.getProgramParameter( program, gl.ACTIVE_UNIFORMS );
+
+	for ( var i = 0; i < n; ++ i ) {
+
+		var info = gl.getActiveUniform( program, i ),
+			addr = gl.getUniformLocation( program, info.name );
+
+		parseUniform( gl, info, addr, this );
+
+	}
+
+}
+
+WebGLUniforms.prototype.set = function(name, value) {
+    var u = this.map[ name ];
+    if ( u !== undefined ) u.set(value);
+};
+
+WebGLUniforms.prototype.has = function(name) {
+    return !!this.map[ name ];
+};
 
 function WebGLAttribute(gl, program, attributeData) {
     this.gl = gl;
@@ -10240,22 +10405,6 @@ function createWebGLProgram(gl, vertexShader, fragmentShader) {
     return program;
 }
 
-// extract uniforms
-function extractUniforms(gl, program) {
-    var uniforms = {};
-
-    var totalUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-
-    for (var i = 0; i < totalUniforms; i++) {
-        var uniformData = gl.getActiveUniform(program, i);
-        var name = uniformData.name;
-        var uniform = new WebGLUniform(gl, program, uniformData);
-        uniforms[name] = uniform;
-    }
-
-    return uniforms;
-}
-
 // extract attributes
 function extractAttributes(gl, program) {
     var attributes = {};
@@ -10292,7 +10441,7 @@ function WebGLProgram(gl, vshader, fshader) {
     // program id
     this.id = createWebGLProgram(gl, vertexShader, fragmentShader);
 
-    this.uniforms = extractUniforms(gl, this.id);
+    this.uniforms = new WebGLUniforms(gl, this.id);
 
     this.attributes = extractAttributes(gl, this.id);
 
@@ -11564,10 +11713,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             }
     
             // update uniforms
-            // TODO need a better upload method
             var uniforms = program.uniforms;
-            for (var key in uniforms) {
-                var uniform = uniforms[key];
+            for (var n = 0, ll = uniforms.seq.length; n < ll; n++) {
+                var uniform = uniforms.seq[n];
+                var key = uniform.id;
 
                 // upload custom uniforms
                 if(material.uniforms && material.uniforms[key] !== undefined) {
@@ -11734,9 +11883,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     case "scale":
                         uniform.setValue(material.scale);
                         break;
-                    case "clippingPlanes[0]":
+                    case "clippingPlanes":
                         var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
-                        gl.uniform4fv(uniform.location, planesData);
+                        uniform.set(planesData);
                         break;
                     case "uvTransform":
                         var uvScaleMap;
@@ -11794,7 +11943,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
                     var slot = this.allocTexUnit();
                     this.texture.setTexture2D(drawData.texture, slot);
-                    uniforms.spriteTexture.setValue(slot);
+                    uniforms.set("spriteTexture", slot);
     
                     gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
                     _offset += drawData.count * 6;
@@ -11925,7 +12074,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     uploadSkeleton: function(uniforms, object, programId) {
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
-            var gl = this.gl;
             var capabilities = this.capabilities;
 
             skeleton.updateBones();
@@ -11957,179 +12105,113 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(skeleton.boneTexture, slot);
     
-                if(uniforms["boneTexture"]) {
-                    uniforms["boneTexture"].setValue(slot);
-                }
-    
-                if(uniforms["boneTextureSize"]) {
-                    uniforms["boneTextureSize"].setValue(skeleton.boneTexture.image.width);
-                }
+                uniforms.set("boneTexture", slot);
+                uniforms.set("boneTextureSize", skeleton.boneTexture.image.width);
             } else {
-                // TODO a cache for uniform location
-                var location = gl.getUniformLocation(programId, "boneMatrices");
-                gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
+                uniforms.set("boneMatrices", skeleton.boneMatrices);
             }
 
-            uniforms["bindMatrix"].setValue(object.bindMatrix.elements);
-            uniforms["bindMatrixInverse"].setValue(object.bindMatrixInverse.elements);
+            uniforms.set("bindMatrix", object.bindMatrix.elements);
+            uniforms.set("bindMatrixInverse", object.bindMatrixInverse.elements);
         }
     },
 
     // Upload lights uniforms.
-    // TODO a better function for array & struct uniforms upload.
     uploadLights: function(uniforms, lights, receiveShadow, camera) {
-        var gl = this.gl;
     
-        if(lights.ambientsNum > 0) {
-            uniforms.u_AmbientLightColor.set(lights.ambient);
+        if (lights.ambientsNum > 0) {
+            uniforms.set("u_AmbientLightColor", lights.ambient);
         }
-    
-        for (var k = 0; k < lights.directsNum; k++) {
-            var light = lights.directional[k];
-    
-            var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"];
-            u_Directional_direction.set(light.direction);
-            var u_Directional_color = uniforms["u_Directional[" + k + "].color"];
-            u_Directional_color.set(light.color);
-    
-            var shadow = light.shadow && receiveShadow;
-    
-            var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"];
-            u_Directional_shadow.setValue(shadow ? 1 : 0);
-    
-            if(shadow) {
-                var u_Directional_shadowBias = uniforms["u_Directional[" + k + "].shadowBias"];
-                u_Directional_shadowBias.setValue(light.shadowBias);
-                var u_Directional_shadowRadius = uniforms["u_Directional[" + k + "].shadowRadius"];
-                u_Directional_shadowRadius.setValue(light.shadowRadius);
-                var u_Directional_shadowMapSize = uniforms["u_Directional[" + k + "].shadowMapSize"];
-                u_Directional_shadowMapSize.set(light.shadowMapSize);
-    
-                var slot = this.allocTexUnit();
-                this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
-                directShadowMaps[k] = slot;
 
-                if (uniforms["directionalDepthMap[0]"]) {
+        if (lights.directsNum > 0) {
+            uniforms.set("u_Directional", lights.directional);
+
+            for (var k = 0; k < lights.directsNum; k++) {
+                var light = lights.directional[k];
+                var shadow = light.shadow && receiveShadow;
+                if(shadow) {
                     var slot = this.allocTexUnit();
-                    this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
-                    directDepthMaps[k] = slot;
+                    this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
+                    directShadowMaps[k] = slot;
+
+                    if (uniforms.has("directionalDepthMap")) {
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
+                        directDepthMaps[k] = slot;
+                    }
                 }
             }
-        }
-        if(directShadowMaps.length > 0) {
-            var directionalShadowMap = uniforms["directionalShadowMap[0]"];
-            gl.uniform1iv(directionalShadowMap.location, directShadowMaps);
-    
-            directShadowMaps.length = 0;
-    
-            var directionalShadowMatrix = uniforms["directionalShadowMatrix[0]"];
-            gl.uniformMatrix4fv(directionalShadowMatrix.location, false, lights.directionalShadowMatrix);
-        }
-        if (directDepthMaps.length > 0) {
-            var directionalDepthMap = uniforms["directionalDepthMap[0]"];
-            gl.uniform1iv(directionalDepthMap.location, directDepthMaps);
 
-            directDepthMaps.length = 0;
-        }
+            if(directShadowMaps.length > 0) {
+                uniforms.set("directionalShadowMap", directShadowMaps);
+        
+                directShadowMaps.length = 0;
+        
+                uniforms.set("directionalShadowMatrix", lights.directionalShadowMatrix);
+            }
+
+            if (directDepthMaps.length > 0) {
+                uniforms.set("directionalDepthMap", directDepthMaps);
     
-        for (var k = 0; k < lights.pointsNum; k++) {
-            var light = lights.point[k];
-    
-            var u_Point_position = uniforms["u_Point[" + k + "].position"];
-            u_Point_position.set(light.position);
-            var u_Point_color = uniforms["u_Point[" + k + "].color"];
-            u_Point_color.set(light.color);
-            var u_Point_distance = uniforms["u_Point[" + k + "].distance"];
-            u_Point_distance.setValue(light.distance);
-            var u_Point_decay = uniforms["u_Point[" + k + "].decay"];
-            u_Point_decay.setValue(light.decay);
-    
-            var shadow = light.shadow && receiveShadow;
-    
-            var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"];
-            u_Point_shadow.setValue(shadow ? 1 : 0);
-    
-            if (shadow) {
-                var u_Point_shadowBias = uniforms["u_Point[" + k + "].shadowBias"];
-                u_Point_shadowBias.setValue(light.shadowBias);
-                var u_Point_shadowRadius = uniforms["u_Point[" + k + "].shadowRadius"];
-                u_Point_shadowRadius.setValue(light.shadowRadius);
-                var u_Point_shadowMapSize = uniforms["u_Point[" + k + "].shadowMapSize"];
-                u_Point_shadowMapSize.set(light.shadowMapSize);
-                var u_Point_shadowCameraNear = uniforms["u_Point[" + k + "].shadowCameraNear"];
-                u_Point_shadowCameraNear.setValue(light.shadowCameraNear);
-                var u_Point_shadowCameraFar = uniforms["u_Point[" + k + "].shadowCameraFar"];
-                u_Point_shadowCameraFar.setValue(light.shadowCameraFar);
-    
-                var slot = this.allocTexUnit();
-                this.texture.setTextureCube(lights.pointShadowMap[k], slot);
-                pointShadowMaps[k] = slot;
+                directDepthMaps.length = 0;
             }
         }
-        if(pointShadowMaps.length > 0) {
-            var pointShadowMap = uniforms["pointShadowMap[0]"];
-            gl.uniform1iv(pointShadowMap.location, pointShadowMaps);
     
-            pointShadowMaps.length = 0;
-        }
-    
-        for (var k = 0; k < lights.spotsNum; k++) {
-            var light = lights.spot[k];
-    
-            var u_Spot_position = uniforms["u_Spot[" + k + "].position"];
-            u_Spot_position.set(light.position);
-            var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"];
-            u_Spot_direction.set(light.direction);
-            var u_Spot_color = uniforms["u_Spot[" + k + "].color"];
-            u_Spot_color.set(light.color);
-            var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"];
-            u_Spot_distance.setValue(light.distance);
-            var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"];
-            u_Spot_decay.setValue(light.decay);
-            var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"];
-            u_Spot_coneCos.setValue(light.coneCos);
-            var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"];
-            u_Spot_penumbraCos.setValue(light.penumbraCos);
-    
-            var shadow = light.shadow && receiveShadow;
-    
-            var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"];
-            u_Spot_shadow.setValue(shadow ? 1 : 0);
-    
-            if (shadow) {
-                var u_Spot_shadowBias = uniforms["u_Spot[" + k + "].shadowBias"];
-                u_Spot_shadowBias.setValue(light.shadowBias);
-                var u_Spot_shadowRadius = uniforms["u_Spot[" + k + "].shadowRadius"];
-                u_Spot_shadowRadius.setValue(light.shadowRadius);
-                var u_Spot_shadowMapSize = uniforms["u_Spot[" + k + "].shadowMapSize"];
-                u_Spot_shadowMapSize.set(light.shadowMapSize);
-    
-                var slot = this.allocTexUnit();
-                this.texture.setTexture2D(lights.spotShadowMap[k], slot);
-                spotShadowMaps[k] = slot;
+        if (lights.pointsNum > 0) {
+            uniforms.set("u_Point", lights.point);
 
-                if (uniforms["spotDepthMap[0]"]) {
+            for (var k = 0; k < lights.pointsNum; k++) {
+                var light = lights.point[k];
+                var shadow = light.shadow && receiveShadow;
+                if (shadow) {
                     var slot = this.allocTexUnit();
-                    this.texture.setTexture2D(lights.spotDepthMap[k], slot);
-                    spotDepthMaps[k] = slot;
+                    this.texture.setTextureCube(lights.pointShadowMap[k], slot);
+                    pointShadowMaps[k] = slot;
                 }
             }
-        }
-        if(spotShadowMaps.length > 0) {
-            var spotShadowMap = uniforms["spotShadowMap[0]"];
-            gl.uniform1iv(spotShadowMap.location, spotShadowMaps);
-    
-            spotShadowMaps.length = 0;
-    
-            var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
-            gl.uniformMatrix4fv(spotShadowMatrix.location, false, lights.spotShadowMatrix);
-        }
-        if (spotDepthMaps.length > 0) {
-            var spotDepthMap = uniforms["spotDepthMap[0]"];
-            gl.uniform1iv(spotDepthMap.location, spotDepthMaps);
 
-            spotDepthMaps.length = 0;
+            if(pointShadowMaps.length > 0) {
+                uniforms.set("pointShadowMap", pointShadowMaps);
+        
+                pointShadowMaps.length = 0;
+            }
         }
+
+        if (lights.spotsNum > 0) {
+            uniforms.set("u_Spot", lights.spot);
+
+            for (var k = 0; k < lights.spotsNum; k++) {
+                var light = lights.spot[k];
+                var shadow = light.shadow && receiveShadow;
+
+                if (shadow) {
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(lights.spotShadowMap[k], slot);
+                    spotShadowMaps[k] = slot;
+    
+                    if (uniforms.has("spotDepthMap")) {
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(lights.spotDepthMap[k], slot);
+                        spotDepthMaps[k] = slot;
+                    }
+                }
+            }
+
+            if(spotShadowMaps.length > 0) {
+                uniforms.set("spotShadowMap", spotShadowMaps);
+        
+                spotShadowMaps.length = 0;
+        
+                uniforms.set("spotShadowMatrix", lights.spotShadowMatrix);
+            }
+
+            if (spotDepthMaps.length > 0) {
+                uniforms.set("spotDepthMap", spotDepthMaps);
+    
+                spotDepthMaps.length = 0;
+            }
+        }
+    
     },
 
     // Alloc texture unit.
@@ -12792,7 +12874,7 @@ function getLightCache(light) {
             cache = {
                 direction: new Float32Array(3),
                 color: new Float32Array([0, 0, 0, 1]),
-                shadow: false,
+                shadow: 0,
                 shadowBias: 0,
                 shadowRadius: 1,
                 shadowMapSize: new Float32Array(2)
@@ -12804,7 +12886,7 @@ function getLightCache(light) {
                 color: new Float32Array([0, 0, 0, 1]),
                 distance: 0,
                 decay: 0,
-                shadow: false,
+                shadow: 0,
                 shadowBias: 0,
                 shadowRadius: 1,
                 shadowMapSize: new Float32Array(2),
@@ -12821,7 +12903,7 @@ function getLightCache(light) {
                 coneCos: 0,
                 penumbraCos: 0,
                 decay: 0,
-                shadow: false,
+                shadow: 0,
                 shadowBias: 0,
                 shadowRadius: 1,
                 shadowMapSize: new Float32Array(2)
@@ -12943,13 +13025,13 @@ Object.assign(LightCache.prototype, {
         cache.direction[2] = direction.z;
 
         if(object.castShadow) {
-            cache.shadow = true;
+            cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
             cache.shadowMapSize[0] = object.shadow.mapSize.x;
             cache.shadowMapSize[1] = object.shadow.mapSize.y;
         } else {
-            cache.shadow = false;
+            cache.shadow = 0;
         }
 
         if(object.castShadow) {
@@ -12994,7 +13076,7 @@ Object.assign(LightCache.prototype, {
         cache.position[2] = position.z;
 
         if(object.castShadow) {
-            cache.shadow = true;
+            cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
             cache.shadowMapSize[0] = object.shadow.mapSize.x;
@@ -13002,7 +13084,7 @@ Object.assign(LightCache.prototype, {
             cache.shadowCameraNear = object.shadow.cameraNear;
             cache.shadowCameraFar = object.shadow.cameraFar;
         } else {
-            cache.shadow = false;
+            cache.shadow = 0;
         }
 
         if(object.castShadow) {
@@ -13060,13 +13142,13 @@ Object.assign(LightCache.prototype, {
         cache.penumbraCos = penumbraCos;
 
         if(object.castShadow) {
-            cache.shadow = true;
+            cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
             cache.shadowMapSize[0] = object.shadow.mapSize.x;
             cache.shadowMapSize[1] = object.shadow.mapSize.y;
         } else {
-            cache.shadow = false;
+            cache.shadow = 0;
         }
 
         if(object.castShadow) {
@@ -14682,4 +14764,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
  * @namespace zen3d
  */
 
-export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniform, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_TEXTURE_COMPARE, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };
+export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniforms, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_TEXTURE_COMPARE, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };

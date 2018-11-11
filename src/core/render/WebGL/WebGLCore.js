@@ -216,10 +216,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             }
     
             // update uniforms
-            // TODO need a better upload method
             var uniforms = program.uniforms;
-            for (var key in uniforms) {
-                var uniform = uniforms[key];
+            for (var n = 0, ll = uniforms.seq.length; n < ll; n++) {
+                var uniform = uniforms.seq[n];
+                var key = uniform.id;
 
                 // upload custom uniforms
                 if(material.uniforms && material.uniforms[key] !== undefined) {
@@ -386,9 +386,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     case "scale":
                         uniform.setValue(material.scale);
                         break;
-                    case "clippingPlanes[0]":
+                    case "clippingPlanes":
                         var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
-                        gl.uniform4fv(uniform.location, planesData);
+                        uniform.set(planesData);
                         break;
                     case "uvTransform":
                         var uvScaleMap;
@@ -446,7 +446,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
                     var slot = this.allocTexUnit();
                     this.texture.setTexture2D(drawData.texture, slot);
-                    uniforms.spriteTexture.setValue(slot);
+                    uniforms.set("spriteTexture", slot);
     
                     gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
                     _offset += drawData.count * 6;
@@ -577,7 +577,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     uploadSkeleton: function(uniforms, object, programId) {
         if(object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
-            var gl = this.gl;
             var capabilities = this.capabilities;
 
             skeleton.updateBones();
@@ -609,179 +608,113 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(skeleton.boneTexture, slot);
     
-                if(uniforms["boneTexture"]) {
-                    uniforms["boneTexture"].setValue(slot);
-                }
-    
-                if(uniforms["boneTextureSize"]) {
-                    uniforms["boneTextureSize"].setValue(skeleton.boneTexture.image.width);
-                }
+                uniforms.set("boneTexture", slot);
+                uniforms.set("boneTextureSize", skeleton.boneTexture.image.width);
             } else {
-                // TODO a cache for uniform location
-                var location = gl.getUniformLocation(programId, "boneMatrices");
-                gl.uniformMatrix4fv(location, false, skeleton.boneMatrices);
+                uniforms.set("boneMatrices", skeleton.boneMatrices);
             }
 
-            uniforms["bindMatrix"].setValue(object.bindMatrix.elements);
-            uniforms["bindMatrixInverse"].setValue(object.bindMatrixInverse.elements);
+            uniforms.set("bindMatrix", object.bindMatrix.elements);
+            uniforms.set("bindMatrixInverse", object.bindMatrixInverse.elements);
         }
     },
 
     // Upload lights uniforms.
-    // TODO a better function for array & struct uniforms upload.
     uploadLights: function(uniforms, lights, receiveShadow, camera) {
-        var gl = this.gl;
     
-        if(lights.ambientsNum > 0) {
-            uniforms.u_AmbientLightColor.set(lights.ambient);
+        if (lights.ambientsNum > 0) {
+            uniforms.set("u_AmbientLightColor", lights.ambient);
         }
-    
-        for (var k = 0; k < lights.directsNum; k++) {
-            var light = lights.directional[k];
-    
-            var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"];
-            u_Directional_direction.set(light.direction);
-            var u_Directional_color = uniforms["u_Directional[" + k + "].color"];
-            u_Directional_color.set(light.color);
-    
-            var shadow = light.shadow && receiveShadow;
-    
-            var u_Directional_shadow = uniforms["u_Directional[" + k + "].shadow"];
-            u_Directional_shadow.setValue(shadow ? 1 : 0);
-    
-            if(shadow) {
-                var u_Directional_shadowBias = uniforms["u_Directional[" + k + "].shadowBias"];
-                u_Directional_shadowBias.setValue(light.shadowBias);
-                var u_Directional_shadowRadius = uniforms["u_Directional[" + k + "].shadowRadius"];
-                u_Directional_shadowRadius.setValue(light.shadowRadius);
-                var u_Directional_shadowMapSize = uniforms["u_Directional[" + k + "].shadowMapSize"];
-                u_Directional_shadowMapSize.set(light.shadowMapSize);
-    
-                var slot = this.allocTexUnit();
-                this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
-                directShadowMaps[k] = slot;
 
-                if (uniforms["directionalDepthMap[0]"]) {
+        if (lights.directsNum > 0) {
+            uniforms.set("u_Directional", lights.directional);
+
+            for (var k = 0; k < lights.directsNum; k++) {
+                var light = lights.directional[k];
+                var shadow = light.shadow && receiveShadow;
+                if(shadow) {
                     var slot = this.allocTexUnit();
-                    this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
-                    directDepthMaps[k] = slot;
+                    this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
+                    directShadowMaps[k] = slot;
+
+                    if (uniforms.has("directionalDepthMap")) {
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
+                        directDepthMaps[k] = slot;
+                    }
                 }
             }
-        }
-        if(directShadowMaps.length > 0) {
-            var directionalShadowMap = uniforms["directionalShadowMap[0]"];
-            gl.uniform1iv(directionalShadowMap.location, directShadowMaps);
-    
-            directShadowMaps.length = 0;
-    
-            var directionalShadowMatrix = uniforms["directionalShadowMatrix[0]"];
-            gl.uniformMatrix4fv(directionalShadowMatrix.location, false, lights.directionalShadowMatrix);
-        }
-        if (directDepthMaps.length > 0) {
-            var directionalDepthMap = uniforms["directionalDepthMap[0]"];
-            gl.uniform1iv(directionalDepthMap.location, directDepthMaps);
 
-            directDepthMaps.length = 0;
-        }
+            if(directShadowMaps.length > 0) {
+                uniforms.set("directionalShadowMap", directShadowMaps);
+        
+                directShadowMaps.length = 0;
+        
+                uniforms.set("directionalShadowMatrix", lights.directionalShadowMatrix);
+            }
+
+            if (directDepthMaps.length > 0) {
+                uniforms.set("directionalDepthMap", directDepthMaps);
     
-        for (var k = 0; k < lights.pointsNum; k++) {
-            var light = lights.point[k];
-    
-            var u_Point_position = uniforms["u_Point[" + k + "].position"];
-            u_Point_position.set(light.position);
-            var u_Point_color = uniforms["u_Point[" + k + "].color"];
-            u_Point_color.set(light.color);
-            var u_Point_distance = uniforms["u_Point[" + k + "].distance"];
-            u_Point_distance.setValue(light.distance);
-            var u_Point_decay = uniforms["u_Point[" + k + "].decay"];
-            u_Point_decay.setValue(light.decay);
-    
-            var shadow = light.shadow && receiveShadow;
-    
-            var u_Point_shadow = uniforms["u_Point[" + k + "].shadow"];
-            u_Point_shadow.setValue(shadow ? 1 : 0);
-    
-            if (shadow) {
-                var u_Point_shadowBias = uniforms["u_Point[" + k + "].shadowBias"];
-                u_Point_shadowBias.setValue(light.shadowBias);
-                var u_Point_shadowRadius = uniforms["u_Point[" + k + "].shadowRadius"];
-                u_Point_shadowRadius.setValue(light.shadowRadius);
-                var u_Point_shadowMapSize = uniforms["u_Point[" + k + "].shadowMapSize"];
-                u_Point_shadowMapSize.set(light.shadowMapSize);
-                var u_Point_shadowCameraNear = uniforms["u_Point[" + k + "].shadowCameraNear"];
-                u_Point_shadowCameraNear.setValue(light.shadowCameraNear);
-                var u_Point_shadowCameraFar = uniforms["u_Point[" + k + "].shadowCameraFar"];
-                u_Point_shadowCameraFar.setValue(light.shadowCameraFar);
-    
-                var slot = this.allocTexUnit();
-                this.texture.setTextureCube(lights.pointShadowMap[k], slot);
-                pointShadowMaps[k] = slot;
+                directDepthMaps.length = 0;
             }
         }
-        if(pointShadowMaps.length > 0) {
-            var pointShadowMap = uniforms["pointShadowMap[0]"];
-            gl.uniform1iv(pointShadowMap.location, pointShadowMaps);
     
-            pointShadowMaps.length = 0;
-        }
-    
-        for (var k = 0; k < lights.spotsNum; k++) {
-            var light = lights.spot[k];
-    
-            var u_Spot_position = uniforms["u_Spot[" + k + "].position"];
-            u_Spot_position.set(light.position);
-            var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"];
-            u_Spot_direction.set(light.direction);
-            var u_Spot_color = uniforms["u_Spot[" + k + "].color"];
-            u_Spot_color.set(light.color);
-            var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"];
-            u_Spot_distance.setValue(light.distance);
-            var u_Spot_decay = uniforms["u_Spot[" + k + "].decay"];
-            u_Spot_decay.setValue(light.decay);
-            var u_Spot_coneCos = uniforms["u_Spot[" + k + "].coneCos"];
-            u_Spot_coneCos.setValue(light.coneCos);
-            var u_Spot_penumbraCos = uniforms["u_Spot[" + k + "].penumbraCos"];
-            u_Spot_penumbraCos.setValue(light.penumbraCos);
-    
-            var shadow = light.shadow && receiveShadow;
-    
-            var u_Spot_shadow = uniforms["u_Spot[" + k + "].shadow"];
-            u_Spot_shadow.setValue(shadow ? 1 : 0);
-    
-            if (shadow) {
-                var u_Spot_shadowBias = uniforms["u_Spot[" + k + "].shadowBias"];
-                u_Spot_shadowBias.setValue(light.shadowBias);
-                var u_Spot_shadowRadius = uniforms["u_Spot[" + k + "].shadowRadius"];
-                u_Spot_shadowRadius.setValue(light.shadowRadius);
-                var u_Spot_shadowMapSize = uniforms["u_Spot[" + k + "].shadowMapSize"];
-                u_Spot_shadowMapSize.set(light.shadowMapSize);
-    
-                var slot = this.allocTexUnit();
-                this.texture.setTexture2D(lights.spotShadowMap[k], slot);
-                spotShadowMaps[k] = slot;
+        if (lights.pointsNum > 0) {
+            uniforms.set("u_Point", lights.point);
 
-                if (uniforms["spotDepthMap[0]"]) {
+            for (var k = 0; k < lights.pointsNum; k++) {
+                var light = lights.point[k];
+                var shadow = light.shadow && receiveShadow;
+                if (shadow) {
                     var slot = this.allocTexUnit();
-                    this.texture.setTexture2D(lights.spotDepthMap[k], slot);
-                    spotDepthMaps[k] = slot;
+                    this.texture.setTextureCube(lights.pointShadowMap[k], slot);
+                    pointShadowMaps[k] = slot;
                 }
             }
-        }
-        if(spotShadowMaps.length > 0) {
-            var spotShadowMap = uniforms["spotShadowMap[0]"];
-            gl.uniform1iv(spotShadowMap.location, spotShadowMaps);
-    
-            spotShadowMaps.length = 0;
-    
-            var spotShadowMatrix = uniforms["spotShadowMatrix[0]"];
-            gl.uniformMatrix4fv(spotShadowMatrix.location, false, lights.spotShadowMatrix);
-        }
-        if (spotDepthMaps.length > 0) {
-            var spotDepthMap = uniforms["spotDepthMap[0]"];
-            gl.uniform1iv(spotDepthMap.location, spotDepthMaps);
 
-            spotDepthMaps.length = 0;
+            if(pointShadowMaps.length > 0) {
+                uniforms.set("pointShadowMap", pointShadowMaps);
+        
+                pointShadowMaps.length = 0;
+            }
         }
+
+        if (lights.spotsNum > 0) {
+            uniforms.set("u_Spot", lights.spot);
+
+            for (var k = 0; k < lights.spotsNum; k++) {
+                var light = lights.spot[k];
+                var shadow = light.shadow && receiveShadow;
+
+                if (shadow) {
+                    var slot = this.allocTexUnit();
+                    this.texture.setTexture2D(lights.spotShadowMap[k], slot);
+                    spotShadowMaps[k] = slot;
+    
+                    if (uniforms.has("spotDepthMap")) {
+                        var slot = this.allocTexUnit();
+                        this.texture.setTexture2D(lights.spotDepthMap[k], slot);
+                        spotDepthMaps[k] = slot;
+                    }
+                }
+            }
+
+            if(spotShadowMaps.length > 0) {
+                uniforms.set("spotShadowMap", spotShadowMaps);
+        
+                spotShadowMaps.length = 0;
+        
+                uniforms.set("spotShadowMatrix", lights.spotShadowMatrix);
+            }
+
+            if (spotDepthMaps.length > 0) {
+                uniforms.set("spotDepthMap", spotDepthMaps);
+    
+                spotDepthMaps.length = 0;
+            }
+        }
+    
     },
 
     // Alloc texture unit.
