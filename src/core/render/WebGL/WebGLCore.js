@@ -641,8 +641,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
             var u_Directional_direction = uniforms["u_Directional[" + k + "].direction"];
             u_Directional_direction.set(light.direction);
-            var u_Directional_intensity = uniforms["u_Directional[" + k + "].intensity"];
-            u_Directional_intensity.setValue(1);
             var u_Directional_color = uniforms["u_Directional[" + k + "].color"];
             u_Directional_color.set(light.color);
     
@@ -691,8 +689,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
             var u_Point_position = uniforms["u_Point[" + k + "].position"];
             u_Point_position.set(light.position);
-            var u_Point_intensity = uniforms["u_Point[" + k + "].intensity"];
-            u_Point_intensity.setValue(1);
             var u_Point_color = uniforms["u_Point[" + k + "].color"];
             u_Point_color.set(light.color);
             var u_Point_distance = uniforms["u_Point[" + k + "].distance"];
@@ -736,8 +732,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             u_Spot_position.set(light.position);
             var u_Spot_direction = uniforms["u_Spot[" + k + "].direction"];
             u_Spot_direction.set(light.direction);
-            var u_Spot_intensity = uniforms["u_Spot[" + k + "].intensity"];
-            u_Spot_intensity.setValue(1);
             var u_Spot_color = uniforms["u_Spot[" + k + "].color"];
             u_Spot_color.set(light.color);
             var u_Spot_distance = uniforms["u_Spot[" + k + "].distance"];

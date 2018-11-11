@@ -2,7 +2,6 @@ struct SpotLight
 {
     vec3 position;
     vec4 color;
-    float intensity;
     float distance;
     float decay;
     float coneCos;

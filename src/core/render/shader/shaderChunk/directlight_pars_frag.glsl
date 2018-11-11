@@ -2,7 +2,6 @@ struct DirectLight
 {
     vec3 direction;
     vec4 color;
-    float intensity;
 
     int shadow;
     float shadowBias;

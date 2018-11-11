@@ -55,7 +55,7 @@
         #pragma unroll_loop
         for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
             L = -u_Directional[ i ].direction;
-            light = u_Directional[ i ].color * u_Directional[ i ].intensity;
+            light = u_Directional[ i ].color;
             L = normalize(L);
 
             dotNL = saturate( dot(N, L) );
@@ -95,7 +95,7 @@
         for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
             L = u_Point[ i ].position - v_modelPos;
             dist = pow(clamp(1. - length(L) / u_Point[ i ].distance, 0.0, 1.0), u_Point[ i ].decay);
-            light = u_Point[ i ].color * u_Point[ i ].intensity * dist;
+            light = u_Point[ i ].color * dist;
             L = normalize(L);
 
             dotNL = saturate( dot(N, L) );
@@ -141,7 +141,7 @@
 
                 spotEffect = smoothstep( u_Spot[ i ].coneCos, u_Spot[ i ].penumbraCos, angleCos );
                 dist = pow(clamp(1. - lightDistance / u_Spot[ i ].distance, 0.0, 1.0), u_Spot[ i ].decay);
-                light = u_Spot[ i ].color * u_Spot[ i ].intensity * dist * spotEffect;
+                light = u_Spot[ i ].color * dist * spotEffect;
 
                 dotNL = saturate( dot(N, L) );
                 irradiance = light * dotNL;
