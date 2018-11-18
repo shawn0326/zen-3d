@@ -185,7 +185,64 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             object.onBeforeRender(renderItem, material);
             beforeRender.call(this, renderItem, material);
     
-            var program = getProgram(this, camera, material, object, scene);
+            var materialProperties = this.properties.get(material);
+            materialProperties.lightsHash = materialProperties.lightsHash || {};
+            var lightsHash = materialProperties.lightsHash;
+            if ( material.needsUpdate === false ) {
+                if ( materialProperties.program === undefined ) {
+                    material.needsUpdate = true;
+                } else if ( materialProperties.fog !== scene.fog ) {
+                    material.needsUpdate = true;
+                } else if ( !!scene.lights && (scene.lights.ambientsNum !==  lightsHash.ambientsNum ||
+                    scene.lights.directsNum !==  lightsHash.directsNum ||
+                    scene.lights.pointsNum !==  lightsHash.pointsNum ||
+                    scene.lights.spotsNum !==  lightsHash.spotsNum ||
+                    scene.lights.shadowsNum !==  lightsHash.shadowsNum ||
+                    object.receiveShadow !== lightsHash.receiveShadow ||
+                    object.shadowType !== lightsHash.shadowType ) ) {
+                    material.needsUpdate = true;
+                } else if ( lightsHash.acceptLight !== (material.acceptLight && !!scene.lights) ) {
+                    material.needsUpdate = true;
+                } else if ( scene.clippingPlanes && scene.clippingPlanes.length !==  materialProperties.numClippingPlanes) {
+                    material.needsUpdate = true;
+                } else if ( camera.gammaInput !==  materialProperties.gammaInput ||
+                    camera.gammaOutput !==  materialProperties.gammaOutput ||
+                    camera.gammaFactor !==  materialProperties.gammaFactor ) {
+                    material.needsUpdate = true;
+                }
+            }
+            if ( material.needsUpdate ) {
+                materialProperties.program = getProgram(this, camera, material, object, scene);
+                materialProperties.fog = scene.fog;
+                
+                if (scene.lights) {
+                    lightsHash.acceptLight = material.acceptLight;
+                    lightsHash.ambientsNum = scene.lights.ambientsNum;
+                    lightsHash.directsNum = scene.lights.directsNum;
+                    lightsHash.pointsNum = scene.lights.pointsNum;
+                    lightsHash.spotsNum = scene.lights.spotsNum;
+                    lightsHash.shadowsNum = scene.lights.shadowsNum;
+                    lightsHash.receiveShadow = object.receiveShadow;
+                    lightsHash.shadowType = object.shadowType;
+                } else {
+                    lightsHash.acceptLight = false;
+                    lightsHash.ambientsNum = 0;
+                    lightsHash.directsNum = 0;
+                    lightsHash.pointsNum = 0;
+                    lightsHash.spotsNum = 0;
+                    lightsHash.shadowsNum = 0;
+                    lightsHash.receiveShadow = false;
+                    lightsHash.shadowType = "HARD";
+                }
+                    
+                materialProperties.numClippingPlanes = scene.clippingPlanes ? scene.clippingPlanes.length : 0;
+                materialProperties.gammaInput = camera.gammaInput;
+                materialProperties.gammaOutput = camera.gammaOutput;
+                materialProperties.gammaFactor = camera.gammaFactor;
+
+                material.needsUpdate = false;
+            }
+            var program = materialProperties.program;
             state.setProgram(program);
     
             var geometryProperties = this.geometry.setGeometry(geometry);

@@ -89,6 +89,8 @@
 				flatShading = !flatShading;
 
 				phong.shading = flatShading ? zen3d.SHADING_TYPE.FLAT_SHADING : zen3d.SHADING_TYPE.SMOOTH_SHADING;
+
+				phong.needsUpdate = true;
 			}
 
 			toggleShadow();

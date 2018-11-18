@@ -129,10 +129,12 @@
 
 				// render env map on six faces
 				phong.envMap = null;
+				phong.needsUpdate = true;
 				scene.updateMatrix(); // call update matrix
 				scene.updateLights(); // call update lights
 			    environmentMapPass.render(renderer.glCore, scene);
-			    phong.envMap = environmentMapPass.renderTexture;
+				phong.envMap = environmentMapPass.renderTexture;
+				phong.needsUpdate = true;
 
 				renderer.matrixAutoUpdate = false; // close auto update
         		renderer.lightsAutoupdate = false; // close auto update

@@ -1,5 +1,6 @@
 import {BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE} from '../const.js';
 import {Color3} from '../math/Color3.js';
+import {generateUUID} from '../base.js';
 
 /**
  * Abstract base class for materials.
@@ -14,6 +15,13 @@ function Material() {
 
     // material type
     this.type = "";
+
+    /**
+     * UUID of this material instance. 
+     * This gets automatically assigned, so this shouldn't be edited.
+     * @type {string}
+     */
+    this.uuid = generateUUID();
 
     /**
      * Float in the range of 0.0 - 1.0 indicating how transparent the material is. 
@@ -258,6 +266,14 @@ function Material() {
      * @default zen3d.DRAW_MODE.TRIANGLES
      */
     this.drawMode = DRAW_MODE.TRIANGLES;
+
+    /**
+     * Specifies that the material needs to be recompiled.
+     * This property is automatically set to true when instancing a new material.
+     * @type {boolean}
+     * @default true
+     */
+    this.needsUpdate = true;
 
 }
 
