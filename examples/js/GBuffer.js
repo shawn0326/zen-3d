@@ -159,6 +159,8 @@
                             mrtMaterial.metalnessMap = null;
                         }
 
+                        mrtMaterial.needsUpdate = true; // TODO
+
                         return mrtMaterial;
                     },
                     ifRender: function(renderable) {
@@ -213,6 +215,8 @@
                             normalGlossinessMaterial.roughnessMap = null;
                         }
 
+                        normalGlossinessMaterial.needsUpdate = true; // TODO
+
                         return normalGlossinessMaterial;
                     },
                     ifRender: function(renderable) {
@@ -250,6 +254,8 @@
                         } else {
                             albedoMetalnessMaterial.metalnessMap = null;
                         }
+
+                        albedoMetalnessMaterial.needsUpdate = true; // TODO
     
                         return albedoMetalnessMaterial;
                     },

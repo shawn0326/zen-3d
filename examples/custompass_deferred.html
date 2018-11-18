@@ -282,6 +282,7 @@
 								} else {
 									normalDepthShininessMaterial.uniforms["shininess"] = 30;
 								}
+								normalDepthShininessMaterial.needsUpdate = true;
 								return normalDepthShininessMaterial;
 
 							} else {
@@ -291,6 +292,7 @@
 								} else {
 									normalDepthMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
 								}
+								normalDepthMaterial.needsUpdate = true;
 								return normalDepthMaterial;
 
 							}
@@ -332,6 +334,8 @@
 								} else {
 									colorMaterial.uniforms["shininess"] = 30;
 								}
+
+								colorMaterial.needsUpdate = true;
 								
 								return colorMaterial;
 							},
@@ -540,6 +544,8 @@
 									} else {
 										reconstructionMaterial.uniforms["shininess"] = 30;
 									}
+
+									reconstructionMaterial.needsUpdate = true;
 									
 									return reconstructionMaterial;
 								} else {
