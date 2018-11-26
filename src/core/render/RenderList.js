@@ -7,16 +7,27 @@ var helpSphere = new Sphere();
 var sortFrontToBack = function(a, b) {
     if (a.renderOrder !== b.renderOrder) {
         return a.renderOrder - b.renderOrder;
-    } else {
+    } else if (a.material.id !== b.material.id) { 
+        // batch
+        return a.material.id - b.material.id;
+    } else if (a.z !== b.z) {
         return a.z - b.z;
+    } else {
+        return a.id - b.id;
     }
 }
 
 var sortBackToFront = function(a, b) {
     if (a.renderOrder !== b.renderOrder) {
         return a.renderOrder - b.renderOrder;
-    } else {
+    } else if (a.z !== b.z) {
         return b.z - a.z;
+    } else if (a.material.id !== b.material.id) { 
+        // fix Unstable sort below chrome version 7.0
+        // if render same object with different materials
+        return a.material.id - b.material.id;
+    } else {
+        return a.id - b.id;
     }
 }
 

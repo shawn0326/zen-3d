@@ -5686,6 +5686,8 @@ Texture3D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @l
 
 });
 
+var object3DId = 0;
+
 /**
  * This is the base class for most objects in zen3d
  * and provides a set of properties and methods for manipulating objects in 3D space.
@@ -5693,6 +5695,8 @@ Texture3D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @l
  * @memberof zen3d
  */
 function Object3D() {
+
+    Object.defineProperty( this, 'id', { value: object3DId ++ } );
 
     /**
      * UUID of this object instance. 
@@ -6934,6 +6938,8 @@ Object.assign(BufferAttribute.prototype, /** @lends zen3d.BufferAttribute.protot
 
 });
 
+var geometryId = 1;
+
 /**
  * An efficient representation of mesh, line, or point geometry. 
  * Includes vertex positions, face indices, normals, colors, UVs, and custom attributes within buffers, reducing the cost of passing all this data to the GPU.
@@ -6945,6 +6951,8 @@ Object.assign(BufferAttribute.prototype, /** @lends zen3d.BufferAttribute.protot
 function Geometry() {
 
     EventDispatcher.call(this);
+
+    Object.defineProperty( this, 'id', { value: geometryId ++ } );
 
     /**
      * UUID of this geometry instance. 
@@ -8018,6 +8026,8 @@ SphereGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
     }
 });
 
+var materialId = 0;
+
 /**
  * Abstract base class for materials.
  * Materials describe the appearance of {@link zen3d.Object3D}. 
@@ -8028,6 +8038,8 @@ SphereGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
  * @memberof zen3d
  */
 function Material() {
+
+    Object.defineProperty( this, 'id', { value: materialId ++ } );
 
     // material type
     this.type = "";
@@ -9251,7 +9263,7 @@ Object.assign(WebGLState.prototype, {
 
     setProgram: function(program) {
         if(this.currentProgram !== program) {
-            this.gl.useProgram(program.id);
+            this.gl.useProgram(program.program);
             this.currentProgram = program;
         }
     },
@@ -10436,8 +10448,12 @@ function extractAttributes(gl, program) {
     return attributes;
 }
 
+var programIdCount = 0;
+
 // WebGL Program Class
 function WebGLProgram(gl, vshader, fshader) {
+
+    this.id = programIdCount ++;
 
     this.uuid = generateUUID();
 
@@ -10453,12 +10469,12 @@ function WebGLProgram(gl, vshader, fshader) {
     // WebGL fragment shader
     var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, this.fshaderSource);
 
-    // program id
-    this.id = createWebGLProgram(gl, vertexShader, fragmentShader);
+    // program
+    this.program = createWebGLProgram(gl, vertexShader, fragmentShader);
 
-    this.uniforms = new WebGLUniforms(gl, this.id);
+    this.uniforms = new WebGLUniforms(gl, this.program);
 
-    this.attributes = extractAttributes(gl, this.id);
+    this.attributes = extractAttributes(gl, this.program);
 
     // here we can delete shaders,
     // according to the documentation: https://www.opengl.org/sdk/docs/man/html/glLinkProgram.xhtml
@@ -10467,7 +10483,8 @@ function WebGLProgram(gl, vshader, fshader) {
 }
 
 WebGLProgram.prototype.dispose = function(gl) {
-    gl.deleteProgram(this.id);
+    gl.deleteProgram(this.program);
+    this.program = undefined;
 };
 
 var alphaTest_frag = "#ifdef ALPHATEST\r\n\r\n\tif ( outColor.a < ALPHATEST ) discard;\r\n\r\n#endif";
@@ -11760,23 +11777,23 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             var geometryProperties = this.geometry.setGeometry(geometry);
 
             if (this.capabilities.version >= 2) { // use VAO
-                if (!geometryProperties._vaos[program.uuid]) {
-                    geometryProperties._vaos[program.uuid] = gl.createVertexArray();
-                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                if (!geometryProperties._vaos[program.id]) {
+                    geometryProperties._vaos[program.id] = gl.createVertexArray();
+                    gl.bindVertexArray(geometryProperties._vaos[program.id]);
                     this.setupVertexAttributes(program, geometry);
                 } else {
-                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                    gl.bindVertexArray(geometryProperties._vaos[program.id]);
                 }
             } else if (vaoExt) { // use VAO extension
-                if (!geometryProperties._vaos[program.uuid]) {
-                    geometryProperties._vaos[program.uuid] = vaoExt.createVertexArrayOES();
-                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                if (!geometryProperties._vaos[program.id]) {
+                    geometryProperties._vaos[program.id] = vaoExt.createVertexArrayOES();
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
                     this.setupVertexAttributes(program, geometry);
                 } else {
-                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
                 }
             } else {
-                var geometryProgram = program.uuid + "_" + geometry.uuid;
+                var geometryProgram = program.id + "_" + geometry.id;
                 if(geometryProgram !== this._currentGeometryProgram) {
                     this.setupVertexAttributes(program, geometry);
                     this._currentGeometryProgram = geometryProgram;
@@ -11978,7 +11995,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
             // boneMatrices
             if(object.type === OBJECT_TYPE.SKINNED_MESH) {
-                this.uploadSkeleton(uniforms, object, program.id);
+                this.uploadSkeleton(uniforms, object, program.program);
             }
     
             if (material.acceptLight && scene.lights) {
@@ -13251,16 +13268,27 @@ var helpSphere = new Sphere();
 var sortFrontToBack = function(a, b) {
     if (a.renderOrder !== b.renderOrder) {
         return a.renderOrder - b.renderOrder;
-    } else {
+    } else if (a.material.id !== b.material.id) { 
+        // batch
+        return a.material.id - b.material.id;
+    } else if (a.z !== b.z) {
         return a.z - b.z;
+    } else {
+        return a.id - b.id;
     }
 };
 
 var sortBackToFront = function(a, b) {
     if (a.renderOrder !== b.renderOrder) {
         return a.renderOrder - b.renderOrder;
-    } else {
+    } else if (a.z !== b.z) {
         return b.z - a.z;
+    } else if (a.material.id !== b.material.id) { 
+        // fix Unstable sort below chrome version 7.0
+        // if render same object with different materials
+        return a.material.id - b.material.id;
+    } else {
+        return a.id - b.id;
     }
 };
 

@@ -5,6 +5,8 @@ import {Euler} from '../math/Euler.js';
 import {Quaternion} from '../math/Quaternion.js';
 import {Matrix4} from '../math/Matrix4.js';
 
+var object3DId = 0;
+
 /**
  * This is the base class for most objects in zen3d
  * and provides a set of properties and methods for manipulating objects in 3D space.
@@ -12,6 +14,8 @@ import {Matrix4} from '../math/Matrix4.js';
  * @memberof zen3d
  */
 function Object3D() {
+
+    Object.defineProperty( this, 'id', { value: object3DId ++ } );
 
     /**
      * UUID of this object instance. 

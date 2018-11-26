@@ -4,6 +4,8 @@ import {Box3} from '../math/Box3.js';
 import {Sphere} from '../math/Sphere.js';
 import {BufferAttribute} from './BufferAttribute.js';
 
+var geometryId = 1;
+
 /**
  * An efficient representation of mesh, line, or point geometry. 
  * Includes vertex positions, face indices, normals, colors, UVs, and custom attributes within buffers, reducing the cost of passing all this data to the GPU.
@@ -15,6 +17,8 @@ import {BufferAttribute} from './BufferAttribute.js';
 function Geometry() {
 
     EventDispatcher.call(this);
+
+    Object.defineProperty( this, 'id', { value: geometryId ++ } );
 
     /**
      * UUID of this geometry instance. 

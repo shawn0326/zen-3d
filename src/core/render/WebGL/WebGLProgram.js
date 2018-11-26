@@ -67,8 +67,12 @@ function extractAttributes(gl, program) {
     return attributes;
 }
 
+var programIdCount = 0;
+
 // WebGL Program Class
 function WebGLProgram(gl, vshader, fshader) {
+
+    this.id = programIdCount ++;
 
     this.uuid = generateUUID();
 
@@ -84,12 +88,12 @@ function WebGLProgram(gl, vshader, fshader) {
     // WebGL fragment shader
     var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, this.fshaderSource);
 
-    // program id
-    this.id = createWebGLProgram(gl, vertexShader, fragmentShader);
+    // program
+    this.program = createWebGLProgram(gl, vertexShader, fragmentShader);
 
-    this.uniforms = new WebGLUniforms(gl, this.id);
+    this.uniforms = new WebGLUniforms(gl, this.program);
 
-    this.attributes = extractAttributes(gl, this.id);
+    this.attributes = extractAttributes(gl, this.program);
 
     // here we can delete shaders,
     // according to the documentation: https://www.opengl.org/sdk/docs/man/html/glLinkProgram.xhtml
@@ -98,7 +102,8 @@ function WebGLProgram(gl, vshader, fshader) {
 }
 
 WebGLProgram.prototype.dispose = function(gl) {
-    gl.deleteProgram(this.id);
+    gl.deleteProgram(this.program);
+    this.program = undefined;
 }
 
 export {WebGLProgram};

@@ -299,7 +299,7 @@ Object.assign(WebGLState.prototype, {
 
     setProgram: function(program) {
         if(this.currentProgram !== program) {
-            this.gl.useProgram(program.id);
+            this.gl.useProgram(program.program);
             this.currentProgram = program;
         }
     },

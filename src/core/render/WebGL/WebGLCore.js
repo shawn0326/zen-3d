@@ -248,23 +248,23 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             var geometryProperties = this.geometry.setGeometry(geometry);
 
             if (this.capabilities.version >= 2) { // use VAO
-                if (!geometryProperties._vaos[program.uuid]) {
-                    geometryProperties._vaos[program.uuid] = gl.createVertexArray();
-                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                if (!geometryProperties._vaos[program.id]) {
+                    geometryProperties._vaos[program.id] = gl.createVertexArray();
+                    gl.bindVertexArray(geometryProperties._vaos[program.id]);
                     this.setupVertexAttributes(program, geometry);
                 } else {
-                    gl.bindVertexArray(geometryProperties._vaos[program.uuid]);
+                    gl.bindVertexArray(geometryProperties._vaos[program.id]);
                 }
             } else if (vaoExt) { // use VAO extension
-                if (!geometryProperties._vaos[program.uuid]) {
-                    geometryProperties._vaos[program.uuid] = vaoExt.createVertexArrayOES();
-                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                if (!geometryProperties._vaos[program.id]) {
+                    geometryProperties._vaos[program.id] = vaoExt.createVertexArrayOES();
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
                     this.setupVertexAttributes(program, geometry);
                 } else {
-                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.uuid]);
+                    vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
                 }
             } else {
-                var geometryProgram = program.uuid + "_" + geometry.uuid;
+                var geometryProgram = program.id + "_" + geometry.id;
                 if(geometryProgram !== this._currentGeometryProgram) {
                     this.setupVertexAttributes(program, geometry);
                     this._currentGeometryProgram = geometryProgram;
@@ -466,7 +466,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     
             // boneMatrices
             if(object.type === OBJECT_TYPE.SKINNED_MESH) {
-                this.uploadSkeleton(uniforms, object, program.id);
+                this.uploadSkeleton(uniforms, object, program.program);
             }
     
             if (material.acceptLight && scene.lights) {

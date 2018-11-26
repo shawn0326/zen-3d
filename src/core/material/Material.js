@@ -2,6 +2,8 @@ import {BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE
 import {Color3} from '../math/Color3.js';
 import {generateUUID} from '../base.js';
 
+var materialId = 0;
+
 /**
  * Abstract base class for materials.
  * Materials describe the appearance of {@link zen3d.Object3D}. 
@@ -12,6 +14,8 @@ import {generateUUID} from '../base.js';
  * @memberof zen3d
  */
 function Material() {
+
+    Object.defineProperty( this, 'id', { value: materialId ++ } );
 
     // material type
     this.type = "";
