@@ -36,6 +36,7 @@ var files = {
 		"material_transparent",
 		"material_shadermaterial",
 		"material_shader_sky",
+		"material_shader_xray",
 		"material_flatshading",
 		"material_vertexcolors",
 		"material_earth"
