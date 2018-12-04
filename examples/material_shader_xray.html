@@ -19,11 +19,15 @@
 			text-align:center;
 			color: white;
 		}
+		.bar {
+			background: lightgreen;
+		}
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./files/dat.gui.min.js"></script>
+	<script src="./files/nanobar.min.js"></script>
 </head>
 <body>
 
@@ -99,8 +103,20 @@
 
 			var material = new zen3d.ShaderMaterial(shader);
 
+			var nanobar = new Nanobar();
+			nanobar.el.style.background = "gray";
+
+			var loadingManager = new zen3d.LoadingManager(function() {
+				nanobar.go(100);
+				nanobar.el.style.background = "transparent";
+			}, function(url, itemsLoaded, itemsTotal) {
+				if (itemsLoaded < itemsTotal) {
+					nanobar.go(itemsLoaded / itemsTotal * 100);
+				}
+			});
+
 			var file = "resources/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
-			var loader = new zen3d.GLTFLoader();
+			var loader = new zen3d.GLTFLoader(loadingManager);
 			loader.load(file, function(result) {
 				// add mesh to scene
 				let object = result.scene.children[0];

@@ -4631,13 +4631,117 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
 });
 
 /**
+ * Handles and keeps track of loaded and pending data. A default global instance of this class is created and used by loaders if not supplied manually - see {@link zen3d.DefaultLoadingManager}.
+ * In general that should be sufficient, however there are times when it can be useful to have seperate loaders - for example if you want to show seperate loading bars for objects and textures.
+ * @constructor
+ * @author mrdoob / http://mrdoob.com/
+ * @param {Function} onLoad — (optional) this function will be called when all loaders are done.
+ * @param {Function} onProgress — (optional) this function will be called when an item is complete.
+ * @param {Function} onError — (optional) this function will be called a loader encounters errors. 
+ */
+
+function LoadingManager( onLoad, onProgress, onError ) {
+
+	var scope = this;
+
+	var isLoading = false;
+	var itemsLoaded = 0;
+	var itemsTotal = 0;
+	var urlModifier = undefined;
+
+	// Refer to #5689 for the reason why we don't set .onStart
+	// in the constructor
+
+	this.onStart = undefined;
+	this.onLoad = onLoad;
+	this.onProgress = onProgress;
+	this.onError = onError;
+
+	this.itemStart = function ( url ) {
+
+		itemsTotal ++;
+
+		if ( isLoading === false ) {
+
+			if ( scope.onStart !== undefined ) {
+
+				scope.onStart( url, itemsLoaded, itemsTotal );
+
+			}
+
+		}
+
+		isLoading = true;
+
+	};
+
+	this.itemEnd = function ( url ) {
+
+		itemsLoaded ++;
+
+		if ( scope.onProgress !== undefined ) {
+
+			scope.onProgress( url, itemsLoaded, itemsTotal );
+
+		}
+
+		if ( itemsLoaded === itemsTotal ) {
+
+			isLoading = false;
+
+			if ( scope.onLoad !== undefined ) {
+
+				scope.onLoad();
+
+			}
+
+		}
+
+	};
+
+	this.itemError = function ( url ) {
+
+		if ( scope.onError !== undefined ) {
+
+			scope.onError( url );
+
+		}
+
+	};
+
+	this.resolveURL = function ( url ) {
+
+		if ( urlModifier ) {
+
+			return urlModifier( url );
+
+		}
+
+		return url;
+
+	};
+
+	this.setURLModifier = function ( transform ) {
+
+		urlModifier = transform;
+		return this;
+
+	};
+
+}
+
+var DefaultLoadingManager = new LoadingManager();
+
+/**
  * A loader for loading an Image.
  * @constructor
  * @memberof zen3d
+ * @param {zen3d.LoadingManager} manager — The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.
  */
-function ImageLoader() {
+function ImageLoader(manager) {
     this.crossOrigin = undefined;
     this.path = undefined;
+    this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 }
 
 Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
@@ -4653,23 +4757,43 @@ Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
         if (url === undefined) url = '';
         if (this.path !== undefined) url = this.path + url;
 
+        url = this.manager.resolveURL(url);
+
+        var scope = this;
+
         var image = document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
 
-        image.addEventListener('load', function() {
-            if (onLoad) onLoad(this);
-        }, false);
+        function onImageLoad() {
 
-        // image.addEventListener('progress', function(event) {
-        //     if (onProgress) onProgress(event);
-        // }, false);
+            image.removeEventListener( 'load', onImageLoad, false );
+            image.removeEventListener( 'error', onImageError, false );
+            
+            if (onLoad) onLoad( this );
 
-        image.addEventListener('error', function(event) {
-            if (onError) onError(event);
-        }, false);
+            scope.manager.itemEnd( url );
+
+        }
+
+        function onImageError( event ) {
+
+            image.removeEventListener( 'load', onImageLoad, false );
+            image.removeEventListener( 'error', onImageError, false );
+            
+            if (onError) onError( event );
+
+            scope.manager.itemError( url );
+            scope.manager.itemEnd( url );
+            
+        }
+
+        image.addEventListener( 'load', onImageLoad, false );
+		image.addEventListener( 'error', onImageError, false );
 
         if (url.substr(0, 5) !== 'data:') {
             if (this.crossOrigin !== undefined) image.crossOrigin = this.crossOrigin;
         }
+
+        scope.manager.itemStart( url );
 
         image.src = url;
 
@@ -4705,13 +4829,15 @@ Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
  * It can also be used directly to load any file type that does not have a loader.
  * @constructor
  * @memberof zen3d
+ * @param {zen3d.LoadingManager} manager — The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.
  */
-function FileLoader() {
+function FileLoader(manager) {
     this.path = undefined;
     this.responseType = undefined;
     this.withCredentials = undefined;
     this.mimeType = undefined;
     this.requestHeader = undefined;
+    this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 }
 
 Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
@@ -4726,6 +4852,10 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
     load: function(url, onLoad, onProgress, onError) {
         if (url === undefined) url = '';
         if (this.path != undefined) url = this.path + url;
+
+        url = this.manager.resolveURL( url );
+
+        var scope = this;
 
         // Check for data: URI
         var dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
@@ -4769,11 +4899,14 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
                 // Wait for next browser tick
                 window.setTimeout(function() {
                     if (onLoad) onLoad(response);
+                    scope.manager.itemEnd( url );
                 }, 0);
             } catch (error) {
                 // Wait for next browser tick
                 window.setTimeout(function() {
                     onError && onError(error);
+                    scope.manager.itemError( url );
+					scope.manager.itemEnd( url );
                 }, 0);
             }
         } else {
@@ -4784,13 +4917,17 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
                 var response = event.target.response;
                 if (this.status === 200) {
                     if (onLoad) onLoad(response);
+                    scope.manager.itemEnd( url );
                 } else if (this.status === 0) {
                     // Some browsers return HTTP Status 0 when using non-http protocol
                     // e.g. 'file://' or 'data://'. Handle as success.
                     console.warn('THREE.FileLoader: HTTP Status 0 received.');
                     if (onLoad) onLoad(response);
+                    scope.manager.itemEnd( url );
                 } else {
                     if (onError) onError(event);
+                    scope.manager.itemError( url );
+					scope.manager.itemEnd( url );
                 }
             }, false);
 
@@ -4803,6 +4940,8 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
             if (onError !== undefined) {
                 request.addEventListener('error', function(event) {
                     onError(event);
+                    scope.manager.itemError( url );
+				    scope.manager.itemEnd( url );
                 }, false);
             }
 
@@ -4815,6 +4954,10 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 
             request.send(null);
         }
+
+        scope.manager.itemStart( url );
+
+        return request;
     },
 
     /**
@@ -4883,8 +5026,11 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
  * A loader for loading a .tga Image.
  * @constructor
  * @memberof zen3d
+ * @param {zen3d.LoadingManager} manager — The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.
  */
-function TGALoader() {
+function TGALoader(manager) {
+
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 
 }
 
@@ -4900,7 +5046,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 	load: function(url, onLoad, onProgress, onError) {
 		var that = this;
 
-		var loader = new FileLoader();
+		var loader = new FileLoader( this.manager );
 		loader.setResponseType('arraybuffer');
 		loader.load(url, function(buffer) {
 			if (onLoad !== undefined) {
@@ -14864,4 +15010,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
  * @namespace zen3d
  */
 
-export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniforms, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_TEXTURE_COMPARE, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };
+export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniforms, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, DefaultLoadingManager, LoadingManager, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_TEXTURE_COMPARE, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };

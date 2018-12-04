@@ -113,6 +113,7 @@ export {Camera} from './objects/camera/Camera.js';
 export {Mesh} from './objects/Mesh.js';
 export {SkinnedMesh} from './objects/SkinnedMesh.js';
 
+export { DefaultLoadingManager, LoadingManager } from './loader/LoadingManager.js';
 export {FileLoader} from './loader/FileLoader.js';
 export {ImageLoader} from './loader/ImageLoader.js';
 export {TGALoader} from './loader/TGALoader.js';

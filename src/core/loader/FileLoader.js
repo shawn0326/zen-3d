@@ -1,15 +1,19 @@
+import {DefaultLoadingManager} from './LoadingManager.js';
+
 /**
  * A low level class for loading resources with XMLHttpRequest, used internaly by most loaders. 
  * It can also be used directly to load any file type that does not have a loader.
  * @constructor
  * @memberof zen3d
+ * @param {zen3d.LoadingManager} manager — The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.
  */
-function FileLoader() {
+function FileLoader(manager) {
     this.path = undefined;
     this.responseType = undefined;
     this.withCredentials = undefined;
     this.mimeType = undefined;
     this.requestHeader = undefined;
+    this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 }
 
 Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
@@ -24,6 +28,10 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
     load: function(url, onLoad, onProgress, onError) {
         if (url === undefined) url = '';
         if (this.path != undefined) url = this.path + url;
+
+        url = this.manager.resolveURL( url );
+
+        var scope = this;
 
         // Check for data: URI
         var dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
@@ -67,11 +75,14 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
                 // Wait for next browser tick
                 window.setTimeout(function() {
                     if (onLoad) onLoad(response);
+                    scope.manager.itemEnd( url );
                 }, 0);
             } catch (error) {
                 // Wait for next browser tick
                 window.setTimeout(function() {
                     onError && onError(error);
+                    scope.manager.itemError( url );
+					scope.manager.itemEnd( url );
                 }, 0);
             }
         } else {
@@ -82,13 +93,17 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
                 var response = event.target.response;
                 if (this.status === 200) {
                     if (onLoad) onLoad(response);
+                    scope.manager.itemEnd( url );
                 } else if (this.status === 0) {
                     // Some browsers return HTTP Status 0 when using non-http protocol
                     // e.g. 'file://' or 'data://'. Handle as success.
                     console.warn('THREE.FileLoader: HTTP Status 0 received.');
                     if (onLoad) onLoad(response);
+                    scope.manager.itemEnd( url );
                 } else {
                     if (onError) onError(event);
+                    scope.manager.itemError( url );
+					scope.manager.itemEnd( url );
                 }
             }, false);
 
@@ -101,6 +116,8 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
             if (onError !== undefined) {
                 request.addEventListener('error', function(event) {
                     onError(event);
+                    scope.manager.itemError( url );
+				    scope.manager.itemEnd( url );
                 }, false);
             }
 
@@ -113,6 +130,10 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 
             request.send(null);
         }
+
+        scope.manager.itemStart( url );
+
+        return request;
     },
 
     /**

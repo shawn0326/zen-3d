@@ -69,8 +69,8 @@
      * @author Takahiro / https://github.com/takahirox
      * @author Don McCurdy / https://www.donmccurdy.com
      */
-    var GLTFLoader = function() {
-
+    var GLTFLoader = function(manager) {
+        this.manager = ( manager !== undefined ) ? manager : zen3d.DefaultLoadingManager;
     }
 
     GLTFLoader.prototype.load = function(url, onLoad, onProgress, onError) {
@@ -78,13 +78,43 @@
 
         var path = extractUrlBase(url);
 
+        // Tells the LoadingManager to track an extra item, which resolves after
+        // the model is fully loaded. This means the count of items loaded will
+        // be incorrect, but ensures manager.onLoad() does not fire early.
+        that.manager.itemStart( url );
+
+        var _onError = function ( e ) {
+
+            if ( onError ) {
+
+                onError( e );
+
+            } else {
+
+                console.error( e );
+
+            }
+
+            that.manager.itemError( url );
+            that.manager.itemEnd( url );
+
+        };
+
         var loader = new zen3d.FileLoader();
         loader.setResponseType('arraybuffer');
         loader.load(url, function(buffer) {
-            if (onLoad !== undefined) {
-                that.parse(buffer, path, onLoad, onError);
-            }
-        }, onProgress, onError);
+
+            that.parse(buffer, path, function(gltf) {
+
+                if (onLoad !== undefined) {
+                    onLoad( gltf );
+                }
+
+                that.manager.itemEnd( url );
+
+            }, _onError);
+
+        }, onProgress, _onError);
     }
 
     GLTFLoader.prototype.parse = function(data, path, onLoad, onError) {
@@ -144,7 +174,8 @@
         console.time('GLTFLoader');
 
         var glTFParser = new GLTFParser(json, extensions, {
-            path: path
+            path: path,
+            manager: this.manager
         });
 
         glTFParser.parse(function(scene, scenes, cameras, animations, asset) {
@@ -201,9 +232,9 @@
         // Geometry caching
         this.primitiveCache = [];
 
-        this.textureLoader = new zen3d.ImageLoader();
+        this.textureLoader = new zen3d.ImageLoader( this.options.manager );
 
-        this.fileLoader = new zen3d.FileLoader();
+        this.fileLoader = new zen3d.FileLoader( this.options.manager );
         this.fileLoader.setResponseType('arraybuffer');
     }
 

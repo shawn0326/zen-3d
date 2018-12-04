@@ -1,11 +1,15 @@
 import {FileLoader} from './FileLoader.js';
+import {DefaultLoadingManager} from './LoadingManager.js';
 
 /**
  * A loader for loading a .tga Image.
  * @constructor
  * @memberof zen3d
+ * @param {zen3d.LoadingManager} manager — The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.
  */
-function TGALoader() {
+function TGALoader(manager) {
+
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 
 }
 
@@ -21,7 +25,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 	load: function(url, onLoad, onProgress, onError) {
 		var that = this;
 
-		var loader = new FileLoader();
+		var loader = new FileLoader( this.manager );
 		loader.setResponseType('arraybuffer');
 		loader.load(url, function(buffer) {
 			if (onLoad !== undefined) {

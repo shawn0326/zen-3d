@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: EventDispatcher.js</title>
+    <title>JSDoc: Class: LoadingManager</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,98 +17,237 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: EventDispatcher.js</h1>
+    <h1 class="page-title">Class: LoadingManager</h1>
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * JavaScript events for custom objects.
- * @memberof zen3d
- * @constructor
- */
-function EventDispatcher() {
+        <h2><span class="attribs"><span class="type-signature"></span></span>LoadingManager<span class="signature">(onLoad, onProgress, onError)</span><span class="type-signature"></span></h2>
+        
+    
+</header>
 
-    this.eventMap = {};
+<article>
+    <div class="container-overview">
+    
+        
 
-}
+    
 
-Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.prototype */{
+    
+    <h4 class="name" id="LoadingManager"><span class="type-signature"></span>new LoadingManager<span class="signature">(onLoad, onProgress, onError)</span><span class="type-signature"></span></h4>
+    
 
-    /**
-     * Adds a listener to an event type.
-     * @param {string} type - The type of event to listen to.
-     * @param {function} listener - The function that gets called when the event is fired.
-     * @param {Object} [thisObject = this] - The Object of calling listener method.
-     */
-    addEventListener: function(type, listener, thisObject) {
-        var list = this.eventMap[type];
+    
 
-        if(!list) {
-            list = this.eventMap[type] = [];
-        }
 
-        list.push({listener: listener, thisObject: thisObject || this});
-    },
 
-    /**
-     * Removes a listener from an event type.
-     * @param {string} type - The type of the listener that gets removed.
-     * @param {function} listener - The listener function that gets removed.
-     * @param {Object} [thisObject = this] thisObject - The Object of calling listener method.
-     */
-    removeEventListener: function(type, listener, thisObject) {
-        var list = this.eventMap[type];
+<div class="description">
+    Handles and keeps track of loaded and pending data. A default global instance of this class is created and used by loaders if not supplied manually - see zen3d.DefaultLoadingManager.In general that should be sufficient, however there are times when it can be useful to have seperate loaders - for example if you want to show seperate loading bars for objects and textures.
+</div>
 
-        if(!list) {
-            return;
-        }
 
-        for(var i = 0, len = list.length; i &lt; len; i++) {
-            var bin = list[i];
-            if(bin.listener == listener &amp;&amp; bin.thisObject == (thisObject || this)) {
-                list.splice(i, 1);
-                break;
-            }
-        }
-    },
 
-    /**
-     * Fire an event type.
-     * @param {Object} event - The event that gets fired.
-     */
-    dispatchEvent: function(event) {
-        event.target = this;
-        this.notifyListener(event);
-    },
 
-    /**
-     * notify listener
-     * @private
-     * @param {Object} event - The event that gets fired.
-     */
-    notifyListener: function(event) {
-        var list = this.eventMap[event.type];
 
-        if(!list) {
-            return;
-        }
 
-        for(var i = 0, len = list.length; i &lt; len; i++) {
-            var bin = list[i];
-            bin.listener.call(bin.thisObject, event);
-        }
-    }
 
-});
 
-export {EventDispatcher};</code></pre>
-        </article>
-    </section>
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>onLoad</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">— (optional) this function will be called when all loaders are done.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>onProgress</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">— (optional) this function will be called when an item is complete.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>onError</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">— (optional) this function will be called a loader encounters errors.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>mrdoob / http://mrdoob.com/</li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="loader_LoadingManager.js.html">loader/LoadingManager.js</a>, <a href="loader_LoadingManager.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

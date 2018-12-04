@@ -19,12 +19,16 @@
 			text-align:center;
 			color: white;
 		}
+		.bar {
+			background: lightgreen;
+		}
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/shaders/SkyBoxShader.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
+	<script src="./files/nanobar.min.js"></script>
 </head>
 <body>
 
@@ -64,7 +68,19 @@
 
 			let objectMaterial;
 
-			var loader = new zen3d.GLTFLoader();
+			var nanobar = new Nanobar();
+			nanobar.el.style.background = "gray";
+
+			var loadingManager = new zen3d.LoadingManager(function() {
+				nanobar.go(100);
+				nanobar.el.style.background = "transparent";
+			}, function(url, itemsLoaded, itemsTotal) {
+				if (itemsLoaded < itemsTotal) {
+					nanobar.go(itemsLoaded / itemsTotal * 100);
+				}
+			});
+
+			var loader = new zen3d.GLTFLoader(loadingManager);
 			loader.load(file, function(result) {
 				console.log(result);
 				// add mesh to scene
