@@ -8420,6 +8420,28 @@ function Material() {
     this.side = DRAW_SIDE.FRONT;
 
     /**
+     * Whether to use polygon offset. 
+     * This corresponds to the GL_POLYGON_OFFSET_FILL WebGL feature.
+     * @type {boolean}
+     * @default false
+     */
+    this.polygonOffset = false;
+
+    /**
+     * Sets the polygon offset factor.
+     * @type {number}
+     * @default 0
+     */
+    this.polygonOffsetFactor = 0;
+    
+    /**
+     * Sets the polygon offset units.
+     * @type {number}
+     * @default 0
+     */
+	this.polygonOffsetUnits = 0;
+
+    /**
      * Define whether the material is rendered with flat shading or smooth shading.
      * @type {zen3d.SHADING_TYPE}
      * @default zen3d.SHADING_TYPE.SMOOTH_SHADING
@@ -9166,6 +9188,9 @@ function WebGLState(gl, capabilities) {
 
     this.currentLineWidth = null;
 
+    this.currentPolygonOffsetFactor = null;
+    this.currentPolygonOffsetUnits = null;
+
     this.currentProgram = null;
 
     this.currentStencilMask = null;
@@ -9406,6 +9431,31 @@ Object.assign(WebGLState.prototype, {
             this.currentLineWidth = width;
         }
     },
+
+    setPolygonOffset: function( polygonOffset, factor, units ) {
+
+        var gl = this.gl;
+
+		if ( polygonOffset ) {
+
+			this.enable( gl.POLYGON_OFFSET_FILL );
+
+			if ( this.currentPolygonOffsetFactor !== factor || this.currentPolygonOffsetUnits !== units ) {
+
+				gl.polygonOffset( factor, units );
+
+				this.currentPolygonOffsetFactor = factor;
+				this.currentPolygonOffsetUnits = units;
+
+			}
+
+		} else {
+
+			this.disable( gl.POLYGON_OFFSET_FILL );
+
+		}
+
+	},
 
     setProgram: function(program) {
         if(this.currentProgram !== program) {
@@ -12247,6 +12297,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         if(material.lineWidth !== undefined) {
             state.setLineWidth(material.lineWidth);
         }
+
+        state.setPolygonOffset( material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits );
     },
 
     // GL draw.

@@ -56,6 +56,9 @@ function WebGLState(gl, capabilities) {
 
     this.currentLineWidth = null;
 
+    this.currentPolygonOffsetFactor = null;
+    this.currentPolygonOffsetUnits = null;
+
     this.currentProgram = null;
 
     this.currentStencilMask = null
@@ -296,6 +299,31 @@ Object.assign(WebGLState.prototype, {
             this.currentLineWidth = width;
         }
     },
+
+    setPolygonOffset: function( polygonOffset, factor, units ) {
+
+        var gl = this.gl;
+
+		if ( polygonOffset ) {
+
+			this.enable( gl.POLYGON_OFFSET_FILL );
+
+			if ( this.currentPolygonOffsetFactor !== factor || this.currentPolygonOffsetUnits !== units ) {
+
+				gl.polygonOffset( factor, units );
+
+				this.currentPolygonOffsetFactor = factor;
+				this.currentPolygonOffsetUnits = units;
+
+			}
+
+		} else {
+
+			this.disable( gl.POLYGON_OFFSET_FILL );
+
+		}
+
+	},
 
     setProgram: function(program) {
         if(this.currentProgram !== program) {

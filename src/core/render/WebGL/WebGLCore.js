@@ -572,6 +572,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         if(material.lineWidth !== undefined) {
             state.setLineWidth(material.lineWidth);
         }
+
+        state.setPolygonOffset( material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits );
     },
 
     // GL draw.

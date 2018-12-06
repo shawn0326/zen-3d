@@ -250,6 +250,28 @@ function Material() {
     this.side = DRAW_SIDE.FRONT;
 
     /**
+     * Whether to use polygon offset. 
+     * This corresponds to the GL_POLYGON_OFFSET_FILL WebGL feature.
+     * @type {boolean}
+     * @default false
+     */
+    this.polygonOffset = false;
+
+    /**
+     * Sets the polygon offset factor.
+     * @type {number}
+     * @default 0
+     */
+    this.polygonOffsetFactor = 0;
+    
+    /**
+     * Sets the polygon offset units.
+     * @type {number}
+     * @default 0
+     */
+	this.polygonOffsetUnits = 0;
+
+    /**
      * Define whether the material is rendered with flat shading or smooth shading.
      * @type {zen3d.SHADING_TYPE}
      * @default zen3d.SHADING_TYPE.SMOOTH_SHADING

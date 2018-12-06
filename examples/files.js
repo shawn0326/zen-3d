@@ -106,6 +106,7 @@ var files = {
 	],
 	"webgl": [
 		"webgl_clippingplanes",
-		"webgl_instanced_draw"
+		"webgl_instanced_draw",
+		"webgl_polygonoffset"
 	]
 };
