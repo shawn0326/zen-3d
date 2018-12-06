@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: SphereGeometry</title>
+    <title>JSDoc: Class: TorusKnotGeometry</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: SphereGeometry</h1>
+    <h1 class="page-title">Class: TorusKnotGeometry</h1>
 
     
 
@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>SphereGeometry<span class="signature">(radius<span class="signature-attributes">opt</span>, widthSegments<span class="signature-attributes">opt</span>, heightSegments<span class="signature-attributes">opt</span>, phiStart<span class="signature-attributes">opt</span>, phiLength<span class="signature-attributes">opt</span>, thetaStart<span class="signature-attributes">opt</span>, thetaLength<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>TorusKnotGeometry<span class="signature">(radius<span class="signature-attributes">opt</span>, tube<span class="signature-attributes">opt</span>, tubularSegments<span class="signature-attributes">opt</span>, radialSegments<span class="signature-attributes">opt</span>, p<span class="signature-attributes">opt</span>, q<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -42,7 +42,7 @@
     
 
     
-    <h4 class="name" id="SphereGeometry"><span class="type-signature"></span>new SphereGeometry<span class="signature">(radius<span class="signature-attributes">opt</span>, widthSegments<span class="signature-attributes">opt</span>, heightSegments<span class="signature-attributes">opt</span>, phiStart<span class="signature-attributes">opt</span>, phiLength<span class="signature-attributes">opt</span>, thetaStart<span class="signature-attributes">opt</span>, thetaLength<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="TorusKnotGeometry"><span class="type-signature"></span>new TorusKnotGeometry<span class="signature">(radius<span class="signature-attributes">opt</span>, tube<span class="signature-attributes">opt</span>, tubularSegments<span class="signature-attributes">opt</span>, radialSegments<span class="signature-attributes">opt</span>, p<span class="signature-attributes">opt</span>, q<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -50,7 +50,7 @@
 
 
 <div class="description">
-    A class for generating sphere geometries.The geometry is created by sweeping and calculating vertexes around the Y axis (horizontal sweep) and the Z axis (vertical sweep). Thus, incomplete spheres (akin to 'sphere slices') can be created through the use of different values of phiStart, phiLength, thetaStart and thetaLength, in order to define the points in which we start (or end) calculating those vertices.
+    Creates a torus knot, the particular shape of which is defined by a pair of coprime integers, p and q. If p and q are not coprime, the result will be a torus link.
 </div>
 
 
@@ -122,14 +122,92 @@
                 </td>
             
 
-            <td class="description last">— sphere radius. Default is 1.</td>
+            <td class="description last">— Radius of the torus. Default is 1.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>widthSegments</code></td>
+                <td class="name"><code>tube</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0.4
+                
+                </td>
+            
+
+            <td class="description last">— Radius of the tube. Default is 0.4.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>tubularSegments</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    64
+                
+                </td>
+            
+
+            <td class="description last">— Default is 64.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>radialSegments</code></td>
             
 
             <td class="type">
@@ -161,14 +239,14 @@
                 </td>
             
 
-            <td class="description last">— number of horizontal segments. Minimum value is 3, and the default is 8.</td>
+            <td class="description last">— Default is 8.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>heightSegments</code></td>
+                <td class="name"><code>p</code></td>
             
 
             <td class="type">
@@ -195,25 +273,25 @@
             
                 <td class="default">
                 
-                    6
+                    2
                 
                 </td>
             
 
-            <td class="description last">— number of vertical segments. Minimum value is 2, and the default is 6.</td>
+            <td class="description last">— This value determines, how many times the geometry winds around its axis of rotational symmetry. Default is 2.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>phiStart</code></td>
+                <td class="name"><code>q</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">number</span>
+<span class="param-type">Integer</span>
 
 
             
@@ -234,129 +312,12 @@
             
                 <td class="default">
                 
-                    0
+                    3
                 
                 </td>
             
 
-            <td class="description last">— specify horizontal starting angle. Default is 0.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>phiLength</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    Math.PI*2
-                
-                </td>
-            
-
-            <td class="description last">— specify horizontal sweep angle size. Default is Math.PI * 2.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>thetaStart</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    0
-                
-                </td>
-            
-
-            <td class="description last">— specify vertical starting angle. Default is 0.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>thetaLength</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    Math.PI
-                
-                </td>
-            
-
-            <td class="description last">— specify vertical sweep angle size. Default is Math.PI.</td>
+            <td class="description last">— This value determines, how many times the geometry winds around a circle in the interior of the torus. Default is 3.</td>
         </tr>
 
     
@@ -397,7 +358,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="geometry_SphereGeometry.js.html">geometry/SphereGeometry.js</a>, <a href="geometry_SphereGeometry.js.html#line20">line 20</a>
+        <a href="geometry_TorusKnotGeometry.js.html">geometry/TorusKnotGeometry.js</a>, <a href="geometry_TorusKnotGeometry.js.html#line18">line 18</a>
     </li></ul></dd>
     
 

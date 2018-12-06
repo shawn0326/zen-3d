@@ -58,6 +58,7 @@ export {InterleavedBuffer} from './geometry/InterleavedBuffer.js';
 export {InterleavedBufferAttribute} from './geometry/InterleavedBufferAttribute.js';
 export {PlaneGeometry} from './geometry/PlaneGeometry.js';
 export {SphereGeometry} from './geometry/SphereGeometry.js';
+export {TorusKnotGeometry} from './geometry/TorusKnotGeometry.js';
 
 export {Material} from './material/Material.js';
 export {BasicMaterial} from './material/BasicMaterial.js';
