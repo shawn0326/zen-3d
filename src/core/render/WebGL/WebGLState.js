@@ -293,8 +293,11 @@ Object.assign(WebGLState.prototype, {
 
     setLineWidth: function(width) {
         if(width !== this.currentLineWidth) {
-            if(this.capabilities.version >= 1.0) {
+            var lineWidthRange = this.capabilities.lineWidthRange;
+            if(lineWidthRange[0] <= width && width <= lineWidthRange[1]) {
                 this.gl.lineWidth(width);
+            } else {
+                console.warn("GL_ALIASED_LINE_WIDTH_RANGE is [" + lineWidthRange[0] + "," + lineWidthRange[1] + "], but set to " + width + ".");
             }
             this.currentLineWidth = width;
         }

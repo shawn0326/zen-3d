@@ -109,6 +109,12 @@ function WebGLCapabilities(gl) {
         maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
 
         /**
+         * Getting the range of available widths.
+         * @type {Float32Array} 
+         */
+        lineWidthRange: gl.getParameter(gl.ALIASED_LINE_WIDTH_RANGE),
+
+        /**
          * The EXT_texture_filter_anisotropic extension.
          * @type {*} 
          */
