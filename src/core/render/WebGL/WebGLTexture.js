@@ -431,7 +431,7 @@ Object.assign(WebGLTexture.prototype, {
             }
 
             if (capabilities.version >= 2) {
-                if (parameters[5] > 0) {
+                if (parameters[5] !== undefined) {
                     gl.texParameteri(textureType, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
                     gl.texParameteri(textureType, gl.TEXTURE_COMPARE_FUNC, parameters[5]);
                 } else {

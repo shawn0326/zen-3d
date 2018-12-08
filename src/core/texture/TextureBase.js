@@ -93,10 +93,10 @@ function TextureBase() {
 
     /**
      * Use for shadow sampler (WebGL 2.0 Only).
-     * @type {zen3d.WEBGL_TEXTURE_COMPARE}
-     * @default zen3d.WEBGL_TEXTURE_COMPARE.NONE
+     * @type {zen3d.WEBGL_COMPARE_FUNC|undefined}
+     * @default undefined
      */
-    this.compare = zen3d.WEBGL_TEXTURE_COMPARE.NONE;
+    this.compare = undefined;
 
     /**
      * Whether to generate mipmaps (if possible) for a texture.

@@ -66,12 +66,6 @@ function WebGLCore(gl) {
     this.capabilities = capabilities;
 
     var state = new WebGLState(gl, capabilities);
-    state.enable(gl.STENCIL_TEST);
-    state.enable(gl.DEPTH_TEST);
-    gl.depthFunc( gl.LEQUAL );
-    state.setCullFace(CULL_FACE_TYPE.BACK);
-    state.setFlipSided(false);
-    state.clearColor(0, 0, 0, 0);
     this.state = state;
 
     var texture = new WebGLTexture(gl, state, properties, capabilities);

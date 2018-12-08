@@ -3,7 +3,7 @@ import {DistanceMaterial} from '../../material/DistanceMaterial.js';
 import {LIGHT_TYPE} from '../../const.js';
 import { Vector4 } from '../../math/Vector4.js';
 import {Texture2D} from '../../texture/Texture2D.js';
-import {WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_TEXTURE_COMPARE} from '../../const.js';
+import {WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_COMPARE_FUNC} from '../../const.js';
 
 function convertLightShadowToWebGL2(lightShadow) {
     if (!lightShadow.depthMap) {
@@ -13,7 +13,7 @@ function convertLightShadowToWebGL2(lightShadow) {
         depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
         depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
         depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-        depthTexture.compare = WEBGL_TEXTURE_COMPARE.LESS;
+        depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
         depthTexture.generateMipmaps = false;
         lightShadow.renderTarget.attach(
             depthTexture,

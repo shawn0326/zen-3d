@@ -1,4 +1,4 @@
-import {BLEND_TYPE, CULL_FACE_TYPE} from '../../const.js';
+import {BLEND_TYPE, CULL_FACE_TYPE, WEBGL_COMPARE_FUNC} from '../../const.js';
 import {Vector4} from '../../math/Vector4.js';
 
 function createTexture(gl, type, target, count) {
@@ -53,6 +53,7 @@ function WebGLState(gl, capabilities) {
     this.currentFlipSided = false;
 
     this.currentDepthMask = true;
+    this.currentDepthFunc = null;
 
     this.currentLineWidth = null;
 
@@ -74,6 +75,14 @@ function WebGLState(gl, capabilities) {
     this.currentStencilClear = null;
 
     this.currentRenderTarget = null;
+
+    // init
+    this.enable(gl.STENCIL_TEST);
+    this.enable(gl.DEPTH_TEST);
+    this.setDepthFunc( WEBGL_COMPARE_FUNC.LEQUAL );
+    this.setCullFace(CULL_FACE_TYPE.BACK);
+    this.setFlipSided(false);
+    this.clearColor(0, 0, 0, 0);
 }
 
 Object.assign(WebGLState.prototype, {
@@ -288,6 +297,13 @@ Object.assign(WebGLState.prototype, {
         if(flag !== this.currentDepthMask) {
             this.gl.depthMask(flag);
             this.currentDepthMask = flag;
+        }
+    },
+
+    setDepthFunc: function(depthFunc) {
+        if ( this.currentDepthFunc !== depthFunc ) {
+            this.gl.depthFunc(depthFunc);
+            this.currentDepthFunc = depthFunc;
         }
     },
 

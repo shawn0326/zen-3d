@@ -226,13 +226,12 @@ export var WEBGL_TEXTURE_WRAP = {
 }
 
 /**
- * Enum for WebGL Texture compare.
- * @name zen3d.WEBGL_TEXTURE_COMPARE
+ * Enum for WebGL compare function.
+ * @name zen3d.WEBGL_COMPARE_FUNC
  * @readonly
  * @enum {number}
  */
-export var WEBGL_TEXTURE_COMPARE = {
-    NONE: 0,
+export var WEBGL_COMPARE_FUNC = {
     LEQUAL: 0x0203,
     GEQUAL: 0x0206,
     LESS: 0x0201,

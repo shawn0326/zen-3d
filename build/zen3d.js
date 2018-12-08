@@ -425,13 +425,12 @@
 	};
 
 	/**
-	 * Enum for WebGL Texture compare.
-	 * @name zen3d.WEBGL_TEXTURE_COMPARE
+	 * Enum for WebGL compare function.
+	 * @name zen3d.WEBGL_COMPARE_FUNC
 	 * @readonly
 	 * @enum {number}
 	 */
-	var WEBGL_TEXTURE_COMPARE = {
-	    NONE: 0,
+	var WEBGL_COMPARE_FUNC = {
 	    LEQUAL: 0x0203,
 	    GEQUAL: 0x0206,
 	    LESS: 0x0201,
@@ -4553,10 +4552,10 @@
 
 	    /**
 	     * Use for shadow sampler (WebGL 2.0 Only).
-	     * @type {zen3d.WEBGL_TEXTURE_COMPARE}
-	     * @default zen3d.WEBGL_TEXTURE_COMPARE.NONE
+	     * @type {zen3d.WEBGL_COMPARE_FUNC|undefined}
+	     * @default undefined
 	     */
-	    this.compare = zen3d.WEBGL_TEXTURE_COMPARE.NONE;
+	    this.compare = undefined;
 
 	    /**
 	     * Whether to generate mipmaps (if possible) for a texture.
@@ -9364,6 +9363,7 @@
 	    this.currentFlipSided = false;
 
 	    this.currentDepthMask = true;
+	    this.currentDepthFunc = null;
 
 	    this.currentLineWidth = null;
 
@@ -9385,6 +9385,14 @@
 	    this.currentStencilClear = null;
 
 	    this.currentRenderTarget = null;
+
+	    // init
+	    this.enable(gl.STENCIL_TEST);
+	    this.enable(gl.DEPTH_TEST);
+	    this.setDepthFunc( WEBGL_COMPARE_FUNC.LEQUAL );
+	    this.setCullFace(CULL_FACE_TYPE.BACK);
+	    this.setFlipSided(false);
+	    this.clearColor(0, 0, 0, 0);
 	}
 
 	Object.assign(WebGLState.prototype, {
@@ -9599,6 +9607,13 @@
 	        if(flag !== this.currentDepthMask) {
 	            this.gl.depthMask(flag);
 	            this.currentDepthMask = flag;
+	        }
+	    },
+
+	    setDepthFunc: function(depthFunc) {
+	        if ( this.currentDepthFunc !== depthFunc ) {
+	            this.gl.depthFunc(depthFunc);
+	            this.currentDepthFunc = depthFunc;
 	        }
 	    },
 
@@ -10148,7 +10163,7 @@
 	            }
 
 	            if (capabilities.version >= 2) {
-	                if (parameters[5] > 0) {
+	                if (parameters[5] !== undefined) {
 	                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
 	                    gl.texParameteri(textureType, gl.TEXTURE_COMPARE_FUNC, parameters[5]);
 	                } else {
@@ -11973,12 +11988,6 @@
 	    this.capabilities = capabilities;
 
 	    var state = new WebGLState(gl, capabilities);
-	    state.enable(gl.STENCIL_TEST);
-	    state.enable(gl.DEPTH_TEST);
-	    gl.depthFunc( gl.LEQUAL );
-	    state.setCullFace(CULL_FACE_TYPE.BACK);
-	    state.setFlipSided(false);
-	    state.clearColor(0, 0, 0, 0);
 	    this.state = state;
 
 	    var texture = new WebGLTexture(gl, state, properties, capabilities);
@@ -13219,7 +13228,7 @@
 	        depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
 	        depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
 	        depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-	        depthTexture.compare = WEBGL_TEXTURE_COMPARE.LESS;
+	        depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
 	        depthTexture.generateMipmaps = false;
 	        lightShadow.renderTarget.attach(
 	            depthTexture,
@@ -15370,7 +15379,7 @@
 	exports.WEBGL_PIXEL_TYPE = WEBGL_PIXEL_TYPE;
 	exports.WEBGL_TEXTURE_FILTER = WEBGL_TEXTURE_FILTER;
 	exports.WEBGL_TEXTURE_WRAP = WEBGL_TEXTURE_WRAP;
-	exports.WEBGL_TEXTURE_COMPARE = WEBGL_TEXTURE_COMPARE;
+	exports.WEBGL_COMPARE_FUNC = WEBGL_COMPARE_FUNC;
 	exports.WEBGL_UNIFORM_TYPE = WEBGL_UNIFORM_TYPE;
 	exports.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
 	exports.SHADOW_TYPE = SHADOW_TYPE;
