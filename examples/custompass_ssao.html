@@ -207,7 +207,7 @@
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
 
-				glCore.state.clearColor(1, 1, 1, 1);
+				glCore.state.colorBuffer.setClear(1, 1, 1, 1);
 				glCore.clear(true, true, true);
 
 				projection.copy(camera.projectionMatrix);
@@ -219,7 +219,7 @@
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget3);
 
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
 				blurPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
@@ -228,7 +228,7 @@
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0.5, 0.5, 0.5, 1);
+				glCore.state.colorBuffer.setClear(0.5, 0.5, 0.5, 1);
 				glCore.clear(true, true, true);
 
 				if(beauty) {

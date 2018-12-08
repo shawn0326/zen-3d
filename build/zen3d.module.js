@@ -9320,9 +9320,262 @@ function createTexture(gl, type, target, count) {
     return texture;
 }
 
+function ColorBuffer(gl) {
+
+    var locked = false;
+
+    var color = new Vector4();
+    var currentColorMask = null;
+    var currentColorClear = new Vector4( 0, 0, 0, 0 );
+
+    return {
+
+        setMask: function ( colorMask ) {
+
+            if ( currentColorMask !== colorMask && ! locked ) {
+
+                gl.colorMask( colorMask, colorMask, colorMask, colorMask );
+                currentColorMask = colorMask;
+
+            }
+
+        },
+
+        setLocked: function ( lock ) {
+
+            locked = lock;
+
+        },
+
+        setClear: function ( r, g, b, a, premultipliedAlpha ) {
+
+            if ( premultipliedAlpha === true ) {
+
+                r *= a; g *= a; b *= a;
+
+            }
+
+            color.set( r, g, b, a );
+
+            if ( currentColorClear.equals( color ) === false ) {
+
+                gl.clearColor( r, g, b, a );
+                currentColorClear.copy( color );
+
+            }
+
+        },
+
+        getClear: function() {
+            return currentColorClear;
+        },
+
+        reset: function () {
+
+            locked = false;
+
+            currentColorMask = null;
+            currentColorClear.set( - 1, 0, 0, 0 ); // set to invalid state
+
+        }
+
+    };
+        
+}
+
+function DepthBuffer(gl, state) {
+
+    var locked = false;
+
+    var currentDepthMask = null;
+    var currentDepthFunc = null;
+    var currentDepthClear = null;
+
+    return {
+
+        setTest: function ( depthTest ) {
+
+            if ( depthTest ) {
+
+                state.enable( gl.DEPTH_TEST );
+
+            } else {
+
+                state.disable( gl.DEPTH_TEST );
+
+            }
+
+        },
+
+        setMask: function ( depthMask ) {
+
+            if ( currentDepthMask !== depthMask && ! locked ) {
+
+                gl.depthMask( depthMask );
+                currentDepthMask = depthMask;
+
+            }
+
+        },
+
+        setFunc: function ( depthFunc ) {
+
+            if ( currentDepthFunc !== depthFunc ) {
+
+                gl.depthFunc(depthFunc);
+                currentDepthFunc = depthFunc;
+
+            }
+
+        },
+
+        setLocked: function ( lock ) {
+
+            locked = lock;
+
+        },
+
+        setClear: function ( depth ) {
+
+            if ( currentDepthClear !== depth ) {
+
+                gl.clearDepth( depth );
+                currentDepthClear = depth;
+
+            }
+
+        },
+
+        reset: function () {
+
+            locked = false;
+
+            currentDepthMask = null;
+            currentDepthFunc = null;
+            currentDepthClear = null;
+
+        }
+
+    };
+
+}
+
+function StencilBuffer(gl, state) {
+
+    var locked = false;
+
+    var currentStencilMask = null;
+    var currentStencilFunc = null;
+    var currentStencilRef = null;
+    var currentStencilFuncMask = null;
+    var currentStencilFail = null;
+    var currentStencilZFail = null;
+    var currentStencilZPass = null;
+    var currentStencilClear = null;
+
+    return {
+
+        setTest: function ( stencilTest ) {
+
+            if ( stencilTest ) {
+
+                state.enable( gl.STENCIL_TEST );
+
+            } else {
+
+                state.disable( gl.STENCIL_TEST );
+
+            }
+
+        },
+
+        setMask: function ( stencilMask ) {
+
+            if ( currentStencilMask !== stencilMask && ! locked ) {
+
+                gl.stencilMask( stencilMask );
+                currentStencilMask = stencilMask;
+
+            }
+
+        },
+
+        setFunc: function ( stencilFunc, stencilRef, stencilMask ) {
+
+            if ( currentStencilFunc !== stencilFunc ||
+                 currentStencilRef 	!== stencilRef 	||
+                 currentStencilFuncMask !== stencilMask ) {
+
+                gl.stencilFunc( stencilFunc, stencilRef, stencilMask );
+
+                currentStencilFunc = stencilFunc;
+                currentStencilRef = stencilRef;
+                currentStencilFuncMask = stencilMask;
+
+            }
+
+        },
+
+        setOp: function ( stencilFail, stencilZFail, stencilZPass ) {
+
+            if ( currentStencilFail	 !== stencilFail 	||
+                 currentStencilZFail !== stencilZFail ||
+                 currentStencilZPass !== stencilZPass ) {
+
+                gl.stencilOp( stencilFail, stencilZFail, stencilZPass );
+
+                currentStencilFail = stencilFail;
+                currentStencilZFail = stencilZFail;
+                currentStencilZPass = stencilZPass;
+
+            }
+
+        },
+
+        setLocked: function ( lock ) {
+
+            locked = lock;
+
+        },
+
+        setClear: function ( stencil ) {
+
+            if ( currentStencilClear !== stencil ) {
+
+                gl.clearStencil( stencil );
+                currentStencilClear = stencil;
+
+            }
+
+        },
+
+        reset: function () {
+
+            locked = false;
+
+            currentStencilMask = null;
+            currentStencilFunc = null;
+            currentStencilRef = null;
+            currentStencilFuncMask = null;
+            currentStencilFail = null;
+            currentStencilZFail = null;
+            currentStencilZPass = null;
+            currentStencilClear = null;
+
+        }
+
+    };
+
+}
+
 function WebGLState(gl, capabilities) {
+
     this.gl = gl;
     this.capabilities = capabilities;
+
+    this.colorBuffer = new ColorBuffer(gl);
+    this.depthBuffer = new DepthBuffer(gl, this);
+    this.stencilBuffer = new StencilBuffer(gl, this);
 
     this.states = {};
 
@@ -9341,10 +9594,6 @@ function WebGLState(gl, capabilities) {
 
     this.currentViewport = new Vector4();
 
-    this.currentColorMask = null;
-
-    this.currentClearColor = new Vector4();
-
     this.currentTextureSlot = null;
     this.currentBoundTextures = {};
 
@@ -9356,9 +9605,6 @@ function WebGLState(gl, capabilities) {
 
     this.currentFlipSided = false;
 
-    this.currentDepthMask = true;
-    this.currentDepthFunc = null;
-
     this.currentLineWidth = null;
 
     this.currentPolygonOffsetFactor = null;
@@ -9366,27 +9612,20 @@ function WebGLState(gl, capabilities) {
 
     this.currentProgram = null;
 
-    this.currentStencilMask = null;
-
-    this.currentStencilFunc = null;
-    this.currentStencilRef = null;
-    this.currentStencilFuncMask = null;
-
-    this.currentStencilFail = null;
-    this.currentStencilZFail = null;
-    this.currentStencilZPass = null;
-
-    this.currentStencilClear = null;
-
     this.currentRenderTarget = null;
 
     // init
-    this.enable(gl.STENCIL_TEST);
-    this.enable(gl.DEPTH_TEST);
-    this.setDepthFunc( WEBGL_COMPARE_FUNC.LEQUAL );
-    this.setCullFace(CULL_FACE_TYPE.BACK);
-    this.setFlipSided(false);
-    this.clearColor(0, 0, 0, 0);
+
+    this.colorBuffer.setClear( 0, 0, 0, 1 );
+	this.depthBuffer.setClear( 1 );
+    this.stencilBuffer.setClear( 0 );
+    
+    this.depthBuffer.setTest( true );
+    this.depthBuffer.setFunc( WEBGL_COMPARE_FUNC.LEQUAL );
+
+    this.setCullFace( CULL_FACE_TYPE.BACK );
+    this.setFlipSided( false );
+
 }
 
 Object.assign(WebGLState.prototype, {
@@ -9512,28 +9751,6 @@ Object.assign(WebGLState.prototype, {
         }
     },
 
-    colorMask: function(colorMask) {
-        if ( this.currentColorMask !== colorMask ) {
-
-            this.gl.colorMask( colorMask, colorMask, colorMask, colorMask );
-            this.currentColorMask = colorMask;
-
-        }
-    },
-
-    clearColor: function(r, g, b, a) {
-        var currentClearColor = this.currentClearColor;
-        if (currentClearColor.x !== r ||
-            currentClearColor.y !== g ||
-            currentClearColor.z !== b ||
-            currentClearColor.w !== a
-        ) {
-            var gl = this.gl;
-            gl.clearColor(r, g, b, a);
-            currentClearColor.set(r, g, b, a);
-        }
-    },
-
     activeTexture: function(slot) {
         var gl = this.gl;
 
@@ -9596,21 +9813,6 @@ Object.assign(WebGLState.prototype, {
         }
     },
 
-    // depth mask should attach to a frame buffer???
-    depthMask: function(flag) {
-        if(flag !== this.currentDepthMask) {
-            this.gl.depthMask(flag);
-            this.currentDepthMask = flag;
-        }
-    },
-
-    setDepthFunc: function(depthFunc) {
-        if ( this.currentDepthFunc !== depthFunc ) {
-            this.gl.depthFunc(depthFunc);
-            this.currentDepthFunc = depthFunc;
-        }
-    },
-
     setLineWidth: function(width) {
         if(width !== this.currentLineWidth) {
             var lineWidthRange = this.capabilities.lineWidthRange;
@@ -9652,50 +9854,6 @@ Object.assign(WebGLState.prototype, {
         if(this.currentProgram !== program) {
             this.gl.useProgram(program.program);
             this.currentProgram = program;
-        }
-    },
-
-    stencilMask: function(stencilMask) {
-        if(this.currentStencilMask !== stencilMask) {
-            this.gl.stencilMask( stencilMask );
-            this.currentStencilMask = stencilMask;
-        }
-    },
-
-    stencilFunc: function(stencilFunc, stencilRef, stencilMask) {
-        if ( this.currentStencilFunc !== stencilFunc ||
-                this.currentStencilRef 	!== stencilRef 	||
-                this.currentStencilFuncMask !== stencilMask ) {
-
-            this.gl.stencilFunc( stencilFunc, stencilRef, stencilMask );
-
-            this.currentStencilFunc = stencilFunc;
-            this.currentStencilRef = stencilRef;
-            this.currentStencilFuncMask = stencilMask;
-
-        }
-    },
-
-    stencilOp: function(stencilFail, stencilZFail, stencilZPass) {
-        if ( this.currentStencilFail	 !== stencilFail 	||
-                this.currentStencilZFail !== stencilZFail ||
-                this.currentStencilZPass !== stencilZPass ) {
-
-            this.gl.stencilOp( stencilFail, stencilZFail, stencilZPass );
-
-            this.currentStencilFail = stencilFail;
-            this.currentStencilZFail = stencilZFail;
-            this.currentStencilZPass = stencilZPass;
-
-        }
-    },
-
-    clearStencil: function(stencil) {
-        if ( this.currentStencilClear !== stencil ) {
-
-            this.gl.clearStencil( stencil );
-            this.currentStencilClear = stencil;
-
         }
     }
 
@@ -12436,9 +12594,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             // Ensure depth buffer writing is enabled so it can be cleared on next render
 
-            state.enable(gl.DEPTH_TEST);
-            state.depthMask( true );
-            state.colorMask( true );
+            state.depthBuffer.setTest( true );
+            state.depthBuffer.setMask( true );
+            state.colorBuffer.setMask( true );
 
             afterRender(this, renderItem);
             object.onAfterRender(renderItem); 
@@ -12458,15 +12616,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             state.setBlend(BLEND_TYPE.NONE);
         }
     
-        // set depth test
-        if (material.depthTest) {
-            state.enable(gl.DEPTH_TEST);
-        } else {
-            state.disable(gl.DEPTH_TEST);
-        }
-
-        state.depthMask( material.depthWrite );
-        state.colorMask( material.colorWrite );
+        // set buffers
+        state.depthBuffer.setTest( material.depthTest );
+        state.depthBuffer.setMask( material.depthWrite );
+        state.colorBuffer.setMask( material.colorWrite );
     
         // set draw side
         state.setCullFace(
@@ -13259,11 +13412,11 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
     // force disable stencil
     var useStencil = state.states[gl.STENCIL_TEST];
     if(useStencil) {
-        state.disable(gl.STENCIL_TEST);
+        state.stencilBuffer.setTest(false);
     }
 
-    this.oldClearColor.copy(state.currentClearColor);
-    state.clearColor(1, 1, 1, 1);
+    this.oldClearColor.copy(state.colorBuffer.getClear());
+    state.colorBuffer.setClear(1, 1, 1, 1);
 
     var lights = scene.lights.shadows;
     for (var i = 0; i < lights.length; i++) {
@@ -13324,10 +13477,10 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
     }
 
     if(useStencil) {
-        state.enable(gl.STENCIL_TEST);
+        state.stencilBuffer.setTest(true);
     }
 
-    state.clearColor(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
+    state.colorBuffer.setClear(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
     
 };
 

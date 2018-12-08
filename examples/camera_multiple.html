@@ -143,12 +143,12 @@
 				cameraMini.position.z = 100 * Math.cos(count / 1000 * .5);
 				cameraMini.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-				renderer.glCore.state.clearColor(0, 0, 0, 0);
+				renderer.glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				renderer.glCore.clear(true, true, true);
 
 	            renderer.render(scene, camera);
 
-				renderer.glCore.state.clearColor(1, 0, 0, 1);
+				renderer.glCore.state.colorBuffer.setClear(1, 0, 0, 1);
 				renderer.glCore.clear(false, true, true);
 
 				renderer.render(sceneMini, cameraMini);

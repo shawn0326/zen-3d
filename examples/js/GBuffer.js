@@ -110,7 +110,7 @@
 
                 glCore.renderTarget.setRenderTarget(this._renderTarget1);
 
-                glCore.state.clearColor(0, 0, 0, 0);
+                glCore.state.colorBuffer.setClear(0, 0, 0, 0);
                 glCore.clear(true, true, true);
 
                 glCore.renderPass(renderList.opaque, camera, {
@@ -180,7 +180,7 @@
 
                 glCore.renderTarget.setRenderTarget(this._renderTarget1);
 
-                glCore.state.clearColor(0, 0, 0, 0);
+                glCore.state.colorBuffer.setClear(0, 0, 0, 0);
                 glCore.clear(true, true, true);
 
                 glCore.renderPass(renderList.opaque, camera, {
@@ -234,7 +234,7 @@
 
                 glCore.renderTarget.setRenderTarget(this._renderTarget2);
     
-                glCore.state.clearColor(0, 0, 0, 0);
+                glCore.state.colorBuffer.setClear(0, 0, 0, 0);
                 glCore.clear(true, true, true);
     
                 glCore.renderPass(renderList.opaque, camera, {

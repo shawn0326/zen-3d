@@ -50,11 +50,11 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
     // force disable stencil
     var useStencil = state.states[gl.STENCIL_TEST];
     if(useStencil) {
-        state.disable(gl.STENCIL_TEST);
+        state.stencilBuffer.setTest(false);
     }
 
-    this.oldClearColor.copy(state.currentClearColor);
-    state.clearColor(1, 1, 1, 1);
+    this.oldClearColor.copy(state.colorBuffer.getClear());
+    state.colorBuffer.setClear(1, 1, 1, 1);
 
     var lights = scene.lights.shadows;
     for (var i = 0; i < lights.length; i++) {
@@ -115,10 +115,10 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
     }
 
     if(useStencil) {
-        state.enable(gl.STENCIL_TEST);
+        state.stencilBuffer.setTest(true);
     }
 
-    state.clearColor(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
+    state.colorBuffer.setClear(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
     
 }
 

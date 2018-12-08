@@ -520,9 +520,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             // Ensure depth buffer writing is enabled so it can be cleared on next render
 
-            state.enable(gl.DEPTH_TEST);
-            state.depthMask( true );
-            state.colorMask( true );
+            state.depthBuffer.setTest( true );
+            state.depthBuffer.setMask( true );
+            state.colorBuffer.setMask( true );
 
             afterRender(this, renderItem);
             object.onAfterRender(renderItem); 
@@ -542,15 +542,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             state.setBlend(BLEND_TYPE.NONE);
         }
     
-        // set depth test
-        if (material.depthTest) {
-            state.enable(gl.DEPTH_TEST);
-        } else {
-            state.disable(gl.DEPTH_TEST);
-        }
-
-        state.depthMask( material.depthWrite );
-        state.colorMask( material.colorWrite );
+        // set buffers
+        state.depthBuffer.setTest( material.depthTest );
+        state.depthBuffer.setMask( material.depthWrite );
+        state.colorBuffer.setMask( material.colorWrite );
     
         // set draw side
         state.setCullFace(

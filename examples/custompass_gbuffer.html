@@ -187,7 +187,7 @@
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0, 0, 0, 1);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 1);
 				glCore.clear(true, true, true);
 
 				gBuffer.renderDebug(glCore, camera, params.debug);

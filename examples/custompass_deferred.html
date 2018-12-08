@@ -246,7 +246,7 @@
 
 					glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-					glCore.state.clearColor(0, 0, 0, 1);
+					glCore.state.colorBuffer.setClear(0, 0, 0, 1);
 					glCore.clear(true, true, true);
 
 					glCore.renderPass(renderList.opaque, camera, {
@@ -263,7 +263,7 @@
 
 					glCore.renderTarget.setRenderTarget(normalDepthRenderTarget);
 
-					glCore.state.clearColor(0, 0, 0, 0);
+					glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 					glCore.clear(true, true, true);
 
 					glCore.renderPass(renderList.opaque, camera, {
@@ -309,7 +309,7 @@
 
 						glCore.renderTarget.setRenderTarget(colorRenderTarget);
 
-						glCore.state.clearColor(0, 0, 0, 0);
+						glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 						glCore.clear(true, true, true);
 
 						glCore.renderPass(renderList.opaque, camera, {
@@ -353,7 +353,7 @@
 
 						glCore.renderTarget.setRenderTarget(resultRenderTarget);
 
-						glCore.state.clearColor(0, 0, 0, 0);
+						glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 						glCore.clear(true, true, true);
 
 						emissiveLightPass.uniforms["samplerColor"] = colorRenderTarget.texture;
@@ -372,7 +372,7 @@
 
 						glCore.renderTarget.setRenderTarget(colorRenderTarget);
 
-						glCore.state.clearColor(0, 0, 0, 0);
+						glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 						glCore.clear(true, true, true);
 
 					}
@@ -515,7 +515,7 @@
 
 						glCore.renderTarget.setRenderTarget(resultRenderTarget);
 
-						glCore.state.clearColor(0, 0, 0, 1);
+						glCore.state.colorBuffer.setClear(0, 0, 0, 1);
 						glCore.clear(true, true, true);
 
 						reconstructionMaterial.uniforms["viewWidth"] = width;
@@ -570,7 +570,7 @@
 
 					glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-					glCore.state.clearColor(0, 0, 0, 1);
+					glCore.state.colorBuffer.setClear(0, 0, 0, 1);
 					glCore.clear(true, true, true);
 
 					var pass = params.fxaa ? fxaaPass : copyPass;

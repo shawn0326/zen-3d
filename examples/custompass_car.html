@@ -149,28 +149,28 @@
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
 
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
 				glCore.render(scene, camera);
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
 
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
 				colorAdjustPass.render(glCore);
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
 
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 
 				filmPass.render(glCore);
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				
 				fxaaPass.render(glCore);

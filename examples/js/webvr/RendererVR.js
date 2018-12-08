@@ -79,7 +79,7 @@
         this.glCore.renderTarget.setRenderTarget(renderTarget);
 
         if (this.autoClear || forceClear) {
-            this.glCore.state.clearColor(0, 0, 0, 0);
+            this.glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             this.glCore.clear(true, true, true);
         }
 

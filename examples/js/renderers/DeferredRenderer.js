@@ -89,7 +89,7 @@
 
             glCore.renderTarget.setRenderTarget(renderTarget || this.backRenderTarget);
 
-            glCore.state.clearColor(0, 0, 0, 0);
+            glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             glCore.clear(true, true, true);
 
             matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();

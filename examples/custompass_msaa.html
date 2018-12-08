@@ -117,7 +117,7 @@
 				if (params.msaa) {
 					glCore.renderTarget.setRenderTarget(getMultipleSamplingRenderTarget(params.samplers));
 
-					glCore.state.clearColor(0, 0, 0, 0);
+					glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 					glCore.clear(true, true, true);
 
 					glCore.render(scene, camera);
@@ -133,7 +133,7 @@
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 
 				if (params.msaa) {

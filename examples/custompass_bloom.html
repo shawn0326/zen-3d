@@ -171,27 +171,27 @@
 				shadowMapPass.render(glCore, scene);
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget);
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             	glCore.clear(true, true, true);
 				glCore.render(scene, camera);
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				highLightPass.render(glCore);
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				blurPassX.render(glCore);
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				blurPassY.render(glCore);
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				copyPass.material.transparent = false;
 				copyPass.uniforms.tDiffuse = tempRenderTarget.texture;
@@ -200,7 +200,7 @@
 
 				if(bloomParams.enable) {
 					glCore.renderTarget.setRenderTarget(backRenderTarget);
-					// glCore.state.clearColor(0, 0, 0, 0);
+					// glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 					// glCore.clear(true, true, true);
 					copyPass.material.transparent = true;
 					copyPass.material.blending = zen3d.BLEND_TYPE.ADD;

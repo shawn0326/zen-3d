@@ -131,7 +131,7 @@
 
 					glCore.renderTarget.setRenderTarget(tempRenderTarget);
 
-					glCore.state.clearColor(0.3, 0.3, 0.3, 1);
+					glCore.state.colorBuffer.setClear(0.3, 0.3, 0.3, 1);
 					glCore.clear(true, true, true);
 
 					oldProjectionMatrix.copy(camera.projectionMatrix);
@@ -150,7 +150,7 @@
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-				glCore.state.clearColor(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 				
 				copyPass.material.transparent = true;

@@ -93,7 +93,7 @@
 
             glCore.renderTarget.setRenderTarget(this._output);
 
-            glCore.state.clearColor(0, 0, 0, 0);
+            glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             glCore.clear(true, true, true);
 
             this._blendPass.render(glCore);
