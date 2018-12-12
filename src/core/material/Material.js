@@ -1,3 +1,4 @@
+import {EventDispatcher} from '../EventDispatcher.js';
 import {BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE} from '../const.js';
 import {Color3} from '../math/Color3.js';
 import {generateUUID} from '../base.js';
@@ -14,6 +15,8 @@ var materialId = 0;
  * @memberof zen3d
  */
 function Material() {
+
+    EventDispatcher.call(this);
 
     Object.defineProperty( this, 'id', { value: materialId ++ } );
 
@@ -303,7 +306,9 @@ function Material() {
 
 }
 
-Object.assign(Material.prototype, /** @lends zen3d.Material.prototype */{
+Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.Material.prototype */{
+
+    constructor: Material,
 
     /**
      * Copy the parameters from the passed material into this material.
@@ -345,6 +350,14 @@ Object.assign(Material.prototype, /** @lends zen3d.Material.prototype */{
      */
     clone: function() {
         return new this.constructor().copy( this );
+    },
+
+    /**
+     * This disposes the material. 
+     * Textures of a material don't get disposed. These needs to be disposed by Texture.
+     */
+    dispose: function() {
+        this.dispatchEvent({type: 'dispose'});
     }
 
 });

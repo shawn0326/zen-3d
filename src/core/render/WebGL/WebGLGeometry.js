@@ -78,7 +78,7 @@ function removeAttribute(gl, properties, attribute) {
         gl.deleteBuffer(data.buffer);
     }
 
-    buffers.delete(attribute);
+    properties.delete(attribute);
 }
 
 function WebGLGeometry(gl, state, properties, capabilities) {
@@ -101,7 +101,7 @@ Object.assign(WebGLGeometry.prototype, {
 
         var geometryProperties = this.properties.get(geometry);
         if (!geometryProperties.created) {
-            geometry.addEventListener('dispose', this.onGeometryDispose2, this);
+            geometry.addEventListener('dispose', this.onGeometryDispose, this);
             geometryProperties.created = true;
             geometryProperties._vaos = {};
         }

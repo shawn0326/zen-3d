@@ -206,6 +206,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 }
             }
             if ( material.needsUpdate ) {
+                if (materialProperties.program === undefined) {
+                    material.addEventListener( 'dispose', this.onMaterialDispose, this );
+                }
                 materialProperties.program = getProgram(this, camera, material, object, scene);
                 materialProperties.fog = scene.fog;
                 
@@ -861,6 +864,25 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             var indexProperty = properties.get(geometry.index);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);
         }
+    },
+
+    onMaterialDispose: function( event ) {
+
+        var material = event.target;
+        var materialProperties = this.properties.get(material);
+    
+        material.removeEventListener( 'dispose', onMaterialDispose, this );
+
+        var program = materialProperties.get( material ).program;
+
+		if ( program !== undefined ) {
+
+			// todo release program reference
+
+		}
+
+		materialProperties.delete( material );
+    
     }
 
 });

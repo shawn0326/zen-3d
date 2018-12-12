@@ -8357,6 +8357,8 @@
 	 */
 	function Material() {
 
+	    EventDispatcher.call(this);
+
 	    Object.defineProperty( this, 'id', { value: materialId ++ } );
 
 	    // material type
@@ -8645,7 +8647,9 @@
 
 	}
 
-	Object.assign(Material.prototype, /** @lends zen3d.Material.prototype */{
+	Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.Material.prototype */{
+
+	    constructor: Material,
 
 	    /**
 	     * Copy the parameters from the passed material into this material.
@@ -8687,6 +8691,14 @@
 	     */
 	    clone: function() {
 	        return new this.constructor().copy( this );
+	    },
+
+	    /**
+	     * This disposes the material. 
+	     * Textures of a material don't get disposed. These needs to be disposed by Texture.
+	     */
+	    dispose: function() {
+	        this.dispatchEvent({type: 'dispose'});
 	    }
 
 	});
@@ -10427,7 +10439,7 @@
 	        gl.deleteBuffer(data.buffer);
 	    }
 
-	    buffers.delete(attribute);
+	    properties.delete(attribute);
 	}
 
 	function WebGLGeometry(gl, state, properties, capabilities) {
@@ -10450,7 +10462,7 @@
 
 	        var geometryProperties = this.properties.get(geometry);
 	        if (!geometryProperties.created) {
-	            geometry.addEventListener('dispose', this.onGeometryDispose2, this);
+	            geometry.addEventListener('dispose', this.onGeometryDispose, this);
 	            geometryProperties.created = true;
 	            geometryProperties._vaos = {};
 	        }
@@ -12286,6 +12298,9 @@
 	                }
 	            }
 	            if ( material.needsUpdate ) {
+	                if (materialProperties.program === undefined) {
+	                    material.addEventListener( 'dispose', this.onMaterialDispose, this );
+	                }
 	                materialProperties.program = getProgram(this, camera, material, object, scene);
 	                materialProperties.fog = scene.fog;
 	                
@@ -12939,6 +12954,19 @@
 	            var indexProperty = properties.get(geometry.index);
 	            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);
 	        }
+	    },
+
+	    onMaterialDispose: function( event ) {
+
+	        var material = event.target;
+	        var materialProperties = this.properties.get(material);
+	    
+	        material.removeEventListener( 'dispose', onMaterialDispose, this );
+
+	        var program = materialProperties.get( material ).program;
+
+			materialProperties.delete( material );
+	    
 	    }
 
 	});
