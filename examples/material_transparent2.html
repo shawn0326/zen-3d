@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - transparent</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="./js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - transparent2
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+			var renderer = new zen3d.Renderer(canvas);
+			renderer.glCore.state.colorBuffer.setClear(0.5, 0.5, 0.5, 1);
+
+	        var scene = new zen3d.Scene();
+
+	        var geometry = new zen3d.TorusKnotGeometry(10, 2);
+
+			var phong1 = new zen3d.PhongMaterial();
+	        phong1.diffuse.setHex(0x0000ff);
+			phong1.transparent = true;
+			phong1.opacity = 0.6;
+			phong1.depthWrite = false;
+
+	        var mesh1 = new zen3d.Mesh(geometry, phong1);
+			scene.add(mesh1);
+
+			var phong2 = new zen3d.PhongMaterial();
+	        phong2.diffuse.setHex(0xff0000);
+			phong2.transparent = true;
+			phong2.opacity = 0.3;
+			phong2.depthWrite = false;
+
+	        var mesh2 = new zen3d.Mesh(geometry, phong2);
+			mesh2.euler.y = Math.PI * 1 / 3;
+			scene.add(mesh2);
+
+			var phong3 = new zen3d.PhongMaterial();
+	        phong3.diffuse.setHex(0xffffff);
+			phong3.transparent = false;
+
+	        var mesh3 = new zen3d.Mesh(geometry, phong3);
+			// mesh2.position.x = 20;
+			mesh3.euler.y = Math.PI * 2 / 3;
+			scene.add(mesh3);
+
+	        var ambientLight = new zen3d.AmbientLight(0xffffff);
+	        scene.add(ambientLight);
+
+	        var directLight = new zen3d.DirectionalLight(0xffffff);
+	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+	        directLight.position.set(-40, 40, 0);
+	        scene.add(directLight);
+
+			var directLight = new zen3d.DirectionalLight(0xffffff);
+	        directLight.euler.set(-Math.PI / 2, -Math.PI / 4, 0);
+	        directLight.position.set(40, -40, 0);
+	        scene.add(directLight);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.diffuse.setHex(0xffffff);
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(-40, 40, 0);
+	        scene.add(lightBall);
+
+			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
+			var basic = new zen3d.BasicMaterial();
+	        basic.diffuse.setHex(0xffffff);
+	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+	        lightBall.position.set(40, -40, 0);
+	        scene.add(lightBall);
+
+			var camera = new zen3d.Camera();
+			// camera.gammaInput = true;
+			// camera.gammaOutput = true;
+	        camera.position.set(0, 50, 100);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+			scene.add(camera);
+			
+			var controller = new zen3d.OrbitControls(camera, canvas);
+			
+			// gui
+			var params = {depthWrite: false, depthTest: true, doubleSide: false};
+			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
+			gui.add(params, 'depthWrite').onChange(value => {
+				phong1.depthWrite = value;
+				phong2.depthWrite = value;
+			});
+			gui.add(params, 'depthTest').onChange(value => {
+				phong1.depthTest = value;
+				phong2.depthTest = value;
+			});
+			gui.add(params, 'doubleSide').onChange(value => {
+				phong1.side = value ? zen3d.DRAW_SIDE.DOUBLE : zen3d.DRAW_SIDE.FRONT;
+				phong2.side = value ? zen3d.DRAW_SIDE.DOUBLE : zen3d.DRAW_SIDE.FRONT;
+			});
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				controller.update();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
