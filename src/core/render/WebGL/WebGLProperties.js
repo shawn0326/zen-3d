@@ -1,25 +1,26 @@
 function WebGLProperties() {
-    this.properties = {};
+
+    this.properties = new WeakMap();
+
 }
 
 Object.assign(WebGLProperties.prototype, {
 
     get: function(object) {
-        var uuid = object.uuid;
-        var map = this.properties[uuid];
+        var map = this.properties.get(object);
         if (map === undefined) {
             map = {};
-            this.properties[uuid] = map;
+            this.properties.set(object, map);
         }
         return map;
     },
 
     delete: function(object) {
-        delete this.properties[object.uuid];
+        this.properties.delete(object);
     },
 
     clear: function() {
-        this.properties = {};
+        this.properties = new WeakMap();
     }
 
 });
