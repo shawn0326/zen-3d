@@ -311,7 +311,7 @@ Object.assign(WebGLRenderTarget.prototype, {
     
         if (!!target.view) { // back RenderTarget
             if (state.currentRenderTarget === target) {
-    
+                // do nothing
             } else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     

@@ -17,13 +17,13 @@ var helpVector4 = new Vector4();
 
 function defaultGetMaterial(renderable) {
     return renderable.material;
-};
+}
 
 function defaultIfRender(renderable) {
     return true;
 }
 
-function noop() {};
+function noop() {}
 
 var getClippingPlanesData = function() {
     var planesData;

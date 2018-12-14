@@ -22,9 +22,10 @@
   "dependencies": {},
   "repository": {},
   "devDependencies": {
+    "eslint": "^5.10.0",
     "jsdoc": "^3.5.5",
-    "live-server": "^1.2.0",
-    "rollup": "^0.60.4",
+    "live-server": "^1.2.1",
+    "rollup": "^0.67.4",
     "uglify-js": "^3.0.23"
   },
   "scripts": {
@@ -38,6 +39,7 @@
     "build-input": "rollup ./src/extension/input/main.js -f umd -o ./build/zen3d.input.js",
     "extension": "npm run build-canvas2d && npm run build-vox && npm run build-input",
     "doc": "jsdoc ./src/core -r -d ./docs",
+    "eslint": "eslint src/core",
     "example": "live-server --port=8080 --open=examples --watch=examples,build"
   }
 }

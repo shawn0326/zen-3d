@@ -12113,11 +12113,13 @@
 	function defaultGetMaterial(renderable) {
 	    return renderable.material;
 	}
+
 	function defaultIfRender(renderable) {
 	    return true;
 	}
 
 	function noop() {}
+
 	var getClippingPlanesData = function() {
 	    var planesData;
 	    var plane = new Plane();
