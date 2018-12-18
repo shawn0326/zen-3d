@@ -7,7 +7,7 @@ var materialId = 0;
 
 /**
  * Abstract base class for materials.
- * Materials describe the appearance of {@link zen3d.Object3D}. 
+ * Materials describe the appearance of {@link zen3d.Object3D}.
  * They are defined in a (mostly) renderer-independent way, so you don't have to rewrite materials if you decide to use a different renderer.
  * The following properties and methods are inherited by all other material types (although they may have different defaults).
  * @constructor
@@ -18,37 +18,37 @@ function Material() {
 
     EventDispatcher.call(this);
 
-    Object.defineProperty( this, 'id', { value: materialId ++ } );
+    Object.defineProperty(this, 'id', { value: materialId ++ });
 
     // material type
     this.type = "";
 
     /**
-     * UUID of this material instance. 
+     * UUID of this material instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
     this.uuid = generateUUID();
 
     /**
-     * Float in the range of 0.0 - 1.0 indicating how transparent the material is. 
-     * A value of 0.0 indicates fully transparent, 1.0 is fully opaque. 
+     * Float in the range of 0.0 - 1.0 indicating how transparent the material is.
+     * A value of 0.0 indicates fully transparent, 1.0 is fully opaque.
      * @type {number}
      * @default 1
      */
     this.opacity = 1;
 
     /**
-     * Defines whether this material is transparent. 
-     * This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects. 
-     * When set to true, the extent to which the material is transparent is controlled by setting it's blending property. 
+     * Defines whether this material is transparent.
+     * This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects.
+     * When set to true, the extent to which the material is transparent is controlled by setting it's blending property.
      * @type {boolean}
      * @default false
      */
     this.transparent = false;
 
     /**
-     * Which blending to use when displaying objects with this material. 
+     * Which blending to use when displaying objects with this material.
      * This must be set to zen3d.BLEND_TYPE.CUSTOM to use custom blendSrc, blendDst or blendEquation.
      * @type {zen3d.BLEND_TYPE}
      * @default zen3d.BLEND_TYPE.NORMAL
@@ -72,7 +72,7 @@ function Material() {
     this.blendDst = BLEND_FACTOR.ONE_MINUS_SRC_ALPHA;
 
     /**
-     * Blending equation to use when applying blending. 
+     * Blending equation to use when applying blending.
      * The {@link zen3d.Material#blending} must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
      * @type {zen3d.BLEND_EQUATION}
      * @default zen3d.BLEND_EQUATION.ADD
@@ -106,21 +106,21 @@ function Material() {
     /**
      * Whether to premultiply the alpha (transparency) value.
      * @type {boolean}
-     * @default false 
+     * @default false
      */
     this.premultipliedAlpha = false;
 
     /**
      * Defines whether vertex coloring is used.
      * @type {boolean}
-     * @default false 
+     * @default false
      */
     this.vertexColors = false;
 
     /**
      * The diffuse color.
      * @type {zen3d.Color3}
-     * @default zen3d.Color3(0xffffff) 
+     * @default zen3d.Color3(0xffffff)
      */
     this.diffuse = new Color3(0xffffff);
 
@@ -153,15 +153,15 @@ function Material() {
     this.aoMapIntensity = 1.0;
 
     /**
-     * The texture to create a bump map. 
-     * The black and white values map to the perceived depth in relation to the lights. Bump doesn't actually affect the geometry of the object, only the lighting. 
+     * The texture to create a bump map.
+     * The black and white values map to the perceived depth in relation to the lights. Bump doesn't actually affect the geometry of the object, only the lighting.
      * @type {zen3d.Texture2D}
      * @default null
      */
     this.bumpMap = null;
 
     /**
-     * How much the bump map affects the material. 
+     * How much the bump map affects the material.
      * Typical ranges are 0-1.
      * @type {number}
      * @default 1
@@ -185,7 +185,7 @@ function Material() {
     /**
      * How to combine the result of the surface's color with the environment map, if any.
      * This has no effect in a {@link zen3d.PBRMaterial}.
-     * @type {zen3d.ENVMAP_COMBINE_TYPE} 
+     * @type {zen3d.ENVMAP_COMBINE_TYPE}
      * @default zen3d.ENVMAP_COMBINE_TYPE.MULTIPLY
      */
     this.envMapCombine = ENVMAP_COMBINE_TYPE.MULTIPLY;
@@ -193,13 +193,13 @@ function Material() {
     /**
      * Emissive (light) color of the material, essentially a solid color unaffected by other lighting.
      * @type {zen3d.Color3}
-     * @default zen3d.Color3(0x000000) 
+     * @default zen3d.Color3(0x000000)
      */
     this.emissive = new Color3(0x000000);
 
     /**
      * Set emissive (glow) map.
-     * The emissive map color is modulated by the emissive color and the emissive intensity. 
+     * The emissive map color is modulated by the emissive color and the emissive intensity.
      * If you have an emissive map, be sure to set the emissive color to something other than black.
      * @type {zen3d.Texture2D}
      * @default null
@@ -207,7 +207,7 @@ function Material() {
     this.emissiveMap = null;
 
     /**
-     * Intensity of the emissive light. 
+     * Intensity of the emissive light.
      * Modulates the emissive color.
      * @type {number}
      * @default 1
@@ -217,20 +217,20 @@ function Material() {
     /**
      * Whether to have depth test enabled when rendering this material.
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     this.depthTest = true;
 
     /**
      * Whether rendering this material has any effect on the depth buffer.
-     * When drawing 2D overlays it can be useful to disable the depth writing in order to layer several things together without creating z-index artifacts. 
+     * When drawing 2D overlays it can be useful to disable the depth writing in order to layer several things together without creating z-index artifacts.
      * @type {boolean}
      * @default true
      */
     this.depthWrite = true;
 
     /**
-     * Whether to render the material's color. 
+     * Whether to render the material's color.
      * This can be used in conjunction with a mesh's renderOrder property to create invisible objects that occlude other objects.
      * @type {boolean}
      * @default true
@@ -238,7 +238,7 @@ function Material() {
     this.colorWrite = true;
 
     /**
-     * Sets the alpha value to be used when running an alpha test. 
+     * Sets the alpha value to be used when running an alpha test.
      * The material will not be renderered if the opacity is lower than this value.
      * @type {number}
      * @default 0
@@ -253,7 +253,7 @@ function Material() {
     this.side = DRAW_SIDE.FRONT;
 
     /**
-     * Whether to use polygon offset. 
+     * Whether to use polygon offset.
      * This corresponds to the GL_POLYGON_OFFSET_FILL WebGL feature.
      * @type {boolean}
      * @default false
@@ -266,7 +266,7 @@ function Material() {
      * @default 0
      */
     this.polygonOffsetFactor = 0;
-    
+
     /**
      * Sets the polygon offset units.
      * @type {number}
@@ -349,11 +349,11 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      * @return {zen3d.Material}
      */
     clone: function() {
-        return new this.constructor().copy( this );
+        return new this.constructor().copy(this);
     },
 
     /**
-     * This disposes the material. 
+     * This disposes the material.
      * Textures of a material don't get disposed. These needs to be disposed by Texture.
      */
     dispose: function() {

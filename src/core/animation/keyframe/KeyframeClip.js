@@ -8,33 +8,33 @@ function KeyframeClip(name) {
 
     /**
      * The name of the clip.
-     * @type {string} 
+     * @type {string}
      */
     this.name = name || "";
 
     /**
      * All tracks for this clip.
-     * @type {zen3d.KeyframeTrack[]} 
+     * @type {zen3d.KeyframeTrack[]}
      */
     this.tracks = [];
 
     /**
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     this.loop = true;
 
     /**
      * Start frame.
      * @type {number}
-     * @default 0 
+     * @default 0
      */
     this.startFrame = 0;
 
     /**
      * End frame.
      * @type {number}
-     * @default 0 
+     * @default 0
      */
     this.endFrame = 0;
 
@@ -54,15 +54,15 @@ Object.assign(KeyframeClip.prototype, /** @lends zen3d.KeyframeClip.prototype */
 
         this.frame += t;
 
-        if(this.frame > this.endFrame) {
-            if(this.loop) {
+        if (this.frame > this.endFrame) {
+            if (this.loop) {
                 this.frame = this.startFrame;
             } else {
                 this.frame = this.endFrame;
             }
         }
-        
-        for(var i = 0, l = this.tracks.length; i < l; i++) {
+
+        for (var i = 0, l = this.tracks.length; i < l; i++) {
 
             var track = this.tracks[i];
 

@@ -24,14 +24,14 @@ Object.assign(WebGLRenderTarget.prototype, {
         var state = this.state;
         var texture = this.texture;
         var capabilities = this.capabilities;
-    
+
         var renderTargetProperties = this.properties.get(renderTarget);
-    
+
         if (renderTargetProperties.__webglFramebuffer === undefined) {
             renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
-            
+
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
-    
+
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
             var buffers = [];
@@ -54,7 +54,7 @@ Object.assign(WebGLRenderTarget.prototype, {
                 }
             }
 
-            if ( buffers.length > 1 ) {
+            if (buffers.length > 1) {
                 if (capabilities.version >= 2) {
                     gl.drawBuffers(buffers);
                 } else if (capabilities.getExtension('WEBGL_draw_buffers')) {
@@ -62,7 +62,7 @@ Object.assign(WebGLRenderTarget.prototype, {
                 }
             }
 
-            if ( capabilities.version >= 2 ) {
+            if (capabilities.version >= 2) {
                 if (renderTarget.multipleSampling > 0) {
                     var renderbuffer = gl.createRenderbuffer();
                     gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
@@ -72,23 +72,23 @@ Object.assign(WebGLRenderTarget.prototype, {
                     renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
                 }
             }
-    
+
             if (renderTarget.depthBuffer) {
-    
+
                 if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
                     renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-    
+
                     var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-    
+
                     gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    
+
                     if (renderTarget.stencilBuffer) {
                         if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
                             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
                         } else {
                             gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
                         }
-                        
+
                         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
                     } else {
                         if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
@@ -96,35 +96,35 @@ Object.assign(WebGLRenderTarget.prototype, {
                         } else {
                             gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
                         }
-                        
+
                         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
                     }
-    
+
                     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
                 }
-                
+
             }
-    
+
             var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-            if(status !== gl.FRAMEBUFFER_COMPLETE) {
-                if(status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+            if (status !== gl.FRAMEBUFFER_COMPLETE) {
+                if (status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
-                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+                } else if (status === gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
-                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+                } else if (status === gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
-                } else if(status === gl.FRAMEBUFFER_UNSUPPORTED) {
+                } else if (status === gl.FRAMEBUFFER_UNSUPPORTED) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_UNSUPPORTED");
-                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+                } else if (status === gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
                 } else {
                     console.warn("framebuffer not complete.");
                 }
             }
-    
+
             return;
         }
-    
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
     },
 
@@ -133,15 +133,15 @@ Object.assign(WebGLRenderTarget.prototype, {
         var state = this.state;
         var texture = this.texture;
         var capabilities = this.capabilities;
-    
+
         var renderTargetProperties = this.properties.get(renderTarget);
-    
+
         if (renderTargetProperties.__webglFramebuffer === undefined) {
             renderTarget.addEventListener('dispose', this.onRenderTargetDispose, this);
-            
+
             renderTargetProperties.__webglFramebuffer = gl.createFramebuffer();
             renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
-    
+
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
             var buffers = [];
@@ -164,7 +164,7 @@ Object.assign(WebGLRenderTarget.prototype, {
                 }
             }
 
-            if ( buffers.length > 1 ) {
+            if (buffers.length > 1) {
                 if (capabilities.version >= 2) {
                     gl.drawBuffers(buffers);
                 } else if (capabilities.getExtension('WEBGL_draw_buffers')) {
@@ -172,7 +172,7 @@ Object.assign(WebGLRenderTarget.prototype, {
                 }
             }
 
-            if ( capabilities.version >= 2 ) {
+            if (capabilities.version >= 2) {
                 if (renderTarget.multipleSampling > 0) {
                     var renderbuffer = gl.createRenderbuffer();
                     gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
@@ -182,23 +182,23 @@ Object.assign(WebGLRenderTarget.prototype, {
                     renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
                 }
             }
-    
+
             if (renderTarget.depthBuffer) {
-    
+
                 if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
                     renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-    
+
                     var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-    
+
                     gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    
+
                     if (renderTarget.stencilBuffer) {
                         if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
                             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
                         } else {
                             gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
                         }
-                        
+
                         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
                     } else {
                         if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
@@ -206,35 +206,35 @@ Object.assign(WebGLRenderTarget.prototype, {
                         } else {
                             gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
                         }
-                        
+
                         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
                     }
-    
+
                     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
                 }
-                
+
             }
-    
+
             var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-            if(status !== gl.FRAMEBUFFER_COMPLETE) {
-                if(status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+            if (status !== gl.FRAMEBUFFER_COMPLETE) {
+                if (status === gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
-                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+                } else if (status === gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
-                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+                } else if (status === gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
-                } else if(status === gl.FRAMEBUFFER_UNSUPPORTED) {
+                } else if (status === gl.FRAMEBUFFER_UNSUPPORTED) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_UNSUPPORTED");
-                } else if(status === gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+                } else if (status === gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
                     console.warn("framebuffer not complete: FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
                 } else {
                     console.warn("framebuffer not complete.");
                 }
             }
-    
+
             return;
         }
-    
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
         for (var attachment in renderTarget._textures) {
@@ -272,18 +272,18 @@ Object.assign(WebGLRenderTarget.prototype, {
         var gl = this.gl;
         var state = this.state;
         var texture = renderTarget.texture;
-    
+
         if (texture.generateMipmaps && _isPowerOfTwo(renderTarget) &&
             texture.minFilter !== gl.NEAREST &&
             texture.minFilter !== gl.LINEAR) {
-    
+
             var target = texture.textureType;
             var webglTexture = this.properties.get(texture).__webglTexture;
-    
+
             state.bindTexture(target, webglTexture);
             gl.generateMipmap(target);
             state.bindTexture(target, null);
-    
+
         }
     },
 
@@ -291,45 +291,45 @@ Object.assign(WebGLRenderTarget.prototype, {
         var gl = this.gl;
         var renderTarget = event.target;
         var renderTargetProperties = this.properties.get(renderTarget);
-    
+
         renderTarget.removeEventListener('dispose', this.onRenderTargetDispose, this);
-    
-        if(renderTargetProperties.__webglFramebuffer) {
+
+        if (renderTargetProperties.__webglFramebuffer) {
             gl.deleteFramebuffer(renderTargetProperties.__webglFramebuffer)
         }
-    
-        if(renderTargetProperties.__webglDepthbuffer) {
+
+        if (renderTargetProperties.__webglDepthbuffer) {
             gl.deleteRenderbuffer(renderTargetProperties.__webglDepthbuffer)
         }
-    
+
         this.properties.delete(renderTarget);
     },
 
     setRenderTarget: function(target) {
         var gl = this.gl;
         var state = this.state;
-    
+
         if (!!target.view) { // back RenderTarget
             if (state.currentRenderTarget === target) {
                 // do nothing
             } else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    
+
                 state.currentRenderTarget = target;
             }
-    
+
             return;
         }
-    
+
         var isCube = target.activeCubeFace !== undefined;
-    
+
         if (state.currentRenderTarget !== target) {
             if (!isCube) {
                 this.setRenderTarget2D(target);
             } else {
                 this.setRenderTargetCube(target);
             }
-    
+
             state.currentRenderTarget = target;
         } else {
             if (isCube) {

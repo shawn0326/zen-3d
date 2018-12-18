@@ -120,35 +120,35 @@ Object.assign(WebGLTexture.prototype, {
         if (slot !== undefined) {
             slot = gl.TEXTURE0 + slot;
         }
-    
+
         var textureProperties = this.properties.get(texture);
-    
+
         if (texture.image && (!texture.image.rtt || slot === undefined) && textureProperties.__version !== texture.version) {
-    
+
             if (textureProperties.__webglTexture === undefined) {
                 texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
-    
+
             state.activeTexture(slot);
             state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
-    
+
             var image = texture.image;
             var isElement = image instanceof HTMLImageElement || image instanceof HTMLCanvasElement;
 
-            if ( isElement ) {
+            if (isElement) {
                 image = clampToMaxSize(image, capabilities.maxTextureSize);
 
                 if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
                     image = makePowerOf2(image);
                 }
             }
-    
+
             var needFallback = !_isPowerOfTwo(image) && capabilities.version < 2;
-    
+
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, needFallback);
-    
+
             var mipmap, mipmaps = texture.mipmaps,
                 format = texture.format,
                 internalformat = texture.internalformat || texture.format,
@@ -177,48 +177,48 @@ Object.assign(WebGLTexture.prototype, {
                         console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
                     }
                 }
-                
+
             } else {
                 if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
                     type = 0x140B; // webgl2 half float value
                 }
             }
 
-            if ( isElement ) {
+            if (isElement) {
                 if (mipmaps.length > 0 && !needFallback) {
-    
+
                     for (var i = 0, il = mipmaps.length; i < il; i++) {
                         mipmap = mipmaps[i];
                         gl.texImage2D(gl.TEXTURE_2D, i, internalformat, format, type, mipmap);
                     }
-    
+
                     texture.generateMipmaps = false;
                 } else {
                     gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, format, type, image);
                 }
             } else {
                 if (mipmaps.length > 0 && !needFallback) {
-    
+
                     for (var i = 0, il = mipmaps.length; i < il; i++) {
                         mipmap = mipmaps[i];
                         gl.texImage2D(gl.TEXTURE_2D, i, internalformat, mipmap.width, mipmap.height, texture.border, format, type, mipmap.data);
                     }
-    
+
                     texture.generateMipmaps = false;
                 } else {
                     gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
                 }
             }
-    
+
             if (texture.generateMipmaps && !needFallback) {
                 gl.generateMipmap(gl.TEXTURE_2D);
             }
-    
+
             textureProperties.__version = texture.version;
-    
+
             return textureProperties;
         }
-    
+
         state.activeTexture(slot);
         state.bindTexture(gl.TEXTURE_2D, textureProperties.__webglTexture);
 
@@ -233,21 +233,21 @@ Object.assign(WebGLTexture.prototype, {
         if (slot !== undefined) {
             slot = gl.TEXTURE0 + slot;
         }
-    
+
         var textureProperties = this.properties.get(texture);
-    
-        if ( texture.images.length === 6 && (!texture.images[0].rtt || slot === undefined) && textureProperties.__version !== texture.version ) {
-    
+
+        if (texture.images.length === 6 && (!texture.images[0].rtt || slot === undefined) && textureProperties.__version !== texture.version) {
+
             if (textureProperties.__webglTexture === undefined) {
                 texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
-    
+
             state.activeTexture(slot);
             state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
-    
+
             var images = [];
-            
+
             var format = texture.format,
             internalformat = texture.internalformat || texture.format,
             type = texture.type;
@@ -275,7 +275,7 @@ Object.assign(WebGLTexture.prototype, {
                         console.warn("extension WEBGL_depth_texture is not support in webgl 1.0.");
                     }
                 }
-                
+
             } else {
                 if (type === WEBGL_PIXEL_TYPE.HALF_FLOAT) {
                     type = 0x140B; // webgl2 half float value
@@ -283,27 +283,27 @@ Object.assign(WebGLTexture.prototype, {
             }
 
             var needFallback = false;
-    
+
             for (var i = 0; i < 6; i++) {
                 var image = texture.images[i];
                 var isElement = image instanceof HTMLImageElement || image instanceof HTMLCanvasElement;
 
-                if ( isElement ) {
+                if (isElement) {
                     image = clampToMaxSize(image, capabilities.maxTextureSize);
-    
+
                     if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
                         image = makePowerOf2(image);
                     }
                 }
 
-                if ( !_isPowerOfTwo(image) && capabilities.version < 2 ) {
+                if (!_isPowerOfTwo(image) && capabilities.version < 2) {
                     needFallback = true;
                 }
 
                 images[i] = image;
                 image.__isElement = isElement;
             }
-    
+
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, needFallback);
 
@@ -311,22 +311,22 @@ Object.assign(WebGLTexture.prototype, {
                 var image = images[i];
                 var isElement = image.__isElement;
 
-                if ( isElement ) {
+                if (isElement) {
                     gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, image);
                 } else {
                     gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
                 }
             }
-    
+
             if (texture.generateMipmaps && !needFallback) {
                 gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             }
-    
+
             textureProperties.__version = texture.version;
-    
+
             return textureProperties;
         }
-    
+
         state.activeTexture(slot);
         state.bindTexture(gl.TEXTURE_CUBE_MAP, textureProperties.__webglTexture);
 
@@ -347,7 +347,7 @@ Object.assign(WebGLTexture.prototype, {
         if (slot !== undefined) {
             slot = gl.TEXTURE0 + slot;
         }
-    
+
         var textureProperties = this.properties.get(texture);
 
         if (texture.image && textureProperties.__version !== texture.version) {
@@ -355,15 +355,15 @@ Object.assign(WebGLTexture.prototype, {
                 texture.addEventListener('dispose', this.onTextureDispose, this);
                 textureProperties.__webglTexture = gl.createTexture();
             }
-    
+
             state.activeTexture(slot);
             state.bindTexture(gl.TEXTURE_3D, textureProperties.__webglTexture);
-    
+
             var image = texture.image;
 
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
             this.setTextureParameters(texture, false);
-    
+
             var format = texture.format,
                 internalformat = texture.internalformat || texture.format,
                 type = texture.type;
@@ -375,7 +375,7 @@ Object.assign(WebGLTexture.prototype, {
             }
 
             textureProperties.__version = texture.version;
-    
+
             return textureProperties;
         }
 
@@ -392,7 +392,7 @@ Object.assign(WebGLTexture.prototype, {
         var textureType = texture.textureType;
 
         var parameters = getTextureParameters(texture, needFallback);
-        
+
         // TODO sampler bug
         // if (capabilities.version >= 2) {
         //     var samplerKey = parameters.join("_");
@@ -445,13 +445,13 @@ Object.assign(WebGLTexture.prototype, {
         var gl = this.gl;
         var texture = event.target;
         var textureProperties = this.properties.get(texture);
-    
+
         texture.removeEventListener('dispose', this.onTextureDispose, this);
-    
-        if(textureProperties.__webglTexture) {
+
+        if (textureProperties.__webglTexture) {
             gl.deleteTexture(textureProperties.__webglTexture);
         }
-    
+
         this.properties.delete(texture);
     }
 

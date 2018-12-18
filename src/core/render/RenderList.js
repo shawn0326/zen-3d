@@ -7,7 +7,7 @@ var helpSphere = new Sphere();
 var sortFrontToBack = function(a, b) {
     if (a.renderOrder !== b.renderOrder) {
         return a.renderOrder - b.renderOrder;
-    } else if (a.material.id !== b.material.id) { 
+    } else if (a.material.id !== b.material.id) {
         // batch
         return a.material.id - b.material.id;
     } else if (a.z !== b.z) {
@@ -22,7 +22,7 @@ var sortBackToFront = function(a, b) {
         return a.renderOrder - b.renderOrder;
     } else if (a.z !== b.z) {
         return b.z - a.z;
-    } else if (a.material.id !== b.material.id) { 
+    } else if (a.material.id !== b.material.id) {
         // fix Unstable sort below chrome version 7.0
         // if render same object with different materials
         return a.material.id - b.material.id;
@@ -77,10 +77,10 @@ function RenderList() {
     function add(object, camera) {
 
         // frustum test
-        if(object.frustumCulled && camera.frustumCulled) {
+        if (object.frustumCulled && camera.frustumCulled) {
             helpSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.worldMatrix);
             var frustumTest = camera.frustum.intersectsSphere(helpSphere);
-            if(!frustumTest) { // only test bounding sphere
+            if (!frustumTest) { // only test bounding sphere
                 return;
             }
         }
@@ -89,13 +89,13 @@ function RenderList() {
         helpVector3.setFromMatrixPosition(object.worldMatrix);
         helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-        if(Array.isArray(object.material)){
+        if (Array.isArray(object.material)){
             var groups = object.geometry.groups;
 
-            for(var i = 0; i < groups.length; i++) {
+            for (var i = 0; i < groups.length; i++) {
                 var group = groups[i];
                 var groupMaterial = object.material[group.materialIndex];
-                if(groupMaterial) {
+                if (groupMaterial) {
                     _doAdd(object, object.geometry, groupMaterial, helpVector3.z, group);
                 }
             }
@@ -118,7 +118,7 @@ function RenderList() {
                 renderOrder: object.renderOrder,
                 group: group
             };
-            renderItems[ renderItemsIndex ] = renderable;
+            renderItems[renderItemsIndex] = renderable;
         } else {
             renderable.object = object;
             renderable.geometry = geometry;
@@ -127,7 +127,7 @@ function RenderList() {
             renderable.renderOrder = object.renderOrder;
             renderable.group = group;
         }
-        
+
         if (material.transparent) {
             transparent[transparentCount] = renderable;
             transparentCount++;

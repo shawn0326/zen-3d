@@ -14,7 +14,7 @@ function Matrix3() {
 Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
     /**
-     * 
+     *
      */
     identity: function() {
         this.set(
@@ -27,23 +27,23 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     inverse: function() {
         return this.getInverse(this);
     },
 
     /**
-     * 
+     *
      */
-    getInverse: function ( matrix ) {
+    getInverse: function (matrix) {
 
         var me = matrix.elements,
             te = this.elements,
 
-            n11 = me[ 0 ], n21 = me[ 1 ], n31 = me[ 2 ],
-            n12 = me[ 3 ], n22 = me[ 4 ], n32 = me[ 5 ],
-            n13 = me[ 6 ], n23 = me[ 7 ], n33 = me[ 8 ],
+            n11 = me[0], n21 = me[1], n31 = me[2],
+            n12 = me[3], n22 = me[4], n32 = me[5],
+            n13 = me[6], n23 = me[7], n33 = me[8],
 
             t11 = n33 * n22 - n32 * n23,
             t12 = n32 * n13 - n33 * n12,
@@ -51,27 +51,27 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
             det = n11 * t11 + n21 * t12 + n31 * t13;
 
-        if ( det === 0 ) {
+        if (det === 0) {
 
             var msg = "zen3d.Matrix3: .getInverse() can't invert matrix, determinant is 0";
-            console.warn( msg );
+            console.warn(msg);
             return this.identity();
 
         }
 
         var detInv = 1 / det;
 
-        te[ 0 ] = t11 * detInv;
-        te[ 1 ] = ( n31 * n23 - n33 * n21 ) * detInv;
-        te[ 2 ] = ( n32 * n21 - n31 * n22 ) * detInv;
+        te[0] = t11 * detInv;
+        te[1] = (n31 * n23 - n33 * n21) * detInv;
+        te[2] = (n32 * n21 - n31 * n22) * detInv;
 
-        te[ 3 ] = t12 * detInv;
-        te[ 4 ] = ( n33 * n11 - n31 * n13 ) * detInv;
-        te[ 5 ] = ( n31 * n12 - n32 * n11 ) * detInv;
+        te[3] = t12 * detInv;
+        te[4] = (n33 * n11 - n31 * n13) * detInv;
+        te[5] = (n31 * n12 - n32 * n11) * detInv;
 
-        te[ 6 ] = t13 * detInv;
-        te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv;
-        te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv;
+        te[6] = t13 * detInv;
+        te[7] = (n21 * n13 - n23 * n11) * detInv;
+        te[8] = (n22 * n11 - n21 * n12) * detInv;
 
         return this;
 
@@ -81,16 +81,16 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
         var tmp, m = this.elements;
 
-        tmp = m[ 1 ]; m[ 1 ] = m[ 3 ]; m[ 3 ] = tmp;
-        tmp = m[ 2 ]; m[ 2 ] = m[ 6 ]; m[ 6 ] = tmp;
-        tmp = m[ 5 ]; m[ 5 ] = m[ 7 ]; m[ 7 ] = tmp;
+        tmp = m[1]; m[1] = m[3]; m[3] = tmp;
+        tmp = m[2]; m[2] = m[6]; m[6] = tmp;
+        tmp = m[5]; m[5] = m[7]; m[7] = tmp;
 
         return this;
 
     },
 
     /**
-     * 
+     *
      */
     set: function(n11, n12, n13,
         n21, n22, n23,
@@ -113,7 +113,7 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     copy: function(m) {
         this.elements.set(m.elements);
@@ -122,7 +122,7 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     multiply: function(m) {
 
@@ -131,7 +131,7 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     premultiply: function(m) {
 
@@ -140,7 +140,7 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     multiplyMatrices: function(a, b) {
 
@@ -220,33 +220,33 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
     },
 
     /**
-     * 
+     *
      */
-    setUvTransform: function ( tx, ty, sx, sy, rotation, cx, cy ) {
+    setUvTransform: function (tx, ty, sx, sy, rotation, cx, cy) {
 
-        var c = Math.cos( rotation );
-        var s = Math.sin( rotation );
+        var c = Math.cos(rotation);
+        var s = Math.sin(rotation);
 
         this.set(
-            sx * c, sx * s, - sx * ( c * cx + s * cy ) + cx + tx,
-            - sy * s, sy * c, - sy * ( - s * cx + c * cy ) + cy + ty,
+            sx * c, sx * s, - sx * (c * cx + s * cy) + cx + tx,
+            - sy * s, sy * c, - sy * (- s * cx + c * cy) + cy + ty,
             0, 0, 1
         );
 
     },
 
     /**
-     * 
+     *
      */
-    setFromMatrix4: function ( m ) {
+    setFromMatrix4: function (m) {
 
         var me = m.elements;
 
         this.set(
 
-            me[ 0 ], me[ 4 ], me[ 8 ],
-            me[ 1 ], me[ 5 ], me[ 9 ],
-            me[ 2 ], me[ 6 ], me[ 10 ]
+            me[0], me[4], me[8],
+            me[1], me[5], me[9],
+            me[2], me[6], me[10]
 
         );
 

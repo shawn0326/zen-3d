@@ -46,14 +46,14 @@ TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), /** 
 
 /**
  * Create TextureCube from images.
- * @param {HTMLImageElement[]} imageArray 
+ * @param {HTMLImageElement[]} imageArray
  * @return {TextureCube} - The result Texture.
  */
 TextureCube.fromImage = function(imageArray) {
     var texture = new TextureCube();
     var images = texture.images;
 
-    for(var i = 0; i < 6; i++) {
+    for (var i = 0; i < 6; i++) {
         images[i] = imageArray[i];
     }
 
@@ -64,7 +64,7 @@ TextureCube.fromImage = function(imageArray) {
 
 /**
  * Create TextureCube from src array.
- * @param {string[]} srcArray 
+ * @param {string[]} srcArray
  * @return {TextureCube} - The result Texture.
  */
 TextureCube.fromSrc = function(srcArray) {
@@ -73,17 +73,17 @@ TextureCube.fromSrc = function(srcArray) {
 
     var src = srcArray[0];
     // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
-    var isJPEG = src.search( /\.(jpg|jpeg)$/ ) > 0 || src.search( /^data\:image\/jpeg/ ) === 0;
+    var isJPEG = src.search(/\.(jpg|jpeg)$/) > 0 || src.search(/^data\:image\/jpeg/) === 0;
 
-    var isTGA = src.search( /\.(tga)$/ ) > 0 || src.search( /^data\:image\/tga/ ) === 0;
+    var isTGA = src.search(/\.(tga)$/) > 0 || src.search(/^data\:image\/tga/) === 0;
 
     var count = 0;
     function next(image) {
-        if(image) {
+        if (image) {
             images.push(image);
             count++;
         }
-        if(count >= 6) {
+        if (count >= 6) {
             loaded();
             return;
         }

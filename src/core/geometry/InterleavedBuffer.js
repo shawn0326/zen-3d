@@ -1,7 +1,7 @@
 import {generateUUID} from '../base.js';
 
 /**
- * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer. 
+ * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
  * An introduction into interleaved arrays can be found here: {@link https://blog.tojicode.com/2011/05/interleaved-array-basics.html Interleaved array basics}.
  * @constructor
  * @memberof zen3d
@@ -11,15 +11,15 @@ import {generateUUID} from '../base.js';
 function InterleavedBuffer(array, stride) {
 
     /**
-     * UUID of this InterleavedBuffer instance. 
+     * UUID of this InterleavedBuffer instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
     this.uuid = generateUUID();
 
     /**
-     * A typed array with a shared buffer. 
-     * Stores the geometry data. 
+     * A typed array with a shared buffer.
+     * Stores the geometry data.
      * @type {TypedArray}
      */
     this.array = array;
@@ -32,25 +32,25 @@ function InterleavedBuffer(array, stride) {
 
     /**
      * Gives the total number of elements in the array.
-     * @type {Integer} 
+     * @type {Integer}
      */
     this.count = array !== undefined ? array.length / stride : 0;
 
     /**
-     * @type {boolean} 
+     * @type {boolean}
      * @default false
      */
     this.dynamic = false;
 
     /**
-     * Object containing offset and count. 
+     * Object containing offset and count.
      * @type {Object}
      * @default { offset: 0, count: - 1 }
      */
     this.updateRange = { offset: 0, count: - 1 };
 
     /**
-     * A version number, incremented every time the data is changed. 
+     * A version number, incremented every time the data is changed.
      * @type {Integer}
      * @default 0
      */
@@ -61,7 +61,7 @@ function InterleavedBuffer(array, stride) {
 Object.assign(InterleavedBuffer.prototype, /** @lends zen3d.InterleavedBuffer.prototype */{
 
     /**
-     * @param {TypedArray} array 
+     * @param {TypedArray} array
      */
     setArray: function(array) {
         this.count = array !== undefined ? array.length / this.stride : 0;

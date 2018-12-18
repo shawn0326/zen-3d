@@ -12,7 +12,7 @@ import {generateUUID} from '../base.js';
 function BufferAttribute(array, size, normalized) {
 
     /**
-     * UUID of this buffer attribute instance. 
+     * UUID of this buffer attribute instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
@@ -20,36 +20,36 @@ function BufferAttribute(array, size, normalized) {
 
     /**
      * The array holding data stored in the buffer.
-     * @type {TypedArray} 
+     * @type {TypedArray}
      */
     this.array = array;
 
     /**
      * The length of vectors that are being stored in the array.
-     * @type {Integer} 
+     * @type {Integer}
      */
     this.size = size;
 
     /**
      * Stores the array's length divided by the size.
      * If the buffer is storing a 3-component vector (such as a position, normal, or color), then this will count the number of such vectors stored.
-     * @type {Integer}  
+     * @type {Integer}
      */
     this.count = array !== undefined ? array.length / size : 0;
 
     /**
      * Indicates how the underlying data in the buffer maps to the values in the GLSL shader code.
      * See the constructor above for details.
-     * @type {boolean}  
+     * @type {boolean}
      */
     this.normalized = normalized === true;
 
     /**
      * Whether the buffer is dynamic or not.
-     * If false, the GPU is informed that contents of the buffer are likely to be used often and not change often. 
+     * If false, the GPU is informed that contents of the buffer are likely to be used often and not change often.
      * This corresponds to the gl.STATIC_DRAW flag.
-     * If true, the GPU is informed that contents of the buffer are likely to be used often and change often. 
-     * This corresponds to the gl.DYNAMIC_DRAW flag. 
+     * If true, the GPU is informed that contents of the buffer are likely to be used often and change often.
+     * This corresponds to the gl.DYNAMIC_DRAW flag.
      * @type {boolean}
      * @default false
      */
@@ -58,8 +58,8 @@ function BufferAttribute(array, size, normalized) {
     /**
      * Object containing:
      * offset: Default is 0. Position at whcih to start update.
-     * count: Default is -1, which means don't use update ranges. 
-     * This can be used to only update some components of stored vectors (for example, just the component related to color). 
+     * count: Default is -1, which means don't use update ranges.
+     * This can be used to only update some components of stored vectors (for example, just the component related to color).
      */
     this.updateRange = { offset: 0, count: - 1 };
 

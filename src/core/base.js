@@ -7,34 +7,34 @@
  */
 export var generateUUID = (function () {
 
-    var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split( '' );
-    var uuid = new Array( 36 );
+    var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+    var uuid = new Array(36);
     var rnd = 0, r;
 
     return function generateUUID() {
 
-        for ( var i = 0; i < 36; i ++ ) {
+        for (var i = 0; i < 36; i ++) {
 
-            if ( i === 8 || i === 13 || i === 18 || i === 23 ) {
+            if (i === 8 || i === 13 || i === 18 || i === 23) {
 
-                uuid[ i ] = '-';
+                uuid[i] = '-';
 
-            } else if ( i === 14 ) {
+            } else if (i === 14) {
 
-                uuid[ i ] = '4';
+                uuid[i] = '4';
 
             } else {
 
-                if ( rnd <= 0x02 ) rnd = 0x2000000 + ( Math.random() * 0x1000000 ) | 0;
+                if (rnd <= 0x02) rnd = 0x2000000 + (Math.random() * 0x1000000) | 0;
                 r = rnd & 0xf;
                 rnd = rnd >> 4;
-                uuid[ i ] = chars[ ( i === 19 ) ? ( r & 0x3 ) | 0x8 : r ];
+                uuid[i] = chars[(i === 19) ? (r & 0x3) | 0x8 : r];
 
             }
 
         }
 
-        return uuid.join( '' );
+        return uuid.join('');
 
     };
 
@@ -81,12 +81,12 @@ export function createCheckerBoardPixels(width, height, blockSize) {
 
     var colorIndex = 0;
 
-    for(var y = 0; y < height; y++) {
-        for(var x = 0; x < width; x++) {
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
 
-            if(x == 0) {
+            if (x == 0) {
                 colorIndex = 1;
-            } else if((x % blockSize) == 0) {
+            } else if ((x % blockSize) == 0) {
                 colorIndex = (colorIndex + 1) % 2;
             }
 
@@ -114,7 +114,7 @@ export function createCheckerBoardPixels(width, height, blockSize) {
  * @return {boolean} - Is this number a power of two.
  */
 export function isPowerOfTwo(value) {
-    return ( value & ( value - 1 ) ) === 0 && value !== 0;
+    return (value & (value - 1)) === 0 && value !== 0;
 }
 
 /**
@@ -124,8 +124,8 @@ export function isPowerOfTwo(value) {
  * @param {number} value - The input number.
  * @return {number} - The result number.
  */
-export function nearestPowerOfTwo( value ) {
-    return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
+export function nearestPowerOfTwo(value) {
+    return Math.pow(2, Math.round(Math.log(value) / Math.LN2));
 }
 
 /**
@@ -135,7 +135,7 @@ export function nearestPowerOfTwo( value ) {
  * @param {number} value - The input number.
  * @return {number} - The result number.
  */
-export function nextPowerOfTwo( value ) {
+export function nextPowerOfTwo(value) {
     value --;
     value |= value >> 1;
     value |= value >> 2;
@@ -157,10 +157,10 @@ export function nextPowerOfTwo( value ) {
 export function cloneUniforms(uniforms_src) {
     var uniforms_dst = {};
 
-    for(var name in uniforms_src) {
+    for (var name in uniforms_src) {
         var uniform_src = uniforms_src[name];
         // TODO zen3d object clone
-        if ( Array.isArray( uniform_src ) ) {
+        if (Array.isArray(uniform_src)) {
             uniforms_dst[name] = uniform_src.slice();
         } else {
             uniforms_dst[name] = uniform_src;

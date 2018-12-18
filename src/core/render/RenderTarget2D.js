@@ -58,7 +58,7 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
     },
 
     /**
-     * @override   
+     * @override
      */
     resize: function(width, height) {
 
@@ -67,7 +67,7 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
         if (changed) {
             for (var attachment in this._textures) {
                 var texture = this._textures[attachment];
-    
+
                 if (texture) {
                     texture.image = {rtt: true, data: null, width: this.width, height: this.height};
                     texture.version++;

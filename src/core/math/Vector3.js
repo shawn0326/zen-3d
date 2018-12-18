@@ -17,14 +17,14 @@ function Vector3(x, y, z) {
 Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 
     /**
-     * 
+     *
      */
     lerpVectors: function(v1, v2, ratio) {
         return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
     },
 
     /**
-     * 
+     *
      */
     set: function(x, y, z) {
         this.x = x || 0;
@@ -35,7 +35,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     min: function(v) {
         this.x = Math.min(this.x, v.x);
@@ -46,7 +46,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     max: function(v) {
         this.x = Math.max(this.x, v.x);
@@ -57,21 +57,21 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     getLength: function() {
         return Math.sqrt(this.getLengthSquared());
     },
 
     /**
-     * 
+     *
      */
     getLengthSquared: function() {
         return this.x * this.x + this.y * this.y + this.z * this.z;
     },
 
     /**
-     * 
+     *
      */
     normalize: function(thickness) {
         thickness = thickness || 1;
@@ -86,7 +86,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     subtract: function(a, target) {
         if (!target) {
@@ -97,9 +97,9 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
-    multiply: function ( v ) {
+    multiply: function (v) {
         this.x *= v.x;
         this.y *= v.y;
         this.z *= v.z;
@@ -108,7 +108,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     crossVectors: function(a, b) {
         var ax = a.x,
@@ -126,7 +126,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     cross: function(v) {
         var x = this.x,
@@ -141,14 +141,14 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     dot: function(a) {
         return this.x * a.x + this.y * a.y + this.z * a.z;
     },
 
     /**
-     * 
+     *
      */
     applyQuaternion: function(q) {
 
@@ -177,7 +177,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     applyMatrix4: function(m) {
 
@@ -197,23 +197,23 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
-    applyMatrix3: function ( m ) {
+    applyMatrix3: function (m) {
 
         var x = this.x, y = this.y, z = this.z;
         var e = m.elements;
 
-        this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
-        this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
-        this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+        this.x = e[0] * x + e[3] * y + e[6] * z;
+        this.y = e[1] * x + e[4] * y + e[7] * z;
+        this.z = e[2] * x + e[5] * y + e[8] * z;
 
         return this;
 
     },
 
     /**
-     * 
+     *
      */
     transformDirection: function(m) {
 
@@ -234,7 +234,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     setFromMatrixPosition: function(m) {
 
@@ -243,7 +243,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     setFromMatrixColumn: function(m, index) {
 
@@ -252,7 +252,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     fromArray: function(array, offset) {
 
@@ -267,7 +267,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     copy: function(v) {
         this.x = v.x;
@@ -278,7 +278,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     addVectors: function(a, b) {
         this.x = a.x + b.x;
@@ -289,7 +289,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     addScalar: function(s) {
         this.x += s;
@@ -300,7 +300,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     add: function(v) {
         this.x += v.x;
@@ -311,7 +311,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     subVectors: function(a, b) {
         this.x = a.x - b.x;
@@ -322,7 +322,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     sub: function(v) {
         this.x -= v.x;
@@ -333,7 +333,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     multiplyScalar: function(scalar) {
         this.x *= scalar;
@@ -344,7 +344,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     distanceToSquared: function(v) {
         var dx = this.x - v.x,
@@ -355,27 +355,27 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     distanceTo: function(v) {
         return Math.sqrt(this.distanceToSquared(v));
     },
 
     /**
-     * 
+     *
      */
     setFromSpherical: function (s) {
-        var sinPhiRadius = Math.sin( s.phi ) * s.radius;
+        var sinPhiRadius = Math.sin(s.phi) * s.radius;
 
-        this.x = sinPhiRadius * Math.sin( s.theta );
-        this.y = Math.cos( s.phi ) * s.radius;
-        this.z = sinPhiRadius * Math.cos( s.theta );
+        this.x = sinPhiRadius * Math.sin(s.theta);
+        this.y = Math.cos(s.phi) * s.radius;
+        this.z = sinPhiRadius * Math.cos(s.theta);
 
         return this;
     },
 
     /**
-     * 
+     *
      */
     unproject: function() {
         var matrix;
@@ -389,7 +389,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     }(),
 
     /**
-     * 
+     *
      */
     applyProjection: function(m) {
         // input: Matrix4 projection matrix
@@ -407,14 +407,14 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     equals: function(v) {
         return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
     },
 
     /**
-     * 
+     *
      */
     clone: function() {
         return new Vector3(this.x, this.y, this.z);

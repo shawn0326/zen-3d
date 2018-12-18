@@ -12,14 +12,14 @@ import {Vector2} from '../../math/Vector2.js';
 function LightShadow() {
 
     /**
-     * The light's view of the world. 
+     * The light's view of the world.
      * This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
      * @type {zen3d.Camera}
      */
     this.camera = new Camera();
 
     /**
-     * Model to shadow camera space, to compute location and depth in shadow map. Stored in a {@link zen3d.Matrix4}. 
+     * Model to shadow camera space, to compute location and depth in shadow map. Stored in a {@link zen3d.Matrix4}.
      * This is computed internally during rendering.
      * @type {zen3d.Matrix4}
      */
@@ -43,14 +43,14 @@ function LightShadow() {
     this.radius = 2;
 
     /**
-     * Shadow camera near. 
+     * Shadow camera near.
      * @type {number}
      * @default 1
      */
     this.cameraNear = 1;
 
     /**
-     * Shadow camera far. 
+     * Shadow camera far.
      * @type {number}
      * @default 500
      */
@@ -58,8 +58,8 @@ function LightShadow() {
 
     /**
      * A {@link zen3d.Vector2} defining the width and height of the shadow map.
-     * Higher values give better quality shadows at the cost of computation time. 
-     * Values must be powers of 2, 
+     * Higher values give better quality shadows at the cost of computation time.
+     * Values must be powers of 2,
      * @type {zen3d.Vector2}
      * @default zen3d.Vector2(512, 512)
      */
@@ -92,7 +92,7 @@ Object.assign(LightShadow.prototype, /** @lends zen3d.LightShadow.prototype */{
     },
 
     clone: function() {
-        return new this.constructor().copy( this );
+        return new this.constructor().copy(this);
     }
 
 });

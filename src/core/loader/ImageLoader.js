@@ -9,13 +9,13 @@ import {DefaultLoadingManager} from './LoadingManager.js';
 function ImageLoader(manager) {
     this.crossOrigin = undefined;
     this.path = undefined;
-    this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
+    this.manager = (manager !== undefined) ? manager : DefaultLoadingManager;
 }
 
 Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
 
     /**
-     * Load the URL and pass the response to the onLoad function. 
+     * Load the URL and pass the response to the onLoad function.
      * @param {string} url — the path or URL to the file. This can also be a Data URI.
      * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded image.
      * @param {Function} [onProgress=] — Will be called while load progresses. todo.
@@ -33,35 +33,35 @@ Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
 
         function onImageLoad() {
 
-            image.removeEventListener( 'load', onImageLoad, false );
-            image.removeEventListener( 'error', onImageError, false );
-            
-            if (onLoad) onLoad( this );
+            image.removeEventListener('load', onImageLoad, false);
+            image.removeEventListener('error', onImageError, false);
 
-            scope.manager.itemEnd( url );
+            if (onLoad) onLoad(this);
+
+            scope.manager.itemEnd(url);
 
         }
 
-        function onImageError( event ) {
+        function onImageError(event) {
 
-            image.removeEventListener( 'load', onImageLoad, false );
-            image.removeEventListener( 'error', onImageError, false );
-            
-            if (onError) onError( event );
+            image.removeEventListener('load', onImageLoad, false);
+            image.removeEventListener('error', onImageError, false);
 
-            scope.manager.itemError( url );
-            scope.manager.itemEnd( url );
-            
+            if (onError) onError(event);
+
+            scope.manager.itemError(url);
+            scope.manager.itemEnd(url);
+
         }
 
-        image.addEventListener( 'load', onImageLoad, false );
-		image.addEventListener( 'error', onImageError, false );
+        image.addEventListener('load', onImageLoad, false);
+		image.addEventListener('error', onImageError, false);
 
         if (url.substr(0, 5) !== 'data:') {
             if (this.crossOrigin !== undefined) image.crossOrigin = this.crossOrigin;
         }
 
-        scope.manager.itemStart( url );
+        scope.manager.itemStart(url);
 
         image.src = url;
 
@@ -69,7 +69,7 @@ Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
     },
 
     /**
-     * If set, assigns the crossOrigin attribute of the image to the value of crossOrigin, prior to starting the load. 
+     * If set, assigns the crossOrigin attribute of the image to the value of crossOrigin, prior to starting the load.
      * Default is "anonymous".
      * @param {string} value
      * @return {zen3d.ImageLoader}
@@ -80,8 +80,8 @@ Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
     },
 
     /**
-     * Set the base path or URL from which to load files. 
-     * This can be useful if you are loading many images from the same directory. 
+     * Set the base path or URL from which to load files.
+     * This can be useful if you are loading many images from the same directory.
      * @param {string} value
      * @return {zen3d.ImageLoader}
      */

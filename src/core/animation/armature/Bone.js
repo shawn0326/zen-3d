@@ -2,8 +2,8 @@ import {Object3D} from '../../objects/Object3D.js';
 import {Matrix4} from '../../math/Matrix4.js';
 
 /**
- * A bone which is part of a Skeleton. 
- * The skeleton in turn is used by the SkinnedMesh. 
+ * A bone which is part of a Skeleton.
+ * The skeleton in turn is used by the SkinnedMesh.
  * Bones are almost identical to a blank Object3D.
  * Bone acturely is a joint.
  * The position means joint position.

@@ -7,7 +7,7 @@ import {BufferAttribute} from './BufferAttribute.js';
 var geometryId = 1;
 
 /**
- * An efficient representation of mesh, line, or point geometry. 
+ * An efficient representation of mesh, line, or point geometry.
  * Includes vertex positions, face indices, normals, colors, UVs, and custom attributes within buffers, reducing the cost of passing all this data to the GPU.
  * To read and edit data in {@link zen3d.Geometry#attributes}.
  * @constructor
@@ -18,25 +18,25 @@ function Geometry() {
 
     EventDispatcher.call(this);
 
-    Object.defineProperty( this, 'id', { value: geometryId ++ } );
+    Object.defineProperty(this, 'id', { value: geometryId ++ });
 
     /**
-     * UUID of this geometry instance. 
+     * UUID of this geometry instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
     this.uuid = generateUUID();
 
     /**
-     * This hashmap has as id the name of the attribute to be set and as value the buffer to set it to. 
-     * Rather than accessing this property directly, use {@link zen3d.Geometry#addAttribute} and {@link zen3d.Geometry#getAttribute} to access attributes of this geometry. 
+     * This hashmap has as id the name of the attribute to be set and as value the buffer to set it to.
+     * Rather than accessing this property directly, use {@link zen3d.Geometry#addAttribute} and {@link zen3d.Geometry#getAttribute} to access attributes of this geometry.
      * @type {Object}
      */
     this.attributes = {};
 
     /**
-     * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices. 
-     * This attribute therefore stores the index of each vertex for each triangular face. 
+     * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices.
+     * This attribute therefore stores the index of each vertex for each triangular face.
      * If this attribute is not set, the renderer assumes that each three contiguous positions represent a single triangle.
      * @type {zen3d.BufferAttribute|null}
      */
@@ -44,14 +44,14 @@ function Geometry() {
 
     /**
      * Bounding box for the bufferGeometry, which can be calculated with {@link zen3d.Geometry#computeBoundingBox}.
-     * @type {zen3d.Box3} 
+     * @type {zen3d.Box3}
      * @default zen3d.Box3()
      */
     this.boundingBox = new Box3();
 
     /**
      * Bounding sphere for the bufferGeometry, which can be calculated with {@link zen3d.Geometry#computeBoundingSphere}.
-     * @type {zen3d.Sphere} 
+     * @type {zen3d.Sphere}
      * @default zen3d.Sphere()
      */
     this.boundingSphere = new Sphere();
@@ -60,7 +60,7 @@ function Geometry() {
      * Split the geometry into groups, each of which will be rendered in a separate WebGL draw call. This allows an array of materials to be used with the geometry.
      * Each group is an object of the form:
      * { start: Integer, count: Integer, materialIndex: Integer }
-     * @type {Array} 
+     * @type {Array}
      * @default []
      */
     this.groups = [];
@@ -72,7 +72,7 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
     constructor: Geometry,
 
     /**
-     * Adds an attribute to this geometry. 
+     * Adds an attribute to this geometry.
      * Use this rather than the attributes property.
      * @param {string} name
      * @param {zen3d.BufferAttribute|zen3d.InterleavedBufferAttribute} attribute
@@ -101,8 +101,8 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      * @param {Array|zen3d.BufferAttribute} index
      */
     setIndex: function(index) {
-        if(Array.isArray(index)) {
-            this.index = new BufferAttribute(new Uint16Array( index ), 1);
+        if (Array.isArray(index)) {
+            this.index = new BufferAttribute(new Uint16Array(index), 1);
         } else {
             this.index = index;
         }
@@ -135,7 +135,7 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      */
     computeBoundingBox: function() {
         var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
+        if (position.isInterleavedBufferAttribute) {
             var data = position.data;
             this.boundingBox.setFromArray(data.array, data.stride);
         } else {
@@ -149,7 +149,7 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      */
     computeBoundingSphere: function() {
         var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
+        if (position.isInterleavedBufferAttribute) {
             var data = position.data;
             this.boundingSphere.setFromArray(data.array, data.stride);
         } else {
@@ -158,7 +158,7 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
     },
 
     /**
-     * Disposes the object from memory. 
+     * Disposes the object from memory.
      * You need to call this when you want the BufferGeometry removed while the application is running.
      */
     dispose: function() {

@@ -22,8 +22,8 @@ function SkinnedMesh(geometry, material) {
     this.skeleton = undefined;
 
     /**
-     * Either "attached" or "detached". 
-     * "attached" uses the {@link zen3d.SkinnedMesh#worldMatrix} property for the base transform matrix of the bones. 
+     * Either "attached" or "detached".
+     * "attached" uses the {@link zen3d.SkinnedMesh#worldMatrix} property for the base transform matrix of the bones.
      * "detached" uses the {@link zen3d.SkinnedMesh#bindMatrix}.
      * @member {string}
      * @default "attached"
@@ -47,18 +47,18 @@ function SkinnedMesh(geometry, material) {
 SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends zen3d.SkinnedMesh.prototype */{
 
     constructor: SkinnedMesh,
-    
+
     /**
-     * Bind a skeleton to the skinned mesh. 
+     * Bind a skeleton to the skinned mesh.
      * The bindMatrix gets saved to .bindMatrix property and the .bindMatrixInverse gets calculated.
      * @param {zen3d.Skeleton} skeleton - Skeleton created from a Bones tree.
      * @param {zen3d.Matrix4} [bindMatrix=] - Matrix4 that represents the base transform of the skeleton.
      */
-    bind: function ( skeleton, bindMatrix ) {
+    bind: function (skeleton, bindMatrix) {
 
 		this.skeleton = skeleton;
 
-		if ( bindMatrix === undefined ) {
+		if (bindMatrix === undefined) {
 
 			this.updateMatrix();
 
@@ -66,25 +66,25 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
 
 		}
 
-		this.bindMatrix.copy( bindMatrix );
-		this.bindMatrixInverse.getInverse( bindMatrix );
+		this.bindMatrix.copy(bindMatrix);
+		this.bindMatrixInverse.getInverse(bindMatrix);
 
 	},
 
     updateMatrix: function() {
         Mesh.prototype.updateMatrix.call(this);
 
-        if(this.bindMode === 'attached') {
+        if (this.bindMode === 'attached') {
             this.bindMatrixInverse.getInverse(this.worldMatrix);
-        } else if(this.bindMode === 'detached') {
+        } else if (this.bindMode === 'detached') {
             this.bindMatrixInverse.getInverse(this.bindMatrix);
         } else {
-            console.warn( 'zen3d.SkinnedMesh: Unrecognized bindMode: ' + this.bindMode );
+            console.warn('zen3d.SkinnedMesh: Unrecognized bindMode: ' + this.bindMode);
         }
     },
 
     clone: function () {
-        return new this.constructor( this.geometry, this.material ).copy( this );
+        return new this.constructor(this.geometry, this.material).copy(this);
     }
 
 });

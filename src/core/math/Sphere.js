@@ -5,7 +5,7 @@ import {Box3} from './Box3.js';
  * @constructor
  * @memberof zen3d
  * @param {zen3d.Vector3} [center=Vector3()]
- * @param {number} [radius=0] 
+ * @param {number} [radius=0]
  */
 function Sphere(center, radius) {
     this.center = (center !== undefined) ? center : new Vector3();
@@ -15,7 +15,7 @@ function Sphere(center, radius) {
 Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 
     /**
-     * 
+     *
      */
     set: function(center, radius) {
         this.center.copy(center);
@@ -57,7 +57,7 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
     }(),
 
     /**
-     * 
+     *
      */
     applyMatrix4: function(matrix) {
         this.center.applyMatrix4(matrix);
@@ -67,7 +67,7 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
     },
 
     /**
-     * 
+     *
      */
     getBoundingBox: function(optionalTarget) {
         var box = optionalTarget || new Box3();
@@ -79,14 +79,14 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
     },
 
     /**
-     * 
+     *
      */
     clone: function() {
         return new Sphere().copy(this);
     },
 
     /**
-     * 
+     *
      */
     copy: function(sphere) {
         this.center.copy(sphere.center);

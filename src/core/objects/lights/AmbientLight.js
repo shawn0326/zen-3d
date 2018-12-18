@@ -10,12 +10,12 @@ import {Light} from './Light.js';
  * @param {number} [color=0xffffff]
  * @param {number} [intensity=1]
  */
-function AmbientLight( color, intensity ) {
+function AmbientLight(color, intensity) {
 
     Light.call(this, color, intensity);
 
     this.lightType = LIGHT_TYPE.AMBIENT;
-    
+
 }
 
 AmbientLight.prototype = Object.create(Light.prototype);

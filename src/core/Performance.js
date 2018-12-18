@@ -16,7 +16,7 @@ Object.assign(Performance.prototype, {
     },
 
     updateFps: function() {
-        if(!this.enableCounter) {
+        if (!this.enableCounter) {
             return;
         }
         this.endCounter("fps");
@@ -24,19 +24,19 @@ Object.assign(Performance.prototype, {
     },
 
     getNow: function() {
-        if(window.performance) {
+        if (window.performance) {
             return window.performance.now();
         }
         return new Date().getTime();
     },
 
     startCounter: function(key, averageRange) {
-        if(!this.enableCounter) {
+        if (!this.enableCounter) {
             return;
         }
 
         var entity = this._entities[key];
-        if(!entity) {
+        if (!entity) {
             entity = {
                 start: 0,
                 end: 0,
@@ -52,25 +52,25 @@ Object.assign(Performance.prototype, {
     },
 
     endCounter: function(key) {
-        if(!this.enableCounter) {
+        if (!this.enableCounter) {
             return;
         }
 
         var entity = this._entities[key];
-        if(entity) {
+        if (entity) {
             entity.end = this.getNow();
             entity.delta = entity.end - entity.start;
 
-            if(entity.averageRange > 1) {
+            if (entity.averageRange > 1) {
                 entity._cache.push(entity.delta);
                 var length = entity._cache.length;
-                if(length >= entity.averageRange) {
-                    if(length > entity.averageRange) {
+                if (length >= entity.averageRange) {
+                    if (length > entity.averageRange) {
                         entity._cache.shift();
                         length--;
                     }
                     var sum = 0;
-                    for(var i = 0; i < length; i++) {
+                    for (var i = 0; i < length; i++) {
                         sum += entity._cache[i];
                     }
                     entity.averageDelta = sum / length;

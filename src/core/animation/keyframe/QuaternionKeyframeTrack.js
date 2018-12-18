@@ -27,21 +27,22 @@ QuaternionKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.pr
             times = this.times,
             values = this.values,
             key1 = times[index],
-            key2 = times[index + 1];
+            key2 = times[index + 1],
+            i = 0;
 
         if (this.interpolant) {
             if (key2 !== undefined) {
                 var ratio = (t - key1) / (key2 - key1);
-                Quaternion.slerpFlat( outBuffer, 0, values, index * 4, values, (index + 1) * 4,  ratio );
+                Quaternion.slerpFlat(outBuffer, 0, values, index * 4, values, (index + 1) * 4,  ratio);
             } else {
                 // just copy
-                for(var i = 0; i < 4; i++) {
+                for (i = 0; i < 4; i++) {
                     outBuffer[i] = values[index * 4 + i];
                 }
             }
         } else {
             // just copy
-            for(var i = 0; i < 4; i++) {
+            for (i = 0; i < 4; i++) {
                 outBuffer[i] = values[index * 4 + i];
             }
         }

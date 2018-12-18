@@ -6,12 +6,12 @@ var helpVector3 = new Vector3();
 var lightCaches = {};
 
 function getLightCache(light) {
-    if(lightCaches[light.uuid] !== undefined) {
+    if (lightCaches[light.uuid] !== undefined) {
         return lightCaches[light.uuid];
     }
 
     var cache;
-    switch ( light.lightType ) {
+    switch (light.lightType) {
         case LIGHT_TYPE.DIRECT:
             cache = {
                 direction: new Float32Array(3),
@@ -62,7 +62,7 @@ function getLightCache(light) {
  * Light cache collect all lights in the scene.
  * @constructor
  * @hideconstructor
- * @memberof zen3d 
+ * @memberof zen3d
  */
 function LightCache() {
     this.ambient = new Float32Array([0, 0, 0, 1]);
@@ -93,7 +93,7 @@ Object.assign(LightCache.prototype, {
      * @memberof zen3d.LightCache#
      */
     startCount: function () {
-        for(var i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
             this.ambient[i] = 0;
         }
         this.shadows.length = 0;
@@ -166,7 +166,7 @@ Object.assign(LightCache.prototype, {
         cache.direction[1] = direction.y;
         cache.direction[2] = direction.z;
 
-        if(object.castShadow) {
+        if (object.castShadow) {
             cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
@@ -176,11 +176,11 @@ Object.assign(LightCache.prototype, {
             cache.shadow = 0;
         }
 
-        if(object.castShadow) {
+        if (object.castShadow) {
 
             // resize typed array
             var needSize = (this.directsNum + 1) * 16;
-            if(this.directionalShadowMatrix.length < needSize) {
+            if (this.directionalShadowMatrix.length < needSize) {
                 var old = this.directionalShadowMatrix;
                 this.directionalShadowMatrix = new Float32Array(needSize);
                 this.directionalShadowMatrix.set(old);
@@ -217,7 +217,7 @@ Object.assign(LightCache.prototype, {
         cache.position[1] = position.y;
         cache.position[2] = position.z;
 
-        if(object.castShadow) {
+        if (object.castShadow) {
             cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
@@ -229,11 +229,11 @@ Object.assign(LightCache.prototype, {
             cache.shadow = 0;
         }
 
-        if(object.castShadow) {
+        if (object.castShadow) {
 
             // resize typed array
             var needSize = (this.pointsNum + 1) * 16;
-            if(this.pointShadowMatrix.length < needSize) {
+            if (this.pointShadowMatrix.length < needSize) {
                 var old = this.pointShadowMatrix;
                 this.pointShadowMatrix = new Float32Array(needSize);
                 this.pointShadowMatrix.set(old);
@@ -283,7 +283,7 @@ Object.assign(LightCache.prototype, {
         cache.coneCos = coneCos;
         cache.penumbraCos = penumbraCos;
 
-        if(object.castShadow) {
+        if (object.castShadow) {
             cache.shadow = 1;
             cache.shadowBias = object.shadow.bias;
             cache.shadowRadius = object.shadow.radius;
@@ -293,11 +293,11 @@ Object.assign(LightCache.prototype, {
             cache.shadow = 0;
         }
 
-        if(object.castShadow) {
+        if (object.castShadow) {
 
             // resize typed array
             var needSize = (this.spotsNum + 1) * 16;
-            if(this.spotShadowMatrix.length < needSize) {
+            if (this.spotShadowMatrix.length < needSize) {
                 var old = this.spotShadowMatrix;
                 this.spotShadowMatrix = new Float32Array(needSize);
                 this.spotShadowMatrix.set(old);

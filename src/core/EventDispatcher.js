@@ -20,7 +20,7 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
     addEventListener: function(type, listener, thisObject) {
         var list = this.eventMap[type];
 
-        if(!list) {
+        if (!list) {
             list = this.eventMap[type] = [];
         }
 
@@ -36,13 +36,13 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
     removeEventListener: function(type, listener, thisObject) {
         var list = this.eventMap[type];
 
-        if(!list) {
+        if (!list) {
             return;
         }
 
-        for(var i = 0, len = list.length; i < len; i++) {
+        for (var i = 0, len = list.length; i < len; i++) {
             var bin = list[i];
-            if(bin.listener == listener && bin.thisObject == (thisObject || this)) {
+            if (bin.listener == listener && bin.thisObject == (thisObject || this)) {
                 list.splice(i, 1);
                 break;
             }
@@ -66,11 +66,11 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
     notifyListener: function(event) {
         var list = this.eventMap[event.type];
 
-        if(!list) {
+        if (!list) {
             return;
         }
 
-        for(var i = 0, len = list.length; i < len; i++) {
+        for (var i = 0, len = list.length; i < len; i++) {
             var bin = list[i];
             bin.listener.call(bin.thisObject, event);
         }

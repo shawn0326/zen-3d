@@ -76,7 +76,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
     },
 
     /**
-     * @override   
+     * @override
      */
     resize: function(width, height) {
 
@@ -85,7 +85,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
         if (changed) {
             for (var attachment in this._textures) {
                 var texture = this._textures[attachment];
-    
+
                 if (texture) {
                     for (var i = 0; i < 6; i++) {
                         texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};

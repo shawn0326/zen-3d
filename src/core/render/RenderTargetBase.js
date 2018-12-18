@@ -15,7 +15,7 @@ function RenderTargetBase(width, height) {
     EventDispatcher.call(this);
 
     /**
-     * UUID of this render target instance. 
+     * UUID of this render target instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
@@ -65,12 +65,12 @@ RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototy
     /**
      * Resize the render target.
      * @param {number} width - The width of the render target.
-     * @param {number} height - The height of the render target.    
+     * @param {number} height - The height of the render target.
      * @return {boolean} - If size changed.
      */
     resize: function(width, height) {
 
-        if(this.width !== width || this.height !== height) {
+        if (this.width !== width || this.height !== height) {
             this.dispose();
             this.width = width;
             this.height = height;

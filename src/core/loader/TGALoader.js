@@ -9,14 +9,14 @@ import {DefaultLoadingManager} from './LoadingManager.js';
  */
 function TGALoader(manager) {
 
-	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
+	this.manager = (manager !== undefined) ? manager : DefaultLoadingManager;
 
 }
 
 Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 	/**
-     * Load the URL and pass the response to the onLoad function. 
+     * Load the URL and pass the response to the onLoad function.
      * @param {string} url — the path or URL to the file. This can also be a Data URI.
      * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded image ( draw to an canvas element ).
      * @param {Function} [onProgress=] — Will be called while load progresses. The argument will be the XMLHttpRequest instance, which contains .total and .loaded bytes.
@@ -25,7 +25,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 	load: function(url, onLoad, onProgress, onError) {
 		var that = this;
 
-		var loader = new FileLoader( this.manager );
+		var loader = new FileLoader(this.manager);
 		loader.setResponseType('arraybuffer');
 		loader.load(url, function(buffer) {
 			if (onLoad !== undefined) {
@@ -53,39 +53,40 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 		TGA_ORIGIN_UR = 0x03;
 
 
-		if ( buffer.length < 19 )
-			console.error( 'TGALoader.parse: Not enough data to contain header.' );
+		if (buffer.length < 19) {
+			console.error('TGALoader.parse: Not enough data to contain header.');
+		}
 
-		var content = new Uint8Array( buffer ),
+		var content = new Uint8Array(buffer),
 			offset = 0,
 			header = {
-				id_length:       content[ offset ++ ],
-				colormap_type:   content[ offset ++ ],
-				image_type:      content[ offset ++ ],
-				colormap_index:  content[ offset ++ ] | content[ offset ++ ] << 8,
-				colormap_length: content[ offset ++ ] | content[ offset ++ ] << 8,
-				colormap_size:   content[ offset ++ ],
+				id_length: content[offset ++],
+				colormap_type: content[offset ++],
+				image_type: content[offset ++],
+				colormap_index: content[offset ++] | content[offset ++] << 8,
+				colormap_length: content[offset ++] | content[offset ++] << 8,
+				colormap_size: content[offset ++],
 
 				origin: [
-					content[ offset ++ ] | content[ offset ++ ] << 8,
-					content[ offset ++ ] | content[ offset ++ ] << 8
+					content[offset ++] | content[offset ++] << 8,
+					content[offset ++] | content[offset ++] << 8
 				],
-				width:      content[ offset ++ ] | content[ offset ++ ] << 8,
-				height:     content[ offset ++ ] | content[ offset ++ ] << 8,
-				pixel_size: content[ offset ++ ],
-				flags:      content[ offset ++ ]
+				width: content[offset ++] | content[offset ++] << 8,
+				height: content[offset ++] | content[offset ++] << 8,
+				pixel_size: content[offset ++],
+				flags: content[offset ++]
 			};
 
-		function tgaCheckHeader( header ) {
+		function tgaCheckHeader(header) {
 
-			switch ( header.image_type ) {
+			switch (header.image_type) {
 
 				// Check indexed type
 				case TGA_TYPE_INDEXED:
 				case TGA_TYPE_RLE_INDEXED:
-					if ( header.colormap_length > 256 || header.colormap_size !== 24 || header.colormap_type !== 1 ) {
+					if (header.colormap_length > 256 || header.colormap_size !== 24 || header.colormap_type !== 1) {
 
-						console.error( 'TGALoader.parse.tgaCheckHeader: Invalid type colormap data for indexed type' );
+						console.error('TGALoader.parse.tgaCheckHeader: Invalid type colormap data for indexed type');
 
 					}
 					break;
@@ -95,48 +96,48 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 				case TGA_TYPE_GREY:
 				case TGA_TYPE_RLE_RGB:
 				case TGA_TYPE_RLE_GREY:
-					if ( header.colormap_type ) {
+					if (header.colormap_type) {
 
-						console.error( 'TGALoader.parse.tgaCheckHeader: Invalid type colormap data for colormap type' );
+						console.error('TGALoader.parse.tgaCheckHeader: Invalid type colormap data for colormap type');
 
 					}
 					break;
 
 				// What the need of a file without data ?
 				case TGA_TYPE_NO_DATA:
-					console.error( 'TGALoader.parse.tgaCheckHeader: No data' );
+					console.error('TGALoader.parse.tgaCheckHeader: No data');
 
 				// Invalid type ?
 				default:
-					console.error( 'TGALoader.parse.tgaCheckHeader: Invalid type " ' + header.image_type + '"' );
+					console.error('TGALoader.parse.tgaCheckHeader: Invalid type " ' + header.image_type + '"');
 
 			}
 
 			// Check image width and height
-			if ( header.width <= 0 || header.height <= 0 ) {
+			if (header.width <= 0 || header.height <= 0) {
 
-				console.error( 'TGALoader.parse.tgaCheckHeader: Invalid image size' );
+				console.error('TGALoader.parse.tgaCheckHeader: Invalid image size');
 
 			}
 
 			// Check image pixel size
-			if ( header.pixel_size !== 8  &&
+			if (header.pixel_size !== 8  &&
 				header.pixel_size !== 16 &&
 				header.pixel_size !== 24 &&
-				header.pixel_size !== 32 ) {
+				header.pixel_size !== 32) {
 
-				console.error( 'TGALoader.parse.tgaCheckHeader: Invalid pixel size "' + header.pixel_size + '"' );
+				console.error('TGALoader.parse.tgaCheckHeader: Invalid pixel size "' + header.pixel_size + '"');
 
 			}
 
 		}
 
 		// Check tga if it is valid format
-		tgaCheckHeader( header );
+		tgaCheckHeader(header);
 
-		if ( header.id_length + offset > buffer.length ) {
+		if (header.id_length + offset > buffer.length) {
 
-			console.error( 'TGALoader.parse: No data' );
+			console.error('TGALoader.parse: No data');
 
 		}
 
@@ -148,7 +149,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 			use_pal = false,
 			use_grey = false;
 
-		switch ( header.image_type ) {
+		switch (header.image_type) {
 
 			case TGA_TYPE_RLE_INDEXED:
 				use_rle = true;
@@ -178,7 +179,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 		}
 
 		// Parse tga image buffer
-		function tgaParse( use_rle, use_pal, header, offset, data ) {
+		function tgaParse(use_rle, use_pal, header, offset, data) {
 
 			var pixel_data,
 				pixel_size,
@@ -189,40 +190,40 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 			pixel_total = header.width * header.height * pixel_size;
 
 				// Read palettes
-				if ( use_pal ) {
+				if (use_pal) {
 
-					palettes = data.subarray( offset, offset += header.colormap_length * ( header.colormap_size >> 3 ) );
+					palettes = data.subarray(offset, offset += header.colormap_length * (header.colormap_size >> 3));
 
 				}
 
 				// Read RLE
-				if ( use_rle ) {
+				if (use_rle) {
 
-					pixel_data = new Uint8Array( pixel_total );
+					pixel_data = new Uint8Array(pixel_total);
 
 				var c, count, i;
 				var shift = 0;
-				var pixels = new Uint8Array( pixel_size );
+				var pixels = new Uint8Array(pixel_size);
 
-				while ( shift < pixel_total ) {
+				while (shift < pixel_total) {
 
-					c     = data[ offset ++ ];
-					count = ( c & 0x7f ) + 1;
+					c     = data[offset ++];
+					count = (c & 0x7f) + 1;
 
 					// RLE pixels.
-					if ( c & 0x80 ) {
+					if (c & 0x80) {
 
 						// Bind pixel tmp array
-						for ( i = 0; i < pixel_size; ++ i ) {
+						for (i = 0; i < pixel_size; ++ i) {
 
-							pixels[ i ] = data[ offset ++ ];
+							pixels[i] = data[offset ++];
 
 						}
 
 						// Copy pixel array
-						for ( i = 0; i < count; ++ i ) {
+						for (i = 0; i < count; ++ i) {
 
-							pixel_data.set( pixels, shift + i * pixel_size );
+							pixel_data.set(pixels, shift + i * pixel_size);
 
 						}
 
@@ -232,9 +233,9 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 						// Raw pixels.
 						count *= pixel_size;
-						for ( i = 0; i < count; ++ i ) {
+						for (i = 0; i < count; ++ i) {
 
-							pixel_data[ shift + i ] = data[ offset ++ ];
+							pixel_data[shift + i] = data[offset ++];
 
 						}
 						shift += count;
@@ -247,7 +248,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 				// RAW Pixels
 				pixel_data = data.subarray(
-						offset, offset += ( use_pal ? header.width * header.height : pixel_total )
+						offset, offset += (use_pal ? header.width * header.height : pixel_total)
 				);
 
 				}
@@ -259,21 +260,21 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		function tgaGetImageData8bits( imageData, y_start, y_step, y_end, x_start, x_step, x_end, image, palettes ) {
+		function tgaGetImageData8bits(imageData, y_start, y_step, y_end, x_start, x_step, x_end, image, palettes) {
 
 			var colormap = palettes;
 			var color, i = 0, x, y;
 			var width = header.width;
 
-			for ( y = y_start; y !== y_end; y += y_step ) {
+			for (y = y_start; y !== y_end; y += y_step) {
 
-				for ( x = x_start; x !== x_end; x += x_step, i ++ ) {
+				for (x = x_start; x !== x_end; x += x_step, i ++) {
 
-					color = image[ i ];
-					imageData[ ( x + width * y ) * 4 + 3 ] = 255;
-					imageData[ ( x + width * y ) * 4 + 2 ] = colormap[ ( color * 3 ) + 0 ];
-					imageData[ ( x + width * y ) * 4 + 1 ] = colormap[ ( color * 3 ) + 1 ];
-					imageData[ ( x + width * y ) * 4 + 0 ] = colormap[ ( color * 3 ) + 2 ];
+					color = image[i];
+					imageData[(x + width * y) * 4 + 3] = 255;
+					imageData[(x + width * y) * 4 + 2] = colormap[(color * 3) + 0];
+					imageData[(x + width * y) * 4 + 1] = colormap[(color * 3) + 1];
+					imageData[(x + width * y) * 4 + 0] = colormap[(color * 3) + 2];
 
 				}
 
@@ -283,20 +284,20 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		function tgaGetImageData16bits( imageData, y_start, y_step, y_end, x_start, x_step, x_end, image ) {
+		function tgaGetImageData16bits(imageData, y_start, y_step, y_end, x_start, x_step, x_end, image) {
 
 			var color, i = 0, x, y;
 			var width = header.width;
 
-			for ( y = y_start; y !== y_end; y += y_step ) {
+			for (y = y_start; y !== y_end; y += y_step) {
 
-				for ( x = x_start; x !== x_end; x += x_step, i += 2 ) {
+				for (x = x_start; x !== x_end; x += x_step, i += 2) {
 
-					color = image[ i + 0 ] + ( image[ i + 1 ] << 8 ); // Inversed ?
-					imageData[ ( x + width * y ) * 4 + 0 ] = ( color & 0x7C00 ) >> 7;
-					imageData[ ( x + width * y ) * 4 + 1 ] = ( color & 0x03E0 ) >> 2;
-					imageData[ ( x + width * y ) * 4 + 2 ] = ( color & 0x001F ) >> 3;
-					imageData[ ( x + width * y ) * 4 + 3 ] = ( color & 0x8000 ) ? 0 : 255;
+					color = image[i + 0] + (image[i + 1] << 8); // Inversed ?
+					imageData[(x + width * y) * 4 + 0] = (color & 0x7C00) >> 7;
+					imageData[(x + width * y) * 4 + 1] = (color & 0x03E0) >> 2;
+					imageData[(x + width * y) * 4 + 2] = (color & 0x001F) >> 3;
+					imageData[(x + width * y) * 4 + 3] = (color & 0x8000) ? 0 : 255;
 
 				}
 
@@ -306,19 +307,19 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		function tgaGetImageData24bits( imageData, y_start, y_step, y_end, x_start, x_step, x_end, image ) {
+		function tgaGetImageData24bits(imageData, y_start, y_step, y_end, x_start, x_step, x_end, image) {
 
 			var i = 0, x, y;
 			var width = header.width;
 
-			for ( y = y_start; y !== y_end; y += y_step ) {
+			for (y = y_start; y !== y_end; y += y_step) {
 
-				for ( x = x_start; x !== x_end; x += x_step, i += 3 ) {
+				for (x = x_start; x !== x_end; x += x_step, i += 3) {
 
-					imageData[ ( x + width * y ) * 4 + 3 ] = 255;
-					imageData[ ( x + width * y ) * 4 + 2 ] = image[ i + 0 ];
-					imageData[ ( x + width * y ) * 4 + 1 ] = image[ i + 1 ];
-					imageData[ ( x + width * y ) * 4 + 0 ] = image[ i + 2 ];
+					imageData[(x + width * y) * 4 + 3] = 255;
+					imageData[(x + width * y) * 4 + 2] = image[i + 0];
+					imageData[(x + width * y) * 4 + 1] = image[i + 1];
+					imageData[(x + width * y) * 4 + 0] = image[i + 2];
 
 				}
 
@@ -328,19 +329,19 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		function tgaGetImageData32bits( imageData, y_start, y_step, y_end, x_start, x_step, x_end, image ) {
+		function tgaGetImageData32bits(imageData, y_start, y_step, y_end, x_start, x_step, x_end, image) {
 
 			var i = 0, x, y;
 			var width = header.width;
 
-			for ( y = y_start; y !== y_end; y += y_step ) {
+			for (y = y_start; y !== y_end; y += y_step) {
 
-				for ( x = x_start; x !== x_end; x += x_step, i += 4 ) {
+				for (x = x_start; x !== x_end; x += x_step, i += 4) {
 
-					imageData[ ( x + width * y ) * 4 + 2 ] = image[ i + 0 ];
-					imageData[ ( x + width * y ) * 4 + 1 ] = image[ i + 1 ];
-					imageData[ ( x + width * y ) * 4 + 0 ] = image[ i + 2 ];
-					imageData[ ( x + width * y ) * 4 + 3 ] = image[ i + 3 ];
+					imageData[(x + width * y) * 4 + 2] = image[i + 0];
+					imageData[(x + width * y) * 4 + 1] = image[i + 1];
+					imageData[(x + width * y) * 4 + 0] = image[i + 2];
+					imageData[(x + width * y) * 4 + 3] = image[i + 3];
 
 				}
 
@@ -350,20 +351,20 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		function tgaGetImageDataGrey8bits( imageData, y_start, y_step, y_end, x_start, x_step, x_end, image ) {
+		function tgaGetImageDataGrey8bits(imageData, y_start, y_step, y_end, x_start, x_step, x_end, image) {
 
 			var color, i = 0, x, y;
 			var width = header.width;
 
-			for ( y = y_start; y !== y_end; y += y_step ) {
+			for (y = y_start; y !== y_end; y += y_step) {
 
-				for ( x = x_start; x !== x_end; x += x_step, i ++ ) {
+				for (x = x_start; x !== x_end; x += x_step, i ++) {
 
-					color = image[ i ];
-					imageData[ ( x + width * y ) * 4 + 0 ] = color;
-					imageData[ ( x + width * y ) * 4 + 1 ] = color;
-					imageData[ ( x + width * y ) * 4 + 2 ] = color;
-					imageData[ ( x + width * y ) * 4 + 3 ] = 255;
+					color = image[i];
+					imageData[(x + width * y) * 4 + 0] = color;
+					imageData[(x + width * y) * 4 + 1] = color;
+					imageData[(x + width * y) * 4 + 2] = color;
+					imageData[(x + width * y) * 4 + 3] = 255;
 
 				}
 
@@ -373,19 +374,19 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		function tgaGetImageDataGrey16bits( imageData, y_start, y_step, y_end, x_start, x_step, x_end, image ) {
+		function tgaGetImageDataGrey16bits(imageData, y_start, y_step, y_end, x_start, x_step, x_end, image) {
 
 			var i = 0, x, y;
 			var width = header.width;
 
-			for ( y = y_start; y !== y_end; y += y_step ) {
+			for (y = y_start; y !== y_end; y += y_step) {
 
-				for ( x = x_start; x !== x_end; x += x_step, i += 2 ) {
+				for (x = x_start; x !== x_end; x += x_step, i += 2) {
 
-					imageData[ ( x + width * y ) * 4 + 0 ] = image[ i + 0 ];
-					imageData[ ( x + width * y ) * 4 + 1 ] = image[ i + 0 ];
-					imageData[ ( x + width * y ) * 4 + 2 ] = image[ i + 0 ];
-					imageData[ ( x + width * y ) * 4 + 3 ] = image[ i + 1 ];
+					imageData[(x + width * y) * 4 + 0] = image[i + 0];
+					imageData[(x + width * y) * 4 + 1] = image[i + 0];
+					imageData[(x + width * y) * 4 + 2] = image[i + 0];
+					imageData[(x + width * y) * 4 + 3] = image[i + 1];
 
 				}
 
@@ -395,7 +396,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		function getTgaRGBA( data, width, height, image, palette ) {
+		function getTgaRGBA(data, width, height, image, palette) {
 
 			var x_start,
 				y_start,
@@ -404,7 +405,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 				x_end,
 				y_end;
 
-			switch ( ( header.flags & TGA_ORIGIN_MASK ) >> TGA_ORIGIN_SHIFT ) {
+			switch ((header.flags & TGA_ORIGIN_MASK) >> TGA_ORIGIN_SHIFT) {
 				default:
 				case TGA_ORIGIN_UL:
 					x_start = 0;
@@ -444,41 +445,41 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 			}
 
-			if ( use_grey ) {
+			if (use_grey) {
 
-				switch ( header.pixel_size ) {
+				switch (header.pixel_size) {
 					case 8:
-						tgaGetImageDataGrey8bits( data, y_start, y_step, y_end, x_start, x_step, x_end, image );
+						tgaGetImageDataGrey8bits(data, y_start, y_step, y_end, x_start, x_step, x_end, image);
 						break;
 					case 16:
-						tgaGetImageDataGrey16bits( data, y_start, y_step, y_end, x_start, x_step, x_end, image );
+						tgaGetImageDataGrey16bits(data, y_start, y_step, y_end, x_start, x_step, x_end, image);
 						break;
 					default:
-						console.error( 'TGALoader.parse.getTgaRGBA: not support this format' );
+						console.error('TGALoader.parse.getTgaRGBA: not support this format');
 						break;
 				}
 
 			} else {
 
-				switch ( header.pixel_size ) {
+				switch (header.pixel_size) {
 					case 8:
-						tgaGetImageData8bits( data, y_start, y_step, y_end, x_start, x_step, x_end, image, palette );
+						tgaGetImageData8bits(data, y_start, y_step, y_end, x_start, x_step, x_end, image, palette);
 						break;
 
 					case 16:
-						tgaGetImageData16bits( data, y_start, y_step, y_end, x_start, x_step, x_end, image );
+						tgaGetImageData16bits(data, y_start, y_step, y_end, x_start, x_step, x_end, image);
 						break;
 
 					case 24:
-						tgaGetImageData24bits( data, y_start, y_step, y_end, x_start, x_step, x_end, image );
+						tgaGetImageData24bits(data, y_start, y_step, y_end, x_start, x_step, x_end, image);
 						break;
 
 					case 32:
-						tgaGetImageData32bits( data, y_start, y_step, y_end, x_start, x_step, x_end, image );
+						tgaGetImageData32bits(data, y_start, y_step, y_end, x_start, x_step, x_end, image);
 						break;
 
 					default:
-						console.error( 'TGALoader.parse.getTgaRGBA: not support this format' );
+						console.error('TGALoader.parse.getTgaRGBA: not support this format');
 						break;
 				}
 
@@ -491,17 +492,17 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 		}
 
-		var canvas = document.createElement( 'canvas' );
+		var canvas = document.createElement('canvas');
 		canvas.width = header.width;
 		canvas.height = header.height;
 
-		var context = canvas.getContext( '2d' );
-		var imageData = context.createImageData( header.width, header.height );
+		var context = canvas.getContext('2d');
+		var imageData = context.createImageData(header.width, header.height);
 
-		var result = tgaParse( use_rle, use_pal, header, offset, content );
-		var rgbaData = getTgaRGBA( imageData.data, header.width, header.height, result.pixel_data, result.palettes );
+		var result = tgaParse(use_rle, use_pal, header, offset, content);
+		var rgbaData = getTgaRGBA(imageData.data, header.width, header.height, result.pixel_data, result.palettes);
 
-		context.putImageData( imageData, 0, 0 );
+		context.putImageData(imageData, 0, 0);
 
 		return canvas;
 	}

@@ -17,7 +17,7 @@ function VectorKeyframeTrack(target, propertyPath, times, values, interpolant) {
 VectorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
     constructor: VectorKeyframeTrack,
-    
+
     valueTypeName: 'vector'
 
 });

@@ -2,7 +2,7 @@ import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
 import {Material} from './Material.js';
 
 /**
- * A material for drawing geometry by distance. 
+ * A material for drawing geometry by distance.
  * @constructor
  * @extends zen3d.Material
  * @memberof zen3d

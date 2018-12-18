@@ -17,7 +17,7 @@ function Matrix4() {
 Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 
     /**
-     * 
+     *
      */
     identity: function() {
         this.set(
@@ -31,7 +31,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     set: function(n11, n12, n13, n14,
         n21, n22, n23, n24,
@@ -60,7 +60,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     copy: function(m) {
         this.elements.set(m.elements);
@@ -69,7 +69,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     makeTranslation: function(x, y, z) {
         this.set(
@@ -83,7 +83,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     multiply: function(m) {
 
@@ -92,7 +92,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     premultiply: function(m) {
 
@@ -101,7 +101,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     multiplyMatrices: function(a, b) {
 
@@ -168,7 +168,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     transpose: function() {
 
@@ -199,14 +199,14 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     inverse: function() {
         return this.getInverse(this);
     },
 
     /**
-     * 
+     *
      */
     getInverse: function(m) {
 
@@ -283,36 +283,36 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
         return function(pos, scale, rot) {
 
             var rotMatrix = rot.toMatrix4(matrix);
-    
+
             var rele = rotMatrix.elements;
             var ele = this.elements;
-    
+
             ele[0] = rele[0] * scale.x;
             ele[1] = rele[1] * scale.x;
             ele[2] = rele[2] * scale.x;
             ele[3] = 0;
-    
+
             ele[4] = rele[4] * scale.y;
             ele[5] = rele[5] * scale.y;
             ele[6] = rele[6] * scale.y;
             ele[7] = 0;
-    
+
             ele[8] = rele[8] * scale.z;
             ele[9] = rele[9] * scale.z;
             ele[10] = rele[10] * scale.z;
             ele[11] = 0;
-    
+
             ele[12] = pos.x;
             ele[13] = pos.y;
             ele[14] = pos.z;
             ele[15] = 1;
-    
+
             return this;
         }
     }(),
 
     /**
-     * 
+     *
      */
     makeRotationFromQuaternion: function(q) {
 
@@ -369,28 +369,28 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
         var x = new Vector3();
         var y = new Vector3();
         var z = new Vector3();
-        
+
         return function lookAtRH(eye, target, up) {
             var te = this.elements;
 
-            z.subVectors( eye, target );
+            z.subVectors(eye, target);
 
-            if(z.getLengthSquared() === 0) {
+            if (z.getLengthSquared() === 0) {
 
                 // eye and target are in the same position
 
                 z.z = 1;
-                
+
             }
 
             z.normalize();
-            x.crossVectors( up, z );
-            
-            if ( x.getLengthSquared() === 0 ) {
+            x.crossVectors(up, z);
+
+            if (x.getLengthSquared() === 0) {
 
                 // up and z are parallel
 
-                if ( Math.abs( up.z ) === 1 ) {
+                if (Math.abs(up.z) === 1) {
 
                     z.x += 0.0001;
 
@@ -401,73 +401,73 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
                 }
 
                 z.normalize();
-                x.crossVectors( up, z );
+                x.crossVectors(up, z);
 
             }
 
             x.normalize();
-            y.crossVectors( z, x );
+            y.crossVectors(z, x);
 
-            te[ 0 ] = x.x; te[ 4 ] = y.x; te[ 8 ] = z.x;
-            te[ 1 ] = x.y; te[ 5 ] = y.y; te[ 9 ] = z.y;
-            te[ 2 ] = x.z; te[ 6 ] = y.z; te[ 10 ] = z.z;
+            te[0] = x.x; te[4] = y.x; te[8] = z.x;
+            te[1] = x.y; te[5] = y.y; te[9] = z.y;
+            te[2] = x.z; te[6] = y.z; te[10] = z.z;
 
             return this;
         }
-        
+
     }(),
 
     /**
      * @method
      */
     decompose: function() {
-    
+
         var vector = new Vector3(), matrix = new Matrix4();
 
         return function(position, quaternion, scale) {
-    
+
             var te = this.elements;
-    
+
             var sx = vector.set(te[0], te[1], te[2]).getLength();
             var sy = vector.set(te[4], te[5], te[6]).getLength();
             var sz = vector.set(te[8], te[9], te[10]).getLength();
-    
+
             // if determine is negative, we need to invert one scale
             var det = this.determinant();
             if (det < 0) {
                 sx = -sx;
             }
-    
+
             position.x = te[12];
             position.y = te[13];
             position.z = te[14];
-    
+
             // scale the rotation part
-    
+
             matrix.elements.set(this.elements); // at this point matrix is incomplete so we can't use .copy()
-    
+
             var invSX = 1 / sx;
             var invSY = 1 / sy;
             var invSZ = 1 / sz;
-    
+
             matrix.elements[0] *= invSX;
             matrix.elements[1] *= invSX;
             matrix.elements[2] *= invSX;
-    
+
             matrix.elements[4] *= invSY;
             matrix.elements[5] *= invSY;
             matrix.elements[6] *= invSY;
-    
+
             matrix.elements[8] *= invSZ;
             matrix.elements[9] *= invSZ;
             matrix.elements[10] *= invSZ;
-    
+
             quaternion.setFromRotationMatrix(matrix);
-    
+
             scale.x = sx;
             scale.y = sy;
             scale.z = sz;
-    
+
             return this;
         }
     }(),
@@ -534,7 +534,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     fromArray: function(array, offset) {
         if (offset === undefined) offset = 0;
@@ -547,7 +547,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     getMaxScaleOnAxis: function() {
         var te = this.elements;
@@ -560,7 +560,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
     },
 
     /**
-     * 
+     *
      */
     toArray: function(array, offset) {
         if (array === undefined) array = [];

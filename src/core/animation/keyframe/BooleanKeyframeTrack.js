@@ -17,14 +17,14 @@ function BooleanKeyframeTrack(target, propertyPath, times, values, interpolant) 
 BooleanKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
     constructor: BooleanKeyframeTrack,
-    
+
     valueTypeName: 'bool',
 
     getValue: function(t, outBuffer) {
 
         var index = this._getLastTimeIndex(t),
             key = this.times[index];
-        
+
         outBuffer[0] = this.values[key];
 
     }

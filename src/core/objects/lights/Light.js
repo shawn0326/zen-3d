@@ -3,7 +3,7 @@ import {Color3} from '../../math/Color3.js';
 import {Object3D} from '../Object3D.js';
 
 /**
- * Abstract base class for lights 
+ * Abstract base class for lights
  * - all other light types inherit the properties and methods described here.
  * @constructor
  * @abstract
@@ -12,7 +12,7 @@ import {Object3D} from '../Object3D.js';
  * @param {number} [color=0xffffff]
  * @param {number} [intensity=1]
  */
-function Light( color, intensity ) {
+function Light(color, intensity) {
 
     Object3D.call(this);
 
@@ -23,16 +23,16 @@ function Light( color, intensity ) {
     /**
      * Color of the light.
      * @type {zen3d.Color3}
-     * @default zen3d.Color3(0xffffff) 
+     * @default zen3d.Color3(0xffffff)
      */
-    this.color = new Color3( color !== undefined ? color : 0xffffff );
+    this.color = new Color3(color !== undefined ? color : 0xffffff);
 
     /**
      * The light's intensity, or strength.
      * @type {number}
      * @default 1
      */
-    this.intensity = ( intensity !== undefined ) ? intensity : 1;
+    this.intensity = (intensity !== undefined) ? intensity : 1;
 
 }
 

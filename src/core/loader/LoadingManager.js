@@ -5,10 +5,10 @@
  * @author mrdoob / http://mrdoob.com/
  * @param {Function} onLoad — (optional) this function will be called when all loaders are done.
  * @param {Function} onProgress — (optional) this function will be called when an item is complete.
- * @param {Function} onError — (optional) this function will be called a loader encounters errors. 
+ * @param {Function} onError — (optional) this function will be called a loader encounters errors.
  */
 
-function LoadingManager( onLoad, onProgress, onError ) {
+function LoadingManager(onLoad, onProgress, onError) {
 
 	var scope = this;
 
@@ -25,15 +25,15 @@ function LoadingManager( onLoad, onProgress, onError ) {
 	this.onProgress = onProgress;
 	this.onError = onError;
 
-	this.itemStart = function ( url ) {
+	this.itemStart = function (url) {
 
 		itemsTotal ++;
 
-		if ( isLoading === false ) {
+		if (isLoading === false) {
 
-			if ( scope.onStart !== undefined ) {
+			if (scope.onStart !== undefined) {
 
-				scope.onStart( url, itemsLoaded, itemsTotal );
+				scope.onStart(url, itemsLoaded, itemsTotal);
 
 			}
 
@@ -43,21 +43,21 @@ function LoadingManager( onLoad, onProgress, onError ) {
 
 	};
 
-	this.itemEnd = function ( url ) {
+	this.itemEnd = function (url) {
 
 		itemsLoaded ++;
 
-		if ( scope.onProgress !== undefined ) {
+		if (scope.onProgress !== undefined) {
 
-			scope.onProgress( url, itemsLoaded, itemsTotal );
+			scope.onProgress(url, itemsLoaded, itemsTotal);
 
 		}
 
-		if ( itemsLoaded === itemsTotal ) {
+		if (itemsLoaded === itemsTotal) {
 
 			isLoading = false;
 
-			if ( scope.onLoad !== undefined ) {
+			if (scope.onLoad !== undefined) {
 
 				scope.onLoad();
 
@@ -67,21 +67,21 @@ function LoadingManager( onLoad, onProgress, onError ) {
 
 	};
 
-	this.itemError = function ( url ) {
+	this.itemError = function (url) {
 
-		if ( scope.onError !== undefined ) {
+		if (scope.onError !== undefined) {
 
-			scope.onError( url );
+			scope.onError(url);
 
 		}
 
 	};
 
-	this.resolveURL = function ( url ) {
+	this.resolveURL = function (url) {
 
-		if ( urlModifier ) {
+		if (urlModifier) {
 
-			return urlModifier( url );
+			return urlModifier(url);
 
 		}
 
@@ -89,7 +89,7 @@ function LoadingManager( onLoad, onProgress, onError ) {
 
 	};
 
-	this.setURLModifier = function ( transform ) {
+	this.setURLModifier = function (transform) {
 
 		urlModifier = transform;
 		return this;

@@ -44,7 +44,7 @@ PointLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype),
         this._updateMatrix();
 
         // TODO check size change, remove this from loop
-        if(this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
+        if (this.mapSize.x !== this.renderTarget.width || this.mapSize.y !== this.renderTarget.height) {
             this.renderTarget.resize(this.mapSize.x, this.mapSize.y);
         }
     },

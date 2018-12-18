@@ -8,7 +8,7 @@ import {Geometry} from './Geometry.js';
  */
 function InstancedGeometry() {
 
-    Geometry.call( this );
+    Geometry.call(this);
 
     /**
      * @type {Integer|undefined}
@@ -17,14 +17,14 @@ function InstancedGeometry() {
 
 }
 
-InstancedGeometry.prototype = Object.assign( Object.create( Geometry.prototype ), /** @lends zen3d.InstancedGeometry.prototype */{
+InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /** @lends zen3d.InstancedGeometry.prototype */{
 
     constructor: InstancedGeometry,
 
     /**
      * @readonly
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     isInstancedGeometry: true
 

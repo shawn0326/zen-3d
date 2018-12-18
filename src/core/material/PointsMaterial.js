@@ -16,7 +16,7 @@ function PointsMaterial() {
     /**
      * Sets the size of the points.
      * @type {number}
-     * @default 1 
+     * @default 1
      */
     this.size = 1;
 

@@ -18,10 +18,10 @@ function KeyframeTrack(target, propertyPath, times, values, interpolant) {
 
     this.times = times;
     this.values = values;
-    
+
     this.valueSize = values.length / times.length;
 
-    this.interpolant = ( interpolant === undefined ) ? true : interpolant;
+    this.interpolant = (interpolant === undefined) ? true : interpolant;
 
 }
 
@@ -30,8 +30,8 @@ Object.assign(KeyframeTrack.prototype, {
     _getLastTimeIndex: function(t) {
         var lastTimeIndex = 0;
         var i, l = this.times.length;
-        for(i = 0; i < l; i++) {
-            if(t >= this.times[i]) {
+        for (i = 0; i < l; i++) {
+            if (t >= this.times[i]) {
                 lastTimeIndex = i;
             }
         }
@@ -48,7 +48,7 @@ Object.assign(KeyframeTrack.prototype, {
         var key1 = times[index],
             key2 = times[index + 1],
             value1, value2;
-        
+
         for (var i = 0; i < valueSize; i++) {
 
             value1 = values[index * valueSize + i];
@@ -56,7 +56,7 @@ Object.assign(KeyframeTrack.prototype, {
 
             if (this.interpolant) {
 
-                if ( value1 !== undefined && value2 !== undefined ) {
+                if (value1 !== undefined && value2 !== undefined) {
                     var ratio = (t - key1) / (key2 - key1);
                     outBuffer[i] = value1 * (1 - ratio) + value2 * ratio;
                 } else {

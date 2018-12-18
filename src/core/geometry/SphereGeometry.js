@@ -4,7 +4,7 @@ import {Vector3} from '../math/Vector3.js';
 
 /**
  * A class for generating sphere geometries.
- * The geometry is created by sweeping and calculating vertexes around the Y axis (horizontal sweep) and the Z axis (vertical sweep). 
+ * The geometry is created by sweeping and calculating vertexes around the Y axis (horizontal sweep) and the Z axis (vertical sweep).
  * Thus, incomplete spheres (akin to 'sphere slices') can be created through the use of different values of phiStart, phiLength, thetaStart and thetaLength, in order to define the points in which we start (or end) calculating those vertices.
  * @constructor
  * @memberof zen3d

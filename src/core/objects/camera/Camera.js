@@ -52,12 +52,12 @@ function Camera() {
     this.gammaInput = false;
 
     /**
-     * If set, then it expects that all textures and colors need to be outputted in premultiplied gamma. 
+     * If set, then it expects that all textures and colors need to be outputted in premultiplied gamma.
      * @type {boolean}
      * @default false
      */
     this.gammaOutput = false;
-    
+
     /**
      * Where on the screen is the camera rendered in normalized coordinates.
      * @type {zen3d.Vector4}
@@ -66,7 +66,7 @@ function Camera() {
     this.rect = new Vector4(0, 0, 1, 1);
 
     /**
-     * When this is set, it checks every frame if objects are in the frustum of the camera before rendering objects. 
+     * When this is set, it checks every frame if objects are in the frustum of the camera before rendering objects.
      * Otherwise objects gets rendered every frame even if it isn't visible.
      * @type {boolean}
      * @default true
@@ -158,18 +158,18 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
             Object3D.prototype.updateMatrix.call(this);
 
             this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
-    
+
             matrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
             this.frustum.setFromMatrix(matrix); // update frustum
         }
-        
+
     }(),
 
-    copy: function ( source, recursive ) {
-        Object3D.prototype.copy.call( this, source, recursive );
+    copy: function (source, recursive) {
+        Object3D.prototype.copy.call(this, source, recursive);
 
-        this.viewMatrix.copy( source.viewMatrix );
-        this.projectionMatrix.copy( source.projectionMatrix );
+        this.viewMatrix.copy(source.viewMatrix);
+        this.projectionMatrix.copy(source.projectionMatrix);
 
         return this;
     }

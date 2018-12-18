@@ -41,7 +41,7 @@ function ShaderPostPass(shader) {
 
 /**
  * Render the post pass.
- * @param {zen3d.WebGLCore} glCore 
+ * @param {zen3d.WebGLCore} glCore
  */
 ShaderPostPass.prototype.render = function(glCore) {
     glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);

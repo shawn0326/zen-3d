@@ -9,7 +9,7 @@ import {Vector2} from '../math/Vector2.js';
 import {Triangle} from '../math/Triangle.js';
 
 /**
- * Class representing triangular polygon mesh based objects. 
+ * Class representing triangular polygon mesh based objects.
  * Also serves as a base for other classes such as {@link zen3d.SkinnedMesh}.
  * @constructor
  * @memberof zen3d
@@ -42,7 +42,7 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
     constructor: Mesh,
 
     /**
-     * @override 
+     * @override
      */
     raycast: function() {
         var sphere = new Sphere();
@@ -158,7 +158,7 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
     }(),
 
     clone: function() {
-        return new this.constructor( this.geometry, this.material ).copy( this );
+        return new this.constructor(this.geometry, this.material).copy(this);
     }
 
 });

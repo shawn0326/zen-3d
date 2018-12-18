@@ -2,7 +2,7 @@ import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
 import {Material} from './Material.js';
 
 /**
- * A material for drawing geometry by depth. 
+ * A material for drawing geometry by depth.
  * Depth is based off of the camera near and far plane. White is nearest, black is farthest.
  * @constructor
  * @extends zen3d.Material
@@ -20,7 +20,7 @@ function DepthMaterial() {
      * @default false
      */
     this.packToRGBA = false;
-    
+
 }
 
 DepthMaterial.prototype = Object.create(Material.prototype);

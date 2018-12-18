@@ -14,7 +14,7 @@ function Quaternion(x, y, z, w) {
     this._x = x || 0;
     this._y = y || 0;
     this._z = z || 0;
-    this._w = ( w !== undefined ) ? w : 1;
+    this._w = (w !== undefined) ? w : 1;
 }
 
 Object.defineProperties(Quaternion.prototype, {
@@ -59,12 +59,12 @@ Object.defineProperties(Quaternion.prototype, {
 Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
     /**
-     * 
+     *
      */
     normalize: function(thickness) {
         var l = this.length();
 
-        if ( l === 0 ) {
+        if (l === 0) {
 
             this._x = 0;
             this._y = 0;
@@ -88,10 +88,10 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * 
+     *
      */
     length: function () {
-        return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
+        return Math.sqrt(this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w);
     },
 
     /**
@@ -172,13 +172,13 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * 
+     *
      */
     set: function(x, y, z, w) {
         this._x = x || 0;
         this._y = y || 0;
         this._z = z || 0;
-        this._w = ( w !== undefined ) ? w : 1;
+        this._w = (w !== undefined) ? w : 1;
 
         this.onChangeCallback();
 
@@ -186,13 +186,13 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * 
+     *
      */
     copy: function(v) {
         this._x = v.x;
         this._y = v.y;
         this._z = v.z;
-        this._w = ( v.w !== undefined ) ? v.w : 1;
+        this._w = (v.w !== undefined) ? v.w : 1;
 
         this.onChangeCallback();
 
@@ -200,54 +200,54 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * 
+     *
      */
     setFromEuler: function(euler, update) {
-        var c1 = Math.cos( euler._x / 2 );
-        var c2 = Math.cos( euler._y / 2 );
-        var c3 = Math.cos( euler._z / 2 );
-        var s1 = Math.sin( euler._x / 2 );
-        var s2 = Math.sin( euler._y / 2 );
-        var s3 = Math.sin( euler._z / 2 );
+        var c1 = Math.cos(euler._x / 2);
+        var c2 = Math.cos(euler._y / 2);
+        var c3 = Math.cos(euler._z / 2);
+        var s1 = Math.sin(euler._x / 2);
+        var s2 = Math.sin(euler._y / 2);
+        var s3 = Math.sin(euler._z / 2);
 
         var order = euler._order;
 
-        if ( order === 'XYZ' ) {
+        if (order === 'XYZ') {
 
             this._x = s1 * c2 * c3 + c1 * s2 * s3;
             this._y = c1 * s2 * c3 - s1 * c2 * s3;
             this._z = c1 * c2 * s3 + s1 * s2 * c3;
             this._w = c1 * c2 * c3 - s1 * s2 * s3;
 
-        } else if ( order === 'YXZ' ) {
+        } else if (order === 'YXZ') {
 
             this._x = s1 * c2 * c3 + c1 * s2 * s3;
             this._y = c1 * s2 * c3 - s1 * c2 * s3;
             this._z = c1 * c2 * s3 - s1 * s2 * c3;
             this._w = c1 * c2 * c3 + s1 * s2 * s3;
 
-        } else if ( order === 'ZXY' ) {
+        } else if (order === 'ZXY') {
 
             this._x = s1 * c2 * c3 - c1 * s2 * s3;
             this._y = c1 * s2 * c3 + s1 * c2 * s3;
             this._z = c1 * c2 * s3 + s1 * s2 * c3;
             this._w = c1 * c2 * c3 - s1 * s2 * s3;
 
-        } else if ( order === 'ZYX' ) {
+        } else if (order === 'ZYX') {
 
             this._x = s1 * c2 * c3 - c1 * s2 * s3;
             this._y = c1 * s2 * c3 + s1 * c2 * s3;
             this._z = c1 * c2 * s3 - s1 * s2 * c3;
             this._w = c1 * c2 * c3 + s1 * s2 * s3;
 
-        } else if ( order === 'YZX' ) {
+        } else if (order === 'YZX') {
 
             this._x = s1 * c2 * c3 + c1 * s2 * s3;
             this._y = c1 * s2 * c3 + s1 * c2 * s3;
             this._z = c1 * c2 * s3 - s1 * s2 * c3;
             this._w = c1 * c2 * c3 - s1 * s2 * s3;
 
-        } else if ( order === 'XZY' ) {
+        } else if (order === 'XZY') {
 
             this._x = s1 * c2 * c3 - c1 * s2 * s3;
             this._y = c1 * s2 * c3 - s1 * c2 * s3;
@@ -256,60 +256,60 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
         }
 
-        if ( update !== false ) this.onChangeCallback();
+        if (update !== false) this.onChangeCallback();
 
         return this;
 
     },
 
     /**
-     * 
+     *
      */
-    setFromRotationMatrix: function ( m ) {
+    setFromRotationMatrix: function (m) {
 
         var te = m.elements,
 
-            m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
-            m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
-            m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ],
+            m11 = te[0], m12 = te[4], m13 = te[8],
+            m21 = te[1], m22 = te[5], m23 = te[9],
+            m31 = te[2], m32 = te[6], m33 = te[10],
 
             trace = m11 + m22 + m33,
             s;
 
-        if ( trace > 0 ) {
+        if (trace > 0) {
 
-            s = 0.5 / Math.sqrt( trace + 1.0 );
+            s = 0.5 / Math.sqrt(trace + 1.0);
 
             this._w = 0.25 / s;
-            this._x = ( m32 - m23 ) * s;
-            this._y = ( m13 - m31 ) * s;
-            this._z = ( m21 - m12 ) * s;
+            this._x = (m32 - m23) * s;
+            this._y = (m13 - m31) * s;
+            this._z = (m21 - m12) * s;
 
-        } else if ( m11 > m22 && m11 > m33 ) {
+        } else if (m11 > m22 && m11 > m33) {
 
-            s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
+            s = 2.0 * Math.sqrt(1.0 + m11 - m22 - m33);
 
-            this._w = ( m32 - m23 ) / s;
+            this._w = (m32 - m23) / s;
             this._x = 0.25 * s;
-            this._y = ( m12 + m21 ) / s;
-            this._z = ( m13 + m31 ) / s;
+            this._y = (m12 + m21) / s;
+            this._z = (m13 + m31) / s;
 
-        } else if ( m22 > m33 ) {
+        } else if (m22 > m33) {
 
-            s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
+            s = 2.0 * Math.sqrt(1.0 + m22 - m11 - m33);
 
-            this._w = ( m13 - m31 ) / s;
-            this._x = ( m12 + m21 ) / s;
+            this._w = (m13 - m31) / s;
+            this._x = (m12 + m21) / s;
             this._y = 0.25 * s;
-            this._z = ( m23 + m32 ) / s;
+            this._z = (m23 + m32) / s;
 
         } else {
 
-            s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
+            s = 2.0 * Math.sqrt(1.0 + m33 - m11 - m22);
 
-            this._w = ( m21 - m12 ) / s;
-            this._x = ( m13 + m31 ) / s;
-            this._y = ( m23 + m32 ) / s;
+            this._w = (m21 - m12) / s;
+            this._x = (m13 + m31) / s;
+            this._y = (m23 + m32) / s;
             this._z = 0.25 * s;
 
         }
@@ -334,29 +334,29 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
         var EPS = 0.000001;
 
-        return function setFromUnitVectors( vFrom, vTo ) {
+        return function setFromUnitVectors(vFrom, vTo) {
 
-            if ( v1 === undefined ) v1 = new Vector3();
+            if (v1 === undefined) v1 = new Vector3();
 
-            r = vFrom.dot( vTo ) + 1;
+            r = vFrom.dot(vTo) + 1;
 
-            if ( r < EPS ) {
+            if (r < EPS) {
 
                 r = 0;
 
-                if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+                if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
 
-                    v1.set( - vFrom.y, vFrom.x, 0 );
+                    v1.set(- vFrom.y, vFrom.x, 0);
 
                 } else {
 
-                    v1.set( 0, - vFrom.z, vFrom.y );
+                    v1.set(0, - vFrom.z, vFrom.y);
 
                 }
 
             } else {
 
-                v1.crossVectors( vFrom, vTo );
+                v1.crossVectors(vFrom, vTo);
 
             }
 
@@ -372,27 +372,27 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     }(),
 
     /**
-     * 
+     *
      */
-    multiply: function ( q ) {
+    multiply: function (q) {
 
-        return this.multiplyQuaternions( this, q );
+        return this.multiplyQuaternions(this, q);
 
     },
 
     /**
-     * 
+     *
      */
-    premultiply: function ( q ) {
+    premultiply: function (q) {
 
-        return this.multiplyQuaternions( q, this );
+        return this.multiplyQuaternions(q, this);
 
     },
 
     /**
-     * 
+     *
      */
-    multiplyQuaternions: function ( a, b ) {
+    multiplyQuaternions: function (a, b) {
 
         // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 
@@ -411,10 +411,10 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * 
+     *
      */
     toMatrix4: function(target) {
-        if(!target) {
+        if (!target) {
             target = new Matrix4();
         }
         var ele = target.elements;
@@ -444,9 +444,9 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * 
+     *
      */
-    dot: function ( v ) {
+    dot: function (v) {
 
         return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
 
@@ -461,12 +461,12 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
         // assumes axis is normalized
 
-        var halfAngle = angle / 2, s = Math.sin( halfAngle );
+        var halfAngle = angle / 2, s = Math.sin(halfAngle);
 
         this._x = axis.x * s;
         this._y = axis.y * s;
         this._z = axis.z * s;
-        this._w = Math.cos( halfAngle );
+        this._w = Math.cos(halfAngle);
 
         this.onChangeCallback();
 
@@ -474,15 +474,15 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
     },
 
     /**
-     * 
+     *
      */
-    fromArray: function ( array, offset ) {
-        if ( offset === undefined ) offset = 0;
+    fromArray: function (array, offset) {
+        if (offset === undefined) offset = 0;
 
-        this._x = array[ offset ];
-        this._y = array[ offset + 1 ];
-        this._z = array[ offset + 2 ];
-        this._w = array[ offset + 3 ];
+        this._x = array[offset];
+        this._y = array[offset + 1];
+        this._z = array[offset + 2];
+        this._w = array[offset + 3];
 
         this.onChangeCallback();
 
@@ -499,42 +499,42 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
 });
 
-Object.assign( Quaternion, {
+Object.assign(Quaternion, {
 
     /**
      * @memberof zen3d.Quaternion
      */
-    slerpFlat: function ( dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ) {
+    slerpFlat: function (dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t) {
 
 		// fuzz-free, array-based Quaternion SLERP operation
 
-		var x0 = src0[ srcOffset0 + 0 ],
-			y0 = src0[ srcOffset0 + 1 ],
-			z0 = src0[ srcOffset0 + 2 ],
-			w0 = src0[ srcOffset0 + 3 ],
+		var x0 = src0[srcOffset0 + 0],
+			y0 = src0[srcOffset0 + 1],
+			z0 = src0[srcOffset0 + 2],
+			w0 = src0[srcOffset0 + 3],
 
-			x1 = src1[ srcOffset1 + 0 ],
-			y1 = src1[ srcOffset1 + 1 ],
-			z1 = src1[ srcOffset1 + 2 ],
-			w1 = src1[ srcOffset1 + 3 ];
+			x1 = src1[srcOffset1 + 0],
+			y1 = src1[srcOffset1 + 1],
+			z1 = src1[srcOffset1 + 2],
+			w1 = src1[srcOffset1 + 3];
 
-		if ( w0 !== w1 || x0 !== x1 || y0 !== y1 || z0 !== z1 ) {
+		if (w0 !== w1 || x0 !== x1 || y0 !== y1 || z0 !== z1) {
 
 			var s = 1 - t,
 
 				cos = x0 * x1 + y0 * y1 + z0 * z1 + w0 * w1,
 
-				dir = ( cos >= 0 ? 1 : - 1 ),
+				dir = (cos >= 0 ? 1 : - 1),
 				sqrSin = 1 - cos * cos;
 
 			// Skip the Slerp for tiny steps to avoid numeric problems:
-			if ( sqrSin > Number.EPSILON ) {
+			if (sqrSin > Number.EPSILON) {
 
-				var sin = Math.sqrt( sqrSin ),
-					len = Math.atan2( sin, cos * dir );
+				var sin = Math.sqrt(sqrSin),
+					len = Math.atan2(sin, cos * dir);
 
-				s = Math.sin( s * len ) / sin;
-				t = Math.sin( t * len ) / sin;
+				s = Math.sin(s * len) / sin;
+				t = Math.sin(t * len) / sin;
 
 			}
 
@@ -546,9 +546,9 @@ Object.assign( Quaternion, {
 			w0 = w0 * s + w1 * tDir;
 
 			// Normalize in case we just did a lerp:
-			if ( s === 1 - t ) {
+			if (s === 1 - t) {
 
-				var f = 1 / Math.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 );
+				var f = 1 / Math.sqrt(x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0);
 
 				x0 *= f;
 				y0 *= f;
@@ -559,10 +559,10 @@ Object.assign( Quaternion, {
 
 		}
 
-		dst[ dstOffset ] = x0;
-		dst[ dstOffset + 1 ] = y0;
-		dst[ dstOffset + 2 ] = z0;
-		dst[ dstOffset + 3 ] = w0;
+		dst[dstOffset] = x0;
+		dst[dstOffset + 1] = y0;
+		dst[dstOffset + 2] = z0;
+		dst[dstOffset + 3] = w0;
 
 	}
 

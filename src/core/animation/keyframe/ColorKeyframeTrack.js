@@ -17,7 +17,7 @@ function ColorKeyframeTrack(target, propertyPath, times, values, interpolant) {
 ColorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
     constructor: ColorKeyframeTrack,
-    
+
     valueTypeName: 'color'
 
 });

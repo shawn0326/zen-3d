@@ -4,8 +4,8 @@ import {Vector3} from './Vector3.js';
 /**
  * @constructor
  * @memberof zen3d
- * @param {zen3d.Vector3} min 
- * @param {zen3d.Vector3} max 
+ * @param {zen3d.Vector3} min
+ * @param {zen3d.Vector3} max
  */
 function Box3(min, max) {
     this.min = (min !== undefined) ? min : new Vector3(+Infinity, +Infinity, +Infinity);
@@ -15,7 +15,7 @@ function Box3(min, max) {
 Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
 
     /**
-     * 
+     *
      */
     set: function(min, max) {
         this.min.copy(min);
@@ -23,7 +23,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     setFromPoints: function(points) {
         this.makeEmpty();
@@ -36,7 +36,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     makeEmpty: function() {
         this.min.x = this.min.y = this.min.z = +Infinity;
@@ -46,7 +46,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     expandByPoint: function(point) {
         this.min.min(point);
@@ -56,7 +56,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     expandByScalar: function(scalar) {
         this.min.addScalar(-scalar);
@@ -66,7 +66,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     setFromArray: function(array, gap) {
         var minX = +Infinity;
@@ -102,7 +102,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     isEmpty: function() {
         // this is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
@@ -110,14 +110,14 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     equals: function(box) {
         return box.min.equals(this.min) && box.max.equals(this.max);
     },
 
     /**
-     * 
+     *
      */
     getCenter: function(optionalTarget) {
         var result = optionalTarget || new Vector3();
@@ -160,7 +160,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
     }(),
 
     /**
-     * 
+     *
      */
     copy: function(box) {
         this.min.copy(box.min);

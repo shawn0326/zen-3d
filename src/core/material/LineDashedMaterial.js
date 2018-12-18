@@ -23,12 +23,12 @@ function LineDashedMaterial() {
     /**
      * The scale of the dashed part of a line.
      * @type {number}
-     * @default 1 
+     * @default 1
      */
     this.scale = 1;
 
     /**
-     * The size of the dash. 
+     * The size of the dash.
      * This is both the gap with the stroke.
      * @type {number}
      * @default 3
@@ -38,7 +38,7 @@ function LineDashedMaterial() {
     /**
      * The size of the gap.
      * @type {number}
-     * @default 1 
+     * @default 1
      */
     this.gapSize = 1;
 

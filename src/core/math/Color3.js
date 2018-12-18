@@ -1,16 +1,16 @@
 /**
  * @constructor
  * @memberof zen3d
- * @param {number} r 
- * @param {number} g 
- * @param {number} b 
+ * @param {number} r
+ * @param {number} g
+ * @param {number} b
  */
 function Color3(r, g, b) {
     this.r = 0;
     this.g = 0;
     this.b = 0;
 
-    if(g === undefined && b === undefined) {
+    if (g === undefined && b === undefined) {
         return this.setHex(r);
     }
 
@@ -18,9 +18,9 @@ function Color3(r, g, b) {
 }
 
 Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
-    
+
     /**
-     * 
+     *
      */
     lerpColors: function(c1, c2, ratio) {
         this.r = ratio * (c2.r - c1.r) + c1.r;
@@ -29,14 +29,14 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
     },
 
     /**
-     * 
+     *
      */
     lerp: function(c, ratio) {
         this.lerpColors(this, c, ratio);
     },
 
     /**
-     * 
+     *
      */
     copy: function(v) {
         this.r = v.r;
@@ -112,12 +112,12 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
     /**
      *
      */
-    fromArray: function( array, offset ) {
-        if ( offset === undefined ) offset = 0;
+    fromArray: function(array, offset) {
+        if (offset === undefined) offset = 0;
 
-        this.r = array[ offset ];
-        this.g = array[ offset + 1 ];
-        this.b = array[ offset + 2 ];
+        this.r = array[offset];
+        this.g = array[offset + 1];
+        this.b = array[offset + 2];
 
         return this;
     },
@@ -125,14 +125,14 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
     /**
      *
      */
-    toArray: function ( array, offset ) {
+    toArray: function (array, offset) {
 
-        if ( array === undefined ) array = [];
-        if ( offset === undefined ) offset = 0;
+        if (array === undefined) array = [];
+        if (offset === undefined) offset = 0;
 
-        array[ offset ] = this.r;
-        array[ offset + 1 ] = this.g;
-        array[ offset + 2 ] = this.b;
+        array[offset] = this.r;
+        array[offset + 1] = this.g;
+        array[offset + 2] = this.b;
 
         return array;
 

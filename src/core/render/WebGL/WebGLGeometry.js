@@ -136,15 +136,15 @@ Object.assign(WebGLGeometry.prototype, {
         for (var key in geometryProperties._vaos) {
             var vao = geometryProperties[key];
             if (vao) {
-                if (this.capabilities.version >= 2) { 
+                if (this.capabilities.version >= 2) {
                     gl.deleteVertexArray(vao);
-                } else { 
+                } else {
                     gl.deleteVertexArrayOES(vao);
                 }
             }
         }
         geometryProperties._vaos = {};
-        
+
         geometryProperties.created = false;
 
         this.properties.delete(geometry);

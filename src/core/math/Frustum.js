@@ -4,12 +4,12 @@ import {Vector3} from './Vector3.js';
 /**
  * @constructor
  * @memberof zen3d
- * @param {zen3d.Plane} p0 
- * @param {zen3d.Plane} p1 
- * @param {zen3d.Plane} p2 
- * @param {zen3d.Plane} p3 
- * @param {zen3d.Plane} p4 
- * @param {zen3d.Plane} p5 
+ * @param {zen3d.Plane} p0
+ * @param {zen3d.Plane} p1
+ * @param {zen3d.Plane} p2
+ * @param {zen3d.Plane} p3
+ * @param {zen3d.Plane} p4
+ * @param {zen3d.Plane} p5
  */
 function Frustum(p0, p1, p2, p3, p4, p5) {
     this.planes = [

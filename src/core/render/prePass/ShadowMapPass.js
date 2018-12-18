@@ -39,17 +39,17 @@ function ShadowMapPass() {
 
 /**
  * Render shadow map.
- * @param {zen3d.WebGLCore} glCore 
- * @param {zen3d.Scene} scene 
+ * @param {zen3d.WebGLCore} glCore
+ * @param {zen3d.Scene} scene
  */
 ShadowMapPass.prototype.render = function(glCore, scene) {
-    
+
     var gl = glCore.gl;
     var state = glCore.state;
 
     // force disable stencil
     var useStencil = state.states[gl.STENCIL_TEST];
-    if(useStencil) {
+    if (useStencil) {
         state.stencilBuffer.setTest(false);
     }
 
@@ -114,12 +114,12 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 
     }
 
-    if(useStencil) {
+    if (useStencil) {
         state.stencilBuffer.setTest(true);
     }
 
     state.colorBuffer.setClear(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
-    
+
 }
 
 export {ShadowMapPass};

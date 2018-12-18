@@ -4,11 +4,11 @@ import {Quaternion} from '../../math/Quaternion.js';
 
 function select(buffer, dstOffset, srcOffset, t, stride) {
 
-    if ( t >= 0.5 ) {
+    if (t >= 0.5) {
 
-        for ( var i = 0; i !== stride; ++ i ) {
+        for (var i = 0; i !== stride; ++ i) {
 
-            buffer[ dstOffset + i ] = buffer[ srcOffset + i ];
+            buffer[dstOffset + i] = buffer[srcOffset + i];
 
         }
 
@@ -18,7 +18,7 @@ function select(buffer, dstOffset, srcOffset, t, stride) {
 
 function slerp(buffer, dstOffset, srcOffset, t) {
 
-    Quaternion.slerpFlat( buffer, dstOffset, buffer, dstOffset, buffer, srcOffset, t );
+    Quaternion.slerpFlat(buffer, dstOffset, buffer, dstOffset, buffer, srcOffset, t);
 
 }
 
@@ -26,11 +26,11 @@ function lerp(buffer, dstOffset, srcOffset, t, stride) {
 
     var s = 1 - t;
 
-    for ( var i = 0; i !== stride; ++ i ) {
+    for (var i = 0; i !== stride; ++ i) {
 
         var j = dstOffset + i;
 
-        buffer[ j ] = buffer[ j ] * s + buffer[ srcOffset + i ] * t;
+        buffer[j] = buffer[j] * s + buffer[srcOffset + i] * t;
 
     }
 
@@ -56,17 +56,17 @@ function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
 
     this.valueSize = valueSize;
 
-    var bufferType = Float64Array;
+    var BufferType = Float64Array;
     var mixFunction;
 
-    switch ( typeName ) {
+    switch (typeName) {
 
         case 'quaternion':
             mixFunction = slerp;
             break;
         case 'string':
         case 'bool':
-            bufferType = Array;
+            BufferType = Array;
             mixFunction = select;
             break;
         default:
@@ -75,7 +75,7 @@ function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
     }
 
     // [result-value | new-value]
-    this.buffer = new bufferType(valueSize * 2);
+    this.buffer = new BufferType(valueSize * 2);
 
     this._mixBufferFunction = mixFunction;
 
@@ -90,15 +90,15 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
     parseBinding: function(target, propertyPath) {
         propertyPath = propertyPath.split(".");
-    
+
         if (propertyPath.length > 1) {
             var property = target[propertyPath[0]];
-    
-    
+
+
             for (var index = 1; index < propertyPath.length - 1; index++) {
                 property = property[propertyPath[index]];
             }
-    
+
             this.property = propertyPath[propertyPath.length - 1];
             this.target = property;
         } else {
@@ -123,7 +123,7 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
             for (var i = 0; i !== stride; ++i) {
 
-                buffer[ offset + i ] = buffer[ i ];
+                buffer[offset + i] = buffer[i];
 
             }
 
@@ -152,14 +152,14 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
         this.cumulativeWeight = 0;
 
-        if ( weight < 1 ) {
+        if (weight < 1) {
 
             // TODO blend with original value?
 
         }
 
         // set value
-        if(this.valueSize > 1) {
+        if (this.valueSize > 1) {
             this.target[this.property].fromArray(buffer, offset);
         } else {
             this.target[this.property] = buffer[offset];

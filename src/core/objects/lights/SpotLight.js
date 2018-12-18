@@ -15,7 +15,7 @@ import {SpotLightShadow} from './SpotLightShadow.js';
  * @param {number} [penumbra=0]
  * @param {number} [decay=1]
  */
-function SpotLight( color, intensity, distance, angle, penumbra, decay ) {
+function SpotLight(color, intensity, distance, angle, penumbra, decay) {
 
     Light.call(this, color, intensity);
 
@@ -26,33 +26,33 @@ function SpotLight( color, intensity, distance, angle, penumbra, decay ) {
      * @type {number}
      * @default 1
      */
-    this.decay = ( decay !== undefined ) ? decay : 1;
+    this.decay = (decay !== undefined) ? decay : 1;
 
     /**
      * The distance from the light where the intensity is 0.
      * @type {number}
      * @default 200
      */
-    this.distance = ( distance !== undefined ) ? distance : 200;
+    this.distance = (distance !== undefined) ? distance : 200;
 
     /**
-     * Percent of the spotlight cone that is attenuated due to penumbra. 
+     * Percent of the spotlight cone that is attenuated due to penumbra.
      * Takes values between zero and 1.
      * @type {number}
      * @default 0
      */
-    this.penumbra = ( penumbra !== undefined ) ? penumbra : 0;
+    this.penumbra = (penumbra !== undefined) ? penumbra : 0;
 
     /**
-     * Maximum extent of the spotlight, in radians, from its direction. 
+     * Maximum extent of the spotlight, in radians, from its direction.
      * Should be no more than Math.PI/2.
      * @type {number}
      * @default Math.PI/6
      */
-    this.angle = ( angle !== undefined ) ? angle : Math.PI / 6;
+    this.angle = (angle !== undefined) ? angle : Math.PI / 6;
 
     /**
-     * A {@link zen3d.SpotLightShadow} used to calculate shadows for this light. 
+     * A {@link zen3d.SpotLightShadow} used to calculate shadows for this light.
      * @type {zen3d.SpotLightShadow}
      * @default zen3d.SpotLightShadow()
      */
@@ -71,7 +71,7 @@ SpotLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends z
 
         return this;
     }
-    
+
 });
 
 export {SpotLight};

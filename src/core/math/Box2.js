@@ -3,8 +3,8 @@ import {Vector2} from './Vector2.js';
 /**
  * @constructor
  * @memberof zen3d
- * @param {zen3d.Vector2} min 
- * @param {zen3d.Vector2} max 
+ * @param {zen3d.Vector2} min
+ * @param {zen3d.Vector2} max
  */
 function Box2(min, max) {
     this.min = (min !== undefined) ? min : new Vector2(+Infinity, +Infinity);

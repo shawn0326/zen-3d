@@ -17,7 +17,7 @@ function NumberKeyframeTrack(target, propertyPath, times, values, interpolant) {
 NumberKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
     constructor: NumberKeyframeTrack,
-    
+
     valueTypeName: 'number'
 
 });

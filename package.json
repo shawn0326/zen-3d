@@ -40,6 +40,7 @@
     "extension": "npm run build-canvas2d && npm run build-vox && npm run build-input",
     "doc": "jsdoc ./src/core -r -d ./docs",
     "eslint": "eslint src/core",
+    "eslint-fix": "eslint src/core --fix",
     "example": "live-server --port=8080 --open=examples --watch=examples,build"
   }
 }

@@ -11,30 +11,30 @@ function generateProgramCode(props, material) {
     for (var key in props) {
         code += props[key] + "_";
     }
-    if(material.defines !== undefined) {
+    if (material.defines !== undefined) {
         for (var name in material.defines) {
-            code += name + "_" + material.defines[ name ] + "_";
+            code += name + "_" + material.defines[name] + "_";
         }
     }
     return code;
 }
 
-function getTextureEncodingFromMap( map, gammaOverrideLinear ) {
+function getTextureEncodingFromMap(map, gammaOverrideLinear) {
 
     var encoding;
 
-    if ( ! map ) {
+    if (! map) {
 
         encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
-    } else if ( map.encoding ) {
+    } else if (map.encoding) {
 
         encoding = map.encoding;
 
     }
 
     // add backwards compatibility for Renderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
-    if ( encoding === TEXEL_ENCODING_TYPE.LINEAR && gammaOverrideLinear ) {
+    if (encoding === TEXEL_ENCODING_TYPE.LINEAR && gammaOverrideLinear) {
 
         encoding = TEXEL_ENCODING_TYPE.GAMMA;
 
@@ -44,60 +44,60 @@ function getTextureEncodingFromMap( map, gammaOverrideLinear ) {
 
 }
 
-function getEncodingComponents( encoding ) {
+function getEncodingComponents(encoding) {
 
-    switch ( encoding ) {
+    switch (encoding) {
 
         case TEXEL_ENCODING_TYPE.LINEAR:
-            return [ 'Linear','( value )' ];
+            return ['Linear', '( value )'];
         case TEXEL_ENCODING_TYPE.SRGB:
-            return [ 'sRGB','( value )' ];
+            return ['sRGB', '( value )'];
         case TEXEL_ENCODING_TYPE.RGBE:
-            return [ 'RGBE','( value )' ];
+            return ['RGBE', '( value )'];
         case TEXEL_ENCODING_TYPE.RGBM7:
-            return [ 'RGBM','( value, 7.0 )' ];
+            return ['RGBM', '( value, 7.0 )'];
         case TEXEL_ENCODING_TYPE.RGBM16:
-            return [ 'RGBM','( value, 16.0 )' ];
+            return ['RGBM', '( value, 16.0 )'];
         case TEXEL_ENCODING_TYPE.RGBD:
-            return [ 'RGBD','( value, 256.0 )' ];
+            return ['RGBD', '( value, 256.0 )'];
         case TEXEL_ENCODING_TYPE.GAMMA:
-            return [ 'Gamma','( value, float( GAMMA_FACTOR ) )' ];
+            return ['Gamma', '( value, float( GAMMA_FACTOR ) )'];
         default:
-                console.error( 'unsupported encoding: ' + encoding );
+                console.error('unsupported encoding: ' + encoding);
 
     }
 
 }
 
-function getTexelDecodingFunction( functionName, encoding ) {
+function getTexelDecodingFunction(functionName, encoding) {
 
-    var components = getEncodingComponents( encoding );
-    return "vec4 " + functionName + "( vec4 value ) { return " + components[ 0 ] + "ToLinear" + components[ 1 ] + "; }";
-
-}
-
-function getTexelEncodingFunction( functionName, encoding ) {
-
-    var components = getEncodingComponents( encoding );
-    return "vec4 " + functionName + "( vec4 value ) { return LinearTo" + components[ 0 ] + components[ 1 ] + "; }";
+    var components = getEncodingComponents(encoding);
+    return "vec4 " + functionName + "( vec4 value ) { return " + components[0] + "ToLinear" + components[1] + "; }";
 
 }
 
-function generateDefines( defines ) {
+function getTexelEncodingFunction(functionName, encoding) {
+
+    var components = getEncodingComponents(encoding);
+    return "vec4 " + functionName + "( vec4 value ) { return LinearTo" + components[0] + components[1] + "; }";
+
+}
+
+function generateDefines(defines) {
 
     var chunks = [];
 
-    for ( var name in defines ) {
+    for (var name in defines) {
 
-        var value = defines[ name ];
+        var value = defines[name];
 
-        if ( value === false ) continue;
+        if (value === false) continue;
 
-        chunks.push( '#define ' + name + ' ' + value );
+        chunks.push('#define ' + name + ' ' + value);
 
     }
 
-    return chunks.join( '\n' );
+    return chunks.join('\n');
 
 }
 
@@ -144,7 +144,7 @@ function createProgram(gl, props, defines) {
         props.useSkinning ? '#define USE_SKINNING' : '',
         (props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
         props.useVertexTexture ? '#define BONE_TEXTURE' : ''
-        
+
     ].join("\n");
 
     var prefixFragment = [
@@ -161,7 +161,7 @@ function createProgram(gl, props, defines) {
         (props.version >= 2) ? 'precision ' + props.precision + ' samplerCubeShadow;' : '',
 
         '#define SHADER_NAME ' + props.materialType,
-        
+
         '#define PI 3.14159265359',
         '#define EPSILON 1e-6',
         'float pow2( const in float x ) { return x*x; }',
@@ -256,14 +256,14 @@ function createProgram(gl, props, defines) {
         // replace gl_FragData by layout
         var i = 0;
         var layout = [];
-        while ( fshader.indexOf("gl_FragData[" + i + "]") > -1 ) {
+        while (fshader.indexOf("gl_FragData[" + i + "]") > -1) {
             fshader = fshader.replace("gl_FragData[" + i + "]", "pc_fragData" + i);
             layout.push("layout(location = " + i + ") out vec4 pc_fragData" + i + ";");
             i++;
         }
         fshader = fshader.replace(
             '#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
-            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )' + '\n' + layout.join( '\n' ) + '\n'
+            '#define whiteCompliment(a) ( 1.0 - saturate( a ) )' + '\n' + layout.join('\n') + '\n'
         );
 
         vshader = [
@@ -271,7 +271,7 @@ function createProgram(gl, props, defines) {
 			'#define attribute in',
 			'#define varying out',
 			'#define texture2D texture'
-        ].join( '\n' ) + '\n' + vshader;
+        ].join('\n') + '\n' + vshader;
 
         fshader = [
             '#version 300 es\n',
@@ -288,7 +288,7 @@ function createProgram(gl, props, defines) {
 			'#define texture2DGradEXT textureGrad',
 			'#define texture2DProjGradEXT textureProjGrad',
 			'#define textureCubeGradEXT textureGrad'
-        ].join( '\n' ) + '\n' + fshader;
+        ].join('\n') + '\n' + fshader;
     }
 
     return new WebGLProgram(gl, vshader, fshader);
@@ -316,33 +316,33 @@ var parseIncludes = function(string) {
 
 }
 
-function replaceLightNums( string, parameters ) {
+function replaceLightNums(string, parameters) {
 
 	return string
-		.replace( /NUM_DIR_LIGHTS/g, parameters.directLightNum )
-		.replace( /NUM_SPOT_LIGHTS/g, parameters.spotLightNum )
-		.replace( /NUM_POINT_LIGHTS/g, parameters.pointLightNum );
+		.replace(/NUM_DIR_LIGHTS/g, parameters.directLightNum)
+		.replace(/NUM_SPOT_LIGHTS/g, parameters.spotLightNum)
+		.replace(/NUM_POINT_LIGHTS/g, parameters.pointLightNum);
 
 }
 
-function replaceClippingPlaneNums( string, parameters ) {
+function replaceClippingPlaneNums(string, parameters) {
 
 	return string
-		.replace( /NUM_CLIPPING_PLANES/g, parameters.numClippingPlanes );
+		.replace(/NUM_CLIPPING_PLANES/g, parameters.numClippingPlanes);
 
 }
 
-function unrollLoops( string ) {
+function unrollLoops(string) {
 
 	var pattern = /#pragma unroll_loop[\s]+?for \( int i \= (\d+)\; i < (\d+)\; i \+\+ \) \{([\s\S]+?)(?=\})\}/g;
 
-	function replace( match, start, end, snippet ) {
+	function replace(match, start, end, snippet) {
 
 		var unroll = '';
 
-		for ( var i = parseInt( start ); i < parseInt( end ); i ++ ) {
+		for (var i = parseInt(start); i < parseInt(end); i ++) {
 
-			unroll += snippet.replace( /\[ i \]/g, '[ ' + i + ' ]' );
+			unroll += snippet.replace(/\[ i \]/g, '[ ' + i + ' ]');
 
 		}
 
@@ -350,7 +350,7 @@ function unrollLoops( string ) {
 
 	}
 
-	return string.replace( pattern, replace );
+	return string.replace(pattern, replace);
 
 }
 
@@ -409,13 +409,13 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     // skinned mesh
     var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
     var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
-    var useVertexTexture = capabilities.maxVertexTextures > 0 && ( !!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2 );
+    var useVertexTexture = capabilities.maxVertexTextures > 0 && (!!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2);
     var maxBones = 0;
-    if(useVertexTexture) {
+    if (useVertexTexture) {
         maxBones = 1024;
     } else {
         maxBones = object.skeleton ? object.skeleton.bones.length : 0;
-        if(maxBones * 16 > maxVertexUniformVectors) {
+        if (maxBones * 16 > maxVertexUniformVectors) {
             console.warn("Program: too many bones (" + maxBones + "), current cpu only support " + Math.floor(maxVertexUniformVectors / 16) + " bones!!");
             maxBones = Math.floor(maxVertexUniformVectors / 16);
         }
@@ -423,7 +423,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
     props.useSkinning = useSkinning;
     props.bonesNum = maxBones;
     props.useVertexTexture = useVertexTexture;
-    if(material.type === MATERIAL_TYPE.SHADER) {
+    if (material.type === MATERIAL_TYPE.SHADER) {
         props.vertexShader = material.vertexShader;
         props.fragmentShader = material.fragmentShader;
     }
@@ -458,7 +458,7 @@ function getProgram(glCore, camera, material, object, cache) {
         program = map[code];
     } else {
         var customDefines = "";
-        if(material.defines !== undefined) {
+        if (material.defines !== undefined) {
             customDefines = generateDefines(material.defines);
         }
         program = createProgram(gl, props, customDefines);

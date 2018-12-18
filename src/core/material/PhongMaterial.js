@@ -4,7 +4,7 @@ import {Color3} from '../math/Color3.js';
 
 /**
  * A material for shiny surfaces with specular highlights.
- * The material uses a non-physically based Blinn-Phong model for calculating reflectance. 
+ * The material uses a non-physically based Blinn-Phong model for calculating reflectance.
  * Unlike the Lambertian model used in the {@link zen3d.LambertMaterial} this can simulate shiny surfaces with specular highlights (such as varnished wood).
  * @constructor
  * @extends zen3d.Material
@@ -17,7 +17,7 @@ function PhongMaterial() {
     this.type = MATERIAL_TYPE.PHONG;
 
     /**
-     * How shiny the {@link zen3d.PhongMaterial#specular} highlight is; a higher value gives a sharper highlight. 
+     * How shiny the {@link zen3d.PhongMaterial#specular} highlight is; a higher value gives a sharper highlight.
      * @type {number}
      * @default 30
      */

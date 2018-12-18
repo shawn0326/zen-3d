@@ -14,7 +14,7 @@ function TextureBase() {
     EventDispatcher.call(this);
 
     /**
-     * UUID of this texture instance. 
+     * UUID of this texture instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @readonly
      * @type {string}
@@ -24,9 +24,9 @@ function TextureBase() {
     this.textureType = "";
 
     /**
-     * WebGLTexture border. 
+     * WebGLTexture border.
      * See {@link https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D WebGLTexture texImage2D()}.
-     * Must be zero. 
+     * Must be zero.
      * @type {number}
      */
     this.border = 0;
@@ -84,7 +84,7 @@ function TextureBase() {
 
     /**
      * The number of samples taken along the axis through the pixel that has the highest density of texels.
-     * A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used. 
+     * A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used.
      * Use {@link WebGLcapabilities#maxAnisotropy} to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
      * @type {number}
      * @default 1
@@ -109,14 +109,14 @@ function TextureBase() {
     /**
      * texture pixel encoding.
      * @type {zen3d.TEXEL_ENCODING_TYPE}
-     * @default zen3d.TEXEL_ENCODING_TYPE.LINEAR 
+     * @default zen3d.TEXEL_ENCODING_TYPE.LINEAR
      */
     this.encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
     /**
      * Flips the image's Y axis to match the WebGL texture coordinate space.
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     this.flipY = true;
 
@@ -138,7 +138,7 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
      * @return {zen3d.TextureBase}
      */
     clone: function() {
-        return new this.constructor().copy( this );
+        return new this.constructor().copy(this);
     },
 
     /**
@@ -146,7 +146,7 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
      * @param {zen3d.TextureBase} source - The texture to be copied.
      * @return {zen3d.TextureBase}
      */
-    copy: function( source ) {
+    copy: function(source) {
         this.textureType = source.textureType;
         this.border = source.border;
         this.format = source.format;

@@ -12,7 +12,7 @@ import {BufferAttribute}  from './BufferAttribute.js';
  */
 function InstancedBufferAttribute(array, itemSize, normalized, meshPerAttribute) {
 
-    BufferAttribute.call( this, array, itemSize, normalized );
+    BufferAttribute.call(this, array, itemSize, normalized);
 
     /**
      * @type {Integer}
@@ -21,14 +21,14 @@ function InstancedBufferAttribute(array, itemSize, normalized, meshPerAttribute)
 
 }
 
-InstancedBufferAttribute.prototype = Object.assign( Object.create( BufferAttribute.prototype ), /** @lends zen3d.InstancedBufferAttribute.prototype */{
+InstancedBufferAttribute.prototype = Object.assign(Object.create(BufferAttribute.prototype), /** @lends zen3d.InstancedBufferAttribute.prototype */{
 
     constructor: InstancedBufferAttribute,
 
     /**
      * @readonly
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     isInstancedBufferAttribute: true
 

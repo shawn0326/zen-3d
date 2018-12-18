@@ -12,12 +12,12 @@ function EnvironmentMapPass(renderTarget) {
     this.camera = new Camera();
 
     this.targets = [
-        new Vector3( 1, 0, 0 ), new Vector3( -1, 0, 0 ), new Vector3( 0, 1, 0 ),
-        new Vector3( 0, -1, 0 ), new Vector3( 0, 0, 1 ), new Vector3( 0, 0, -1 )
+        new Vector3(1, 0, 0), new Vector3(-1, 0, 0), new Vector3(0, 1, 0),
+        new Vector3(0, -1, 0), new Vector3(0, 0, 1), new Vector3(0, 0, -1)
     ];
     this.ups = [
-        new Vector3( 0, -1, 0 ), new Vector3( 0, -1, 0 ), new Vector3( 0, 0, 1 ),
-        new Vector3( 0, 0, -1 ), new Vector3( 0, -1, 0 ), new Vector3( 0, -1, 0 )
+        new Vector3(0, -1, 0), new Vector3(0, -1, 0), new Vector3(0, 0, 1),
+        new Vector3(0, 0, -1), new Vector3(0, -1, 0), new Vector3(0, -1, 0)
     ];
 
     this.camera.setPerspective(90 / 180 * Math.PI, 1, 1, 1000);
@@ -32,13 +32,13 @@ function EnvironmentMapPass(renderTarget) {
 
 /**
  * Render environment map.
- * @param {zen3d.WebGLCore} glCore 
- * @param {zen3d.Scene} scene 
+ * @param {zen3d.WebGLCore} glCore
+ * @param {zen3d.Scene} scene
  */
 EnvironmentMapPass.prototype.render = function(glCore, scene) {
     this.camera.position.copy(this.position);
 
-    for(var i = 0; i < 6; i++) {
+    for (var i = 0; i < 6; i++) {
         this.lookTarget.set(this.targets[i].x + this.camera.position.x, this.targets[i].y + this.camera.position.y, this.targets[i].z + this.camera.position.z);
         this.camera.lookAt(this.lookTarget, this.ups[i]);
 

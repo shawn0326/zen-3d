@@ -17,11 +17,11 @@ function WebGLCapabilities(gl) {
      * @return {*}
      */
     function getExtension(name) {
-    
-        if(_extensions[name] || _extensions[name] === null) {
+
+        if (_extensions[name] || _extensions[name] === null) {
             return _extensions[name];
         }
-    
+
         var ext = null;
         for (var i in vendorPrefixes) {
             ext = gl.getExtension(vendorPrefixes[i] + name);
@@ -30,11 +30,11 @@ function WebGLCapabilities(gl) {
             }
         }
         _extensions[name] = ext;
-    
+
         return ext;
-    
+
     }
-    
+
     var targetPrecision = "highp";
 
     /**
@@ -68,61 +68,61 @@ function WebGLCapabilities(gl) {
 
         /**
          * WebGL version.
-         * @type {number} 
+         * @type {number}
          */
         version: parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]),
 
         /**
          * The max precision supported in shaders.
-         * @type {string} 
+         * @type {string}
          */
         maxPrecision: getMaxPrecision(gl, targetPrecision),
 
         /**
          * The max texture units.
-         * @type {Integer} 
+         * @type {Integer}
          */
         maxTextures: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
 
         /**
          * Max vertex texture units.
-         * @type {Integer} 
+         * @type {Integer}
          */
         maxVertexTextures: gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
 
         /**
          * The max texture size.
-         * @type {Integer} 
+         * @type {Integer}
          */
         maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
 
         /**
          * The max cube map texture size.
-         * @type {Integer} 
+         * @type {Integer}
          */
         maxCubemapSize: gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE),
 
         /**
          * The max vertex uniform vectors.
-         * @type {Integer} 
+         * @type {Integer}
          */
         maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
 
         /**
          * Getting the range of available widths.
-         * @type {Float32Array} 
+         * @type {Float32Array}
          */
         lineWidthRange: gl.getParameter(gl.ALIASED_LINE_WIDTH_RANGE),
 
         /**
          * The EXT_texture_filter_anisotropic extension.
-         * @type {*} 
+         * @type {*}
          */
         anisotropyExt: anisotropyExt,
 
         /**
          * The max anisotropic value.
-         * @type {Integer} 
+         * @type {Integer}
          */
         maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1,
 

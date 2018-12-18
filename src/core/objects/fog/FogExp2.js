@@ -14,14 +14,14 @@ function FogExp2(color, density) {
 
     /**
      * The color of the fog.
-     * @member {zen3d.Color3} 
+     * @member {zen3d.Color3}
      * @default zen3d.Color3(0x000000)
      */
-    this.color = new Color3( (color !== undefined) ? color : 0x000000 );
+    this.color = new Color3((color !== undefined) ? color : 0x000000);
 
     /**
      * The density of the exp2 fog.
-     * @member {number} 
+     * @member {number}
      * @default 0.00025
      */
     this.density = (density !== undefined) ? density : 0.00025;

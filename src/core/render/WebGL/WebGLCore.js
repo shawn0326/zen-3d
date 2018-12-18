@@ -29,11 +29,11 @@ var getClippingPlanesData = function() {
     var planesData;
     var plane = new Plane();
     return function getClippingPlanesData(planes, camera) {
-        if(!planesData || planesData.length < planes.length * 4) {
+        if (!planesData || planesData.length < planes.length * 4) {
             planesData = new Float32Array(planes.length * 4);
         }
 
-        for(var i = 0; i < planes.length; i++) {
+        for (var i = 0; i < planes.length; i++) {
             plane.copy(planes[i]);//.applyMatrix4(camera.viewMatrix);
             planesData[i * 4 + 0] = plane.normal.x;
             planesData[i * 4 + 1] = plane.normal.y;
@@ -53,7 +53,7 @@ var getClippingPlanesData = function() {
 function WebGLCore(gl) {
 
     this.gl = gl;
-    
+
     var properties = new WebGLProperties();
     this.properties = properties;
 
@@ -97,38 +97,38 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
      */
     clear: function(color, depth, stencil) {
         var gl = this.gl;
-    
+
         var bits = 0;
-    
+
         if (color === undefined || color) bits |= gl.COLOR_BUFFER_BIT;
         if (depth === undefined || depth) bits |= gl.DEPTH_BUFFER_BIT;
         if (stencil === undefined || stencil) bits |= gl.STENCIL_BUFFER_BIT;
-    
+
         gl.clear(bits);
     },
 
     /**
      * Render opaque and transparent objects.
-     * @param {zen3d.Scene} scene 
-     * @param {zen3d.Camera} camera 
+     * @param {zen3d.Scene} scene
+     * @param {zen3d.Camera} camera
      * @param {boolean} [updateRenderList=false]
      */
     render: function(scene, camera, updateRenderList) {
         updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
         var renderList;
-        if(updateRenderList) {
+        if (updateRenderList) {
             renderList = scene.updateRenderList(camera);
         } else {
             renderList = scene.getRenderList(camera);
         }
-    
+
         this.renderPass(renderList.opaque, camera, {
             scene: scene,
             getMaterial: function(renderable) {
                 return scene.overrideMaterial || renderable.material;
             }
         });
-    
+
         this.renderPass(renderList.transparent, camera, {
             scene: scene,
             getMaterial: function(renderable) {
@@ -151,11 +151,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
      */
     renderPass: function(renderList, camera, config) {
         config = config || {};
-    
+
         var gl = this.gl;
         var state = this.state;
         var vaoExt = this.capabilities.getExtension("OES_vertex_array_object");
-    
+
         var getMaterial = config.getMaterial || defaultGetMaterial;
         var beforeRender = config.beforeRender || noop;
         var afterRender = config.afterRender || noop;
@@ -163,14 +163,14 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var scene = config.scene || {};
 
         var currentRenderTarget = state.currentRenderTarget;
-    
+
         for (var i = 0, l = renderList.length; i < l; i++) {
             var renderItem = renderList[i];
-    
-            if(!ifRender(renderItem)) {
+
+            if (!ifRender(renderItem)) {
                 continue;
             }
-            
+
             var object = renderItem.object;
             var material = getMaterial.call(this, renderItem);
             var geometry = renderItem.geometry;
@@ -178,40 +178,40 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
             object.onBeforeRender(renderItem, material);
             beforeRender.call(this, renderItem, material);
-    
+
             var materialProperties = this.properties.get(material);
             materialProperties.lightsHash = materialProperties.lightsHash || {};
             var lightsHash = materialProperties.lightsHash;
-            if ( material.needsUpdate === false ) {
-                if ( materialProperties.program === undefined ) {
+            if (material.needsUpdate === false) {
+                if (materialProperties.program === undefined) {
                     material.needsUpdate = true;
-                } else if ( materialProperties.fog !== scene.fog ) {
+                } else if (materialProperties.fog !== scene.fog) {
                     material.needsUpdate = true;
-                } else if ( !!scene.lights && (scene.lights.ambientsNum !==  lightsHash.ambientsNum ||
+                } else if (!!scene.lights && (scene.lights.ambientsNum !==  lightsHash.ambientsNum ||
                     scene.lights.directsNum !==  lightsHash.directsNum ||
                     scene.lights.pointsNum !==  lightsHash.pointsNum ||
                     scene.lights.spotsNum !==  lightsHash.spotsNum ||
                     scene.lights.shadowsNum !==  lightsHash.shadowsNum ||
                     object.receiveShadow !== lightsHash.receiveShadow ||
-                    object.shadowType !== lightsHash.shadowType ) ) {
+                    object.shadowType !== lightsHash.shadowType)) {
                     material.needsUpdate = true;
-                } else if ( lightsHash.acceptLight !== (material.acceptLight && !!scene.lights) ) {
+                } else if (lightsHash.acceptLight !== (material.acceptLight && !!scene.lights)) {
                     material.needsUpdate = true;
-                } else if ( scene.clippingPlanes && scene.clippingPlanes.length !==  materialProperties.numClippingPlanes) {
+                } else if (scene.clippingPlanes && scene.clippingPlanes.length !==  materialProperties.numClippingPlanes) {
                     material.needsUpdate = true;
-                } else if ( camera.gammaInput !==  materialProperties.gammaInput ||
+                } else if (camera.gammaInput !==  materialProperties.gammaInput ||
                     camera.gammaOutput !==  materialProperties.gammaOutput ||
-                    camera.gammaFactor !==  materialProperties.gammaFactor ) {
+                    camera.gammaFactor !==  materialProperties.gammaFactor) {
                     material.needsUpdate = true;
                 }
             }
-            if ( material.needsUpdate ) {
+            if (material.needsUpdate) {
                 if (materialProperties.program === undefined) {
-                    material.addEventListener( 'dispose', this.onMaterialDispose, this );
+                    material.addEventListener('dispose', this.onMaterialDispose, this);
                 }
                 materialProperties.program = getProgram(this, camera, material, object, scene);
                 materialProperties.fog = scene.fog;
-                
+
                 if (scene.lights) {
                     lightsHash.acceptLight = material.acceptLight;
                     lightsHash.ambientsNum = scene.lights.ambientsNum;
@@ -231,7 +231,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     lightsHash.receiveShadow = false;
                     lightsHash.shadowType = "HARD";
                 }
-                    
+
                 materialProperties.numClippingPlanes = scene.clippingPlanes ? scene.clippingPlanes.length : 0;
                 materialProperties.gammaInput = camera.gammaInput;
                 materialProperties.gammaOutput = camera.gammaOutput;
@@ -241,7 +241,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             }
             var program = materialProperties.program;
             state.setProgram(program);
-    
+
             var geometryProperties = this.geometry.setGeometry(geometry);
 
             if (this.capabilities.version >= 2) { // use VAO
@@ -262,31 +262,32 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 }
             } else {
                 var geometryProgram = program.id + "_" + geometry.id;
-                if(geometryProgram !== this._currentGeometryProgram) {
+                if (geometryProgram !== this._currentGeometryProgram) {
                     this.setupVertexAttributes(program, geometry);
                     this._currentGeometryProgram = geometryProgram;
                 }
                 this._currentGeometryProgram = geometryProgram;
             }
-    
+
             // update uniforms
             var uniforms = program.uniforms;
+            var slot;
             for (var n = 0, ll = uniforms.seq.length; n < ll; n++) {
                 var uniform = uniforms.seq[n];
                 var key = uniform.id;
 
                 // upload custom uniforms
-                if(material.uniforms && material.uniforms[key] !== undefined) {
-                    if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW) {
-                        var slot = this.allocTexUnit();
+                if (material.uniforms && material.uniforms[key] !== undefined) {
+                    if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW) {
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.uniforms[key], slot);
                         uniform.setValue(slot);
-                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW) {
-                        var slot = this.allocTexUnit();
+                    } else if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW) {
+                        slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.uniforms[key], slot);
                         uniform.setValue(slot);
-                    } else if(uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_3D) {
-                        var slot = this.allocTexUnit();
+                    } else if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_3D) {
+                        slot = this.allocTexUnit();
                         this.texture.setTexture3D(material.uniforms[key], slot);
                         uniform.setValue(slot);
                     } else {
@@ -296,7 +297,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 }
 
                 switch (key) {
-    
+
                     // pvm matrix
                     case "u_Projection":
                         if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
@@ -304,7 +305,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         } else {
                             var projectionMat = camera.projectionMatrix.elements;
                         }
-    
+
                         uniform.setValue(projectionMat);
                         break;
                     case "u_View":
@@ -313,14 +314,14 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         } else {
                             var viewMatrix = camera.viewMatrix.elements;
                         }
-    
+
                         uniform.setValue(viewMatrix);
                         break;
                     case "u_Model":
                         var modelMatrix = object.worldMatrix.elements;
                         uniform.setValue(modelMatrix);
                         break;
-    
+
                     case "u_Color":
                         var color = material.diffuse;
                         uniform.setValue(color.r, color.g, color.b);
@@ -328,19 +329,19 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     case "u_Opacity":
                         uniform.setValue(material.opacity);
                         break;
-    
+
                     case "diffuseMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.diffuseMap, slot);
                         uniform.setValue(slot);
                         break;
                     case "normalMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.normalMap, slot);
                         uniform.setValue(slot);
                         break;
                     case "bumpMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.bumpMap, slot);
                         uniform.setValue(slot);
                         break;
@@ -348,16 +349,16 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         uniform.setValue(material.bumpScale);
                         break;
                     case "envMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.envMap, slot);
                         uniform.setValue(slot);
                         break;
                     case "cubeMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTextureCube(material.cubeMap, slot);
                         uniform.setValue(slot);
                         break;
-    
+
                     case "u_EnvMap_Intensity":
                         uniform.setValue(material.envMapIntensity);
                         break;
@@ -369,12 +370,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         uniform.setValue(color.r, color.g, color.b, 1);
                         break;
                     case "specularMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.specularMap, slot);
                         uniform.setValue(slot);
                         break;
                     case "aoMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.aoMap, slot);
                         uniform.setValue(slot);
                         break;
@@ -385,7 +386,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         uniform.setValue(material.roughness);
                         break;
                     case "roughnessMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.roughnessMap, slot);
                         uniform.setValue(slot);
                         break;
@@ -393,7 +394,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         uniform.setValue(material.metalness);
                         break;
                     case "metalnessMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.metalnessMap, slot);
                         uniform.setValue(slot);
                         break;
@@ -403,7 +404,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         uniform.setValue(color.r * intensity, color.g * intensity, color.b * intensity);
                         break;
                     case "emissiveMap":
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(material.emissiveMap, slot);
                         uniform.setValue(slot);
                         break;
@@ -446,11 +447,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         break;
                     case "uvTransform":
                         var uvScaleMap;
-                        uvScaleMap = material.diffuseMap || 
+                        uvScaleMap = material.diffuseMap ||
                             material.specularMap || material.normalMap || material.bumpMap ||
                             material.roughnessMap || material.metalnessMap || material.emissiveMap;
-                        if(uvScaleMap) {
-                            if(uvScaleMap.matrixAutoUpdate) {
+                        if (uvScaleMap) {
+                            if (uvScaleMap.matrixAutoUpdate) {
                                 uvScaleMap.updateMatrix();
                             }
                             uniform.setValue(uvScaleMap.matrix.elements);
@@ -460,55 +461,55 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         break;
                 }
             }
-    
+
             // boneMatrices
-            if(object.type === OBJECT_TYPE.SKINNED_MESH) {
+            if (object.type === OBJECT_TYPE.SKINNED_MESH) {
                 this.uploadSkeleton(uniforms, object, program.program);
             }
-    
+
             if (material.acceptLight && scene.lights) {
                 this.uploadLights(uniforms, scene.lights, object.receiveShadow, camera);
             }
-    
+
             var frontFaceCW = object.worldMatrix.determinant() < 0;
             this.setStates(material, frontFaceCW);
-    
+
             var viewport = helpVector4.set(
-                currentRenderTarget.width, 
+                currentRenderTarget.width,
                 currentRenderTarget.height,
-                currentRenderTarget.width, 
+                currentRenderTarget.width,
                 currentRenderTarget.height
             ).multiply(camera.rect);
-    
+
             viewport.z -= viewport.x;
             viewport.w -= viewport.y;
-    
+
             viewport.x = Math.floor(viewport.x);
             viewport.y = Math.floor(viewport.y);
             viewport.z = Math.floor(viewport.z);
             viewport.w = Math.floor(viewport.w);
-    
-            if(object.type === OBJECT_TYPE.CANVAS2D) {
-                if(object.isScreenCanvas) {
+
+            if (object.type === OBJECT_TYPE.CANVAS2D) {
+                if (object.isScreenCanvas) {
                     object.setRenderViewport(viewport.x, viewport.y, viewport.z, viewport.w);
                     state.viewport(object.viewport.x, object.viewport.y, object.viewport.z, object.viewport.w);
                 }
-    
+
                 var _offset = 0;
                 for (var j = 0; j < object.drawArray.length; j++) {
                     var drawData = object.drawArray[j];
-    
-                    var slot = this.allocTexUnit();
+
+                    slot = this.allocTexUnit();
                     this.texture.setTexture2D(drawData.texture, slot);
                     uniforms.set("spriteTexture", slot);
-    
+
                     gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
                     _offset += drawData.count * 6;
                     this._usedTextureUnits = 0;
                 }
             } else {
                 state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
-    
+
                 this.draw(geometry, material, group);
             }
 
@@ -517,18 +518,18 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             } else if (vaoExt) {
                 vaoExt.bindVertexArrayOES(null);
             }
-    
+
             // reset used tex Unit
             this._usedTextureUnits = 0;
 
             // Ensure depth buffer writing is enabled so it can be cleared on next render
 
-            state.depthBuffer.setTest( true );
-            state.depthBuffer.setMask( true );
-            state.colorBuffer.setMask( true );
+            state.depthBuffer.setTest(true);
+            state.depthBuffer.setMask(true);
+            state.colorBuffer.setMask(true);
 
             afterRender(this, renderItem);
-            object.onAfterRender(renderItem); 
+            object.onAfterRender(renderItem);
 
         }
     },
@@ -537,35 +538,35 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
     setStates: function(material, frontFaceCW) {
         var gl = this.gl;
         var state = this.state;
-    
+
         // set blend
         if (material.transparent) {
             state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
         } else {
             state.setBlend(BLEND_TYPE.NONE);
         }
-    
+
         // set buffers
-        state.depthBuffer.setTest( material.depthTest );
-        state.depthBuffer.setMask( material.depthWrite );
-        state.colorBuffer.setMask( material.colorWrite );
-    
+        state.depthBuffer.setTest(material.depthTest);
+        state.depthBuffer.setMask(material.depthWrite);
+        state.colorBuffer.setMask(material.colorWrite);
+
         // set draw side
         state.setCullFace(
             (material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
         );
-    
-        var flipSided = ( material.side === DRAW_SIDE.BACK );
-        if ( frontFaceCW ) flipSided = ! flipSided;
-    
+
+        var flipSided = (material.side === DRAW_SIDE.BACK);
+        if (frontFaceCW) flipSided = ! flipSided;
+
         state.setFlipSided(flipSided);
-    
+
         // set line width
-        if(material.lineWidth !== undefined) {
+        if (material.lineWidth !== undefined) {
             state.setLineWidth(material.lineWidth);
         }
 
-        state.setPolygonOffset( material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits );
+        state.setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
     },
 
     // GL draw.
@@ -573,17 +574,17 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         var gl = this.gl;
         var properties = this.properties;
         var capabilities = this.capabilities;
-    
+
         var useIndexBuffer = geometry.index !== null;
-    
+
         var drawStart = 0;
         var drawCount = useIndexBuffer ? geometry.index.count : geometry.getAttribute("a_Position").count;
         var groupStart = group ? group.start : 0;
         var groupCount = group ? group.count : Infinity;
         drawStart = Math.max(drawStart, groupStart);
         drawCount = Math.min(drawCount, groupCount);
-    
-        if(useIndexBuffer) {
+
+        if (useIndexBuffer) {
             var indexProperty = properties.get(geometry.index);
             var bytesPerElement = indexProperty.bytesPerElement;
             var type = indexProperty.type;
@@ -594,9 +595,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 }
             }
 
-            if(geometry.isInstancedGeometry) {
-                if(geometry.maxInstancedCount > 0) {
-                    if(capabilities.version >= 2) {
+            if (geometry.isInstancedGeometry) {
+                if (geometry.maxInstancedCount > 0) {
+                    if (capabilities.version >= 2) {
                         gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
                     } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
                         capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
@@ -608,9 +609,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 gl.drawElements(material.drawMode, drawCount, type, drawStart * bytesPerElement);
             }
         } else {
-            if(geometry.isInstancedGeometry) {
-                if(geometry.maxInstancedCount > 0) {
-                    if(capabilities.version >= 2) {
+            if (geometry.isInstancedGeometry) {
+                if (geometry.maxInstancedCount > 0) {
+                    if (capabilities.version >= 2) {
                         gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
                     } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
                         capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
@@ -626,18 +627,18 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
     // Upload skeleton uniforms.
     uploadSkeleton: function(uniforms, object, programId) {
-        if(object.skeleton && object.skeleton.bones.length > 0) {
+        if (object.skeleton && object.skeleton.bones.length > 0) {
             var skeleton = object.skeleton;
             var capabilities = this.capabilities;
 
             skeleton.updateBones();
-    
-            if( capabilities.maxVertexTextures > 0 && ( !!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2 ) ) {
-                if(skeleton.boneTexture === undefined) {
+
+            if (capabilities.maxVertexTextures > 0 && (!!capabilities.getExtension('OES_texture_float') || capabilities.version >= 2)) {
+                if (skeleton.boneTexture === undefined) {
                     var size = Math.sqrt(skeleton.bones.length * 4);
                     size = nextPowerOfTwo(Math.ceil(size));
                     size = Math.max(4, size);
-    
+
                     var boneMatrices = new Float32Array(size * size * 4);
                     boneMatrices.set(skeleton.boneMatrices);
                     var boneTexture = new Texture2D();
@@ -655,10 +656,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     skeleton.boneMatrices = boneMatrices;
                     skeleton.boneTexture = boneTexture;
                 }
-    
+
                 var slot = this.allocTexUnit();
                 this.texture.setTexture2D(skeleton.boneTexture, slot);
-    
+
                 uniforms.set("boneTexture", slot);
                 uniforms.set("boneTextureSize", skeleton.boneTexture.image.width);
             } else {
@@ -672,7 +673,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
     // Upload lights uniforms.
     uploadLights: function(uniforms, lights, receiveShadow, camera) {
-    
+
         if (lights.ambientsNum > 0) {
             uniforms.set("u_AmbientLightColor", lights.ambient);
         }
@@ -683,34 +684,34 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
             for (var k = 0; k < lights.directsNum; k++) {
                 var light = lights.directional[k];
                 var shadow = light.shadow && receiveShadow;
-                if(shadow) {
+                if (shadow) {
                     var slot = this.allocTexUnit();
                     this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
                     directShadowMaps[k] = slot;
 
                     if (uniforms.has("directionalDepthMap")) {
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
                         directDepthMaps[k] = slot;
                     }
                 }
             }
 
-            if(directShadowMaps.length > 0) {
+            if (directShadowMaps.length > 0) {
                 uniforms.set("directionalShadowMap", directShadowMaps);
-        
+
                 directShadowMaps.length = 0;
-        
+
                 uniforms.set("directionalShadowMatrix", lights.directionalShadowMatrix);
             }
 
             if (directDepthMaps.length > 0) {
                 uniforms.set("directionalDepthMap", directDepthMaps);
-    
+
                 directDepthMaps.length = 0;
             }
         }
-    
+
         if (lights.pointsNum > 0) {
             uniforms.set("u_Point", lights.point);
 
@@ -718,15 +719,15 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 var light = lights.point[k];
                 var shadow = light.shadow && receiveShadow;
                 if (shadow) {
-                    var slot = this.allocTexUnit();
+                    slot = this.allocTexUnit();
                     this.texture.setTextureCube(lights.pointShadowMap[k], slot);
                     pointShadowMaps[k] = slot;
                 }
             }
 
-            if(pointShadowMaps.length > 0) {
+            if (pointShadowMaps.length > 0) {
                 uniforms.set("pointShadowMap", pointShadowMaps);
-        
+
                 pointShadowMaps.length = 0;
             }
         }
@@ -739,47 +740,47 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 var shadow = light.shadow && receiveShadow;
 
                 if (shadow) {
-                    var slot = this.allocTexUnit();
+                    slot = this.allocTexUnit();
                     this.texture.setTexture2D(lights.spotShadowMap[k], slot);
                     spotShadowMaps[k] = slot;
-    
+
                     if (uniforms.has("spotDepthMap")) {
-                        var slot = this.allocTexUnit();
+                        slot = this.allocTexUnit();
                         this.texture.setTexture2D(lights.spotDepthMap[k], slot);
                         spotDepthMaps[k] = slot;
                     }
                 }
             }
 
-            if(spotShadowMaps.length > 0) {
+            if (spotShadowMaps.length > 0) {
                 uniforms.set("spotShadowMap", spotShadowMaps);
-        
+
                 spotShadowMaps.length = 0;
-        
+
                 uniforms.set("spotShadowMatrix", lights.spotShadowMatrix);
             }
 
             if (spotDepthMaps.length > 0) {
                 uniforms.set("spotDepthMap", spotDepthMaps);
-    
+
                 spotDepthMaps.length = 0;
             }
         }
-    
+
     },
 
     // Alloc texture unit.
     allocTexUnit: function() {
         var textureUnit = this._usedTextureUnits;
-    
+
         if (textureUnit >= this.capabilities.maxTextures) {
-    
+
             console.warn('trying to use ' + textureUnit + ' texture units while this GPU supports only ' + this.capabilities.maxTextures);
-    
+
         }
-    
+
         this._usedTextureUnits += 1;
-    
+
         return textureUnit;
     },
 
@@ -791,34 +792,34 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         for (var key in attributes) {
             var programAttribute = attributes[key];
             var geometryAttribute = geometry.getAttribute(key);
-            if(geometryAttribute) {
+            if (geometryAttribute) {
                 var normalized = geometryAttribute.normalized;
                 var size = geometryAttribute.size;
-                if(programAttribute.count !== size) {
+                if (programAttribute.count !== size) {
                     console.warn("WebGLCore: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
                 }
-    
+
                 var attribute;
-                if(geometryAttribute.isInterleavedBufferAttribute) {
+                if (geometryAttribute.isInterleavedBufferAttribute) {
                     attribute = properties.get(geometryAttribute.data);
                 } else {
                     attribute = properties.get(geometryAttribute);
                 }
                 var buffer = attribute.buffer;
                 var type = attribute.type;
-                if(programAttribute.format !== type) {
+                if (programAttribute.format !== type) {
                     // console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
                 }
                 var bytesPerElement = attribute.bytesPerElement;
-    
-                if(geometryAttribute.isInterleavedBufferAttribute) {
+
+                if (geometryAttribute.isInterleavedBufferAttribute) {
                     var data = geometryAttribute.data;
                     var stride = data.stride;
                     var offset = geometryAttribute.offset;
-    
+
                     gl.enableVertexAttribArray(programAttribute.location);
-    
-                    if(data && data.isInstancedInterleavedBuffer) {
+
+                    if (data && data.isInstancedInterleavedBuffer) {
                         if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, data.meshPerAttribute);
                         } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
@@ -826,18 +827,18 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }
-                        
-                        if ( geometry.maxInstancedCount === undefined ) {
+
+                        if (geometry.maxInstancedCount === undefined) {
                             geometry.maxInstancedCount = data.meshPerAttribute * data.count;
                         }
                     }
-    
+
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                     gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, bytesPerElement * stride, bytesPerElement * offset);
                 } else {
                     gl.enableVertexAttribArray(programAttribute.location);
-    
-                    if(geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
+
+                    if (geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
                         if (capabilities.version >= 2) {
                             gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
                         } else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
@@ -845,12 +846,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                         } else {
                             console.warn("vertexAttribDivisor not supported");
                         }
-                        
-                        if ( geometry.maxInstancedCount === undefined ) {
+
+                        if (geometry.maxInstancedCount === undefined) {
                             geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count;
                         }
                     }
-    
+
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                     gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, 0, 0);
                 }
@@ -858,31 +859,31 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                 console.warn("WebGLCore: geometry attribute " + key + " not found!");
             }
         }
-    
+
         // bind index if could
-        if(geometry.index) {
+        if (geometry.index) {
             var indexProperty = properties.get(geometry.index);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);
         }
     },
 
-    onMaterialDispose: function( event ) {
+    onMaterialDispose: function(event) {
 
         var material = event.target;
         var materialProperties = this.properties.get(material);
-    
-        material.removeEventListener( 'dispose', onMaterialDispose, this );
 
-        var program = materialProperties.get( material ).program;
+        material.removeEventListener('dispose', onMaterialDispose, this);
 
-		if ( program !== undefined ) {
+        var program = materialProperties.get(material).program;
+
+		if (program !== undefined) {
 
 			// todo release program reference
 
 		}
 
-		materialProperties.delete( material );
-    
+		materialProperties.delete(material);
+
     }
 
 });

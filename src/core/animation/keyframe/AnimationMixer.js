@@ -1,7 +1,7 @@
 import {PropertyBindingMixer} from './PropertyBindingMixer.js';
 
 /**
- * The AnimationMixer is a player for animations on a particular object in the scene. 
+ * The AnimationMixer is a player for animations on a particular object in the scene.
  * When multiple objects in the scene are animated independently, one AnimationMixer may be used for each object.
  * @constructor
  * @memberof zen3d
@@ -20,10 +20,10 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 
     add: function(clip) {
 
-        if(this._clips[clip.name] !== undefined) {
+        if (this._clips[clip.name] !== undefined) {
             console.warn("AnimationMixer.add: already has clip: " + clip.name);
             return;
-        } 
+        }
 
         var tracks = clip.tracks;
 
@@ -33,7 +33,7 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
             var trackName = track.name;
             var binding;
 
-            if(!this._bindings[trackName]) {
+            if (!this._bindings[trackName]) {
                 binding = new PropertyBindingMixer(track.target, track.propertyPath, track.valueTypeName, track.valueSize);
                 this._bindings[trackName] = binding;
             } else {
@@ -50,7 +50,7 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 
     remove: function(clip) {
 
-        if(!this._clips[clip.name]) {
+        if (!this._clips[clip.name]) {
             console.warn("AnimationMixer.remove: has no clip: " + clip.name);
             return;
         }
@@ -63,7 +63,7 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
             var trackName = track.name;
             var binding = this._bindings[trackName];
 
-            if ( binding ) {
+            if (binding) {
 
                 binding.referenceCount--;
 
@@ -107,7 +107,7 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
             var trackName = track.name;
             var binding = this._bindings[trackName];
 
-            if ( binding ) {
+            if (binding) {
 
                 binding.useCount++;
 
@@ -141,7 +141,7 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
             var trackName = track.name;
             var binding = this._bindings[trackName];
 
-            if ( binding && binding.useCount > 0) {
+            if (binding && binding.useCount > 0) {
 
                 binding.useCount--;
 
@@ -152,7 +152,7 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
     },
 
     update: function(t) {
-        
+
         for (var name in this._activeClips) {
 
             var clip = this._clips[name];
@@ -164,12 +164,12 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 
         for (var key in this._bindings) {
 
-            if ( this._bindings[key].useCount > 0 ) {
+            if (this._bindings[key].useCount > 0) {
 
                 this._bindings[key].apply();
 
             }
-            
+
         }
 
     },
@@ -192,7 +192,7 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 
         var array = [];
 
-        for(var key in this._clips) {
+        for (var key in this._clips) {
 
             array.push(key);
 

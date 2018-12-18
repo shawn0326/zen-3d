@@ -2,17 +2,17 @@ import {generateUUID} from '../../base.js';
 import {WebGLUniforms} from './WebGLUniforms.js';
 import {WebGLAttribute} from './WebGLAttribute.js';
 
-function addLineNumbers( string ) {
+function addLineNumbers(string) {
 
-    var lines = string.split( '\n' );
+    var lines = string.split('\n');
 
-    for ( var i = 0; i < lines.length; i ++ ) {
+    for (var i = 0; i < lines.length; i ++) {
 
-        lines[ i ] = ( i + 1 ) + ': ' + lines[ i ];
+        lines[i] = (i + 1) + ': ' + lines[i];
 
     }
 
-    return lines.join( '\n' );
+    return lines.join('\n');
 
 }
 
@@ -44,7 +44,7 @@ function createWebGLProgram(gl, vertexShader, fragmentShader) {
     gl.linkProgram(program);
     // if link failed, log error
     var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if(!linked) {
+    if (!linked) {
         console.warn("program not linked!", gl.getProgramInfoLog(program));
     }
 

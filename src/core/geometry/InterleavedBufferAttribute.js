@@ -13,7 +13,7 @@ function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized)
     this.uuid = generateUUID();
 
     /**
-     * The InterleavedBuffer instance passed in the constructor. 
+     * The InterleavedBuffer instance passed in the constructor.
      * @type {zen3d.InterleavedBuffer}
      */
     this.data = interleavedBuffer;
@@ -41,14 +41,14 @@ function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized)
 /**
  * @readonly
  * @type {boolean}
- * @default true 
+ * @default true
  */
 InterleavedBufferAttribute.prototype.isInterleavedBufferAttribute = true;
 
 Object.defineProperties(InterleavedBufferAttribute.prototype, {
 
     /**
-     * The value of data.count. 
+     * The value of data.count.
      * If the buffer is storing a 3-component item (such as a position, normal, or color), then this will count the number of such items stored.
      * @memberof zen3d.InterleavedBufferAttribute#
      * @readonly

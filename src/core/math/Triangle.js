@@ -2,7 +2,7 @@ import {Vector3} from './Vector3.js';
 
 /**
  * @constructor
- * @memberof zen3d 
+ * @memberof zen3d
  * @param {zen3d.Vector3} [a=]
  * @param {zen3d.Vector3} [b=]
  * @param {zen3d.Vector3} [c=]
@@ -16,7 +16,7 @@ function Triangle(a, b, c) {
 Object.assign(Triangle.prototype, /** @lends zen3d.Triangle.prototype */{
 
     /**
-     * 
+     *
      */
     set: function(a, b, c) {
         this.a.copy(a);

@@ -18,7 +18,7 @@ function Renderer(view, options) {
         // premultipliedAlpha: false, // effect performance, default false
         stencil: true
     };
-    
+
     var gl = view.getContext("webgl2", options || defaultContextParams) || view.getContext("webgl", options || defaultContextParams);
 
     this.glCore = new WebGLCore(gl);
@@ -34,35 +34,35 @@ function Renderer(view, options) {
     /**
      * Defines whether the shadow pass should automatically update.
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     this.shadowAutoUpdate = true;
 
     /**
      * If {@link zen3d.Renderer.shadowAutoUpdate} is set true and this set true, shadow will update and set this to false automatically.
      * @type {boolean}
-     * @default false 
+     * @default false
      */
     this.shadowNeedsUpdate = false;
 
     /**
      * Defines whether the scene should automatically update its matrix.
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     this.matrixAutoUpdate = true;
 
     /**
      * Defines whether the scene should automatically update its lights.
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     this.lightsAutoupdate = true;
 
     /**
      * Defines whether the renderer should automatically clear its output before rendering a frame.
      * @type {boolean}
-     * @default true 
+     * @default true
      */
     this.autoClear = true;
 
@@ -86,9 +86,9 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
     this.matrixAutoUpdate && scene.updateMatrix();
     this.lightsAutoupdate && scene.updateLights();
 
-    performance.startCounter("renderShadow", 60);   
+    performance.startCounter("renderShadow", 60);
 
-    if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
+    if (this.shadowAutoUpdate || this.shadowNeedsUpdate) {
         this.shadowMapPass.render(this.glCore, scene);
 
         this.shadowNeedsUpdate = false;

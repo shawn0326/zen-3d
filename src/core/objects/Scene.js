@@ -31,7 +31,7 @@ function Scene() {
     this.fog = null;
 
     /**
-     * User-defined clipping planes specified as {@link zen3d.Plane} objects in world space. 
+     * User-defined clipping planes specified as {@link zen3d.Plane} objects in world space.
      * These planes apply to the scene.
      * Points in space whose dot product with the plane is negative are cut away.
      * @type {zen3d.Plane[]}
@@ -61,7 +61,7 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
     updateRenderList: function(camera) {
         var id = camera.uuid;
 
-        if(!this._renderLists[id]) {
+        if (!this._renderLists[id]) {
             this._renderLists[id] = new RenderList();
         }
 
@@ -115,7 +115,7 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
         }
 
         // skip ui children
-        if(OBJECT_TYPE.CANVAS2D === object.type) {
+        if (OBJECT_TYPE.CANVAS2D === object.type) {
             return;
         }
 
@@ -137,7 +137,7 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
         }
 
         // skip ui children
-        if(OBJECT_TYPE.CANVAS2D === object.type) {
+        if (OBJECT_TYPE.CANVAS2D === object.type) {
             return;
         }
 

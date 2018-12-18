@@ -3,7 +3,7 @@ import {Material} from './Material.js';
 import {cloneUniforms} from '../base.js';
 
 /**
- * A material rendered with custom shaders. 
+ * A material rendered with custom shaders.
  * A shader is a small program written in GLSL that runs on the GPU.
  * @constructor
  * @extends zen3d.Material
@@ -42,7 +42,7 @@ function ShaderMaterial(shader) {
     this.defines = {};
 
     // copy defines
-    Object.assign( this.defines, shader.defines ); 
+    Object.assign(this.defines, shader.defines);
 
     /**
      * Uniforms of the shader.

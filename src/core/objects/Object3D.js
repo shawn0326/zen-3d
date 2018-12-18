@@ -15,10 +15,10 @@ var object3DId = 0;
  */
 function Object3D() {
 
-    Object.defineProperty( this, 'id', { value: object3DId ++ } );
+    Object.defineProperty(this, 'id', { value: object3DId ++ });
 
     /**
-     * UUID of this object instance. 
+     * UUID of this object instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
@@ -34,27 +34,27 @@ function Object3D() {
     /**
      * Type of the object.
      * Set by Subclass.
-     * @type {zen3d.OBJECT_TYPE} 
+     * @type {zen3d.OBJECT_TYPE}
      */
     this.type = "";
 
     /**
      * A Vector3 representing the object's local position.
-     * @type {zen3d.Vector3} 
+     * @type {zen3d.Vector3}
      * @default Vector3(0, 0, 0)
      */
     this.position = new Vector3();
 
     /**
      * The object's local scale.
-     * @type {zen3d.Vector3} 
+     * @type {zen3d.Vector3}
      * @default Vector3(1, 1, 1)
      */
     this.scale = new Vector3(1, 1, 1);
 
     /**
      * Object's local rotation as an {@link zen3d.Euler}, in radians.
-     * @type {zen3d.Euler} 
+     * @type {zen3d.Euler}
      * @default Euler(0, 0, 0)
      */
     this.euler = new Euler();
@@ -82,21 +82,21 @@ function Object3D() {
     this.matrix = new Matrix4();
 
     /**
-     * The global transform of the object. 
+     * The global transform of the object.
      * If the Object3D has no parent, then it's identical to the local transform {@link zen3d.Object3D#matrix}.
      * @type {zen3d.Matrix4}
      */
     this.worldMatrix = new Matrix4();
 
     /**
-     * Object's parent in the scene graph. 
+     * Object's parent in the scene graph.
      * An object can have at most one parent.
      * @type {zen3d.Object3D[]}
      */
     this.children = new Array();
 
     /**
-     * Object's parent in the scene graph. 
+     * Object's parent in the scene graph.
      * An object can have at most one parent.
      * @type {zen3d.Object3D}
      */
@@ -124,7 +124,7 @@ function Object3D() {
     this.shadowType = SHADOW_TYPE.PCF3_SOFT;
 
     /**
-     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 
+     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object.
      * Otherwise the object gets rendered every frame even if it isn't visible.
      * @type {boolean}
      * @default true
@@ -133,13 +133,13 @@ function Object3D() {
 
     /**
      * Object gets rendered if true.
-     * @type {boolean} 
+     * @type {boolean}
      * @default true
      */
     this.visible = true;
 
     /**
-     * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently. 
+     * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently.
      * Sorting is from lowest to highest renderOrder.
      * @type {number}
      * @default 0
@@ -147,7 +147,7 @@ function Object3D() {
     this.renderOrder = 0;
 
     /**
-     * An object that can be used to store custom data about the {@link zen3d.Object3D}. 
+     * An object that can be used to store custom data about the {@link zen3d.Object3D}.
      * It should not hold references to functions as these will not be cloned.
      * @type {Object}
      * @default {}
@@ -192,9 +192,9 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
     /**
      * Searches through the object's children and returns the first with a matching name.
-     * Note that for most objects the name is an empty string by default. 
+     * Note that for most objects the name is an empty string by default.
      * You will have to set it manually to make use of this method.
-     * @param {string} name - String to match to the children's {@link zen3d.Object3D#name} property. 
+     * @param {string} name - String to match to the children's {@link zen3d.Object3D#name} property.
      * @return {zen3d.Object3D}
      */
     getObjectByName: function(name) {
@@ -203,8 +203,8 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
     /**
      * Searches through the object's children and returns the first with a property that matches the value given.
-     * @param {string} name - the property name to search for. 
-     * @param {number} value - value of the given property. 
+     * @param {string} name - the property name to search for.
+     * @param {number} value - value of the given property.
      * @return {zen3d.Object3D}
      */
     getObjectByProperty: function(name, value) {
@@ -297,29 +297,29 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
      * @param {Array} intersects - output intersects array.
      */
     raycast: function(raycaster, intersects) {
-        
+
     },
 
     /**
      * Executes the callback on this object and all descendants.
      * @param {Function} callback - A function with as first argument an object3D object.
      */
-    traverse: function ( callback ) {
-        callback( this );
+    traverse: function (callback) {
+        callback(this);
 
         var children = this.children;
-        for ( var i = 0, l = children.length; i < l; i ++ ) {
-            children[ i ].traverse( callback );
+        for (var i = 0, l = children.length; i < l; i ++) {
+            children[i].traverse(callback);
         }
     },
-    
+
     /**
      * Returns a clone of this object and optionally all descendants.
      * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
      * @return {zen3d.Object3D}
      */
-    clone: function ( recursive ) {
-        return new this.constructor().copy( this, recursive );
+    clone: function (recursive) {
+        return new this.constructor().copy(this, recursive);
     },
 
     /**
@@ -328,33 +328,33 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
      * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
      * @return {zen3d.Object3D}
      */
-    copy: function( source, recursive ) {
-        if ( recursive === undefined ) recursive = true;
+    copy: function(source, recursive) {
+        if (recursive === undefined) recursive = true;
 
         this.name = source.name;
 
         this.type = source.type;
 
-        this.position.copy( source.position );
-        this.quaternion.copy( source.quaternion );
-        this.scale.copy( source.scale );
+        this.position.copy(source.position);
+        this.quaternion.copy(source.quaternion);
+        this.scale.copy(source.scale);
 
-        this.matrix.copy( source.matrix );
-        this.worldMatrix.copy( source.worldMatrix );
+        this.matrix.copy(source.matrix);
+        this.worldMatrix.copy(source.worldMatrix);
 
         this.castShadow = source.castShadow;
         this.receiveShadow = source.receiveShadow;
 
         this.frustumCulled = source.frustumCulled;
 
-        this.userData = JSON.parse( JSON.stringify( source.userData ) );
+        this.userData = JSON.parse(JSON.stringify(source.userData));
 
-        if ( recursive === true ) {
+        if (recursive === true) {
 
-            for ( var i = 0; i < source.children.length; i ++ ) {
+            for (var i = 0; i < source.children.length; i ++) {
 
-                var child = source.children[ i ];
-                this.add( child.clone() );
+                var child = source.children[i];
+                this.add(child.clone());
 
             }
 

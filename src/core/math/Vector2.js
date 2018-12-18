@@ -13,7 +13,7 @@ function Vector2(x, y) {
 Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
 
     /**
-     * 
+     *
      */
     set: function(x, y) {
         this.x = x || 0;
@@ -23,14 +23,14 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     lerpVectors: function(v1, v2, ratio) {
         return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
     },
 
     /**
-     * 
+     *
      */
     min: function(v) {
         this.x = Math.min(this.x, v.x);
@@ -40,7 +40,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     max: function(v) {
         this.x = Math.max(this.x, v.x);
@@ -50,21 +50,21 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     getLength: function() {
         return Math.sqrt(this.getLengthSquared());
     },
 
     /**
-     * 
+     *
      */
     getLengthSquared: function() {
         return this.x * this.x + this.y * this.y;
     },
 
     /**
-     * 
+     *
      */
     normalize: function(thickness) {
         thickness = thickness || 1;
@@ -78,7 +78,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     subtract: function(a, target) {
         if (!target) {
@@ -89,7 +89,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     sub: function(v) {
         this.x -= v.x;
@@ -99,7 +99,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     copy: function(v) {
         this.x = v.x;
@@ -109,7 +109,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     addVectors: function(a, b) {
         this.x = a.x + b.x;
@@ -119,7 +119,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     subVectors: function(a, b) {
         this.x = a.x - b.x;
@@ -129,7 +129,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     multiplyScalar: function(scalar) {
         this.x *= scalar;
@@ -139,7 +139,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     distanceToSquared: function(v) {
         var dx = this.x - v.x,
@@ -149,14 +149,14 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     distanceTo: function(v) {
         return Math.sqrt(this.distanceToSquared(v));
     },
 
     /**
-     * 
+     *
      */
     fromArray: function(array, offset) {
         if (offset === undefined) offset = 0;
@@ -168,7 +168,7 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     add: function(v) {
         this.x += v.x;
@@ -178,22 +178,22 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
     },
 
     /**
-     * 
+     *
      */
     angle: function () {
 
 		// computes the angle in radians with respect to the positive x-axis
 
-		var angle = Math.atan2( this.y, this.x );
+		var angle = Math.atan2(this.y, this.x);
 
-		if ( angle < 0 ) angle += 2 * Math.PI;
+		if (angle < 0) angle += 2 * Math.PI;
 
 		return angle;
 
 	},
 
     /**
-     * 
+     *
      */
     clone: function() {
         return new Vector2(this.x, this.y);
