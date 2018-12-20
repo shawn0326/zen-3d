@@ -152,4 +152,4 @@ Object.assign(WebGLGeometry.prototype, {
 
 });
 
-export {WebGLGeometry};
+export { WebGLGeometry };

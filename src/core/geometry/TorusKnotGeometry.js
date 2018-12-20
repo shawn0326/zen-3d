@@ -1,6 +1,6 @@
-import {Geometry} from './Geometry.js';
-import {BufferAttribute} from './BufferAttribute.js';
-import {Vector3} from '../math/Vector3.js';
+import { Geometry } from './Geometry.js';
+import { BufferAttribute } from './BufferAttribute.js';
+import { Vector3 } from '../math/Vector3.js';
 
 /**
  * Creates a torus knot, the particular shape of which is defined by a pair of coprime integers, p and q.
@@ -60,7 +60,7 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 
 	// generate vertices, normals and uvs
 
-	for (i = 0; i <= tubularSegments; ++ i) {
+	for (i = 0; i <= tubularSegments; ++i) {
 
 		// the radian "u" is used to calculate the position on the torus curve of the current tubular segement
 
@@ -84,13 +84,13 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 		B.normalize();
 		N.normalize();
 
-		for (j = 0; j <= radialSegments; ++ j) {
+		for (j = 0; j <= radialSegments; ++j) {
 
 			// now calculate the vertices. they are nothing more than an extrusion of the torus curve.
 			// because we extrude a shape in the xy-plane, there is no need to calculate a z-value.
 
 			var v = j / radialSegments * Math.PI * 2;
-			var cx = - tube * Math.cos(v);
+			var cx = -tube * Math.cos(v);
 			var cy = tube * Math.sin(v);
 
 			// now calculate the final vertex position.
@@ -119,9 +119,9 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 
 	// generate indices
 
-	for (j = 1; j <= tubularSegments; j ++) {
+	for (j = 1; j <= tubularSegments; j++) {
 
-		for (i = 1; i <= radialSegments; i ++) {
+		for (i = 1; i <= radialSegments; i++) {
 
 			// indices
 

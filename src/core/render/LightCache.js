@@ -1,5 +1,5 @@
-import {LIGHT_TYPE} from '../const.js';
-import {Vector3} from '../math/Vector3.js';
+import { LIGHT_TYPE } from '../const.js';
+import { Vector3 } from '../math/Vector3.js';
 
 var helpVector3 = new Vector3();
 
@@ -160,7 +160,7 @@ Object.assign(LightCache.prototype, {
 
         var direction = helpVector3;
         object.getWorldDirection(direction);
-        //direction.transformDirection(camera.viewMatrix);
+        // direction.transformDirection(camera.viewMatrix);
 
         cache.direction[0] = direction.x;
         cache.direction[1] = direction.y;
@@ -211,7 +211,7 @@ Object.assign(LightCache.prototype, {
         cache.distance = distance;
         cache.decay = decay;
 
-        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
         cache.position[0] = position.x;
         cache.position[1] = position.y;
@@ -263,7 +263,7 @@ Object.assign(LightCache.prototype, {
         cache.distance = distance;
         cache.decay = decay;
 
-        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
         cache.position[0] = position.x;
         cache.position[1] = position.y;
@@ -315,4 +315,4 @@ Object.assign(LightCache.prototype, {
 
 });
 
-export {LightCache};
+export { LightCache };

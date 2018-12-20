@@ -1,4 +1,4 @@
-import {KeyframeTrack} from './KeyframeTrack.js';
+import { KeyframeTrack } from './KeyframeTrack.js';
 
 /**
  * Used for color property track.
@@ -22,4 +22,4 @@ ColorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototy
 
 });
 
-export {ColorKeyframeTrack};
+export { ColorKeyframeTrack };

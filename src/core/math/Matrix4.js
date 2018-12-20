@@ -1,4 +1,4 @@
-import {Vector3} from './Vector3';
+import { Vector3 } from './Vector3';
 
 /**
  * a 4x4 matrix class
@@ -496,8 +496,8 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
             n43 = te[11],
             n44 = te[15];
 
-        //TODO: make this more efficient
-        //( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
+        // TODO: make this more efficient
+        // ( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
 
         return (
             n41 * (+n14 * n23 * n32 -
@@ -593,4 +593,4 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 
 });
 
-export {Matrix4};
+export { Matrix4 };

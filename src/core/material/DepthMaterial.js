@@ -1,5 +1,5 @@
-import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
-import {Material} from './Material.js';
+import { MATERIAL_TYPE, BLEND_TYPE } from '../const.js';
+import { Material } from './Material.js';
 
 /**
  * A material for drawing geometry by depth.
@@ -26,4 +26,4 @@ function DepthMaterial() {
 DepthMaterial.prototype = Object.create(Material.prototype);
 DepthMaterial.prototype.constructor = DepthMaterial;
 
-export {DepthMaterial};
+export { DepthMaterial };

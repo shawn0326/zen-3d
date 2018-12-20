@@ -1,5 +1,5 @@
-import {Vector3} from './Vector3.js';
-import {Matrix4} from './Matrix4.js';
+import { Vector3 } from './Vector3.js';
+import { Matrix4 } from './Matrix4.js';
 
 /**
  * a Quaternion class
@@ -346,11 +346,11 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
                 if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
 
-                    v1.set(- vFrom.y, vFrom.x, 0);
+                    v1.set(-vFrom.y, vFrom.x, 0);
 
                 } else {
 
-                    v1.set(0, - vFrom.z, vFrom.y);
+                    v1.set(0, -vFrom.z, vFrom.y);
 
                 }
 
@@ -524,7 +524,7 @@ Object.assign(Quaternion, {
 
 				cos = x0 * x1 + y0 * y1 + z0 * z1 + w0 * w1,
 
-				dir = (cos >= 0 ? 1 : - 1),
+				dir = (cos >= 0 ? 1 : -1),
 				sqrSin = 1 - cos * cos;
 
 			// Skip the Slerp for tiny steps to avoid numeric problems:
@@ -568,4 +568,4 @@ Object.assign(Quaternion, {
 
 });
 
-export {Quaternion};
+export { Quaternion };

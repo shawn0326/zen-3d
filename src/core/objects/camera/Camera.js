@@ -1,10 +1,10 @@
-import {OBJECT_TYPE} from '../../const.js';
-import {Object3D} from '../Object3D.js';
-import {Matrix4} from '../../math/Matrix4.js';
-import {Frustum} from '../../math/Frustum.js';
-import {Vector4} from '../../math/Vector4.js';
-import {Quaternion} from '../../math/Quaternion.js';
-import {Vector3} from '../../math/Vector3.js';
+import { OBJECT_TYPE } from '../../const.js';
+import { Object3D } from '../Object3D.js';
+import { Matrix4 } from '../../math/Matrix4.js';
+import { Frustum } from '../../math/Frustum.js';
+import { Vector4 } from '../../math/Vector4.js';
+import { Quaternion } from '../../math/Quaternion.js';
+import { Vector3 } from '../../math/Vector3.js';
 
 /**
  * The camera used for rendering a 3D scene.
@@ -176,4 +176,4 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 });
 
-export {Camera};
+export { Camera };

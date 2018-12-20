@@ -1,4 +1,4 @@
-import {generateUUID} from '../base.js';
+import { generateUUID } from '../base.js';
 
 /**
  * @constructor
@@ -74,4 +74,4 @@ Object.defineProperties(InterleavedBufferAttribute.prototype, {
 
 });
 
-export {InterleavedBufferAttribute};
+export { InterleavedBufferAttribute };

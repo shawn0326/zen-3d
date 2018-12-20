@@ -1,6 +1,6 @@
-import {LIGHT_TYPE} from '../../const.js';
-import {Light} from './Light.js';
-import {DirectionalLightShadow} from './DirectionalLightShadow.js';
+import { LIGHT_TYPE } from '../../const.js';
+import { Light } from './Light.js';
+import { DirectionalLightShadow } from './DirectionalLightShadow.js';
 
 /**
  * A light that gets emitted in a specific direction.
@@ -42,4 +42,4 @@ DirectionalLight.prototype = Object.assign(Object.create(Light.prototype), /** @
 
 });
 
-export {DirectionalLight};
+export { DirectionalLight };

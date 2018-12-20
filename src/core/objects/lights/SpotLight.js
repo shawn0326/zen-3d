@@ -1,6 +1,6 @@
-import {LIGHT_TYPE} from '../../const.js';
-import {Light} from './Light.js';
-import {SpotLightShadow} from './SpotLightShadow.js';
+import { LIGHT_TYPE } from '../../const.js';
+import { Light } from './Light.js';
+import { SpotLightShadow } from './SpotLightShadow.js';
 
 /**
  * This light gets emitted from a single point in one direction, along a cone that increases in size the further from the light it gets.
@@ -74,4 +74,4 @@ SpotLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends z
 
 });
 
-export {SpotLight};
+export { SpotLight };

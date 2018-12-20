@@ -1,6 +1,6 @@
-import {generateUUID} from '../base.js';
-import {WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, TEXEL_ENCODING_TYPE} from '../const.js';
-import {EventDispatcher} from '../EventDispatcher.js';
+import { generateUUID } from '../base.js';
+import { WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, TEXEL_ENCODING_TYPE } from '../const.js';
+import { EventDispatcher } from '../EventDispatcher.js';
 
 /**
  * Create a texture to apply to a surface or as a reflection or refraction map.
@@ -169,11 +169,11 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
      * Dispatches a dispose event.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
 
         this.version = 0;
     }
 
 });
 
-export {TextureBase};
+export { TextureBase };

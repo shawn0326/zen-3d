@@ -1,6 +1,6 @@
-import {LIGHT_TYPE} from '../../const.js';
-import {Light} from './Light.js';
-import {PointLightShadow} from './PointLightShadow.js';
+import { LIGHT_TYPE } from '../../const.js';
+import { Light } from './Light.js';
+import { PointLightShadow } from './PointLightShadow.js';
 
 /**
  * A light that gets emitted from a single point in all directions.
@@ -56,4 +56,4 @@ PointLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends 
     }
 });
 
-export {PointLight};
+export { PointLight };

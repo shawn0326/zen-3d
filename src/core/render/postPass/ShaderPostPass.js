@@ -1,9 +1,9 @@
-import {Scene} from '../../objects/Scene.js';
-import {Camera} from '../../objects/camera/Camera.js';
-import {Vector3} from '../../math/Vector3.js';
-import {PlaneGeometry} from '../../geometry/PlaneGeometry.js';
-import {ShaderMaterial} from '../../material/ShaderMaterial.js';
-import {Mesh} from '../../objects/Mesh.js';
+import { Scene } from '../../objects/Scene.js';
+import { Camera } from '../../objects/camera/Camera.js';
+import { Vector3 } from '../../math/Vector3.js';
+import { PlaneGeometry } from '../../geometry/PlaneGeometry.js';
+import { ShaderMaterial } from '../../material/ShaderMaterial.js';
+import { Mesh } from '../../objects/Mesh.js';
 
 /**
  * Shader post pass.
@@ -47,4 +47,4 @@ ShaderPostPass.prototype.render = function(glCore) {
     glCore.renderPass(this.renderList.opaque, this.camera, this.renderConfig);
 }
 
-export {ShaderPostPass};
+export { ShaderPostPass };

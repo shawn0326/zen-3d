@@ -1,12 +1,12 @@
-import {generateUUID} from '../../base.js';
-import {WebGLUniforms} from './WebGLUniforms.js';
-import {WebGLAttribute} from './WebGLAttribute.js';
+import { generateUUID } from '../../base.js';
+import { WebGLUniforms } from './WebGLUniforms.js';
+import { WebGLAttribute } from './WebGLAttribute.js';
 
 function addLineNumbers(string) {
 
     var lines = string.split('\n');
 
-    for (var i = 0; i < lines.length; i ++) {
+    for (var i = 0; i < lines.length; i++) {
 
         lines[i] = (i + 1) + ': ' + lines[i];
 
@@ -72,7 +72,7 @@ var programIdCount = 0;
 // WebGL Program Class
 function WebGLProgram(gl, vshader, fshader) {
 
-    this.id = programIdCount ++;
+    this.id = programIdCount++;
 
     this.uuid = generateUUID();
 
@@ -106,4 +106,4 @@ WebGLProgram.prototype.dispose = function(gl) {
     this.program = undefined;
 }
 
-export {WebGLProgram};
+export { WebGLProgram };

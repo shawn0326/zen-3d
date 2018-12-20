@@ -1,4 +1,4 @@
-import {KeyframeTrack} from './KeyframeTrack.js';
+import { KeyframeTrack } from './KeyframeTrack.js';
 
 /**
  * Used for boolean property track.
@@ -31,4 +31,4 @@ BooleanKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.proto
 
 });
 
-export {BooleanKeyframeTrack};
+export { BooleanKeyframeTrack };

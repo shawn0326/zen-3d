@@ -1,6 +1,6 @@
-import {MATERIAL_TYPE} from '../const.js';
-import {Material} from './Material.js';
-import {Color3} from '../math/Color3.js';
+import { MATERIAL_TYPE } from '../const.js';
+import { Material } from './Material.js';
+import { Color3 } from '../math/Color3.js';
 
 /**
  * A material for shiny surfaces with specular highlights.
@@ -63,4 +63,4 @@ PhongMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @
 
 });
 
-export {PhongMaterial};
+export { PhongMaterial };

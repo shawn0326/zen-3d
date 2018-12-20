@@ -1,5 +1,5 @@
-import {FOG_TYPE} from '../../const.js';
-import {Color3} from '../../math/Color3.js';
+import { FOG_TYPE } from '../../const.js';
+import { Color3 } from '../../math/Color3.js';
 
 /**
  * Exp2 fog.
@@ -27,4 +27,4 @@ function FogExp2(color, density) {
     this.density = (density !== undefined) ? density : 0.00025;
 }
 
-export {FogExp2};
+export { FogExp2 };

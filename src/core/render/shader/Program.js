@@ -1,7 +1,7 @@
-import {MATERIAL_TYPE, TEXEL_ENCODING_TYPE, SHADOW_TYPE, SHADING_TYPE, FOG_TYPE, DRAW_SIDE, OBJECT_TYPE} from '../../const.js';
-import {WebGLProgram} from '../WebGL/WebGLProgram.js';
-import {ShaderChunk} from '../shader/ShaderChunk.js';
-import {ShaderLib} from '../shader/ShaderLib.js';
+import { MATERIAL_TYPE, TEXEL_ENCODING_TYPE, SHADOW_TYPE, SHADING_TYPE, FOG_TYPE, DRAW_SIDE, OBJECT_TYPE } from '../../const.js';
+import { WebGLProgram } from '../WebGL/WebGLProgram.js';
+import { ShaderChunk } from '../shader/ShaderChunk.js';
+import { ShaderLib } from '../shader/ShaderLib.js';
 
 var programMap = {};
 
@@ -23,7 +23,7 @@ function getTextureEncodingFromMap(map, gammaOverrideLinear) {
 
     var encoding;
 
-    if (! map) {
+    if (!map) {
 
         encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
@@ -276,7 +276,7 @@ function createProgram(gl, props, defines) {
         fshader = [
             '#version 300 es\n',
 			'#define varying in',
-			fshader.indexOf("layout") > -1 ? '': 'out highp vec4 pc_fragColor;',
+			fshader.indexOf("layout") > -1 ? '' : 'out highp vec4 pc_fragColor;',
 			'#define gl_FragColor pc_fragColor',
 			'#define gl_FragDepthEXT gl_FragDepth',
 			'#define texture2D texture',
@@ -340,7 +340,7 @@ function unrollLoops(string) {
 
 		var unroll = '';
 
-		for (var i = parseInt(start); i < parseInt(end); i ++) {
+		for (var i = parseInt(start); i < parseInt(end); i++) {
 
 			unroll += snippet.replace(/\[ i \]/g, '[ ' + i + ' ]');
 
@@ -469,4 +469,4 @@ function getProgram(glCore, camera, material, object, cache) {
     return program;
 }
 
-export {getProgram};
+export { getProgram };

@@ -1,5 +1,5 @@
 
-import {Vector3} from './Vector3.js';
+import { Vector3 } from './Vector3.js';
 
 /**
  * @constructor
@@ -171,4 +171,4 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
 
 });
 
-export {Box3};
+export { Box3 };

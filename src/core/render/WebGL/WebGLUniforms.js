@@ -1,4 +1,4 @@
-import {WEBGL_UNIFORM_TYPE} from '../../const.js';
+import { WEBGL_UNIFORM_TYPE } from '../../const.js';
 
 // --- Base for inner nodes (including the root) ---
 
@@ -13,7 +13,7 @@ function arraysEqual(a, b) {
 
 	if (a.length !== b.length) return false;
 
-	for (var i = 0, l = a.length; i < l; i ++) {
+	for (var i = 0, l = a.length; i < l; i++) {
 
 		if (a[i] !== b[i]) return false;
 
@@ -25,7 +25,7 @@ function arraysEqual(a, b) {
 
 function copyArray(a, b) {
 
-	for (var i = 0, l = b.length; i < l; i ++) {
+	for (var i = 0, l = b.length; i < l; i++) {
 
 		a[i] = b[i];
 
@@ -256,7 +256,7 @@ StructuredUniform.prototype.set = function (value) {
 
 	var seq = this.seq;
 
-	for (var i = 0, n = seq.length; i !== n; ++ i) {
+	for (var i = 0, n = seq.length; i !== n; ++i) {
 
 		var u = seq[i];
 		u.set(value[u.id]);
@@ -346,7 +346,7 @@ function WebGLUniforms(gl, program) {
 
 	var n = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
 
-	for (var i = 0; i < n; ++ i) {
+	for (var i = 0; i < n; ++i) {
 
 		var info = gl.getActiveUniform(program, i),
 			addr = gl.getUniformLocation(program, info.name);
@@ -366,4 +366,4 @@ WebGLUniforms.prototype.has = function(name) {
     return !!this.map[name];
 }
 
-export {WebGLUniforms};
+export { WebGLUniforms };

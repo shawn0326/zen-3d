@@ -1,5 +1,5 @@
-import {Vector3} from '../math/Vector3.js';
-import {Sphere} from '../math/Sphere.js';
+import { Vector3 } from '../math/Vector3.js';
+import { Sphere } from '../math/Sphere.js';
 
 var helpVector3 = new Vector3();
 var helpSphere = new Sphere();
@@ -89,7 +89,7 @@ function RenderList() {
         helpVector3.setFromMatrixPosition(object.worldMatrix);
         helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-        if (Array.isArray(object.material)){
+        if (Array.isArray(object.material)) {
             var groups = object.geometry.groups;
 
             for (var i = 0; i < groups.length; i++) {
@@ -136,7 +136,7 @@ function RenderList() {
             opaqueCount++;
         }
 
-        renderItemsIndex ++;
+        renderItemsIndex++;
 
     }
 
@@ -169,4 +169,4 @@ function RenderList() {
 
 }
 
-export {RenderList};
+export { RenderList };

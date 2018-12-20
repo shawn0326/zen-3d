@@ -1,4 +1,4 @@
-import {DefaultLoadingManager} from './LoadingManager.js';
+import { DefaultLoadingManager } from './LoadingManager.js';
 
 /**
  * A loader for loading an Image.
@@ -92,4 +92,4 @@ Object.assign(ImageLoader.prototype, /** @lends zen3d.ImageLoader.prototype */{
 
 });
 
-export {ImageLoader};
+export { ImageLoader };

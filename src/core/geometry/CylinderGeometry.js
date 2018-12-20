@@ -1,7 +1,7 @@
-import {Geometry} from './Geometry.js';
-import {BufferAttribute} from './BufferAttribute.js';
-import {Vector2} from '../math/Vector2.js';
-import {Vector3} from '../math/Vector3.js';
+import { Geometry } from './Geometry.js';
+import { BufferAttribute } from './BufferAttribute.js';
+import { Vector2 } from '../math/Vector2.js';
+import { Vector3 } from '../math/Vector3.js';
 
 /**
  * A class for generating cylinder geometries.
@@ -88,7 +88,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// generate vertices, normals and uvs
 
-			for (y = 0; y <= heightSegments; y ++) {
+			for (y = 0; y <= heightSegments; y++) {
 
 				var indexRow = [];
 
@@ -98,7 +98,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				var radius = v * (radiusBottom - radiusTop) + radiusTop;
 
-				for (x = 0; x <= radialSegments; x ++) {
+				for (x = 0; x <= radialSegments; x++) {
 
 					var u = x / radialSegments;
 
@@ -110,7 +110,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 					// vertex
 
 					vertex.x = radius * sinTheta;
-					vertex.y = - v * height + halfHeight;
+					vertex.y = -v * height + halfHeight;
 					vertex.z = radius * cosTheta;
 					vertices.push(vertex.x, vertex.y, vertex.z);
 
@@ -125,7 +125,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 					// save index of vertex in respective row
 
-					indexRow.push(index ++);
+					indexRow.push(index++);
 
 				}
 
@@ -137,9 +137,9 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// generate indices
 
-			for (x = 0; x < radialSegments; x ++) {
+			for (x = 0; x < radialSegments; x++) {
 
-				for (y = 0; y < heightSegments; y ++) {
+				for (y = 0; y < heightSegments; y++) {
 
 					// we use the index array to access the correct indices
 
@@ -181,7 +181,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			var groupCount = 0;
 
 			var radius = (top === true) ? radiusTop : radiusBottom;
-			var sign = (top === true) ? 1 : - 1;
+			var sign = (top === true) ? 1 : -1;
 
 			// save the index of the first center vertex
 			centerIndexStart = index;
@@ -190,7 +190,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// because the geometry needs one set of uvs per face,
 			// we must generate a center vertex per face/segment
 
-			for (x = 1; x <= radialSegments; x ++) {
+			for (x = 1; x <= radialSegments; x++) {
 
 				// vertex
 
@@ -206,7 +206,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				// increase index
 
-				index ++;
+				index++;
 
 			}
 
@@ -216,7 +216,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// now we generate the surrounding vertices, normals and uvs
 
-			for (x = 0; x <= radialSegments; x ++) {
+			for (x = 0; x <= radialSegments; x++) {
 
 				var u = x / radialSegments;
 				var theta = u * thetaLength + thetaStart;
@@ -243,13 +243,13 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				// increase index
 
-				index ++;
+				index++;
 
 			}
 
 			// generate indices
 
-			for (x = 0; x < radialSegments; x ++) {
+			for (x = 0; x < radialSegments; x++) {
 
 				var c = centerIndexStart + x;
 				var i = centerIndexEnd + x;
@@ -288,4 +288,4 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 });
 
-export {CylinderGeometry};
+export { CylinderGeometry };

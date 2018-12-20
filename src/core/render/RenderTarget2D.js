@@ -1,6 +1,6 @@
-import {RenderTargetBase} from './RenderTargetBase.js';
-import {Texture2D} from '../texture/Texture2D.js';
-import {ATTACHMENT} from '../const.js';
+import { RenderTargetBase } from './RenderTargetBase.js';
+import { Texture2D } from '../texture/Texture2D.js';
+import { ATTACHMENT } from '../const.js';
 
 /**
  * Render Target that render to 2d texture.
@@ -44,7 +44,7 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
             }
         } else {
             texture.version++;
-            texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+            texture.image = { rtt: true, data: null, width: this.width, height: this.height };
         }
         this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
     },
@@ -69,7 +69,7 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
                 var texture = this._textures[attachment];
 
                 if (texture) {
-                    texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+                    texture.image = { rtt: true, data: null, width: this.width, height: this.height };
                     texture.version++;
                 }
             }
@@ -101,4 +101,4 @@ Object.defineProperties(RenderTarget2D.prototype, {
 
 });
 
-export {RenderTarget2D};
+export { RenderTarget2D };

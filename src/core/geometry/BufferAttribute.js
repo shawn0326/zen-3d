@@ -1,4 +1,4 @@
-import {generateUUID} from '../base.js';
+import { generateUUID } from '../base.js';
 
 /**
  * This class stores data for an attribute (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes ) associated with a Geometry, which allows for more efficient passing of data to the GPU.
@@ -61,7 +61,7 @@ function BufferAttribute(array, size, normalized) {
      * count: Default is -1, which means don't use update ranges.
      * This can be used to only update some components of stored vectors (for example, just the component related to color).
      */
-    this.updateRange = { offset: 0, count: - 1 };
+    this.updateRange = { offset: 0, count: -1 };
 
     /**
      * A version number, incremented every time the data changes.
@@ -86,4 +86,4 @@ Object.assign(BufferAttribute.prototype, /** @lends zen3d.BufferAttribute.protot
 
 });
 
-export {BufferAttribute};
+export { BufferAttribute };

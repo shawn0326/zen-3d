@@ -1,4 +1,4 @@
-import {DefaultLoadingManager} from './LoadingManager.js';
+import { DefaultLoadingManager } from './LoadingManager.js';
 
 /**
  * A low level class for loading resources with XMLHttpRequest, used internaly by most loaders.
@@ -200,4 +200,4 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 
 });
 
-export {FileLoader};
+export { FileLoader };

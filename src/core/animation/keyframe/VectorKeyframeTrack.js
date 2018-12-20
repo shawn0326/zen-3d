@@ -1,4 +1,4 @@
-import {KeyframeTrack} from './KeyframeTrack.js';
+import { KeyframeTrack } from './KeyframeTrack.js';
 
 /**
  * Used for vector property track.
@@ -22,4 +22,4 @@ VectorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.protot
 
 });
 
-export {VectorKeyframeTrack};
+export { VectorKeyframeTrack };

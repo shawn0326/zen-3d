@@ -1,6 +1,6 @@
-import {OBJECT_TYPE} from '../../const.js';
-import {Color3} from '../../math/Color3.js';
-import {Object3D} from '../Object3D.js';
+import { OBJECT_TYPE } from '../../const.js';
+import { Color3 } from '../../math/Color3.js';
+import { Object3D } from '../Object3D.js';
 
 /**
  * Abstract base class for lights
@@ -58,4 +58,4 @@ Light.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
 
 });
 
-export {Light};
+export { Light };

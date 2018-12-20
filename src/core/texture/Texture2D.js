@@ -1,9 +1,9 @@
-import {TextureBase} from './TextureBase.js';
-import {Vector2} from '../math/Vector2.js';
-import {Matrix3} from '../math/Matrix3.js';
-import {WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER} from '../const.js';
-import {ImageLoader} from '../loader/ImageLoader.js';
-import {TGALoader} from '../loader/TGALoader.js';
+import { TextureBase } from './TextureBase.js';
+import { Vector2 } from '../math/Vector2.js';
+import { Matrix3 } from '../math/Matrix3.js';
+import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER } from '../const.js';
+import { ImageLoader } from '../loader/ImageLoader.js';
+import { TGALoader } from '../loader/TGALoader.js';
 
 /**
  * Creates a cube texture made up of single image.
@@ -150,10 +150,10 @@ Texture2D.fromSrc = function(src) {
         texture.image = image;
         texture.version++;
 
-        texture.dispatchEvent({type: 'onload'});
+        texture.dispatchEvent({ type: 'onload' });
     });
 
     return texture;
 }
 
-export {Texture2D};
+export { Texture2D };

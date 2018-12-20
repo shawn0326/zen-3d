@@ -1,5 +1,5 @@
-import {FOG_TYPE} from '../../const.js';
-import {Color3} from '../../math/Color3.js';
+import { FOG_TYPE } from '../../const.js';
+import { Color3 } from '../../math/Color3.js';
 
 /**
  * Linear fog.
@@ -35,4 +35,4 @@ function Fog(color, near, far) {
     this.far = (far !== undefined) ? far : 1000;
 }
 
-export {Fog};
+export { Fog };

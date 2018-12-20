@@ -1,5 +1,5 @@
-import {WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_PIXEL_FORMAT} from '../../const.js';
-import {isWeb, isPowerOfTwo, nearestPowerOfTwo} from '../../base.js';
+import { WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_PIXEL_FORMAT } from '../../const.js';
+import { isWeb, isPowerOfTwo, nearestPowerOfTwo } from '../../base.js';
 
 function textureNeedsPowerOfTwo(texture) {
     if (texture.wrapS !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE || texture.wrapT !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE) return true;
@@ -457,4 +457,4 @@ Object.assign(WebGLTexture.prototype, {
 
 });
 
-export {WebGLTexture};
+export { WebGLTexture };

@@ -1,6 +1,6 @@
-import {Camera} from '../camera/Camera.js';
-import {Matrix4} from '../../math/Matrix4.js';
-import {Vector2} from '../../math/Vector2.js';
+import { Camera } from '../camera/Camera.js';
+import { Matrix4 } from '../../math/Matrix4.js';
+import { Vector2 } from '../../math/Vector2.js';
 
 /**
  * Serves as a base class for the other shadow classes.
@@ -97,4 +97,4 @@ Object.assign(LightShadow.prototype, /** @lends zen3d.LightShadow.prototype */{
 
 });
 
-export {LightShadow};
+export { LightShadow };

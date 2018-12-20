@@ -1,5 +1,5 @@
-import {Object3D} from '../../objects/Object3D.js';
-import {Matrix4} from '../../math/Matrix4.js';
+import { Object3D } from '../../objects/Object3D.js';
+import { Matrix4 } from '../../math/Matrix4.js';
 
 /**
  * A bone which is part of a Skeleton.
@@ -29,4 +29,4 @@ function Bone() {
 Bone.prototype = Object.create(Object3D.prototype);
 Bone.prototype.constructor = Bone;
 
-export {Bone};
+export { Bone };

@@ -1,5 +1,5 @@
-import {Vector3} from './Vector3';
-import {Matrix3} from './Matrix3';
+import { Vector3 } from './Vector3';
+import { Matrix3 } from './Matrix3';
 
 /**
  * @constructor
@@ -60,7 +60,7 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
     coplanarPoint: function (optionalTarget) {
         var result = optionalTarget || new Vector3();
 
-        return result.copy(this.normal).multiplyScalar(- this.constant);
+        return result.copy(this.normal).multiplyScalar(-this.constant);
     },
 
     /**
@@ -87,7 +87,7 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
             var normal = this.normal.applyMatrix3(normalMatrix).normalize();
 
-            this.constant = - referencePoint.dot(normal);
+            this.constant = -referencePoint.dot(normal);
 
             return this;
         }
@@ -96,4 +96,4 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
 });
 
-export {Plane};
+export { Plane };

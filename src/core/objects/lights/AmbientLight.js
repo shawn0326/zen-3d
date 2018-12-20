@@ -1,5 +1,5 @@
-import {LIGHT_TYPE} from '../../const.js';
-import {Light} from './Light.js';
+import { LIGHT_TYPE } from '../../const.js';
+import { Light } from './Light.js';
 
 /**
  * This light globally illuminates all objects in the scene equally.
@@ -21,4 +21,4 @@ function AmbientLight(color, intensity) {
 AmbientLight.prototype = Object.create(Light.prototype);
 AmbientLight.prototype.constructor = AmbientLight;
 
-export {AmbientLight};
+export { AmbientLight };

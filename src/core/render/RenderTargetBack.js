@@ -1,4 +1,4 @@
-import {RenderTargetBase} from './RenderTargetBase.js';
+import { RenderTargetBase } from './RenderTargetBase.js';
 
 /**
  * Render Target that render to canvas element.
@@ -39,4 +39,4 @@ RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.protot
 
 });
 
-export {RenderTargetBack};
+export { RenderTargetBack };

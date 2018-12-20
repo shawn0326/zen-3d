@@ -1,5 +1,5 @@
-import {ATTACHMENT} from '../../const.js';
-import {isPowerOfTwo} from '../../base.js';
+import { ATTACHMENT } from '../../const.js';
+import { isPowerOfTwo } from '../../base.js';
 
 function _isPowerOfTwo(image) {
     return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
@@ -347,4 +347,4 @@ Object.assign(WebGLRenderTarget.prototype, {
 
 });
 
-export {WebGLRenderTarget};
+export { WebGLRenderTarget };

@@ -1,4 +1,4 @@
-import {Matrix4} from '../../math/Matrix4.js';
+import { Matrix4 } from '../../math/Matrix4.js';
 
 /**
  * Use an array of bones to create a skeleton that can be used by a SkinnedMesh.
@@ -68,7 +68,7 @@ Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
      * @return {zen3d.Bone}
      */
     getBoneByName: function(name) {
-        for (var i = 0, il = this.bones.length; i < il; i ++) {
+        for (var i = 0, il = this.bones.length; i < il; i++) {
 			var bone = this.bones[i];
 			if (bone.name === name) {
 				return bone;
@@ -80,4 +80,4 @@ Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
 
 });
 
-export {Skeleton};
+export { Skeleton };

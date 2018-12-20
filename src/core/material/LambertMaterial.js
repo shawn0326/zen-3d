@@ -1,5 +1,5 @@
-import {MATERIAL_TYPE} from '../const.js';
-import {Material} from './Material.js';
+import { MATERIAL_TYPE } from '../const.js';
+import { Material } from './Material.js';
 
 /**
  * A material for non-shiny surfaces, without specular highlights.
@@ -27,4 +27,4 @@ function LambertMaterial() {
 LambertMaterial.prototype = Object.create(Material.prototype);
 LambertMaterial.prototype.constructor = LambertMaterial;
 
-export {LambertMaterial};
+export { LambertMaterial };

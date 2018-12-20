@@ -1,16 +1,16 @@
-import {CULL_FACE_TYPE, BLEND_TYPE, DRAW_SIDE, WEBGL_UNIFORM_TYPE, OBJECT_TYPE, WEBGL_PIXEL_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_TEXTURE_FILTER} from '../../const.js';
-import {nextPowerOfTwo} from '../../base.js';
-import {Vector3} from '../../math/Vector3.js';
-import {Vector4} from '../../math/Vector4.js';
-import {Plane} from '../../math/Plane.js';
-import {Texture2D} from '../../texture/Texture2D.js';
-import {getProgram} from '../shader/Program.js';
-import {WebGLProperties} from './WebGLProperties.js';
-import {WebGLCapabilities} from './WebGLCapabilities.js';
-import {WebGLState} from './WebGLState.js';
-import {WebGLTexture} from './WebGLTexture.js';
-import {WebGLRenderTarget} from './WebGLRenderTarget.js';
-import {WebGLGeometry} from './WebGLGeometry.js';
+import { CULL_FACE_TYPE, BLEND_TYPE, DRAW_SIDE, WEBGL_UNIFORM_TYPE, OBJECT_TYPE, WEBGL_PIXEL_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_TEXTURE_FILTER } from '../../const.js';
+import { nextPowerOfTwo } from '../../base.js';
+import { Vector3 } from '../../math/Vector3.js';
+import { Vector4 } from '../../math/Vector4.js';
+import { Plane } from '../../math/Plane.js';
+import { Texture2D } from '../../texture/Texture2D.js';
+import { getProgram } from '../shader/Program.js';
+import { WebGLProperties } from './WebGLProperties.js';
+import { WebGLCapabilities } from './WebGLCapabilities.js';
+import { WebGLState } from './WebGLState.js';
+import { WebGLTexture } from './WebGLTexture.js';
+import { WebGLRenderTarget } from './WebGLRenderTarget.js';
+import { WebGLGeometry } from './WebGLGeometry.js';
 
 var helpVector3 = new Vector3();
 var helpVector4 = new Vector4();
@@ -34,7 +34,7 @@ var getClippingPlanesData = function() {
         }
 
         for (var i = 0; i < planes.length; i++) {
-            plane.copy(planes[i]);//.applyMatrix4(camera.viewMatrix);
+            plane.copy(planes[i]);// .applyMatrix4(camera.viewMatrix);
             planesData[i * 4 + 0] = plane.normal.x;
             planesData[i * 4 + 1] = plane.normal.y;
             planesData[i * 4 + 2] = plane.normal.z;
@@ -557,7 +557,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         );
 
         var flipSided = (material.side === DRAW_SIDE.BACK);
-        if (frontFaceCW) flipSided = ! flipSided;
+        if (frontFaceCW) flipSided = !flipSided;
 
         state.setFlipSided(flipSided);
 
@@ -642,7 +642,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     var boneMatrices = new Float32Array(size * size * 4);
                     boneMatrices.set(skeleton.boneMatrices);
                     var boneTexture = new Texture2D();
-                    boneTexture.image = {data: boneMatrices, width: size, height: size};
+                    boneTexture.image = { data: boneMatrices, width: size, height: size };
                     if (capabilities.version >= 2) {
                         boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
                         boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
@@ -888,4 +888,4 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 });
 
-export {WebGLCore};
+export { WebGLCore };

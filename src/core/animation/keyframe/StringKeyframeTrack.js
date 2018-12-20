@@ -1,4 +1,4 @@
-import {KeyframeTrack} from './KeyframeTrack.js';
+import { KeyframeTrack } from './KeyframeTrack.js';
 
 /**
  * Used for string property track.
@@ -31,4 +31,4 @@ StringKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.protot
 
 });
 
-export {StringKeyframeTrack};
+export { StringKeyframeTrack };

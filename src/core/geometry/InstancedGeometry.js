@@ -1,4 +1,4 @@
-import {Geometry} from './Geometry.js';
+import { Geometry } from './Geometry.js';
 
 /**
  * An instanced version of {@link zen3d.Geometry}.
@@ -30,4 +30,4 @@ InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /
 
 });
 
-export {InstancedGeometry};
+export { InstancedGeometry };

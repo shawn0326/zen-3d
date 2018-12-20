@@ -1,5 +1,5 @@
-import {Plane} from './Plane.js';
-import {Vector3} from './Vector3.js';
+import { Plane } from './Plane.js';
+import { Vector3 } from './Vector3.js';
 
 /**
  * @constructor
@@ -116,4 +116,4 @@ Object.assign(Frustum.prototype, /** @lends zen3d.Frustum.prototype */{
 
 });
 
-export {Frustum};
+export { Frustum };

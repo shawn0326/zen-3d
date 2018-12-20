@@ -25,4 +25,4 @@ Object.assign(WebGLProperties.prototype, {
 
 });
 
-export {WebGLProperties};
+export { WebGLProperties };

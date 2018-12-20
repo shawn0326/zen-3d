@@ -14,7 +14,7 @@ var generateUUID = (function () {
 
     return function generateUUID() {
 
-        for (var i = 0; i < 36; i ++) {
+        for (var i = 0; i < 36; i++) {
 
             if (i === 8 || i === 13 || i === 18 || i === 23) {
 
@@ -137,13 +137,13 @@ function nearestPowerOfTwo(value) {
  * @return {number} - The result number.
  */
 function nextPowerOfTwo(value) {
-    value --;
+    value--;
     value |= value >> 1;
     value |= value >> 2;
     value |= value >> 4;
     value |= value >> 8;
     value |= value >> 16;
-    value ++;
+    value++;
 
     return value;
 }
@@ -625,7 +625,7 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
             list = this.eventMap[type] = [];
         }
 
-        list.push({listener: listener, thisObject: thisObject || this});
+        list.push({ listener: listener, thisObject: thisObject || this });
     },
 
     /**
@@ -1175,8 +1175,8 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
             n43 = te[11],
             n44 = te[15];
 
-        //TODO: make this more efficient
-        //( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
+        // TODO: make this more efficient
+        // ( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
 
         return (
             n41 * (+n14 * n23 * n32 -
@@ -1826,7 +1826,7 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
 
         if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
 
-        //return point closest to the ray (positive side)
+        // return point closest to the ray (positive side)
 
         if (tmax < 0) return null;
 
@@ -2165,12 +2165,12 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         if (order === 'XYZ') {
 
-            this._y = Math.asin(clamp(m13, - 1, 1));
+            this._y = Math.asin(clamp(m13, -1, 1));
 
             if (Math.abs(m13) < 0.99999) {
 
-                this._x = Math.atan2(- m23, m33);
-                this._z = Math.atan2(- m12, m11);
+                this._x = Math.atan2(-m23, m33);
+                this._z = Math.atan2(-m12, m11);
 
             } else {
 
@@ -2181,7 +2181,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         } else if (order === 'YXZ') {
 
-            this._x = Math.asin(- clamp(m23, - 1, 1));
+            this._x = Math.asin(-clamp(m23, -1, 1));
 
             if (Math.abs(m23) < 0.99999) {
 
@@ -2190,19 +2190,19 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
             } else {
 
-                this._y = Math.atan2(- m31, m11);
+                this._y = Math.atan2(-m31, m11);
                 this._z = 0;
 
             }
 
         } else if (order === 'ZXY') {
 
-            this._x = Math.asin(clamp(m32, - 1, 1));
+            this._x = Math.asin(clamp(m32, -1, 1));
 
             if (Math.abs(m32) < 0.99999) {
 
-                this._y = Math.atan2(- m31, m33);
-                this._z = Math.atan2(- m12, m22);
+                this._y = Math.atan2(-m31, m33);
+                this._z = Math.atan2(-m12, m22);
 
             } else {
 
@@ -2213,7 +2213,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         } else if (order === 'ZYX') {
 
-            this._y = Math.asin(- clamp(m31, - 1, 1));
+            this._y = Math.asin(-clamp(m31, -1, 1));
 
             if (Math.abs(m31) < 0.99999) {
 
@@ -2223,18 +2223,18 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
             } else {
 
                 this._x = 0;
-                this._z = Math.atan2(- m12, m22);
+                this._z = Math.atan2(-m12, m22);
 
             }
 
         } else if (order === 'YZX') {
 
-            this._z = Math.asin(clamp(m21, - 1, 1));
+            this._z = Math.asin(clamp(m21, -1, 1));
 
             if (Math.abs(m21) < 0.99999) {
 
-                this._x = Math.atan2(- m23, m22);
-                this._y = Math.atan2(- m31, m11);
+                this._x = Math.atan2(-m23, m22);
+                this._y = Math.atan2(-m31, m11);
 
             } else {
 
@@ -2245,7 +2245,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         } else if (order === 'XZY') {
 
-            this._z = Math.asin(- clamp(m12, - 1, 1));
+            this._z = Math.asin(-clamp(m12, -1, 1));
 
             if (Math.abs(m12) < 0.99999) {
 
@@ -2254,7 +2254,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
             } else {
 
-                this._x = Math.atan2(- m23, m33);
+                this._x = Math.atan2(-m23, m33);
                 this._y = 0;
 
             }
@@ -2895,8 +2895,8 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
         var s = Math.sin(rotation);
 
         this.set(
-            sx * c, sx * s, - sx * (c * cx + s * cy) + cx + tx,
-            - sy * s, sy * c, - sy * (- s * cx + c * cy) + cy + ty,
+            sx * c, sx * s, -sx * (c * cx + s * cy) + cx + tx,
+            -sy * s, sy * c, -sy * (-s * cx + c * cy) + cy + ty,
             0, 0, 1
         );
 
@@ -3268,11 +3268,11 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
                 if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
 
-                    v1.set(- vFrom.y, vFrom.x, 0);
+                    v1.set(-vFrom.y, vFrom.x, 0);
 
                 } else {
 
-                    v1.set(0, - vFrom.z, vFrom.y);
+                    v1.set(0, -vFrom.z, vFrom.y);
 
                 }
 
@@ -3446,7 +3446,7 @@ Object.assign(Quaternion, {
 
 				cos = x0 * x1 + y0 * y1 + z0 * z1 + w0 * w1,
 
-				dir = (cos >= 0 ? 1 : - 1),
+				dir = (cos >= 0 ? 1 : -1),
 				sqrSin = 1 - cos * cos;
 
 			// Skip the Slerp for tiny steps to avoid numeric problems:
@@ -3852,7 +3852,7 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
     coplanarPoint: function (optionalTarget) {
         var result = optionalTarget || new Vector3();
 
-        return result.copy(this.normal).multiplyScalar(- this.constant);
+        return result.copy(this.normal).multiplyScalar(-this.constant);
     },
 
     /**
@@ -3879,7 +3879,7 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
             var normal = this.normal.applyMatrix3(normalMatrix).normalize();
 
-            this.constant = - referencePoint.dot(normal);
+            this.constant = -referencePoint.dot(normal);
 
             return this;
         }
@@ -4622,7 +4622,7 @@ TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), 
      * Dispatches a dispose event.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
 
         this.version = 0;
     }
@@ -4658,7 +4658,7 @@ function LoadingManager(onLoad, onProgress, onError) {
 
 	this.itemStart = function (url) {
 
-		itemsTotal ++;
+		itemsTotal++;
 
 		if (isLoading === false) {
 
@@ -4676,7 +4676,7 @@ function LoadingManager(onLoad, onProgress, onError) {
 
 	this.itemEnd = function (url) {
 
-		itemsLoaded ++;
+		itemsLoaded++;
 
 		if (scope.onProgress !== undefined) {
 
@@ -5082,21 +5082,21 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 		var content = new Uint8Array(buffer),
 			offset = 0,
 			header = {
-				id_length: content[offset ++],
-				colormap_type: content[offset ++],
-				image_type: content[offset ++],
-				colormap_index: content[offset ++] | content[offset ++] << 8,
-				colormap_length: content[offset ++] | content[offset ++] << 8,
-				colormap_size: content[offset ++],
+				id_length: content[offset++],
+				colormap_type: content[offset++],
+				image_type: content[offset++],
+				colormap_index: content[offset++] | content[offset++] << 8,
+				colormap_length: content[offset++] | content[offset++] << 8,
+				colormap_size: content[offset++],
 
 				origin: [
-					content[offset ++] | content[offset ++] << 8,
-					content[offset ++] | content[offset ++] << 8
+					content[offset++] | content[offset++] << 8,
+					content[offset++] | content[offset++] << 8
 				],
-				width: content[offset ++] | content[offset ++] << 8,
-				height: content[offset ++] | content[offset ++] << 8,
-				pixel_size: content[offset ++],
-				flags: content[offset ++]
+				width: content[offset++] | content[offset++] << 8,
+				height: content[offset++] | content[offset++] << 8,
+				pixel_size: content[offset++],
+				flags: content[offset++]
 			};
 
 		function tgaCheckHeader(header) {
@@ -5229,21 +5229,21 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 				while (shift < pixel_total) {
 
-					c     = data[offset ++];
+					c     = data[offset++];
 					count = (c & 0x7f) + 1;
 
 					// RLE pixels.
 					if (c & 0x80) {
 
 						// Bind pixel tmp array
-						for (i = 0; i < pixel_size; ++ i) {
+						for (i = 0; i < pixel_size; ++i) {
 
-							pixels[i] = data[offset ++];
+							pixels[i] = data[offset++];
 
 						}
 
 						// Copy pixel array
-						for (i = 0; i < count; ++ i) {
+						for (i = 0; i < count; ++i) {
 
 							pixel_data.set(pixels, shift + i * pixel_size);
 
@@ -5255,9 +5255,9 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 						// Raw pixels.
 						count *= pixel_size;
-						for (i = 0; i < count; ++ i) {
+						for (i = 0; i < count; ++i) {
 
-							pixel_data[shift + i] = data[offset ++];
+							pixel_data[shift + i] = data[offset++];
 
 						}
 						shift += count;
@@ -5290,7 +5290,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 			for (y = y_start; y !== y_end; y += y_step) {
 
-				for (x = x_start; x !== x_end; x += x_step, i ++) {
+				for (x = x_start; x !== x_end; x += x_step, i++) {
 
 					color = image[i];
 					imageData[(x + width * y) * 4 + 3] = 255;
@@ -5380,7 +5380,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 			for (y = y_start; y !== y_end; y += y_step) {
 
-				for (x = x_start; x !== x_end; x += x_step, i ++) {
+				for (x = x_start; x !== x_end; x += x_step, i++) {
 
 					color = image[i];
 					imageData[(x + width * y) * 4 + 0] = color;
@@ -5443,14 +5443,14 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 					x_step = 1;
 					x_end = width;
 					y_start = height - 1;
-					y_step = - 1;
-					y_end = - 1;
+					y_step = -1;
+					y_end = -1;
 					break;
 
 				case TGA_ORIGIN_UR:
 					x_start = width - 1;
-					x_step = - 1;
-					x_end = - 1;
+					x_step = -1;
+					x_end = -1;
 					y_start = 0;
 					y_step = 1;
 					y_end = height;
@@ -5458,11 +5458,11 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 				case TGA_ORIGIN_BR:
 					x_start = width - 1;
-					x_step = - 1;
-					x_end = - 1;
+					x_step = -1;
+					x_end = -1;
 					y_start = height - 1;
-					y_step = - 1;
-					y_end = - 1;
+					y_step = -1;
+					y_end = -1;
 					break;
 
 			}
@@ -5676,7 +5676,7 @@ Texture2D.fromSrc = function(src) {
         texture.image = image;
         texture.version++;
 
-        texture.dispatchEvent({type: 'onload'});
+        texture.dispatchEvent({ type: 'onload' });
     });
 
     return texture;
@@ -5774,7 +5774,7 @@ TextureCube.fromSrc = function(srcArray) {
     function loaded() {
         texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
         texture.version++;
-        texture.dispatchEvent({type: 'onload'});
+        texture.dispatchEvent({ type: 'onload' });
     }
 
     return texture;
@@ -5797,7 +5797,7 @@ function Texture3D() {
      * @member {Object}
      * @default null
      */
-    this.image = {data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2};
+    this.image = { data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2 };
 
     /**
      * WebGLTexture texel data format.
@@ -5844,7 +5844,7 @@ var object3DId = 0;
  */
 function Object3D() {
 
-    Object.defineProperty(this, 'id', { value: object3DId ++ });
+    Object.defineProperty(this, 'id', { value: object3DId++ });
 
     /**
      * UUID of this object instance.
@@ -6137,7 +6137,7 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
         callback(this);
 
         var children = this.children;
-        for (var i = 0, l = children.length; i < l; i ++) {
+        for (var i = 0, l = children.length; i < l; i++) {
             children[i].traverse(callback);
         }
     },
@@ -6180,7 +6180,7 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
         if (recursive === true) {
 
-            for (var i = 0; i < source.children.length; i ++) {
+            for (var i = 0; i < source.children.length; i++) {
 
                 var child = source.children[i];
                 this.add(child.clone());
@@ -6290,7 +6290,7 @@ Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
      * @return {zen3d.Bone}
      */
     getBoneByName: function(name) {
-        for (var i = 0, il = this.bones.length; i < il; i ++) {
+        for (var i = 0, il = this.bones.length; i < il; i++) {
 			var bone = this.bones[i];
 			if (bone.name === name) {
 				return bone;
@@ -6302,13 +6302,13 @@ Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
 
 });
 
-//// mix functions
+// // mix functions
 
 function select(buffer, dstOffset, srcOffset, t, stride) {
 
     if (t >= 0.5) {
 
-        for (var i = 0; i !== stride; ++ i) {
+        for (var i = 0; i !== stride; ++i) {
 
             buffer[dstOffset + i] = buffer[srcOffset + i];
 
@@ -6328,7 +6328,7 @@ function lerp(buffer, dstOffset, srcOffset, t, stride) {
 
     var s = 1 - t;
 
-    for (var i = 0; i !== stride; ++ i) {
+    for (var i = 0; i !== stride; ++i) {
 
         var j = dstOffset + i;
 
@@ -7062,7 +7062,7 @@ function BufferAttribute(array, size, normalized) {
      * count: Default is -1, which means don't use update ranges.
      * This can be used to only update some components of stored vectors (for example, just the component related to color).
      */
-    this.updateRange = { offset: 0, count: - 1 };
+    this.updateRange = { offset: 0, count: -1 };
 
     /**
      * A version number, incremented every time the data changes.
@@ -7101,7 +7101,7 @@ function Geometry() {
 
     EventDispatcher.call(this);
 
-    Object.defineProperty(this, 'id', { value: geometryId ++ });
+    Object.defineProperty(this, 'id', { value: geometryId++ });
 
     /**
      * UUID of this geometry instance.
@@ -7245,7 +7245,7 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      * You need to call this when you want the BufferGeometry removed while the application is running.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
     }
 
 });
@@ -7303,12 +7303,12 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 		// build each side of the box geometry
 
-		buildPlane('z', 'y', 'x', - 1, - 1, depth, height, width, depthSegments, heightSegments, 0); // px
-		buildPlane('z', 'y', 'x', 1, - 1, depth, height, - width, depthSegments, heightSegments, 1); // nx
+		buildPlane('z', 'y', 'x', -1, -1, depth, height, width, depthSegments, heightSegments, 0); // px
+		buildPlane('z', 'y', 'x', 1, -1, depth, height, -width, depthSegments, heightSegments, 1); // nx
 		buildPlane('x', 'z', 'y', 1, 1, width, depth, height, widthSegments, depthSegments, 2); // py
-		buildPlane('x', 'z', 'y', 1, - 1, width, depth, - height, widthSegments, depthSegments, 3); // ny
-		buildPlane('x', 'y', 'z', 1, - 1, width, height, depth, widthSegments, heightSegments, 4); // pz
-		buildPlane('x', 'y', 'z', - 1, - 1, width, height, - depth, widthSegments, heightSegments, 5); // nz
+		buildPlane('x', 'z', 'y', 1, -1, width, depth, -height, widthSegments, depthSegments, 3); // ny
+		buildPlane('x', 'y', 'z', 1, -1, width, height, depth, widthSegments, heightSegments, 4); // pz
+		buildPlane('x', 'y', 'z', -1, -1, width, height, -depth, widthSegments, heightSegments, 5); // nz
 
 		// build geometry
 
@@ -7338,11 +7338,11 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// generate vertices, normals and uvs
 
-			for (iy = 0; iy < gridY1; iy ++) {
+			for (iy = 0; iy < gridY1; iy++) {
 
 				var y = iy * segmentHeight - heightHalf;
 
-				for (ix = 0; ix < gridX1; ix ++) {
+				for (ix = 0; ix < gridX1; ix++) {
 
 					var x = ix * segmentWidth - widthHalf;
 
@@ -7360,7 +7360,7 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 					vector[u] = 0;
 					vector[v] = 0;
-					vector[w] = depth > 0 ? 1 : - 1;
+					vector[w] = depth > 0 ? 1 : -1;
 
 					// now apply vector to normal buffer
 
@@ -7385,9 +7385,9 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// 2. a single segment consists of two faces
 			// 3. so we need to generate six (2*3) indices per segment
 
-			for (iy = 0; iy < gridY; iy ++) {
+			for (iy = 0; iy < gridY; iy++) {
 
-				for (ix = 0; ix < gridX; ix ++) {
+				for (ix = 0; ix < gridX; ix++) {
 
 					var a = numberOfVertices + ix + gridX1 * iy;
 					var b = numberOfVertices + ix + gridX1 * (iy + 1);
@@ -7512,7 +7512,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// generate vertices, normals and uvs
 
-			for (y = 0; y <= heightSegments; y ++) {
+			for (y = 0; y <= heightSegments; y++) {
 
 				var indexRow = [];
 
@@ -7522,7 +7522,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				var radius = v * (radiusBottom - radiusTop) + radiusTop;
 
-				for (x = 0; x <= radialSegments; x ++) {
+				for (x = 0; x <= radialSegments; x++) {
 
 					var u = x / radialSegments;
 
@@ -7534,7 +7534,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 					// vertex
 
 					vertex.x = radius * sinTheta;
-					vertex.y = - v * height + halfHeight;
+					vertex.y = -v * height + halfHeight;
 					vertex.z = radius * cosTheta;
 					vertices.push(vertex.x, vertex.y, vertex.z);
 
@@ -7549,7 +7549,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 					// save index of vertex in respective row
 
-					indexRow.push(index ++);
+					indexRow.push(index++);
 
 				}
 
@@ -7561,9 +7561,9 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// generate indices
 
-			for (x = 0; x < radialSegments; x ++) {
+			for (x = 0; x < radialSegments; x++) {
 
-				for (y = 0; y < heightSegments; y ++) {
+				for (y = 0; y < heightSegments; y++) {
 
 					// we use the index array to access the correct indices
 
@@ -7605,7 +7605,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			var groupCount = 0;
 
 			var radius = (top === true) ? radiusTop : radiusBottom;
-			var sign = (top === true) ? 1 : - 1;
+			var sign = (top === true) ? 1 : -1;
 
 			// save the index of the first center vertex
 			centerIndexStart = index;
@@ -7614,7 +7614,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// because the geometry needs one set of uvs per face,
 			// we must generate a center vertex per face/segment
 
-			for (x = 1; x <= radialSegments; x ++) {
+			for (x = 1; x <= radialSegments; x++) {
 
 				// vertex
 
@@ -7630,7 +7630,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				// increase index
 
-				index ++;
+				index++;
 
 			}
 
@@ -7640,7 +7640,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// now we generate the surrounding vertices, normals and uvs
 
-			for (x = 0; x <= radialSegments; x ++) {
+			for (x = 0; x <= radialSegments; x++) {
 
 				var u = x / radialSegments;
 				var theta = u * thetaLength + thetaStart;
@@ -7667,13 +7667,13 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				// increase index
 
-				index ++;
+				index++;
 
 			}
 
 			// generate indices
 
-			for (x = 0; x < radialSegments; x ++) {
+			for (x = 0; x < radialSegments; x++) {
 
 				var c = centerIndexStart + x;
 				var i = centerIndexEnd + x;
@@ -7823,7 +7823,7 @@ function InterleavedBuffer(array, stride) {
      * @type {Object}
      * @default { offset: 0, count: - 1 }
      */
-    this.updateRange = { offset: 0, count: - 1 };
+    this.updateRange = { offset: 0, count: -1 };
 
     /**
      * A version number, incremented every time the data is changed.
@@ -8002,11 +8002,11 @@ PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 		// generate vertices, normals and uvs
 
-		for (iy = 0; iy < gridY1; iy ++) {
+		for (iy = 0; iy < gridY1; iy++) {
 
 			var y = iy * segment_height - height_half;
 
-			for (ix = 0; ix < gridX1; ix ++) {
+			for (ix = 0; ix < gridX1; ix++) {
 
 				var x = ix * segment_width - width_half;
 
@@ -8023,9 +8023,9 @@ PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 		// indices
 
-		for (iy = 0; iy < gridY; iy ++) {
+		for (iy = 0; iy < gridY; iy++) {
 
-			for (ix = 0; ix < gridX; ix ++) {
+			for (ix = 0; ix < gridX; ix++) {
 
 				var a = ix + gridX1 * iy;
 				var b = ix + gridX1 * (iy + 1);
@@ -8233,7 +8233,7 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 
 	// generate vertices, normals and uvs
 
-	for (i = 0; i <= tubularSegments; ++ i) {
+	for (i = 0; i <= tubularSegments; ++i) {
 
 		// the radian "u" is used to calculate the position on the torus curve of the current tubular segement
 
@@ -8257,13 +8257,13 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 		B.normalize();
 		N.normalize();
 
-		for (j = 0; j <= radialSegments; ++ j) {
+		for (j = 0; j <= radialSegments; ++j) {
 
 			// now calculate the vertices. they are nothing more than an extrusion of the torus curve.
 			// because we extrude a shape in the xy-plane, there is no need to calculate a z-value.
 
 			var v = j / radialSegments * Math.PI * 2;
-			var cx = - tube * Math.cos(v);
+			var cx = -tube * Math.cos(v);
 			var cy = tube * Math.sin(v);
 
 			// now calculate the final vertex position.
@@ -8292,9 +8292,9 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 
 	// generate indices
 
-	for (j = 1; j <= tubularSegments; j ++) {
+	for (j = 1; j <= tubularSegments; j++) {
 
-		for (i = 1; i <= radialSegments; i ++) {
+		for (i = 1; i <= radialSegments; i++) {
 
 			// indices
 
@@ -8357,7 +8357,7 @@ function Material() {
 
     EventDispatcher.call(this);
 
-    Object.defineProperty(this, 'id', { value: materialId ++ });
+    Object.defineProperty(this, 'id', { value: materialId++ });
 
     // material type
     this.type = "";
@@ -8696,7 +8696,7 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      * Textures of a material don't get disposed. These needs to be disposed by Texture.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
     }
 
 });
@@ -9348,7 +9348,7 @@ function ColorBuffer(gl) {
 
         setMask: function (colorMask) {
 
-            if (currentColorMask !== colorMask && ! locked) {
+            if (currentColorMask !== colorMask && !locked) {
 
                 gl.colorMask(colorMask, colorMask, colorMask, colorMask);
                 currentColorMask = colorMask;
@@ -9391,7 +9391,7 @@ function ColorBuffer(gl) {
             locked = false;
 
             currentColorMask = null;
-            currentColorClear.set(- 1, 0, 0, 0); // set to invalid state
+            currentColorClear.set(-1, 0, 0, 0); // set to invalid state
 
         }
 
@@ -9425,7 +9425,7 @@ function DepthBuffer(gl, state) {
 
         setMask: function (depthMask) {
 
-            if (currentDepthMask !== depthMask && ! locked) {
+            if (currentDepthMask !== depthMask && !locked) {
 
                 gl.depthMask(depthMask);
                 currentDepthMask = depthMask;
@@ -9507,7 +9507,7 @@ function StencilBuffer(gl, state) {
 
         setMask: function (stencilMask) {
 
-            if (currentStencilMask !== stencilMask && ! locked) {
+            if (currentStencilMask !== stencilMask && !locked) {
 
                 gl.stencilMask(stencilMask);
                 currentStencilMask = stencilMask;
@@ -10525,7 +10525,7 @@ function arraysEqual(a, b) {
 
 	if (a.length !== b.length) return false;
 
-	for (var i = 0, l = a.length; i < l; i ++) {
+	for (var i = 0, l = a.length; i < l; i++) {
 
 		if (a[i] !== b[i]) return false;
 
@@ -10537,7 +10537,7 @@ function arraysEqual(a, b) {
 
 function copyArray(a, b) {
 
-	for (var i = 0, l = b.length; i < l; i ++) {
+	for (var i = 0, l = b.length; i < l; i++) {
 
 		a[i] = b[i];
 
@@ -10768,7 +10768,7 @@ StructuredUniform.prototype.set = function (value) {
 
 	var seq = this.seq;
 
-	for (var i = 0, n = seq.length; i !== n; ++ i) {
+	for (var i = 0, n = seq.length; i !== n; ++i) {
 
 		var u = seq[i];
 		u.set(value[u.id]);
@@ -10858,7 +10858,7 @@ function WebGLUniforms(gl, program) {
 
 	var n = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
 
-	for (var i = 0; i < n; ++ i) {
+	for (var i = 0; i < n; ++i) {
 
 		var info = gl.getActiveUniform(program, i),
 			addr = gl.getUniformLocation(program, info.name);
@@ -10949,7 +10949,7 @@ function addLineNumbers(string) {
 
     var lines = string.split('\n');
 
-    for (var i = 0; i < lines.length; i ++) {
+    for (var i = 0; i < lines.length; i++) {
 
         lines[i] = (i + 1) + ': ' + lines[i];
 
@@ -11015,7 +11015,7 @@ var programIdCount = 0;
 // WebGL Program Class
 function WebGLProgram(gl, vshader, fshader) {
 
-    this.id = programIdCount ++;
+    this.id = programIdCount++;
 
     this.uuid = generateUUID();
 
@@ -11315,7 +11315,7 @@ function getTextureEncodingFromMap(map, gammaOverrideLinear) {
 
     var encoding;
 
-    if (! map) {
+    if (!map) {
 
         encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
@@ -11568,7 +11568,7 @@ function createProgram(gl, props, defines) {
         fshader = [
             '#version 300 es\n',
 			'#define varying in',
-			fshader.indexOf("layout") > -1 ? '': 'out highp vec4 pc_fragColor;',
+			fshader.indexOf("layout") > -1 ? '' : 'out highp vec4 pc_fragColor;',
 			'#define gl_FragColor pc_fragColor',
 			'#define gl_FragDepthEXT gl_FragDepth',
 			'#define texture2D texture',
@@ -11632,7 +11632,7 @@ function unrollLoops(string) {
 
 		var unroll = '';
 
-		for (var i = parseInt(start); i < parseInt(end); i ++) {
+		for (var i = parseInt(start); i < parseInt(end); i++) {
 
 			unroll += snippet.replace(/\[ i \]/g, '[ ' + i + ' ]');
 
@@ -12127,7 +12127,7 @@ var getClippingPlanesData = function() {
         }
 
         for (var i = 0; i < planes.length; i++) {
-            plane.copy(planes[i]);//.applyMatrix4(camera.viewMatrix);
+            plane.copy(planes[i]);// .applyMatrix4(camera.viewMatrix);
             planesData[i * 4 + 0] = plane.normal.x;
             planesData[i * 4 + 1] = plane.normal.y;
             planesData[i * 4 + 2] = plane.normal.z;
@@ -12650,7 +12650,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
         );
 
         var flipSided = (material.side === DRAW_SIDE.BACK);
-        if (frontFaceCW) flipSided = ! flipSided;
+        if (frontFaceCW) flipSided = !flipSided;
 
         state.setFlipSided(flipSided);
 
@@ -12735,7 +12735,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     var boneMatrices = new Float32Array(size * size * 4);
                     boneMatrices.set(skeleton.boneMatrices);
                     var boneTexture = new Texture2D();
-                    boneTexture.image = {data: boneMatrices, width: size, height: size};
+                    boneTexture.image = { data: boneMatrices, width: size, height: size };
                     if (capabilities.version >= 2) {
                         boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
                         boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
@@ -13228,7 +13228,7 @@ RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototy
      * Dispatches a dispose event.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
     }
 
 });
@@ -13286,7 +13286,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
                     changed = true;
                 }
             } else {
-                texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
                 changed = true;
             }
         }
@@ -13319,7 +13319,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
 
                 if (texture) {
                     for (var i = 0; i < 6; i++) {
-                        texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                        texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
                     }
                     texture.version++;
                 }
@@ -13679,7 +13679,7 @@ Object.assign(LightCache.prototype, {
 
         var direction = helpVector3$1;
         object.getWorldDirection(direction);
-        //direction.transformDirection(camera.viewMatrix);
+        // direction.transformDirection(camera.viewMatrix);
 
         cache.direction[0] = direction.x;
         cache.direction[1] = direction.y;
@@ -13730,7 +13730,7 @@ Object.assign(LightCache.prototype, {
         cache.distance = distance;
         cache.decay = decay;
 
-        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
         cache.position[0] = position.x;
         cache.position[1] = position.y;
@@ -13782,7 +13782,7 @@ Object.assign(LightCache.prototype, {
         cache.distance = distance;
         cache.decay = decay;
 
-        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
         cache.position[0] = position.x;
         cache.position[1] = position.y;
@@ -13922,7 +13922,7 @@ function RenderList() {
         helpVector3$2.setFromMatrixPosition(object.worldMatrix);
         helpVector3$2.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-        if (Array.isArray(object.material)){
+        if (Array.isArray(object.material)) {
             var groups = object.geometry.groups;
 
             for (var i = 0; i < groups.length; i++) {
@@ -13969,7 +13969,7 @@ function RenderList() {
             opaqueCount++;
         }
 
-        renderItemsIndex ++;
+        renderItemsIndex++;
 
     }
 
@@ -14623,7 +14623,7 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
             }
         } else {
             texture.version++;
-            texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+            texture.image = { rtt: true, data: null, width: this.width, height: this.height };
         }
         this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
     },
@@ -14648,7 +14648,7 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
                 var texture = this._textures[attachment];
 
                 if (texture) {
-                    texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+                    texture.image = { rtt: true, data: null, width: this.width, height: this.height };
                     texture.version++;
                 }
             }

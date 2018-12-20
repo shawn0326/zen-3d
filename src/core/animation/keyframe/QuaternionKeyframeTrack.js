@@ -1,5 +1,5 @@
-import {Quaternion} from '../../math/Quaternion.js';
-import {KeyframeTrack} from './KeyframeTrack.js';
+import { Quaternion } from '../../math/Quaternion.js';
+import { KeyframeTrack } from './KeyframeTrack.js';
 
 /**
  * Used for quaternion property track.
@@ -51,4 +51,4 @@ QuaternionKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.pr
 
 });
 
-export {QuaternionKeyframeTrack};
+export { QuaternionKeyframeTrack };

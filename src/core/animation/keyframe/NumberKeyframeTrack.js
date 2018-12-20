@@ -1,4 +1,4 @@
-import {KeyframeTrack} from './KeyframeTrack.js';
+import { KeyframeTrack } from './KeyframeTrack.js';
 
 /**
  * Used for number property track.
@@ -22,4 +22,4 @@ NumberKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.protot
 
 });
 
-export {NumberKeyframeTrack};
+export { NumberKeyframeTrack };

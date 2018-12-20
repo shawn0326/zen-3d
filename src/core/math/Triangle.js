@@ -1,4 +1,4 @@
-import {Vector3} from './Vector3.js';
+import { Vector3 } from './Vector3.js';
 
 /**
  * @constructor
@@ -104,4 +104,4 @@ Triangle.containsPoint = function() {
     };
 }();
 
-export {Triangle};
+export { Triangle };

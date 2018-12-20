@@ -1,8 +1,8 @@
-import {EventDispatcher} from '../EventDispatcher.js';
-import {generateUUID} from '../base.js';
-import {Box3} from '../math/Box3.js';
-import {Sphere} from '../math/Sphere.js';
-import {BufferAttribute} from './BufferAttribute.js';
+import { EventDispatcher } from '../EventDispatcher.js';
+import { generateUUID } from '../base.js';
+import { Box3 } from '../math/Box3.js';
+import { Sphere } from '../math/Sphere.js';
+import { BufferAttribute } from './BufferAttribute.js';
 
 var geometryId = 1;
 
@@ -18,7 +18,7 @@ function Geometry() {
 
     EventDispatcher.call(this);
 
-    Object.defineProperty(this, 'id', { value: geometryId ++ });
+    Object.defineProperty(this, 'id', { value: geometryId++ });
 
     /**
      * UUID of this geometry instance.
@@ -162,9 +162,9 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      * You need to call this when you want the BufferGeometry removed while the application is running.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
     }
 
 });
 
-export {Geometry};
+export { Geometry };

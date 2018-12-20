@@ -4,17 +4,15 @@ module.exports = {
         sourceType: 'module'
     },
     rules: {
-        'for-direction': 'error',
-        'getter-return': [
-            'error',
-            {
-                allowImplicit: false
-            }
-        ],
+
+        // errors
         'no-sparse-arrays': 'error',
         'no-unsafe-finally': 'error',
         'valid-typeof': 'error',
         'array-callback-return': 'error',
+        'no-template-curly-in-string': 'error',
+
+        // code warning
         // https://en.wikipedia.org/wiki/Cyclomatic_complexity
         // 'complexity': [
         //     'warn',
@@ -34,7 +32,8 @@ module.exports = {
         //     'warn',
         //     7
         // ],
-        'no-template-curly-in-string': 'warn',
+
+        // style: new
         'new-parens': 'warn',
         'new-cap': [
             'warn',
@@ -44,14 +43,14 @@ module.exports = {
                 properties: true
             }
         ],
+
+        // empty block warning
         'no-empty': [
             'warn',
             {
                 allowEmptyCatch: true
             }
         ],
-        'no-extra-semi': 'warn',
-        'no-mixed-spaces-and-tabs': 'warn',
         'no-irregular-whitespace': [
             'warn',
             {
@@ -70,6 +69,20 @@ module.exports = {
             'multi-line',
             'consistent'
         ],
+
+        // extra
+        'no-extra-semi': 'warn',
+        'comma-style': [
+            'warn',
+            'last'
+        ],
+        'semi-style': [
+            'warn',
+            'last'
+        ],
+
+        // spacing
+        'no-mixed-spaces-and-tabs': 'warn',
         'array-bracket-spacing': [
             'warn',
             'never'
@@ -84,10 +97,6 @@ module.exports = {
                 'before': false,
                 'after': true
             }
-        ],
-        'comma-style': [
-            'warn',
-            'last'
         ],
         'computed-property-spacing': [
             'warn',
@@ -109,7 +118,7 @@ module.exports = {
             {
                 beforeColon: false,
                 afterColon: true,
-                // mode: 'strict',
+                mode: 'strict',
             }
         ],
         'keyword-spacing': [
@@ -121,7 +130,65 @@ module.exports = {
         ],
         'no-trailing-spaces': 'warn',
         'no-whitespace-before-property': 'warn',
+        'object-curly-spacing': [
+            'warn',
+            'always',
+            {
+                arraysInObjects: true,
+                objectsInObjects: false
+            }
+        ],
+        'space-before-blocks': [
+            'warn',
+            'always'
+        ],
+        'semi-spacing': [
+            'warn',
+            {
+                before: false,
+                after: true
+            }
+        ],
+        'space-before-function-paren': [
+            'warn',
+            {
+                anonymous: 'ignore',
+                named: 'never',
+                asyncArrow: 'always'
+            }
+        ],
         'space-in-parens': [
+            'warn',
+            'never'
+        ],
+        'space-infix-ops': 'warn',
+        'space-unary-ops': [
+            'warn',
+            {
+                words: true,
+                nonwords: false
+            }
+        ],
+        'spaced-comment': [
+            'error',
+            'always',
+            {
+                block: {
+                    exceptions: [
+                        '*'
+                    ],
+                    balanced: true
+                }
+            }
+        ],
+        'switch-colon-spacing': [
+            'warn',
+            {
+                after: true,
+                before: false
+            }
+        ],
+        'template-tag-spacing': [
             'warn',
             'never'
         ],
@@ -132,12 +199,25 @@ module.exports = {
                 after: true
             }
         ],
-        'switch-colon-spacing': [
+        'generator-star-spacing': [
             'warn',
             {
-                after: true,
-                before: false
+                before: false,
+                after: true
             }
         ],
+        'rest-spread-spacing': [
+            'warn',
+            'never'
+        ],
+        'template-curly-spacing': [
+            'warn',
+            'never'
+        ],
+        'yield-star-spacing': [
+            'warn',
+            'after'
+        ]
+        
     }
 };

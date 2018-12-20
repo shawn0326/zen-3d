@@ -1,9 +1,9 @@
-import {generateUUID} from '../base.js';
-import {SHADOW_TYPE} from '../const.js';
-import {Vector3} from '../math/Vector3.js';
-import {Euler} from '../math/Euler.js';
-import {Quaternion} from '../math/Quaternion.js';
-import {Matrix4} from '../math/Matrix4.js';
+import { generateUUID } from '../base.js';
+import { SHADOW_TYPE } from '../const.js';
+import { Vector3 } from '../math/Vector3.js';
+import { Euler } from '../math/Euler.js';
+import { Quaternion } from '../math/Quaternion.js';
+import { Matrix4 } from '../math/Matrix4.js';
 
 var object3DId = 0;
 
@@ -15,7 +15,7 @@ var object3DId = 0;
  */
 function Object3D() {
 
-    Object.defineProperty(this, 'id', { value: object3DId ++ });
+    Object.defineProperty(this, 'id', { value: object3DId++ });
 
     /**
      * UUID of this object instance.
@@ -308,7 +308,7 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
         callback(this);
 
         var children = this.children;
-        for (var i = 0, l = children.length; i < l; i ++) {
+        for (var i = 0, l = children.length; i < l; i++) {
             children[i].traverse(callback);
         }
     },
@@ -351,7 +351,7 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
         if (recursive === true) {
 
-            for (var i = 0; i < source.children.length; i ++) {
+            for (var i = 0; i < source.children.length; i++) {
 
                 var child = source.children[i];
                 this.add(child.clone());
@@ -365,4 +365,4 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
 });
 
-export {Object3D};
+export { Object3D };

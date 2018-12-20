@@ -1,6 +1,6 @@
-import {RenderTargetBase} from './RenderTargetBase.js';
-import {TextureCube} from '../texture/TextureCube.js';
-import {ATTACHMENT} from '../const.js';
+import { RenderTargetBase } from './RenderTargetBase.js';
+import { TextureCube } from '../texture/TextureCube.js';
+import { ATTACHMENT } from '../const.js';
 
 /**
  * Render Target that render to cube texture.
@@ -55,7 +55,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
                     changed = true;
                 }
             } else {
-                texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
                 changed = true;
             }
         }
@@ -88,7 +88,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
 
                 if (texture) {
                     for (var i = 0; i < 6; i++) {
-                        texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+                        texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
                     }
                     texture.version++;
                 }
@@ -119,4 +119,4 @@ Object.defineProperties(RenderTargetCube.prototype, {
 
 });
 
-export {RenderTargetCube};
+export { RenderTargetCube };

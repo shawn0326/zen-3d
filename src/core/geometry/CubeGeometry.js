@@ -1,6 +1,6 @@
-import {Geometry} from './Geometry.js';
-import {BufferAttribute} from './BufferAttribute.js';
-import {Vector3} from '../math/Vector3.js';
+import { Geometry } from './Geometry.js';
+import { BufferAttribute } from './BufferAttribute.js';
+import { Vector3 } from '../math/Vector3.js';
 
 /**
  * CubeGeometry is the quadrilateral primitive geometry class.
@@ -55,12 +55,12 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 		// build each side of the box geometry
 
-		buildPlane('z', 'y', 'x', - 1, - 1, depth, height, width, depthSegments, heightSegments, 0); // px
-		buildPlane('z', 'y', 'x', 1, - 1, depth, height, - width, depthSegments, heightSegments, 1); // nx
+		buildPlane('z', 'y', 'x', -1, -1, depth, height, width, depthSegments, heightSegments, 0); // px
+		buildPlane('z', 'y', 'x', 1, -1, depth, height, -width, depthSegments, heightSegments, 1); // nx
 		buildPlane('x', 'z', 'y', 1, 1, width, depth, height, widthSegments, depthSegments, 2); // py
-		buildPlane('x', 'z', 'y', 1, - 1, width, depth, - height, widthSegments, depthSegments, 3); // ny
-		buildPlane('x', 'y', 'z', 1, - 1, width, height, depth, widthSegments, heightSegments, 4); // pz
-		buildPlane('x', 'y', 'z', - 1, - 1, width, height, - depth, widthSegments, heightSegments, 5); // nz
+		buildPlane('x', 'z', 'y', 1, -1, width, depth, -height, widthSegments, depthSegments, 3); // ny
+		buildPlane('x', 'y', 'z', 1, -1, width, height, depth, widthSegments, heightSegments, 4); // pz
+		buildPlane('x', 'y', 'z', -1, -1, width, height, -depth, widthSegments, heightSegments, 5); // nz
 
 		// build geometry
 
@@ -90,11 +90,11 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// generate vertices, normals and uvs
 
-			for (iy = 0; iy < gridY1; iy ++) {
+			for (iy = 0; iy < gridY1; iy++) {
 
 				var y = iy * segmentHeight - heightHalf;
 
-				for (ix = 0; ix < gridX1; ix ++) {
+				for (ix = 0; ix < gridX1; ix++) {
 
 					var x = ix * segmentWidth - widthHalf;
 
@@ -112,7 +112,7 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 					vector[u] = 0;
 					vector[v] = 0;
-					vector[w] = depth > 0 ? 1 : - 1;
+					vector[w] = depth > 0 ? 1 : -1;
 
 					// now apply vector to normal buffer
 
@@ -137,9 +137,9 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// 2. a single segment consists of two faces
 			// 3. so we need to generate six (2*3) indices per segment
 
-			for (iy = 0; iy < gridY; iy ++) {
+			for (iy = 0; iy < gridY; iy++) {
 
-				for (ix = 0; ix < gridX; ix ++) {
+				for (ix = 0; ix < gridX; ix++) {
 
 					var a = numberOfVertices + ix + gridX1 * iy;
 					var b = numberOfVertices + ix + gridX1 * (iy + 1);
@@ -179,4 +179,4 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 });
 
-export {CubeGeometry};
+export { CubeGeometry };

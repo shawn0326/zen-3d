@@ -1,7 +1,7 @@
-import {TextureBase} from './TextureBase.js';
-import {WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT} from '../const.js';
-import {ImageLoader} from '../loader/ImageLoader.js';
-import {TGALoader} from '../loader/TGALoader.js';
+import { TextureBase } from './TextureBase.js';
+import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT } from '../const.js';
+import { ImageLoader } from '../loader/ImageLoader.js';
+import { TGALoader } from '../loader/TGALoader.js';
 
 /**
  * Creates a cube texture made up of six images.
@@ -95,10 +95,10 @@ TextureCube.fromSrc = function(srcArray) {
     function loaded() {
         texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
         texture.version++;
-        texture.dispatchEvent({type: 'onload'});
+        texture.dispatchEvent({ type: 'onload' });
     }
 
     return texture;
 }
 
-export {TextureCube};
+export { TextureCube };

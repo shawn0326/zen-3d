@@ -24,7 +24,7 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
             list = this.eventMap[type] = [];
         }
 
-        list.push({listener: listener, thisObject: thisObject || this});
+        list.push({ listener: listener, thisObject: thisObject || this });
     },
 
     /**
@@ -78,4 +78,4 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
 
 });
 
-export {EventDispatcher};
+export { EventDispatcher };

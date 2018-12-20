@@ -160,4 +160,4 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 
 });
 
-export {Vector4};
+export { Vector4 };

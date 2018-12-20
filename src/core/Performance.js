@@ -81,4 +81,4 @@ Object.assign(Performance.prototype, {
 
 });
 
-export {Performance};
+export { Performance };

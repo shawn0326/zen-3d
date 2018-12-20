@@ -1,7 +1,7 @@
-import {EventDispatcher} from '../EventDispatcher.js';
-import {BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE} from '../const.js';
-import {Color3} from '../math/Color3.js';
-import {generateUUID} from '../base.js';
+import { EventDispatcher } from '../EventDispatcher.js';
+import { BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE } from '../const.js';
+import { Color3 } from '../math/Color3.js';
+import { generateUUID } from '../base.js';
 
 var materialId = 0;
 
@@ -18,7 +18,7 @@ function Material() {
 
     EventDispatcher.call(this);
 
-    Object.defineProperty(this, 'id', { value: materialId ++ });
+    Object.defineProperty(this, 'id', { value: materialId++ });
 
     // material type
     this.type = "";
@@ -357,9 +357,9 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      * Textures of a material don't get disposed. These needs to be disposed by Texture.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
     }
 
 });
 
-export {Material};
+export { Material };

@@ -83,4 +83,4 @@ Object.assign(Spherical.prototype, /** @lends zen3d.Spherical.prototype */{
 
 });
 
-export {Spherical};
+export { Spherical };

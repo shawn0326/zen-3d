@@ -228,8 +228,8 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
         var s = Math.sin(rotation);
 
         this.set(
-            sx * c, sx * s, - sx * (c * cx + s * cy) + cx + tx,
-            - sy * s, sy * c, - sy * (- s * cx + c * cy) + cy + ty,
+            sx * c, sx * s, -sx * (c * cx + s * cy) + cx + tx,
+            -sy * s, sy * c, -sy * (-s * cx + c * cy) + cy + ty,
             0, 0, 1
         );
 
@@ -256,4 +256,4 @@ Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
 });
 
-export {Matrix3};
+export { Matrix3 };

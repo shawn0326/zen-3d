@@ -1,4 +1,4 @@
-import {Vector2} from './Vector2.js';
+import { Vector2 } from './Vector2.js';
 
 /**
  * @constructor
@@ -121,4 +121,4 @@ Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
 
 });
 
-export {Curve};
+export { Curve };

@@ -1,5 +1,5 @@
-import {generateUUID} from '../base.js';
-import {EventDispatcher} from '../EventDispatcher.js';
+import { generateUUID } from '../base.js';
+import { EventDispatcher } from '../EventDispatcher.js';
 
 /**
  * Render Target is the wrapping class of gl.framebuffer.
@@ -86,9 +86,9 @@ RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototy
      * Dispatches a dispose event.
      */
     dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
+        this.dispatchEvent({ type: 'dispose' });
     }
 
 });
 
-export {RenderTargetBase};
+export { RenderTargetBase };

@@ -1,5 +1,5 @@
-import {MATERIAL_TYPE, DRAW_MODE} from '../const.js';
-import {Material} from './Material.js';
+import { MATERIAL_TYPE, DRAW_MODE } from '../const.js';
+import { Material } from './Material.js';
 
 /**
  * A material for drawing loop lines.
@@ -44,4 +44,4 @@ LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), /*
 
 });
 
-export {LineLoopMaterial};
+export { LineLoopMaterial };

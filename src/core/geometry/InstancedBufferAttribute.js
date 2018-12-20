@@ -1,4 +1,4 @@
-import {BufferAttribute}  from './BufferAttribute.js';
+import { BufferAttribute }  from './BufferAttribute.js';
 
 /**
  * An instanced version of {@link zen3d.BufferAttribute}.
@@ -34,4 +34,4 @@ InstancedBufferAttribute.prototype = Object.assign(Object.create(BufferAttribute
 
 });
 
-export {InstancedBufferAttribute};
+export { InstancedBufferAttribute };

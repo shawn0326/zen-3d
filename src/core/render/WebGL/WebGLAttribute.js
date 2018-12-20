@@ -1,4 +1,4 @@
-import {WEBGL_ATTRIBUTE_TYPE} from '../../const.js';
+import { WEBGL_ATTRIBUTE_TYPE } from '../../const.js';
 
 function WebGLAttribute(gl, program, attributeData) {
     this.gl = gl;
@@ -67,4 +67,4 @@ Object.assign(WebGLAttribute.prototype, {
 
 });
 
-export {WebGLAttribute};
+export { WebGLAttribute };

@@ -77,4 +77,4 @@ Object.assign(KeyframeClip.prototype, /** @lends zen3d.KeyframeClip.prototype */
 
 });
 
-export {KeyframeClip};
+export { KeyframeClip };

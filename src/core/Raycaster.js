@@ -1,4 +1,4 @@
-import {Ray} from './math/Ray.js';
+import { Ray } from './math/Ray.js';
 
 /**
  * This creates a new raycaster object.
@@ -119,4 +119,4 @@ Object.assign(Raycaster.prototype, /** @lends zen3d.Raycaster.prototype */{
 
 });
 
-export {Raycaster};
+export { Raycaster };

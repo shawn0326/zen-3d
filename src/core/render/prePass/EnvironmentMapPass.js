@@ -1,7 +1,7 @@
-import {Camera} from '../../objects/camera/Camera.js';
-import {Vector3} from '../../math/Vector3.js';
-import {RenderTargetCube} from '../RenderTargetCube.js';
-import {WEBGL_TEXTURE_FILTER} from '../../const.js';
+import { Camera } from '../../objects/camera/Camera.js';
+import { Vector3 } from '../../math/Vector3.js';
+import { RenderTargetCube } from '../RenderTargetCube.js';
+import { WEBGL_TEXTURE_FILTER } from '../../const.js';
 
 /**
  * environment map pre pass.
@@ -56,4 +56,4 @@ EnvironmentMapPass.prototype.render = function(glCore, scene) {
     }
 }
 
-export {EnvironmentMapPass};
+export { EnvironmentMapPass };

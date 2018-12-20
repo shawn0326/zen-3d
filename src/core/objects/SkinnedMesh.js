@@ -1,6 +1,6 @@
-import {OBJECT_TYPE} from '../const.js';
-import {Mesh} from './Mesh.js';
-import {Matrix4} from '../math/Matrix4.js';
+import { OBJECT_TYPE } from '../const.js';
+import { Mesh } from './Mesh.js';
+import { Matrix4 } from '../math/Matrix4.js';
 
 /**
  * A mesh that has a {@link zen3d.Skeleton} with bones that can then be used to animate the vertices of the geometry.
@@ -89,4 +89,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
 
 });
 
-export {SkinnedMesh};
+export { SkinnedMesh };

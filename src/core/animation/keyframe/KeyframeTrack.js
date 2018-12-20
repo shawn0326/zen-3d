@@ -73,4 +73,4 @@ Object.assign(KeyframeTrack.prototype, {
 
 });
 
-export {KeyframeTrack};
+export { KeyframeTrack };

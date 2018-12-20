@@ -132,4 +132,4 @@ function WebGLCapabilities(gl) {
 
 }
 
-export {WebGLCapabilities};
+export { WebGLCapabilities };

@@ -1,4 +1,4 @@
-import {InterleavedBuffer} from './InterleavedBuffer.js';
+import { InterleavedBuffer } from './InterleavedBuffer.js';
 
 /**
  * An instanced version of {@link zen3d.InterleavedBuffer}.
@@ -33,4 +33,4 @@ InstancedInterleavedBuffer.prototype = Object.assign(Object.create(InterleavedBu
 
 });
 
-export {InstancedInterleavedBuffer};
+export { InstancedInterleavedBuffer };

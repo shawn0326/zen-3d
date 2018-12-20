@@ -1,6 +1,6 @@
-import {MATERIAL_TYPE} from '../const.js';
-import {Material} from './Material.js';
-import {cloneUniforms} from '../base.js';
+import { MATERIAL_TYPE } from '../const.js';
+import { Material } from './Material.js';
+import { cloneUniforms } from '../base.js';
 
 /**
  * A material rendered with custom shaders.
@@ -69,4 +69,4 @@ ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** 
 
 });
 
-export {ShaderMaterial};
+export { ShaderMaterial };

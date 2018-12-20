@@ -1,4 +1,4 @@
-import {Matrix4} from './Matrix4.js';
+import { Matrix4 } from './Matrix4.js';
 
 /**
  * a vector 3 class
@@ -422,4 +422,4 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 
 });
 
-export {Vector3};
+export { Vector3 };

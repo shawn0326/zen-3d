@@ -1,5 +1,5 @@
-import {MATERIAL_TYPE, BLEND_TYPE} from '../const.js';
-import {Material} from './Material.js';
+import { MATERIAL_TYPE, BLEND_TYPE } from '../const.js';
+import { Material } from './Material.js';
 
 /**
  * A material for drawing geometry by distance.
@@ -18,4 +18,4 @@ function DistanceMaterial() {
 DistanceMaterial.prototype = Object.create(Material.prototype);
 DistanceMaterial.prototype.constructor = DistanceMaterial;
 
-export {DistanceMaterial};
+export { DistanceMaterial };

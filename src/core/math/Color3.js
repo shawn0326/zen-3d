@@ -140,4 +140,4 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
 
 });
 
-export {Color3};
+export { Color3 };

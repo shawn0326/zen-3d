@@ -201,4 +201,4 @@ Object.assign(Vector2.prototype, /** @lends zen3d.Vector2.prototype */{
 
 });
 
-export {Vector2};
+export { Vector2 };

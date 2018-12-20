@@ -1,4 +1,4 @@
-import {Vector3} from './Vector3.js';
+import { Vector3 } from './Vector3.js';
 
 /**
  * @constructor
@@ -132,7 +132,7 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
 
         if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
 
-        //return point closest to the ray (positive side)
+        // return point closest to the ray (positive side)
 
         if (tmax < 0) return null;
 
@@ -245,4 +245,4 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
 
 });
 
-export {Ray};
+export { Ray };

@@ -1,4 +1,4 @@
-import {Matrix4} from './Matrix4.js';
+import { Matrix4 } from './Matrix4.js';
 
 /**
  * a Euler class
@@ -107,12 +107,12 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         if (order === 'XYZ') {
 
-            this._y = Math.asin(clamp(m13, - 1, 1));
+            this._y = Math.asin(clamp(m13, -1, 1));
 
             if (Math.abs(m13) < 0.99999) {
 
-                this._x = Math.atan2(- m23, m33);
-                this._z = Math.atan2(- m12, m11);
+                this._x = Math.atan2(-m23, m33);
+                this._z = Math.atan2(-m12, m11);
 
             } else {
 
@@ -123,7 +123,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         } else if (order === 'YXZ') {
 
-            this._x = Math.asin(- clamp(m23, - 1, 1));
+            this._x = Math.asin(-clamp(m23, -1, 1));
 
             if (Math.abs(m23) < 0.99999) {
 
@@ -132,19 +132,19 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
             } else {
 
-                this._y = Math.atan2(- m31, m11);
+                this._y = Math.atan2(-m31, m11);
                 this._z = 0;
 
             }
 
         } else if (order === 'ZXY') {
 
-            this._x = Math.asin(clamp(m32, - 1, 1));
+            this._x = Math.asin(clamp(m32, -1, 1));
 
             if (Math.abs(m32) < 0.99999) {
 
-                this._y = Math.atan2(- m31, m33);
-                this._z = Math.atan2(- m12, m22);
+                this._y = Math.atan2(-m31, m33);
+                this._z = Math.atan2(-m12, m22);
 
             } else {
 
@@ -155,7 +155,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         } else if (order === 'ZYX') {
 
-            this._y = Math.asin(- clamp(m31, - 1, 1));
+            this._y = Math.asin(-clamp(m31, -1, 1));
 
             if (Math.abs(m31) < 0.99999) {
 
@@ -165,18 +165,18 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
             } else {
 
                 this._x = 0;
-                this._z = Math.atan2(- m12, m22);
+                this._z = Math.atan2(-m12, m22);
 
             }
 
         } else if (order === 'YZX') {
 
-            this._z = Math.asin(clamp(m21, - 1, 1));
+            this._z = Math.asin(clamp(m21, -1, 1));
 
             if (Math.abs(m21) < 0.99999) {
 
-                this._x = Math.atan2(- m23, m22);
-                this._y = Math.atan2(- m31, m11);
+                this._x = Math.atan2(-m23, m22);
+                this._y = Math.atan2(-m31, m11);
 
             } else {
 
@@ -187,7 +187,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
         } else if (order === 'XZY') {
 
-            this._z = Math.asin(- clamp(m12, - 1, 1));
+            this._z = Math.asin(-clamp(m12, -1, 1));
 
             if (Math.abs(m12) < 0.99999) {
 
@@ -196,7 +196,7 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
             } else {
 
-                this._x = Math.atan2(- m23, m33);
+                this._x = Math.atan2(-m23, m33);
                 this._y = 0;
 
             }
@@ -242,4 +242,4 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 
 });
 
-export {Euler};
+export { Euler };

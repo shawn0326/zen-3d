@@ -1,7 +1,7 @@
-import {WEBGL_TEXTURE_FILTER} from '../../const.js';
-import {LightShadow} from './LightShadow.js';
-import {RenderTarget2D} from '../../render/RenderTarget2D.js';
-import {Vector3} from '../../math/Vector3.js';
+import { WEBGL_TEXTURE_FILTER } from '../../const.js';
+import { LightShadow } from './LightShadow.js';
+import { RenderTarget2D } from '../../render/RenderTarget2D.js';
+import { Vector3 } from '../../math/Vector3.js';
 
 /**
  * This is used internally by SpotLights for calculating shadows.
@@ -77,4 +77,4 @@ SpotLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), 
 
 });
 
-export {SpotLightShadow};
+export { SpotLightShadow };

@@ -1,5 +1,5 @@
-import {MATERIAL_TYPE} from '../const.js';
-import {Material} from './Material.js';
+import { MATERIAL_TYPE } from '../const.js';
+import { Material } from './Material.js';
 
 /**
  * A standard physically based material, using Metallic-Roughness workflow.
@@ -71,4 +71,4 @@ PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @le
 
 });
 
-export {PBRMaterial};
+export { PBRMaterial };

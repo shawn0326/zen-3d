@@ -1,4 +1,4 @@
-import {PropertyBindingMixer} from './PropertyBindingMixer.js';
+import { PropertyBindingMixer } from './PropertyBindingMixer.js';
 
 /**
  * The AnimationMixer is a player for animations on a particular object in the scene.
@@ -204,4 +204,4 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 
 });
 
-export {AnimationMixer};
+export { AnimationMixer };

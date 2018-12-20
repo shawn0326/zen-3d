@@ -1,7 +1,7 @@
-import {RenderTargetBack} from './RenderTargetBack.js';
-import {WebGLCore} from './WebGL/WebGLCore.js';
-import {Performance} from '../Performance.js';
-import {ShadowMapPass} from './prePass/ShadowMapPass.js';
+import { RenderTargetBack } from './RenderTargetBack.js';
+import { WebGLCore } from './WebGL/WebGLCore.js';
+import { Performance } from '../Performance.js';
+import { ShadowMapPass } from './prePass/ShadowMapPass.js';
 
 /**
  * A simple foward renderer.
@@ -116,4 +116,4 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
     this.performance.endCounter("render");
 }
 
-export {Renderer};
+export { Renderer };

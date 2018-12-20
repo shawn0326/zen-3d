@@ -1,5 +1,5 @@
-import {TextureBase} from './TextureBase.js';
-import {WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE} from '../const.js';
+import { TextureBase } from './TextureBase.js';
+import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE } from '../const.js';
 
 /**
  * Creates a 3D texture. (WebGL 2.0)
@@ -18,7 +18,7 @@ function Texture3D() {
      * @member {Object}
      * @default null
      */
-    this.image = {data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2};
+    this.image = { data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2 };
 
     /**
      * WebGLTexture texel data format.
@@ -55,4 +55,4 @@ Texture3D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @l
 
 });
 
-export {Texture3D};
+export { Texture3D };

@@ -1,7 +1,7 @@
-import {OBJECT_TYPE} from '../const.js';
-import {LightCache} from '../render/LightCache.js';
-import {RenderList} from '../render/RenderList.js';
-import {Object3D} from './Object3D.js';
+import { OBJECT_TYPE } from '../const.js';
+import { LightCache } from '../render/LightCache.js';
+import { RenderList } from '../render/RenderList.js';
+import { Object3D } from './Object3D.js';
 
 /**
  * Scenes allow you to set up what and where is to be rendered by zen3d.
@@ -150,4 +150,4 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
 
 });
 
-export {Scene};
+export { Scene };

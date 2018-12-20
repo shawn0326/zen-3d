@@ -13,7 +13,7 @@ export var generateUUID = (function () {
 
     return function generateUUID() {
 
-        for (var i = 0; i < 36; i ++) {
+        for (var i = 0; i < 36; i++) {
 
             if (i === 8 || i === 13 || i === 18 || i === 23) {
 
@@ -136,13 +136,13 @@ export function nearestPowerOfTwo(value) {
  * @return {number} - The result number.
  */
 export function nextPowerOfTwo(value) {
-    value --;
+    value--;
     value |= value >> 1;
     value |= value >> 2;
     value |= value >> 4;
     value |= value >> 8;
     value |= value >> 16;
-    value ++;
+    value++;
 
     return value;
 }

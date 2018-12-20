@@ -1,5 +1,5 @@
-import {OBJECT_TYPE} from '../const.js';
-import {Object3D} from './Object3D.js';
+import { OBJECT_TYPE } from '../const.js';
+import { Object3D } from './Object3D.js';
 
 /**
  * This is almost identical to an {@link zen3d.Object3D}.
@@ -19,4 +19,4 @@ function Group() {
 Group.prototype = Object.create(Object3D.prototype);
 Group.prototype.constructor = Group;
 
-export {Group};
+export { Group };

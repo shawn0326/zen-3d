@@ -1,12 +1,12 @@
-import {Quaternion} from '../../math/Quaternion.js';
+import { Quaternion } from '../../math/Quaternion.js';
 
-//// mix functions
+// // mix functions
 
 function select(buffer, dstOffset, srcOffset, t, stride) {
 
     if (t >= 0.5) {
 
-        for (var i = 0; i !== stride; ++ i) {
+        for (var i = 0; i !== stride; ++i) {
 
             buffer[dstOffset + i] = buffer[srcOffset + i];
 
@@ -26,7 +26,7 @@ function lerp(buffer, dstOffset, srcOffset, t, stride) {
 
     var s = 1 - t;
 
-    for (var i = 0; i !== stride; ++ i) {
+    for (var i = 0; i !== stride; ++i) {
 
         var j = dstOffset + i;
 
@@ -169,4 +169,4 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
 });
 
-export {PropertyBindingMixer};
+export { PropertyBindingMixer };

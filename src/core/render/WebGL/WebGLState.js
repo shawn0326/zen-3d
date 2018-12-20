@@ -1,5 +1,5 @@
-import {BLEND_TYPE, CULL_FACE_TYPE, WEBGL_COMPARE_FUNC} from '../../const.js';
-import {Vector4} from '../../math/Vector4.js';
+import { BLEND_TYPE, CULL_FACE_TYPE, WEBGL_COMPARE_FUNC } from '../../const.js';
+import { Vector4 } from '../../math/Vector4.js';
 
 function createTexture(gl, type, target, count) {
     var data = new Uint8Array(4); // 4 is required to match default unpack alignment of 4.
@@ -28,7 +28,7 @@ function ColorBuffer(gl) {
 
         setMask: function (colorMask) {
 
-            if (currentColorMask !== colorMask && ! locked) {
+            if (currentColorMask !== colorMask && !locked) {
 
                 gl.colorMask(colorMask, colorMask, colorMask, colorMask);
                 currentColorMask = colorMask;
@@ -71,7 +71,7 @@ function ColorBuffer(gl) {
             locked = false;
 
             currentColorMask = null;
-            currentColorClear.set(- 1, 0, 0, 0); // set to invalid state
+            currentColorClear.set(-1, 0, 0, 0); // set to invalid state
 
         }
 
@@ -105,7 +105,7 @@ function DepthBuffer(gl, state) {
 
         setMask: function (depthMask) {
 
-            if (currentDepthMask !== depthMask && ! locked) {
+            if (currentDepthMask !== depthMask && !locked) {
 
                 gl.depthMask(depthMask);
                 currentDepthMask = depthMask;
@@ -187,7 +187,7 @@ function StencilBuffer(gl, state) {
 
         setMask: function (stencilMask) {
 
-            if (currentStencilMask !== stencilMask && ! locked) {
+            if (currentStencilMask !== stencilMask && !locked) {
 
                 gl.stencilMask(stencilMask);
                 currentStencilMask = stencilMask;
@@ -555,4 +555,4 @@ Object.assign(WebGLState.prototype, {
 
 });
 
-export {WebGLState};
+export { WebGLState };

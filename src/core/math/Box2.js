@@ -1,4 +1,4 @@
-import {Vector2} from './Vector2.js';
+import { Vector2 } from './Vector2.js';
 
 /**
  * @constructor
@@ -37,4 +37,4 @@ Object.assign(Box2.prototype, /** @lends zen3d.Box2.prototype */{
 
 });
 
-export {Box2};
+export { Box2 };

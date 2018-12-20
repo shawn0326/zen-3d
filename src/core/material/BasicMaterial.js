@@ -1,5 +1,5 @@
-import {MATERIAL_TYPE} from '../const.js';
-import {Material} from './Material.js';
+import { MATERIAL_TYPE } from '../const.js';
+import { Material } from './Material.js';
 
 /**
  * A material for drawing geometries in a simple shaded (flat or wireframe) way.
@@ -19,4 +19,4 @@ function BasicMaterial() {
 BasicMaterial.prototype = Object.create(Material.prototype);
 BasicMaterial.prototype.constructor = BasicMaterial;
 
-export {BasicMaterial};
+export { BasicMaterial };

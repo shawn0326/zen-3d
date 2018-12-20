@@ -1,5 +1,5 @@
-import {MATERIAL_TYPE, DRAW_MODE} from '../const.js';
-import {Material} from './Material.js';
+import { MATERIAL_TYPE, DRAW_MODE } from '../const.js';
+import { Material } from './Material.js';
 
 /**
  * The default material used by Points.
@@ -51,4 +51,4 @@ PointsMaterial.prototype = Object.assign(Object.create(Material.prototype), /** 
 
 });
 
-export {PointsMaterial};
+export { PointsMaterial };

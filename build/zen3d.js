@@ -20,7 +20,7 @@
 
 	    return function generateUUID() {
 
-	        for (var i = 0; i < 36; i ++) {
+	        for (var i = 0; i < 36; i++) {
 
 	            if (i === 8 || i === 13 || i === 18 || i === 23) {
 
@@ -143,13 +143,13 @@
 	 * @return {number} - The result number.
 	 */
 	function nextPowerOfTwo(value) {
-	    value --;
+	    value--;
 	    value |= value >> 1;
 	    value |= value >> 2;
 	    value |= value >> 4;
 	    value |= value >> 8;
 	    value |= value >> 16;
-	    value ++;
+	    value++;
 
 	    return value;
 	}
@@ -631,7 +631,7 @@
 	            list = this.eventMap[type] = [];
 	        }
 
-	        list.push({listener: listener, thisObject: thisObject || this});
+	        list.push({ listener: listener, thisObject: thisObject || this });
 	    },
 
 	    /**
@@ -1181,8 +1181,8 @@
 	            n43 = te[11],
 	            n44 = te[15];
 
-	        //TODO: make this more efficient
-	        //( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
+	        // TODO: make this more efficient
+	        // ( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
 
 	        return (
 	            n41 * (+n14 * n23 * n32 -
@@ -1832,7 +1832,7 @@
 
 	        if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
 
-	        //return point closest to the ray (positive side)
+	        // return point closest to the ray (positive side)
 
 	        if (tmax < 0) return null;
 
@@ -2171,12 +2171,12 @@
 
 	        if (order === 'XYZ') {
 
-	            this._y = Math.asin(clamp(m13, - 1, 1));
+	            this._y = Math.asin(clamp(m13, -1, 1));
 
 	            if (Math.abs(m13) < 0.99999) {
 
-	                this._x = Math.atan2(- m23, m33);
-	                this._z = Math.atan2(- m12, m11);
+	                this._x = Math.atan2(-m23, m33);
+	                this._z = Math.atan2(-m12, m11);
 
 	            } else {
 
@@ -2187,7 +2187,7 @@
 
 	        } else if (order === 'YXZ') {
 
-	            this._x = Math.asin(- clamp(m23, - 1, 1));
+	            this._x = Math.asin(-clamp(m23, -1, 1));
 
 	            if (Math.abs(m23) < 0.99999) {
 
@@ -2196,19 +2196,19 @@
 
 	            } else {
 
-	                this._y = Math.atan2(- m31, m11);
+	                this._y = Math.atan2(-m31, m11);
 	                this._z = 0;
 
 	            }
 
 	        } else if (order === 'ZXY') {
 
-	            this._x = Math.asin(clamp(m32, - 1, 1));
+	            this._x = Math.asin(clamp(m32, -1, 1));
 
 	            if (Math.abs(m32) < 0.99999) {
 
-	                this._y = Math.atan2(- m31, m33);
-	                this._z = Math.atan2(- m12, m22);
+	                this._y = Math.atan2(-m31, m33);
+	                this._z = Math.atan2(-m12, m22);
 
 	            } else {
 
@@ -2219,7 +2219,7 @@
 
 	        } else if (order === 'ZYX') {
 
-	            this._y = Math.asin(- clamp(m31, - 1, 1));
+	            this._y = Math.asin(-clamp(m31, -1, 1));
 
 	            if (Math.abs(m31) < 0.99999) {
 
@@ -2229,18 +2229,18 @@
 	            } else {
 
 	                this._x = 0;
-	                this._z = Math.atan2(- m12, m22);
+	                this._z = Math.atan2(-m12, m22);
 
 	            }
 
 	        } else if (order === 'YZX') {
 
-	            this._z = Math.asin(clamp(m21, - 1, 1));
+	            this._z = Math.asin(clamp(m21, -1, 1));
 
 	            if (Math.abs(m21) < 0.99999) {
 
-	                this._x = Math.atan2(- m23, m22);
-	                this._y = Math.atan2(- m31, m11);
+	                this._x = Math.atan2(-m23, m22);
+	                this._y = Math.atan2(-m31, m11);
 
 	            } else {
 
@@ -2251,7 +2251,7 @@
 
 	        } else if (order === 'XZY') {
 
-	            this._z = Math.asin(- clamp(m12, - 1, 1));
+	            this._z = Math.asin(-clamp(m12, -1, 1));
 
 	            if (Math.abs(m12) < 0.99999) {
 
@@ -2260,7 +2260,7 @@
 
 	            } else {
 
-	                this._x = Math.atan2(- m23, m33);
+	                this._x = Math.atan2(-m23, m33);
 	                this._y = 0;
 
 	            }
@@ -2901,8 +2901,8 @@
 	        var s = Math.sin(rotation);
 
 	        this.set(
-	            sx * c, sx * s, - sx * (c * cx + s * cy) + cx + tx,
-	            - sy * s, sy * c, - sy * (- s * cx + c * cy) + cy + ty,
+	            sx * c, sx * s, -sx * (c * cx + s * cy) + cx + tx,
+	            -sy * s, sy * c, -sy * (-s * cx + c * cy) + cy + ty,
 	            0, 0, 1
 	        );
 
@@ -3274,11 +3274,11 @@
 
 	                if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
 
-	                    v1.set(- vFrom.y, vFrom.x, 0);
+	                    v1.set(-vFrom.y, vFrom.x, 0);
 
 	                } else {
 
-	                    v1.set(0, - vFrom.z, vFrom.y);
+	                    v1.set(0, -vFrom.z, vFrom.y);
 
 	                }
 
@@ -3452,7 +3452,7 @@
 
 					cos = x0 * x1 + y0 * y1 + z0 * z1 + w0 * w1,
 
-					dir = (cos >= 0 ? 1 : - 1),
+					dir = (cos >= 0 ? 1 : -1),
 					sqrSin = 1 - cos * cos;
 
 				// Skip the Slerp for tiny steps to avoid numeric problems:
@@ -3858,7 +3858,7 @@
 	    coplanarPoint: function (optionalTarget) {
 	        var result = optionalTarget || new Vector3();
 
-	        return result.copy(this.normal).multiplyScalar(- this.constant);
+	        return result.copy(this.normal).multiplyScalar(-this.constant);
 	    },
 
 	    /**
@@ -3885,7 +3885,7 @@
 
 	            var normal = this.normal.applyMatrix3(normalMatrix).normalize();
 
-	            this.constant = - referencePoint.dot(normal);
+	            this.constant = -referencePoint.dot(normal);
 
 	            return this;
 	        }
@@ -4628,7 +4628,7 @@
 	     * Dispatches a dispose event.
 	     */
 	    dispose: function() {
-	        this.dispatchEvent({type: 'dispose'});
+	        this.dispatchEvent({ type: 'dispose' });
 
 	        this.version = 0;
 	    }
@@ -4664,7 +4664,7 @@
 
 		this.itemStart = function (url) {
 
-			itemsTotal ++;
+			itemsTotal++;
 
 			if (isLoading === false) {
 
@@ -4682,7 +4682,7 @@
 
 		this.itemEnd = function (url) {
 
-			itemsLoaded ++;
+			itemsLoaded++;
 
 			if (scope.onProgress !== undefined) {
 
@@ -5088,21 +5088,21 @@
 			var content = new Uint8Array(buffer),
 				offset = 0,
 				header = {
-					id_length: content[offset ++],
-					colormap_type: content[offset ++],
-					image_type: content[offset ++],
-					colormap_index: content[offset ++] | content[offset ++] << 8,
-					colormap_length: content[offset ++] | content[offset ++] << 8,
-					colormap_size: content[offset ++],
+					id_length: content[offset++],
+					colormap_type: content[offset++],
+					image_type: content[offset++],
+					colormap_index: content[offset++] | content[offset++] << 8,
+					colormap_length: content[offset++] | content[offset++] << 8,
+					colormap_size: content[offset++],
 
 					origin: [
-						content[offset ++] | content[offset ++] << 8,
-						content[offset ++] | content[offset ++] << 8
+						content[offset++] | content[offset++] << 8,
+						content[offset++] | content[offset++] << 8
 					],
-					width: content[offset ++] | content[offset ++] << 8,
-					height: content[offset ++] | content[offset ++] << 8,
-					pixel_size: content[offset ++],
-					flags: content[offset ++]
+					width: content[offset++] | content[offset++] << 8,
+					height: content[offset++] | content[offset++] << 8,
+					pixel_size: content[offset++],
+					flags: content[offset++]
 				};
 
 			function tgaCheckHeader(header) {
@@ -5235,21 +5235,21 @@
 
 					while (shift < pixel_total) {
 
-						c     = data[offset ++];
+						c     = data[offset++];
 						count = (c & 0x7f) + 1;
 
 						// RLE pixels.
 						if (c & 0x80) {
 
 							// Bind pixel tmp array
-							for (i = 0; i < pixel_size; ++ i) {
+							for (i = 0; i < pixel_size; ++i) {
 
-								pixels[i] = data[offset ++];
+								pixels[i] = data[offset++];
 
 							}
 
 							// Copy pixel array
-							for (i = 0; i < count; ++ i) {
+							for (i = 0; i < count; ++i) {
 
 								pixel_data.set(pixels, shift + i * pixel_size);
 
@@ -5261,9 +5261,9 @@
 
 							// Raw pixels.
 							count *= pixel_size;
-							for (i = 0; i < count; ++ i) {
+							for (i = 0; i < count; ++i) {
 
-								pixel_data[shift + i] = data[offset ++];
+								pixel_data[shift + i] = data[offset++];
 
 							}
 							shift += count;
@@ -5296,7 +5296,7 @@
 
 				for (y = y_start; y !== y_end; y += y_step) {
 
-					for (x = x_start; x !== x_end; x += x_step, i ++) {
+					for (x = x_start; x !== x_end; x += x_step, i++) {
 
 						color = image[i];
 						imageData[(x + width * y) * 4 + 3] = 255;
@@ -5386,7 +5386,7 @@
 
 				for (y = y_start; y !== y_end; y += y_step) {
 
-					for (x = x_start; x !== x_end; x += x_step, i ++) {
+					for (x = x_start; x !== x_end; x += x_step, i++) {
 
 						color = image[i];
 						imageData[(x + width * y) * 4 + 0] = color;
@@ -5449,14 +5449,14 @@
 						x_step = 1;
 						x_end = width;
 						y_start = height - 1;
-						y_step = - 1;
-						y_end = - 1;
+						y_step = -1;
+						y_end = -1;
 						break;
 
 					case TGA_ORIGIN_UR:
 						x_start = width - 1;
-						x_step = - 1;
-						x_end = - 1;
+						x_step = -1;
+						x_end = -1;
 						y_start = 0;
 						y_step = 1;
 						y_end = height;
@@ -5464,11 +5464,11 @@
 
 					case TGA_ORIGIN_BR:
 						x_start = width - 1;
-						x_step = - 1;
-						x_end = - 1;
+						x_step = -1;
+						x_end = -1;
 						y_start = height - 1;
-						y_step = - 1;
-						y_end = - 1;
+						y_step = -1;
+						y_end = -1;
 						break;
 
 				}
@@ -5682,7 +5682,7 @@
 	        texture.image = image;
 	        texture.version++;
 
-	        texture.dispatchEvent({type: 'onload'});
+	        texture.dispatchEvent({ type: 'onload' });
 	    });
 
 	    return texture;
@@ -5780,7 +5780,7 @@
 	    function loaded() {
 	        texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
 	        texture.version++;
-	        texture.dispatchEvent({type: 'onload'});
+	        texture.dispatchEvent({ type: 'onload' });
 	    }
 
 	    return texture;
@@ -5803,7 +5803,7 @@
 	     * @member {Object}
 	     * @default null
 	     */
-	    this.image = {data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2};
+	    this.image = { data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2 };
 
 	    /**
 	     * WebGLTexture texel data format.
@@ -5850,7 +5850,7 @@
 	 */
 	function Object3D() {
 
-	    Object.defineProperty(this, 'id', { value: object3DId ++ });
+	    Object.defineProperty(this, 'id', { value: object3DId++ });
 
 	    /**
 	     * UUID of this object instance.
@@ -6143,7 +6143,7 @@
 	        callback(this);
 
 	        var children = this.children;
-	        for (var i = 0, l = children.length; i < l; i ++) {
+	        for (var i = 0, l = children.length; i < l; i++) {
 	            children[i].traverse(callback);
 	        }
 	    },
@@ -6186,7 +6186,7 @@
 
 	        if (recursive === true) {
 
-	            for (var i = 0; i < source.children.length; i ++) {
+	            for (var i = 0; i < source.children.length; i++) {
 
 	                var child = source.children[i];
 	                this.add(child.clone());
@@ -6296,7 +6296,7 @@
 	     * @return {zen3d.Bone}
 	     */
 	    getBoneByName: function(name) {
-	        for (var i = 0, il = this.bones.length; i < il; i ++) {
+	        for (var i = 0, il = this.bones.length; i < il; i++) {
 				var bone = this.bones[i];
 				if (bone.name === name) {
 					return bone;
@@ -6308,13 +6308,13 @@
 
 	});
 
-	//// mix functions
+	// // mix functions
 
 	function select(buffer, dstOffset, srcOffset, t, stride) {
 
 	    if (t >= 0.5) {
 
-	        for (var i = 0; i !== stride; ++ i) {
+	        for (var i = 0; i !== stride; ++i) {
 
 	            buffer[dstOffset + i] = buffer[srcOffset + i];
 
@@ -6334,7 +6334,7 @@
 
 	    var s = 1 - t;
 
-	    for (var i = 0; i !== stride; ++ i) {
+	    for (var i = 0; i !== stride; ++i) {
 
 	        var j = dstOffset + i;
 
@@ -7068,7 +7068,7 @@
 	     * count: Default is -1, which means don't use update ranges.
 	     * This can be used to only update some components of stored vectors (for example, just the component related to color).
 	     */
-	    this.updateRange = { offset: 0, count: - 1 };
+	    this.updateRange = { offset: 0, count: -1 };
 
 	    /**
 	     * A version number, incremented every time the data changes.
@@ -7107,7 +7107,7 @@
 
 	    EventDispatcher.call(this);
 
-	    Object.defineProperty(this, 'id', { value: geometryId ++ });
+	    Object.defineProperty(this, 'id', { value: geometryId++ });
 
 	    /**
 	     * UUID of this geometry instance.
@@ -7251,7 +7251,7 @@
 	     * You need to call this when you want the BufferGeometry removed while the application is running.
 	     */
 	    dispose: function() {
-	        this.dispatchEvent({type: 'dispose'});
+	        this.dispatchEvent({ type: 'dispose' });
 	    }
 
 	});
@@ -7309,12 +7309,12 @@
 
 			// build each side of the box geometry
 
-			buildPlane('z', 'y', 'x', - 1, - 1, depth, height, width, depthSegments, heightSegments, 0); // px
-			buildPlane('z', 'y', 'x', 1, - 1, depth, height, - width, depthSegments, heightSegments, 1); // nx
+			buildPlane('z', 'y', 'x', -1, -1, depth, height, width, depthSegments, heightSegments, 0); // px
+			buildPlane('z', 'y', 'x', 1, -1, depth, height, -width, depthSegments, heightSegments, 1); // nx
 			buildPlane('x', 'z', 'y', 1, 1, width, depth, height, widthSegments, depthSegments, 2); // py
-			buildPlane('x', 'z', 'y', 1, - 1, width, depth, - height, widthSegments, depthSegments, 3); // ny
-			buildPlane('x', 'y', 'z', 1, - 1, width, height, depth, widthSegments, heightSegments, 4); // pz
-			buildPlane('x', 'y', 'z', - 1, - 1, width, height, - depth, widthSegments, heightSegments, 5); // nz
+			buildPlane('x', 'z', 'y', 1, -1, width, depth, -height, widthSegments, depthSegments, 3); // ny
+			buildPlane('x', 'y', 'z', 1, -1, width, height, depth, widthSegments, heightSegments, 4); // pz
+			buildPlane('x', 'y', 'z', -1, -1, width, height, -depth, widthSegments, heightSegments, 5); // nz
 
 			// build geometry
 
@@ -7344,11 +7344,11 @@
 
 				// generate vertices, normals and uvs
 
-				for (iy = 0; iy < gridY1; iy ++) {
+				for (iy = 0; iy < gridY1; iy++) {
 
 					var y = iy * segmentHeight - heightHalf;
 
-					for (ix = 0; ix < gridX1; ix ++) {
+					for (ix = 0; ix < gridX1; ix++) {
 
 						var x = ix * segmentWidth - widthHalf;
 
@@ -7366,7 +7366,7 @@
 
 						vector[u] = 0;
 						vector[v] = 0;
-						vector[w] = depth > 0 ? 1 : - 1;
+						vector[w] = depth > 0 ? 1 : -1;
 
 						// now apply vector to normal buffer
 
@@ -7391,9 +7391,9 @@
 				// 2. a single segment consists of two faces
 				// 3. so we need to generate six (2*3) indices per segment
 
-				for (iy = 0; iy < gridY; iy ++) {
+				for (iy = 0; iy < gridY; iy++) {
 
-					for (ix = 0; ix < gridX; ix ++) {
+					for (ix = 0; ix < gridX; ix++) {
 
 						var a = numberOfVertices + ix + gridX1 * iy;
 						var b = numberOfVertices + ix + gridX1 * (iy + 1);
@@ -7518,7 +7518,7 @@
 
 				// generate vertices, normals and uvs
 
-				for (y = 0; y <= heightSegments; y ++) {
+				for (y = 0; y <= heightSegments; y++) {
 
 					var indexRow = [];
 
@@ -7528,7 +7528,7 @@
 
 					var radius = v * (radiusBottom - radiusTop) + radiusTop;
 
-					for (x = 0; x <= radialSegments; x ++) {
+					for (x = 0; x <= radialSegments; x++) {
 
 						var u = x / radialSegments;
 
@@ -7540,7 +7540,7 @@
 						// vertex
 
 						vertex.x = radius * sinTheta;
-						vertex.y = - v * height + halfHeight;
+						vertex.y = -v * height + halfHeight;
 						vertex.z = radius * cosTheta;
 						vertices.push(vertex.x, vertex.y, vertex.z);
 
@@ -7555,7 +7555,7 @@
 
 						// save index of vertex in respective row
 
-						indexRow.push(index ++);
+						indexRow.push(index++);
 
 					}
 
@@ -7567,9 +7567,9 @@
 
 				// generate indices
 
-				for (x = 0; x < radialSegments; x ++) {
+				for (x = 0; x < radialSegments; x++) {
 
-					for (y = 0; y < heightSegments; y ++) {
+					for (y = 0; y < heightSegments; y++) {
 
 						// we use the index array to access the correct indices
 
@@ -7611,7 +7611,7 @@
 				var groupCount = 0;
 
 				var radius = (top === true) ? radiusTop : radiusBottom;
-				var sign = (top === true) ? 1 : - 1;
+				var sign = (top === true) ? 1 : -1;
 
 				// save the index of the first center vertex
 				centerIndexStart = index;
@@ -7620,7 +7620,7 @@
 				// because the geometry needs one set of uvs per face,
 				// we must generate a center vertex per face/segment
 
-				for (x = 1; x <= radialSegments; x ++) {
+				for (x = 1; x <= radialSegments; x++) {
 
 					// vertex
 
@@ -7636,7 +7636,7 @@
 
 					// increase index
 
-					index ++;
+					index++;
 
 				}
 
@@ -7646,7 +7646,7 @@
 
 				// now we generate the surrounding vertices, normals and uvs
 
-				for (x = 0; x <= radialSegments; x ++) {
+				for (x = 0; x <= radialSegments; x++) {
 
 					var u = x / radialSegments;
 					var theta = u * thetaLength + thetaStart;
@@ -7673,13 +7673,13 @@
 
 					// increase index
 
-					index ++;
+					index++;
 
 				}
 
 				// generate indices
 
-				for (x = 0; x < radialSegments; x ++) {
+				for (x = 0; x < radialSegments; x++) {
 
 					var c = centerIndexStart + x;
 					var i = centerIndexEnd + x;
@@ -7829,7 +7829,7 @@
 	     * @type {Object}
 	     * @default { offset: 0, count: - 1 }
 	     */
-	    this.updateRange = { offset: 0, count: - 1 };
+	    this.updateRange = { offset: 0, count: -1 };
 
 	    /**
 	     * A version number, incremented every time the data is changed.
@@ -8008,11 +8008,11 @@
 
 			// generate vertices, normals and uvs
 
-			for (iy = 0; iy < gridY1; iy ++) {
+			for (iy = 0; iy < gridY1; iy++) {
 
 				var y = iy * segment_height - height_half;
 
-				for (ix = 0; ix < gridX1; ix ++) {
+				for (ix = 0; ix < gridX1; ix++) {
 
 					var x = ix * segment_width - width_half;
 
@@ -8029,9 +8029,9 @@
 
 			// indices
 
-			for (iy = 0; iy < gridY; iy ++) {
+			for (iy = 0; iy < gridY; iy++) {
 
-				for (ix = 0; ix < gridX; ix ++) {
+				for (ix = 0; ix < gridX; ix++) {
 
 					var a = ix + gridX1 * iy;
 					var b = ix + gridX1 * (iy + 1);
@@ -8239,7 +8239,7 @@
 
 		// generate vertices, normals and uvs
 
-		for (i = 0; i <= tubularSegments; ++ i) {
+		for (i = 0; i <= tubularSegments; ++i) {
 
 			// the radian "u" is used to calculate the position on the torus curve of the current tubular segement
 
@@ -8263,13 +8263,13 @@
 			B.normalize();
 			N.normalize();
 
-			for (j = 0; j <= radialSegments; ++ j) {
+			for (j = 0; j <= radialSegments; ++j) {
 
 				// now calculate the vertices. they are nothing more than an extrusion of the torus curve.
 				// because we extrude a shape in the xy-plane, there is no need to calculate a z-value.
 
 				var v = j / radialSegments * Math.PI * 2;
-				var cx = - tube * Math.cos(v);
+				var cx = -tube * Math.cos(v);
 				var cy = tube * Math.sin(v);
 
 				// now calculate the final vertex position.
@@ -8298,9 +8298,9 @@
 
 		// generate indices
 
-		for (j = 1; j <= tubularSegments; j ++) {
+		for (j = 1; j <= tubularSegments; j++) {
 
-			for (i = 1; i <= radialSegments; i ++) {
+			for (i = 1; i <= radialSegments; i++) {
 
 				// indices
 
@@ -8363,7 +8363,7 @@
 
 	    EventDispatcher.call(this);
 
-	    Object.defineProperty(this, 'id', { value: materialId ++ });
+	    Object.defineProperty(this, 'id', { value: materialId++ });
 
 	    // material type
 	    this.type = "";
@@ -8702,7 +8702,7 @@
 	     * Textures of a material don't get disposed. These needs to be disposed by Texture.
 	     */
 	    dispose: function() {
-	        this.dispatchEvent({type: 'dispose'});
+	        this.dispatchEvent({ type: 'dispose' });
 	    }
 
 	});
@@ -9354,7 +9354,7 @@
 
 	        setMask: function (colorMask) {
 
-	            if (currentColorMask !== colorMask && ! locked) {
+	            if (currentColorMask !== colorMask && !locked) {
 
 	                gl.colorMask(colorMask, colorMask, colorMask, colorMask);
 	                currentColorMask = colorMask;
@@ -9397,7 +9397,7 @@
 	            locked = false;
 
 	            currentColorMask = null;
-	            currentColorClear.set(- 1, 0, 0, 0); // set to invalid state
+	            currentColorClear.set(-1, 0, 0, 0); // set to invalid state
 
 	        }
 
@@ -9431,7 +9431,7 @@
 
 	        setMask: function (depthMask) {
 
-	            if (currentDepthMask !== depthMask && ! locked) {
+	            if (currentDepthMask !== depthMask && !locked) {
 
 	                gl.depthMask(depthMask);
 	                currentDepthMask = depthMask;
@@ -9513,7 +9513,7 @@
 
 	        setMask: function (stencilMask) {
 
-	            if (currentStencilMask !== stencilMask && ! locked) {
+	            if (currentStencilMask !== stencilMask && !locked) {
 
 	                gl.stencilMask(stencilMask);
 	                currentStencilMask = stencilMask;
@@ -10531,7 +10531,7 @@
 
 		if (a.length !== b.length) return false;
 
-		for (var i = 0, l = a.length; i < l; i ++) {
+		for (var i = 0, l = a.length; i < l; i++) {
 
 			if (a[i] !== b[i]) return false;
 
@@ -10543,7 +10543,7 @@
 
 	function copyArray(a, b) {
 
-		for (var i = 0, l = b.length; i < l; i ++) {
+		for (var i = 0, l = b.length; i < l; i++) {
 
 			a[i] = b[i];
 
@@ -10774,7 +10774,7 @@
 
 		var seq = this.seq;
 
-		for (var i = 0, n = seq.length; i !== n; ++ i) {
+		for (var i = 0, n = seq.length; i !== n; ++i) {
 
 			var u = seq[i];
 			u.set(value[u.id]);
@@ -10864,7 +10864,7 @@
 
 		var n = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
 
-		for (var i = 0; i < n; ++ i) {
+		for (var i = 0; i < n; ++i) {
 
 			var info = gl.getActiveUniform(program, i),
 				addr = gl.getUniformLocation(program, info.name);
@@ -10955,7 +10955,7 @@
 
 	    var lines = string.split('\n');
 
-	    for (var i = 0; i < lines.length; i ++) {
+	    for (var i = 0; i < lines.length; i++) {
 
 	        lines[i] = (i + 1) + ': ' + lines[i];
 
@@ -11021,7 +11021,7 @@
 	// WebGL Program Class
 	function WebGLProgram(gl, vshader, fshader) {
 
-	    this.id = programIdCount ++;
+	    this.id = programIdCount++;
 
 	    this.uuid = generateUUID();
 
@@ -11321,7 +11321,7 @@
 
 	    var encoding;
 
-	    if (! map) {
+	    if (!map) {
 
 	        encoding = TEXEL_ENCODING_TYPE.LINEAR;
 
@@ -11574,7 +11574,7 @@
 	        fshader = [
 	            '#version 300 es\n',
 				'#define varying in',
-				fshader.indexOf("layout") > -1 ? '': 'out highp vec4 pc_fragColor;',
+				fshader.indexOf("layout") > -1 ? '' : 'out highp vec4 pc_fragColor;',
 				'#define gl_FragColor pc_fragColor',
 				'#define gl_FragDepthEXT gl_FragDepth',
 				'#define texture2D texture',
@@ -11638,7 +11638,7 @@
 
 			var unroll = '';
 
-			for (var i = parseInt(start); i < parseInt(end); i ++) {
+			for (var i = parseInt(start); i < parseInt(end); i++) {
 
 				unroll += snippet.replace(/\[ i \]/g, '[ ' + i + ' ]');
 
@@ -12133,7 +12133,7 @@
 	        }
 
 	        for (var i = 0; i < planes.length; i++) {
-	            plane.copy(planes[i]);//.applyMatrix4(camera.viewMatrix);
+	            plane.copy(planes[i]);// .applyMatrix4(camera.viewMatrix);
 	            planesData[i * 4 + 0] = plane.normal.x;
 	            planesData[i * 4 + 1] = plane.normal.y;
 	            planesData[i * 4 + 2] = plane.normal.z;
@@ -12656,7 +12656,7 @@
 	        );
 
 	        var flipSided = (material.side === DRAW_SIDE.BACK);
-	        if (frontFaceCW) flipSided = ! flipSided;
+	        if (frontFaceCW) flipSided = !flipSided;
 
 	        state.setFlipSided(flipSided);
 
@@ -12741,7 +12741,7 @@
 	                    var boneMatrices = new Float32Array(size * size * 4);
 	                    boneMatrices.set(skeleton.boneMatrices);
 	                    var boneTexture = new Texture2D();
-	                    boneTexture.image = {data: boneMatrices, width: size, height: size};
+	                    boneTexture.image = { data: boneMatrices, width: size, height: size };
 	                    if (capabilities.version >= 2) {
 	                        boneTexture.internalformat = WEBGL_PIXEL_FORMAT.RGBA32F;
 	                        boneTexture.format = WEBGL_PIXEL_FORMAT.RGBA;
@@ -13234,7 +13234,7 @@
 	     * Dispatches a dispose event.
 	     */
 	    dispose: function() {
-	        this.dispatchEvent({type: 'dispose'});
+	        this.dispatchEvent({ type: 'dispose' });
 	    }
 
 	});
@@ -13292,7 +13292,7 @@
 	                    changed = true;
 	                }
 	            } else {
-	                texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+	                texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
 	                changed = true;
 	            }
 	        }
@@ -13325,7 +13325,7 @@
 
 	                if (texture) {
 	                    for (var i = 0; i < 6; i++) {
-	                        texture.images[i] = {rtt: true, data: null, width: this.width, height: this.height};
+	                        texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
 	                    }
 	                    texture.version++;
 	                }
@@ -13685,7 +13685,7 @@
 
 	        var direction = helpVector3$1;
 	        object.getWorldDirection(direction);
-	        //direction.transformDirection(camera.viewMatrix);
+	        // direction.transformDirection(camera.viewMatrix);
 
 	        cache.direction[0] = direction.x;
 	        cache.direction[1] = direction.y;
@@ -13736,7 +13736,7 @@
 	        cache.distance = distance;
 	        cache.decay = decay;
 
-	        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+	        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
 	        cache.position[0] = position.x;
 	        cache.position[1] = position.y;
@@ -13788,7 +13788,7 @@
 	        cache.distance = distance;
 	        cache.decay = decay;
 
-	        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+	        var position = helpVector3$1.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
 	        cache.position[0] = position.x;
 	        cache.position[1] = position.y;
@@ -13928,7 +13928,7 @@
 	        helpVector3$2.setFromMatrixPosition(object.worldMatrix);
 	        helpVector3$2.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
 
-	        if (Array.isArray(object.material)){
+	        if (Array.isArray(object.material)) {
 	            var groups = object.geometry.groups;
 
 	            for (var i = 0; i < groups.length; i++) {
@@ -13975,7 +13975,7 @@
 	            opaqueCount++;
 	        }
 
-	        renderItemsIndex ++;
+	        renderItemsIndex++;
 
 	    }
 
@@ -14629,7 +14629,7 @@
 	            }
 	        } else {
 	            texture.version++;
-	            texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+	            texture.image = { rtt: true, data: null, width: this.width, height: this.height };
 	        }
 	        this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
 	    },
@@ -14654,7 +14654,7 @@
 	                var texture = this._textures[attachment];
 
 	                if (texture) {
-	                    texture.image = {rtt: true, data: null, width: this.width, height: this.height};
+	                    texture.image = { rtt: true, data: null, width: this.width, height: this.height };
 	                    texture.version++;
 	                }
 	            }

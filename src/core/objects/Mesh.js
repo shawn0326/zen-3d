@@ -1,12 +1,12 @@
-import {OBJECT_TYPE} from '../const.js';
-import {Object3D} from './Object3D.js';
-import {Sphere} from '../math/Sphere.js';
-import {Box3} from '../math/Box3.js';
-import {Matrix4} from '../math/Matrix4.js';
-import {Ray} from '../math/Ray.js';
-import {Vector3} from '../math/Vector3.js';
-import {Vector2} from '../math/Vector2.js';
-import {Triangle} from '../math/Triangle.js';
+import { OBJECT_TYPE } from '../const.js';
+import { Object3D } from './Object3D.js';
+import { Sphere } from '../math/Sphere.js';
+import { Box3 } from '../math/Box3.js';
+import { Matrix4 } from '../math/Matrix4.js';
+import { Ray } from '../math/Ray.js';
+import { Vector3 } from '../math/Vector3.js';
+import { Vector2 } from '../math/Vector2.js';
+import { Triangle } from '../math/Triangle.js';
 
 /**
  * Class representing triangular polygon mesh based objects.
@@ -163,4 +163,4 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 
 });
 
-export {Mesh};
+export { Mesh };

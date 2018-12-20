@@ -1,9 +1,9 @@
-import {DepthMaterial} from '../../material/DepthMaterial.js';
-import {DistanceMaterial} from '../../material/DistanceMaterial.js';
-import {LIGHT_TYPE} from '../../const.js';
+import { DepthMaterial } from '../../material/DepthMaterial.js';
+import { DistanceMaterial } from '../../material/DistanceMaterial.js';
+import { LIGHT_TYPE } from '../../const.js';
 import { Vector4 } from '../../math/Vector4.js';
-import {Texture2D} from '../../texture/Texture2D.js';
-import {WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_COMPARE_FUNC} from '../../const.js';
+import { Texture2D } from '../../texture/Texture2D.js';
+import { WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_COMPARE_FUNC } from '../../const.js';
 
 function convertLightShadowToWebGL2(lightShadow) {
     if (!lightShadow.depthMap) {
@@ -122,4 +122,4 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 
 }
 
-export {ShadowMapPass};
+export { ShadowMapPass };

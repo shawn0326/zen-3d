@@ -1,5 +1,5 @@
-import {FileLoader} from './FileLoader.js';
-import {DefaultLoadingManager} from './LoadingManager.js';
+import { FileLoader } from './FileLoader.js';
+import { DefaultLoadingManager } from './LoadingManager.js';
 
 /**
  * A loader for loading a .tga Image.
@@ -60,21 +60,21 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 		var content = new Uint8Array(buffer),
 			offset = 0,
 			header = {
-				id_length: content[offset ++],
-				colormap_type: content[offset ++],
-				image_type: content[offset ++],
-				colormap_index: content[offset ++] | content[offset ++] << 8,
-				colormap_length: content[offset ++] | content[offset ++] << 8,
-				colormap_size: content[offset ++],
+				id_length: content[offset++],
+				colormap_type: content[offset++],
+				image_type: content[offset++],
+				colormap_index: content[offset++] | content[offset++] << 8,
+				colormap_length: content[offset++] | content[offset++] << 8,
+				colormap_size: content[offset++],
 
 				origin: [
-					content[offset ++] | content[offset ++] << 8,
-					content[offset ++] | content[offset ++] << 8
+					content[offset++] | content[offset++] << 8,
+					content[offset++] | content[offset++] << 8
 				],
-				width: content[offset ++] | content[offset ++] << 8,
-				height: content[offset ++] | content[offset ++] << 8,
-				pixel_size: content[offset ++],
-				flags: content[offset ++]
+				width: content[offset++] | content[offset++] << 8,
+				height: content[offset++] | content[offset++] << 8,
+				pixel_size: content[offset++],
+				flags: content[offset++]
 			};
 
 		function tgaCheckHeader(header) {
@@ -207,21 +207,21 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 				while (shift < pixel_total) {
 
-					c     = data[offset ++];
+					c     = data[offset++];
 					count = (c & 0x7f) + 1;
 
 					// RLE pixels.
 					if (c & 0x80) {
 
 						// Bind pixel tmp array
-						for (i = 0; i < pixel_size; ++ i) {
+						for (i = 0; i < pixel_size; ++i) {
 
-							pixels[i] = data[offset ++];
+							pixels[i] = data[offset++];
 
 						}
 
 						// Copy pixel array
-						for (i = 0; i < count; ++ i) {
+						for (i = 0; i < count; ++i) {
 
 							pixel_data.set(pixels, shift + i * pixel_size);
 
@@ -233,9 +233,9 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 						// Raw pixels.
 						count *= pixel_size;
-						for (i = 0; i < count; ++ i) {
+						for (i = 0; i < count; ++i) {
 
-							pixel_data[shift + i] = data[offset ++];
+							pixel_data[shift + i] = data[offset++];
 
 						}
 						shift += count;
@@ -268,7 +268,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 			for (y = y_start; y !== y_end; y += y_step) {
 
-				for (x = x_start; x !== x_end; x += x_step, i ++) {
+				for (x = x_start; x !== x_end; x += x_step, i++) {
 
 					color = image[i];
 					imageData[(x + width * y) * 4 + 3] = 255;
@@ -358,7 +358,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 			for (y = y_start; y !== y_end; y += y_step) {
 
-				for (x = x_start; x !== x_end; x += x_step, i ++) {
+				for (x = x_start; x !== x_end; x += x_step, i++) {
 
 					color = image[i];
 					imageData[(x + width * y) * 4 + 0] = color;
@@ -421,14 +421,14 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 					x_step = 1;
 					x_end = width;
 					y_start = height - 1;
-					y_step = - 1;
-					y_end = - 1;
+					y_step = -1;
+					y_end = -1;
 					break;
 
 				case TGA_ORIGIN_UR:
 					x_start = width - 1;
-					x_step = - 1;
-					x_end = - 1;
+					x_step = -1;
+					x_end = -1;
 					y_start = 0;
 					y_step = 1;
 					y_end = height;
@@ -436,11 +436,11 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 				case TGA_ORIGIN_BR:
 					x_start = width - 1;
-					x_step = - 1;
-					x_end = - 1;
+					x_step = -1;
+					x_end = -1;
 					y_start = height - 1;
-					y_step = - 1;
-					y_end = - 1;
+					y_step = -1;
+					y_end = -1;
 					break;
 
 			}
@@ -509,4 +509,4 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 });
 
-export {TGALoader};
+export { TGALoader };

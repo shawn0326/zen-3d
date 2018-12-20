@@ -27,7 +27,7 @@ function LoadingManager(onLoad, onProgress, onError) {
 
 	this.itemStart = function (url) {
 
-		itemsTotal ++;
+		itemsTotal++;
 
 		if (isLoading === false) {
 
@@ -45,7 +45,7 @@ function LoadingManager(onLoad, onProgress, onError) {
 
 	this.itemEnd = function (url) {
 
-		itemsLoaded ++;
+		itemsLoaded++;
 
 		if (scope.onProgress !== undefined) {
 

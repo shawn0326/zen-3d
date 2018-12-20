@@ -1,6 +1,6 @@
-import {Geometry} from './Geometry.js';
-import {BufferAttribute} from './BufferAttribute.js';
-import {Vector3} from '../math/Vector3.js';
+import { Geometry } from './Geometry.js';
+import { BufferAttribute } from './BufferAttribute.js';
+import { Vector3 } from '../math/Vector3.js';
 
 /**
  * A class for generating sphere geometries.
@@ -123,4 +123,4 @@ SphereGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
     }
 });
 
-export {SphereGeometry};
+export { SphereGeometry };

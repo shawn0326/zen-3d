@@ -1,4 +1,4 @@
-import {generateUUID} from '../base.js';
+import { generateUUID } from '../base.js';
 
 /**
  * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
@@ -47,7 +47,7 @@ function InterleavedBuffer(array, stride) {
      * @type {Object}
      * @default { offset: 0, count: - 1 }
      */
-    this.updateRange = { offset: 0, count: - 1 };
+    this.updateRange = { offset: 0, count: -1 };
 
     /**
      * A version number, incremented every time the data is changed.
@@ -70,4 +70,4 @@ Object.assign(InterleavedBuffer.prototype, /** @lends zen3d.InterleavedBuffer.pr
 
 });
 
-export {InterleavedBuffer};
+export { InterleavedBuffer };
