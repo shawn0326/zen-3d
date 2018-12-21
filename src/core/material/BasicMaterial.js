@@ -9,11 +9,9 @@ import { Material } from './Material.js';
  * @memberof zen3d
  */
 function BasicMaterial() {
+	Material.call(this);
 
-    Material.call(this);
-
-    this.type = MATERIAL_TYPE.BASIC;
-
+	this.type = MATERIAL_TYPE.BASIC;
 }
 
 BasicMaterial.prototype = Object.create(Material.prototype);

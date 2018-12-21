@@ -1,23 +1,24 @@
 module.exports = {
     // parser: 'babel-eslint',
-    parserOptions: {
-        sourceType: 'module'
+    'parserOptions': {
+        'sourceType': 'module'
     },
-    rules: {
-
+    'rules': {
         // errors
         'no-sparse-arrays': 'error',
         'no-unsafe-finally': 'error',
         'valid-typeof': 'error',
         'array-callback-return': 'error',
         'no-template-curly-in-string': 'error',
+        'use-isnan': 'error',
+        'no-unsafe-negation': 'error',
 
-        // code warning
+        // readability warning
         // https://en.wikipedia.org/wiki/Cyclomatic_complexity
         // 'complexity': [
         //     'warn',
         //     {
-        //         max: 20
+        //         'max': 20
         //     }
         // ],
         'max-depth': [
@@ -28,19 +29,30 @@ module.exports = {
             'warn',
             3
         ],
-        // 'max-params': [
-        //     'warn',
-        //     7
-        // ],
 
-        // style: new
+        // tab
+        "indent": ["warn", "tab"],
+        'no-mixed-spaces-and-tabs': 'warn',
+
+        // new
         'new-parens': 'warn',
         'new-cap': [
             'warn',
             {
-                newIsCap: true,
-                capIsNew: false,
-                properties: true
+                'newIsCap': true,
+                'capIsNew': false,
+                'properties': true
+            }
+        ],
+
+        // variables
+        'no-unused-vars': [
+            'warn',
+            {
+                'vars': 'all',
+                'args': 'none',
+                'caughtErrors': 'none',
+                'ignoreRestSiblings': true
             }
         ],
 
@@ -48,26 +60,21 @@ module.exports = {
         'no-empty': [
             'warn',
             {
-                allowEmptyCatch: true
+                'allowEmptyCatch': true
             }
         ],
-        'no-irregular-whitespace': [
-            'warn',
-            {
-                skipStrings: true,
-                skipComments: false,
-                skipRegExps: true,
-                skipTemplates: true
-            }
-        ],
-        'no-unexpected-multiline': 'warn',
+        
+        // other style
         'no-unreachable': 'warn',
-        'no-unsafe-negation': 'warn',
-        'use-isnan': 'warn',
         'curly': [
             'warn',
             'multi-line',
             'consistent'
+        ],
+        'brace-style': [
+            "warn", 
+            "1tbs", 
+            { "allowSingleLine": true }
         ],
 
         // extra
@@ -82,7 +89,15 @@ module.exports = {
         ],
 
         // spacing
-        'no-mixed-spaces-and-tabs': 'warn',
+        'no-irregular-whitespace': [
+            'warn',
+            {
+                'skipStrings': true,
+                'skipComments': false,
+                'skipRegExps': true,
+                'skipTemplates': true
+            }
+        ],
         'array-bracket-spacing': [
             'warn',
             'never'
@@ -110,22 +125,22 @@ module.exports = {
             'warn',
             'always',
             {
-                includeCommonJSModuleExports: false
+                'includeCommonJSModuleExports': false
             }
         ],
         'key-spacing': [
             'warn',
             {
-                beforeColon: false,
-                afterColon: true,
-                mode: 'strict',
+                'beforeColon': false,
+                'afterColon': true,
+                'mode': 'strict',
             }
         ],
         'keyword-spacing': [
             'warn',
             {
-                before: true,
-                after: true
+                'before': true,
+                'after': true
             }
         ],
         'no-trailing-spaces': 'warn',
@@ -134,8 +149,8 @@ module.exports = {
             'warn',
             'always',
             {
-                arraysInObjects: true,
-                objectsInObjects: false
+                'arraysInObjects': true,
+                'objectsInObjects': false
             }
         ],
         'space-before-blocks': [
@@ -145,16 +160,16 @@ module.exports = {
         'semi-spacing': [
             'warn',
             {
-                before: false,
-                after: true
+                'before': false,
+                'after': true
             }
         ],
         'space-before-function-paren': [
             'warn',
             {
-                anonymous: 'ignore',
-                named: 'never',
-                asyncArrow: 'always'
+                'anonymous': 'ignore',
+                'named': 'never',
+                'asyncArrow': 'always'
             }
         ],
         'space-in-parens': [
@@ -165,27 +180,27 @@ module.exports = {
         'space-unary-ops': [
             'warn',
             {
-                words: true,
-                nonwords: false
+                'words': true,
+                'nonwords': false
             }
         ],
         'spaced-comment': [
             'error',
             'always',
             {
-                block: {
-                    exceptions: [
+                'block': {
+                    'exceptions': [
                         '*'
                     ],
-                    balanced: true
+                    'balanced': true
                 }
             }
         ],
         'switch-colon-spacing': [
             'warn',
             {
-                after: true,
-                before: false
+                'after': true,
+                'before': false
             }
         ],
         'template-tag-spacing': [
@@ -195,15 +210,15 @@ module.exports = {
         'arrow-spacing': [
             'warn',
             {
-                before: true,
-                after: true
+                'before': true,
+                'after': true
             }
         ],
         'generator-star-spacing': [
             'warn',
             {
-                before: false,
-                after: true
+                'before': false,
+                'after': true
             }
         ],
         'rest-spread-spacing': [
@@ -217,7 +232,24 @@ module.exports = {
         'yield-star-spacing': [
             'warn',
             'after'
-        ]
-        
+        ],
+
+        // lines
+        'no-multiple-empty-lines': [
+            'warn',
+            {
+                'max': 3,
+                'maxEOF': 1,
+                'maxBOF': 1
+            }
+        ],
+        'padded-blocks': [
+            'warn',
+            {
+                "blocks": "never",
+                "classes": "always",
+                "switches": "never"
+            }
+        ]  
     }
 };

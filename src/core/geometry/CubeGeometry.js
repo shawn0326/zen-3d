@@ -16,11 +16,9 @@ import { Vector3 } from '../math/Vector3.js';
  * @param {Integer} [depthSegments=1] - Number of segmented faces along the depth of the sides.
  */
 function CubeGeometry(width, height, depth, widthSegments, heightSegments, depthSegments) {
-
 	Geometry.call(this);
 
 	this.buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
-
 }
 
 CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -28,7 +26,6 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 	constructor: CubeGeometry,
 
 	buildGeometry: function(width, height, depth, widthSegments, heightSegments, depthSegments) {
-
 		var scope = this;
 
 		width = width || 1;
@@ -70,7 +67,6 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 		this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
 
 		function buildPlane(u, v, w, udir, vdir, width, height, depth, gridX, gridY, materialIndex) {
-
 			var segmentWidth = width / gridX;
 			var segmentHeight = height / gridY;
 
@@ -91,11 +87,9 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// generate vertices, normals and uvs
 
 			for (iy = 0; iy < gridY1; iy++) {
-
 				var y = iy * segmentHeight - heightHalf;
 
 				for (ix = 0; ix < gridX1; ix++) {
-
 					var x = ix * segmentWidth - widthHalf;
 
 					// set values to correct vector component
@@ -126,9 +120,7 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 					// counters
 
 					vertexCounter += 1;
-
 				}
-
 			}
 
 			// indices
@@ -138,9 +130,7 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// 3. so we need to generate six (2*3) indices per segment
 
 			for (iy = 0; iy < gridY; iy++) {
-
 				for (ix = 0; ix < gridX; ix++) {
-
 					var a = numberOfVertices + ix + gridX1 * iy;
 					var b = numberOfVertices + ix + gridX1 * (iy + 1);
 					var c = numberOfVertices + (ix + 1) + gridX1 * (iy + 1);
@@ -154,9 +144,7 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 					// increase counter
 
 					groupCount += 6;
-
 				}
-
 			}
 
 			// add a group to the geometry. this will ensure multi material support
@@ -170,7 +158,6 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// update total number of vertices
 
 			numberOfVertices += vertexCounter;
-
 		}
 
 		this.computeBoundingBox();

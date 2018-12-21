@@ -14,31 +14,29 @@ import { DirectionalLightShadow } from './DirectionalLightShadow.js';
  * @param {number} [intensity=1]
  */
 function DirectionalLight(color, intensity) {
+	Light.call(this, color, intensity);
 
-    Light.call(this, color, intensity);
+	this.lightType = LIGHT_TYPE.DIRECT;
 
-    this.lightType = LIGHT_TYPE.DIRECT;
-
-    /**
+	/**
      * A {@link zen3d.DirectionalLightShadow} used to calculate shadows for this light.
      * @type {zen3d.DirectionalLightShadow}
      * @default zen3d.DirectionalLightShadow()
      */
-    this.shadow = new DirectionalLightShadow();
-
+	this.shadow = new DirectionalLightShadow();
 }
 
 DirectionalLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends zen3d.DirectionalLight.prototype */{
 
-    constructor: DirectionalLight,
+	constructor: DirectionalLight,
 
-    copy: function(source) {
-        Light.prototype.copy.call(this, source);
+	copy: function(source) {
+		Light.prototype.copy.call(this, source);
 
-        this.shadow.copy(source.shadow);
+		this.shadow.copy(source.shadow);
 
-        return this;
-    }
+		return this;
+	}
 
 });
 

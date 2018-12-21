@@ -11,23 +11,21 @@ import { KeyframeTrack } from './KeyframeTrack.js';
  * @param {Boolean} interpolant
  */
 function BooleanKeyframeTrack(target, propertyPath, times, values, interpolant) {
-    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
+	KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 }
 
 BooleanKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
-    constructor: BooleanKeyframeTrack,
+	constructor: BooleanKeyframeTrack,
 
-    valueTypeName: 'bool',
+	valueTypeName: 'bool',
 
-    getValue: function(t, outBuffer) {
+	getValue: function(t, outBuffer) {
+		var index = this._getLastTimeIndex(t),
+			key = this.times[index];
 
-        var index = this._getLastTimeIndex(t),
-            key = this.times[index];
-
-        outBuffer[0] = this.values[key];
-
-    }
+		outBuffer[0] = this.values[key];
+	}
 
 });
 

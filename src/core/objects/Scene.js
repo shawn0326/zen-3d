@@ -11,142 +11,139 @@ import { Object3D } from './Object3D.js';
  * @extends zen3d.Object3D
  */
 function Scene() {
+	Object3D.call(this);
 
-    Object3D.call(this);
+	this.type = OBJECT_TYPE.SCENE;
 
-    this.type = OBJECT_TYPE.SCENE;
-
-    /**
+	/**
      * If not null, it will force everything in the scene to be rendered with that material.
      * @type {zen3d.Material}
      * @default null
      */
-    this.overrideMaterial = null;
+	this.overrideMaterial = null;
 
-    /**
+	/**
      * A {@link zen3d.Fog} instance defining the type of fog that affects everything rendered in the scene.
      * @type {zen3d.Fog}
      * @default null
      */
-    this.fog = null;
+	this.fog = null;
 
-    /**
+	/**
      * User-defined clipping planes specified as {@link zen3d.Plane} objects in world space.
      * These planes apply to the scene.
      * Points in space whose dot product with the plane is negative are cut away.
      * @type {zen3d.Plane[]}
      * @default []
      */
-    this.clippingPlanes = [];
+	this.clippingPlanes = [];
 
-    /**
+	/**
      * A {@link zen3d.LightCache} instance that collected all lights info after the calling of {@link zen3d.Scene#updateLights}.
      * @type {zen3d.LightCache}
      * @default zen3d.LightCache()
      */
-    this.lights = new LightCache();
+	this.lights = new LightCache();
 
-    this._renderLists = {};
+	this._renderLists = {};
 }
 
 Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Scene.prototype */{
 
-    constructor: Scene,
+	constructor: Scene,
 
-    /**
+	/**
      * Update {@link zen3d.RenderList} for the scene and camera.
      * @param {zen3d.Camera} camera - The camera.
      * @return {RenderList} - The result render list.
      */
-    updateRenderList: function(camera) {
-        var id = camera.uuid;
+	updateRenderList: function(camera) {
+		var id = camera.uuid;
 
-        if (!this._renderLists[id]) {
-            this._renderLists[id] = new RenderList();
-        }
+		if (!this._renderLists[id]) {
+			this._renderLists[id] = new RenderList();
+		}
 
-        var renderList = this._renderLists[id];
+		var renderList = this._renderLists[id];
 
-        renderList.startCount();
+		renderList.startCount();
 
-        this._doUpdateRenderList(this, camera, renderList);
+		this._doUpdateRenderList(this, camera, renderList);
 
-        renderList.endCount();
+		renderList.endCount();
 
-        renderList.sort();
+		renderList.sort();
 
-        return renderList;
-    },
+		return renderList;
+	},
 
-    /**
+	/**
      * Get {@link zen3d.RenderList} for the scene and camera.
      * The Render List must be updated before this calling.
      * @param {zen3d.Camera} camera - The camera.
      * @return {RenderList} - The target render list.
      */
-    getRenderList: function(camera) {
-        return this._renderLists[camera.uuid];
-    },
+	getRenderList: function(camera) {
+		return this._renderLists[camera.uuid];
+	},
 
-    /**
+	/**
      * Update all lights in the scene.
      * @return {LightCache} - An instance of {@link LightCache} whitch contains all lights in the scene.
      */
-    updateLights: function() {
-        var lights = this.lights;
+	updateLights: function() {
+		var lights = this.lights;
 
-        lights.startCount();
+		lights.startCount();
 
-        this._doUpdateLights(this);
+		this._doUpdateLights(this);
 
-        lights.endCount();
+		lights.endCount();
 
-        return lights;
-    },
+		return lights;
+	},
 
-    _doUpdateRenderList: function(object, camera, renderList) {
+	_doUpdateRenderList: function(object, camera, renderList) {
+		if (!object.visible) {
+			return;
+		}
 
-        if (!object.visible) {
-            return;
-        }
+		if (!!object.geometry && !!object.material) { // renderable
+			renderList.add(object, camera);
+		}
 
-        if (!!object.geometry && !!object.material) { // renderable
-            renderList.add(object, camera);
-        }
+		// skip ui children
+		if (OBJECT_TYPE.CANVAS2D === object.type) {
+			return;
+		}
 
-        // skip ui children
-        if (OBJECT_TYPE.CANVAS2D === object.type) {
-            return;
-        }
+		// handle children by recursion
+		var children = object.children;
+		for (var i = 0, l = children.length; i < l; i++) {
+			this._doUpdateRenderList(children[i], camera, renderList);
+		}
+	},
 
-        // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            this._doUpdateRenderList(children[i], camera, renderList);
-        }
-    },
+	_doUpdateLights: function(object) {
+		if (!object.visible) {
+			return;
+		}
 
-    _doUpdateLights: function(object) {
+		if (OBJECT_TYPE.LIGHT === object.type) { // light
+			this.lights.add(object);
+		}
 
-        if (!object.visible) {
-            return;
-        }
+		// skip ui children
+		if (OBJECT_TYPE.CANVAS2D === object.type) {
+			return;
+		}
 
-        if (OBJECT_TYPE.LIGHT === object.type) { // light
-            this.lights.add(object);
-        }
-
-        // skip ui children
-        if (OBJECT_TYPE.CANVAS2D === object.type) {
-            return;
-        }
-
-        // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i < l; i++) {
-            this._doUpdateLights(children[i]);
-        }
-    }
+		// handle children by recursion
+		var children = object.children;
+		for (var i = 0, l = children.length; i < l; i++) {
+			this._doUpdateLights(children[i]);
+		}
+	}
 
 });
 

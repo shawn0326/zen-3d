@@ -8,92 +8,92 @@ import { Box3 } from './Box3.js';
  * @param {number} [radius=0]
  */
 function Sphere(center, radius) {
-    this.center = (center !== undefined) ? center : new Vector3();
-    this.radius = (radius !== undefined) ? radius : 0;
+	this.center = (center !== undefined) ? center : new Vector3();
+	this.radius = (radius !== undefined) ? radius : 0;
 }
 
 Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 
-    /**
+	/**
      *
      */
-    set: function(center, radius) {
-        this.center.copy(center);
-        this.radius = radius;
+	set: function(center, radius) {
+		this.center.copy(center);
+		this.radius = radius;
 
-        return this;
-    },
+		return this;
+	},
 
-    /**
+	/**
      * @method
      */
-    setFromArray: function() {
-        var box = new Box3();
-        var point = new Vector3();
+	setFromArray: function() {
+		var box = new Box3();
+		var point = new Vector3();
 
-        return function setFromArray(array, gap) {
-            var _gap = (gap !== undefined ? gap : 3);
+		return function setFromArray(array, gap) {
+			var _gap = (gap !== undefined ? gap : 3);
 
-            var center = this.center;
+			var center = this.center;
 
-            box.setFromArray(array, _gap).getCenter(center);
+			box.setFromArray(array, _gap).getCenter(center);
 
-            var maxRadiusSq = 0;
+			var maxRadiusSq = 0;
 
-            for (var i = 0, l = array.length; i < l; i += _gap) {
-                var x = array[i];
-                var y = array[i + 1];
-                var z = array[i + 2];
+			for (var i = 0, l = array.length; i < l; i += _gap) {
+				var x = array[i];
+				var y = array[i + 1];
+				var z = array[i + 2];
 
-                point.set(x, y, z);
+				point.set(x, y, z);
 
-                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(point));
-            }
+				maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(point));
+			}
 
-            this.radius = Math.sqrt(maxRadiusSq);
+			this.radius = Math.sqrt(maxRadiusSq);
 
-            return this;
-        }
-    }(),
+			return this;
+		}
+	}(),
 
-    /**
+	/**
      *
      */
-    applyMatrix4: function(matrix) {
-        this.center.applyMatrix4(matrix);
-        this.radius = this.radius * matrix.getMaxScaleOnAxis();
+	applyMatrix4: function(matrix) {
+		this.center.applyMatrix4(matrix);
+		this.radius = this.radius * matrix.getMaxScaleOnAxis();
 
-        return this;
-    },
+		return this;
+	},
 
-    /**
+	/**
      *
      */
-    getBoundingBox: function(optionalTarget) {
-        var box = optionalTarget || new Box3();
+	getBoundingBox: function(optionalTarget) {
+		var box = optionalTarget || new Box3();
 
-        box.set(this.center, this.center);
-        box.expandByScalar(this.radius);
+		box.set(this.center, this.center);
+		box.expandByScalar(this.radius);
 
-        return box;
-    },
+		return box;
+	},
 
-    /**
+	/**
      *
      */
-    clone: function() {
-        return new Sphere().copy(this);
-    },
+	clone: function() {
+		return new Sphere().copy(this);
+	},
 
-    /**
+	/**
      *
      */
-    copy: function(sphere) {
-        this.center.copy(sphere.center);
-        this.radius = sphere.radius;
+	copy: function(sphere) {
+		this.center.copy(sphere.center);
+		this.radius = sphere.radius;
 
-        return this;
-    }
+		return this;
+	}
 
 });
 

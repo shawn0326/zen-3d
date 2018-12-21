@@ -13,90 +13,86 @@ import { Vector3 } from '../../math/Vector3.js';
  * @extends zen3d.Object3D
  */
 function Camera() {
+	Object3D.call(this);
 
-    Object3D.call(this);
+	this.type = OBJECT_TYPE.CAMERA;
 
-    this.type = OBJECT_TYPE.CAMERA;
-
-    /**
+	/**
      * This is the inverse of worldMatrix.
      * @type {zen3d.Matrix4}
      */
-    this.viewMatrix = new Matrix4();
+	this.viewMatrix = new Matrix4();
 
-    /**
+	/**
      * This is the matrix which contains the projection.
      * @type {zen3d.Matrix4}
      */
-    this.projectionMatrix = new Matrix4();
+	this.projectionMatrix = new Matrix4();
 
-    /**
+	/**
      * The frustum of the camera.
      * @type {zen3d.Frustum}
      */
-    this.frustum = new Frustum();
+	this.frustum = new Frustum();
 
-    // gamma space or linear space
-    /**
+	// gamma space or linear space
+	/**
      * The factor of gamma.
      * @type {number}
      * @default 2.0
      */
-    this.gammaFactor = 2.0;
+	this.gammaFactor = 2.0;
 
-    /**
+	/**
      * If set, then it expects that all textures and colors are premultiplied gamma.
      * @type {boolean}
      * @default false
      */
-    this.gammaInput = false;
+	this.gammaInput = false;
 
-    /**
+	/**
      * If set, then it expects that all textures and colors need to be outputted in premultiplied gamma.
      * @type {boolean}
      * @default false
      */
-    this.gammaOutput = false;
+	this.gammaOutput = false;
 
-    /**
+	/**
      * Where on the screen is the camera rendered in normalized coordinates.
      * @type {zen3d.Vector4}
      * @default zen3d.Vector4(0, 0, 1, 1)
      */
-    this.rect = new Vector4(0, 0, 1, 1);
+	this.rect = new Vector4(0, 0, 1, 1);
 
-    /**
+	/**
      * When this is set, it checks every frame if objects are in the frustum of the camera before rendering objects.
      * Otherwise objects gets rendered every frame even if it isn't visible.
      * @type {boolean}
      * @default true
      */
-    this.frustumCulled = true;
-
+	this.frustumCulled = true;
 }
 
 Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Camera.prototype */{
 
-    constructor: Camera,
+	constructor: Camera,
 
-    /**
+	/**
      * Set view by look at, this func will set quaternion of this camera.
      * @method
      * @param {zen3d.Vector3} target - The target that the camera look at.
      * @param {zen3d.Vector3} up - The up direction of the camera.
      */
-    lookAt: function() {
-        var m = new Matrix4();
+	lookAt: function() {
+		var m = new Matrix4();
 
-        return function lookAt(target, up) {
+		return function lookAt(target, up) {
+			m.lookAtRH(this.position, target, up);
+			this.quaternion.setFromRotationMatrix(m);
+		};
+	}(),
 
-            m.lookAtRH(this.position, target, up);
-            this.quaternion.setFromRotationMatrix(m);
-
-        };
-    }(),
-
-    /**
+	/**
      * Set orthographic projection matrix.
      * @param {number} left — Camera frustum left plane.
      * @param {number} right — Camera frustum right plane.
@@ -105,74 +101,69 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
      * @param {number} near — Camera frustum near plane.
      * @param {number} far — Camera frustum far plane.
      */
-    setOrtho: function(left, right, bottom, top, near, far) {
-        this.projectionMatrix.set(
-            2 / (right - left), 0, 0, -(right + left) / (right - left),
-            0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
-            0, 0, -2 / (far - near), -(far + near) / (far - near),
-            0, 0, 0, 1
-        );
-    },
+	setOrtho: function(left, right, bottom, top, near, far) {
+		this.projectionMatrix.set(
+			2 / (right - left), 0, 0, -(right + left) / (right - left),
+			0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
+			0, 0, -2 / (far - near), -(far + near) / (far - near),
+			0, 0, 0, 1
+		);
+	},
 
-    /**
+	/**
      * Set perspective projection matrix.
      * @param {number} fov — Camera frustum vertical field of view.
      * @param {number} aspect — Camera frustum aspect ratio.
      * @param {number} near — Camera frustum near plane.
      * @param {number} far — Camera frustum far plane.
      */
-    setPerspective: function(fov, aspect, near, far) {
-        this.projectionMatrix.set(
-            1 / (aspect * Math.tan(fov / 2)), 0, 0, 0,
-            0, 1 / (Math.tan(fov / 2)), 0, 0,
-            0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
-            0, 0, -1, 0
-        );
-    },
+	setPerspective: function(fov, aspect, near, far) {
+		this.projectionMatrix.set(
+			1 / (aspect * Math.tan(fov / 2)), 0, 0, 0,
+			0, 1 / (Math.tan(fov / 2)), 0, 0,
+			0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
+			0, 0, -1, 0
+		);
+	},
 
-    getWorldDirection: function() {
+	getWorldDirection: function() {
+		var position = new Vector3();
+		var quaternion = new Quaternion();
+		var scale = new Vector3();
 
-        var position = new Vector3();
-        var quaternion = new Quaternion();
-        var scale = new Vector3();
+		return function getWorldDirection(optionalTarget) {
+			var result = optionalTarget || new Vector3();
 
-        return function getWorldDirection(optionalTarget) {
+			this.worldMatrix.decompose(position, quaternion, scale);
 
-            var result = optionalTarget || new Vector3();
+			// -z
+			result.set(0, 0, -1).applyQuaternion(quaternion);
 
-            this.worldMatrix.decompose(position, quaternion, scale);
+			return result;
+		};
+	}(),
 
-            // -z
-            result.set(0, 0, -1).applyQuaternion(quaternion);
+	updateMatrix: function() {
+		var matrix = new Matrix4();
 
-            return result;
+		return function updateMatrix() {
+			Object3D.prototype.updateMatrix.call(this);
 
-        };
-    }(),
+			this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
 
-    updateMatrix: function() {
+			matrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+			this.frustum.setFromMatrix(matrix); // update frustum
+		}
+	}(),
 
-        var matrix = new Matrix4();
+	copy: function (source, recursive) {
+		Object3D.prototype.copy.call(this, source, recursive);
 
-        return function updateMatrix() {
-            Object3D.prototype.updateMatrix.call(this);
+		this.viewMatrix.copy(source.viewMatrix);
+		this.projectionMatrix.copy(source.projectionMatrix);
 
-            this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
-
-            matrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
-            this.frustum.setFromMatrix(matrix); // update frustum
-        }
-
-    }(),
-
-    copy: function (source, recursive) {
-        Object3D.prototype.copy.call(this, source, recursive);
-
-        this.viewMatrix.copy(source.viewMatrix);
-        this.projectionMatrix.copy(source.projectionMatrix);
-
-        return this;
-    }
+		return this;
+	}
 
 });
 

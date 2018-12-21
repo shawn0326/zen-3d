@@ -1,4 +1,4 @@
-import { MATERIAL_TYPE, BLEND_TYPE } from '../const.js';
+import { MATERIAL_TYPE } from '../const.js';
 import { Material } from './Material.js';
 
 /**
@@ -8,11 +8,9 @@ import { Material } from './Material.js';
  * @memberof zen3d
  */
 function DistanceMaterial() {
+	Material.call(this);
 
-    Material.call(this);
-
-    this.type = MATERIAL_TYPE.DISTANCE;
-
+	this.type = MATERIAL_TYPE.DISTANCE;
 }
 
 DistanceMaterial.prototype = Object.create(Material.prototype);

@@ -16,7 +16,6 @@ import { Vector3 } from '../math/Vector3.js';
  * @param {Integer} [q=3] — This value determines, how many times the geometry winds around a circle in the interior of the torus. Default is 3.
  */
 function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) {
-
 	Geometry.call(this);
 
 	// this.type = 'TorusKnotGeometry';
@@ -61,7 +60,6 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 	// generate vertices, normals and uvs
 
 	for (i = 0; i <= tubularSegments; ++i) {
-
 		// the radian "u" is used to calculate the position on the torus curve of the current tubular segement
 
 		var u = i / tubularSegments * p * Math.PI * 2;
@@ -85,7 +83,6 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 		N.normalize();
 
 		for (j = 0; j <= radialSegments; ++j) {
-
 			// now calculate the vertices. they are nothing more than an extrusion of the torus curve.
 			// because we extrude a shape in the xy-plane, there is no need to calculate a z-value.
 
@@ -112,17 +109,13 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 
 			uvs.push(i / tubularSegments);
 			uvs.push(j / radialSegments);
-
 		}
-
 	}
 
 	// generate indices
 
 	for (j = 1; j <= tubularSegments; j++) {
-
 		for (i = 1; i <= radialSegments; i++) {
-
 			// indices
 
 			var a = (radialSegments + 1) * (j - 1) + (i - 1);
@@ -134,9 +127,7 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 
 			indices.push(a, b, d);
 			indices.push(b, c, d);
-
 		}
-
 	}
 
 	// build geometry
@@ -144,15 +135,14 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 	this.setIndex(indices);
 	this.addAttribute('a_Position', new BufferAttribute(new Float32Array(vertices), 3));
 	this.addAttribute('a_Normal', new BufferAttribute(new Float32Array(normals), 3));
-    this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
+	this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
 
-    this.computeBoundingBox();
-    this.computeBoundingSphere();
+	this.computeBoundingBox();
+	this.computeBoundingSphere();
 
 	// this function calculates the current position on the torus curve
 
 	function calculatePositionOnCurve(u, p, q, radius, position) {
-
 		var cu = Math.cos(u);
 		var su = Math.sin(u);
 		var quOverP = q / p * u;
@@ -161,9 +151,7 @@ function TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q) 
 		position.x = radius * (2 + cs) * 0.5 * cu;
 		position.y = radius * (2 + cs) * su * 0.5;
 		position.z = radius * Math.sin(quOverP) * 0.5;
-
 	}
-
 }
 
 TorusKnotGeometry.prototype = Object.create(Geometry.prototype);

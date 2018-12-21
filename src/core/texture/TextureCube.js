@@ -10,37 +10,34 @@ import { TGALoader } from '../loader/TGALoader.js';
  * @extends zen3d.TextureBase
  */
 function TextureCube() {
+	TextureBase.call(this);
 
-    TextureBase.call(this);
+	this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
 
-    this.textureType = WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP;
-
-    /**
+	/**
      * Images data for this texture.
      * @member {HTMLImageElement[]}
      * @default []
      */
-    this.images = [];
+	this.images = [];
 
-    /**
+	/**
      * @default false
      */
-    this.flipY = false;
+	this.flipY = false;
 }
 
 TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.TextureCube.prototype */{
 
-    constructor: TextureCube,
+	constructor: TextureCube,
 
-    copy: function(source) {
+	copy: function(source) {
+		TextureBase.prototype.copy.call(this, source);
 
-        TextureBase.prototype.copy.call(this, source);
+		this.images = source.images.slice(0);
 
-        this.images = source.images.slice(0);
-
-        return this;
-
-    }
+		return this;
+	}
 
 });
 
@@ -50,16 +47,16 @@ TextureCube.prototype = Object.assign(Object.create(TextureBase.prototype), /** 
  * @return {TextureCube} - The result Texture.
  */
 TextureCube.fromImage = function(imageArray) {
-    var texture = new TextureCube();
-    var images = texture.images;
+	var texture = new TextureCube();
+	var images = texture.images;
 
-    for (var i = 0; i < 6; i++) {
-        images[i] = imageArray[i];
-    }
+	for (var i = 0; i < 6; i++) {
+		images[i] = imageArray[i];
+	}
 
-    texture.version++;
+	texture.version++;
 
-    return texture;
+	return texture;
 }
 
 /**
@@ -68,37 +65,37 @@ TextureCube.fromImage = function(imageArray) {
  * @return {TextureCube} - The result Texture.
  */
 TextureCube.fromSrc = function(srcArray) {
-    var texture = new TextureCube();
-    var images = texture.images;
+	var texture = new TextureCube();
+	var images = texture.images;
 
-    var src = srcArray[0];
-    // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
-    var isJPEG = src.search(/\.(jpg|jpeg)$/) > 0 || src.search(/^data\:image\/jpeg/) === 0;
+	var src = srcArray[0];
+	// JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
+	var isJPEG = src.search(/\.(jpg|jpeg)$/) > 0 || src.search(/^data\:image\/jpeg/) === 0;
 
-    var isTGA = src.search(/\.(tga)$/) > 0 || src.search(/^data\:image\/tga/) === 0;
+	var isTGA = src.search(/\.(tga)$/) > 0 || src.search(/^data\:image\/tga/) === 0;
 
-    var count = 0;
-    function next(image) {
-        if (image) {
-            images.push(image);
-            count++;
-        }
-        if (count >= 6) {
-            loaded();
-            return;
-        }
-        var loader = isTGA ? new TGALoader() : new ImageLoader();
-        loader.load(srcArray[count], next);
-    }
-    next();
+	var count = 0;
+	function next(image) {
+		if (image) {
+			images.push(image);
+			count++;
+		}
+		if (count >= 6) {
+			loaded();
+			return;
+		}
+		var loader = isTGA ? new TGALoader() : new ImageLoader();
+		loader.load(srcArray[count], next);
+	}
+	next();
 
-    function loaded() {
-        texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
-        texture.version++;
-        texture.dispatchEvent({ type: 'onload' });
-    }
+	function loaded() {
+		texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+		texture.version++;
+		texture.dispatchEvent({ type: 'onload' });
+	}
 
-    return texture;
+	return texture;
 }
 
 export { TextureCube };

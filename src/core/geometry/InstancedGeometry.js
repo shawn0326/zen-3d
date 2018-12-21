@@ -7,26 +7,24 @@ import { Geometry } from './Geometry.js';
  * @extends zen3d.Geometry
  */
 function InstancedGeometry() {
+	Geometry.call(this);
 
-    Geometry.call(this);
-
-    /**
+	/**
      * @type {Integer|undefined}
      */
-    this.maxInstancedCount = undefined;
-
+	this.maxInstancedCount = undefined;
 }
 
 InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /** @lends zen3d.InstancedGeometry.prototype */{
 
-    constructor: InstancedGeometry,
+	constructor: InstancedGeometry,
 
-    /**
+	/**
      * @readonly
      * @type {boolean}
      * @default true
      */
-    isInstancedGeometry: true
+	isInstancedGeometry: true
 
 });
 

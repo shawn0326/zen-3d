@@ -11,83 +11,79 @@ import { EventDispatcher } from '../EventDispatcher.js';
  * @param {number} height - The height of the render target.
  */
 function RenderTargetBase(width, height) {
+	EventDispatcher.call(this);
 
-    EventDispatcher.call(this);
-
-    /**
+	/**
      * UUID of this render target instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
-    this.uuid = generateUUID();
+	this.uuid = generateUUID();
 
-    /**
+	/**
      * The width of the render target.
      * @type {number}
      */
-    this.width = width;
+	this.width = width;
 
-    /**
+	/**
      * The height of the render target.
      * @type {number}
      */
-    this.height = height;
+	this.height = height;
 
-    /**
+	/**
      * If set true, attach a depth render buffer to the redner target.
      * @type {boolean}
      * @default true
      */
-    this.depthBuffer = true;
+	this.depthBuffer = true;
 
-    /**
+	/**
      * If set true, attach a stencil render buffer to the redner target.
      * @type {boolean}
      * @default true
      */
-    this.stencilBuffer = true;
+	this.stencilBuffer = true;
 
-    /**
+	/**
      * If bigger than zero, this render target will attach renderBuffer for multipleSampling. (Only usable in WebGL 2.0)
      * Texture witch attached to ATTACHMENT0 will be detached.
      * Max support 8.
      * @type {number}
      * @default 0
      */
-    this.multipleSampling = 0;
-
+	this.multipleSampling = 0;
 }
 
 RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{
 
-    constructor: RenderTargetBase,
+	constructor: RenderTargetBase,
 
-    /**
+	/**
      * Resize the render target.
      * @param {number} width - The width of the render target.
      * @param {number} height - The height of the render target.
      * @return {boolean} - If size changed.
      */
-    resize: function(width, height) {
+	resize: function(width, height) {
+		if (this.width !== width || this.height !== height) {
+			this.dispose();
+			this.width = width;
+			this.height = height;
 
-        if (this.width !== width || this.height !== height) {
-            this.dispose();
-            this.width = width;
-            this.height = height;
+			return true;
+		}
 
-            return true;
-        }
+		return false;
+	},
 
-        return false;
-
-    },
-
-    /**
+	/**
      * Dispatches a dispose event.
      */
-    dispose: function() {
-        this.dispatchEvent({ type: 'dispose' });
-    }
+	dispose: function() {
+		this.dispatchEvent({ type: 'dispose' });
+	}
 
 });
 

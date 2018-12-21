@@ -11,14 +11,14 @@ import { KeyframeTrack } from './KeyframeTrack.js';
  * @param {Boolean} interpolant
  */
 function NumberKeyframeTrack(target, propertyPath, times, values, interpolant) {
-    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
+	KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 }
 
 NumberKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
-    constructor: NumberKeyframeTrack,
+	constructor: NumberKeyframeTrack,
 
-    valueTypeName: 'number'
+	valueTypeName: 'number'
 
 });
 

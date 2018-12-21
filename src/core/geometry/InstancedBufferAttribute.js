@@ -11,26 +11,24 @@ import { BufferAttribute }  from './BufferAttribute.js';
  * @param {Integer} [meshPerAttribute=1]
  */
 function InstancedBufferAttribute(array, itemSize, normalized, meshPerAttribute) {
+	BufferAttribute.call(this, array, itemSize, normalized);
 
-    BufferAttribute.call(this, array, itemSize, normalized);
-
-    /**
+	/**
      * @type {Integer}
      */
-    this.meshPerAttribute = meshPerAttribute || 1;
-
+	this.meshPerAttribute = meshPerAttribute || 1;
 }
 
 InstancedBufferAttribute.prototype = Object.assign(Object.create(BufferAttribute.prototype), /** @lends zen3d.InstancedBufferAttribute.prototype */{
 
-    constructor: InstancedBufferAttribute,
+	constructor: InstancedBufferAttribute,
 
-    /**
+	/**
      * @readonly
      * @type {boolean}
      * @default true
      */
-    isInstancedBufferAttribute: true
+	isInstancedBufferAttribute: true
 
 });
 

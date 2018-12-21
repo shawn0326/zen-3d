@@ -8,34 +8,30 @@ import { RenderTargetBase } from './RenderTargetBase.js';
  * @param {HTMLCanvasElement} view - The canvas element which the Render Target rendered to.
  */
 function RenderTargetBack(view) {
+	RenderTargetBase.call(this, view.width, view.height);
 
-    RenderTargetBase.call(this, view.width, view.height);
-
-    /**
+	/**
      * The canvas element which the Render Target rendered to.
      * @type {HTMLCanvasElement}
      */
-    this.view = view;
-
+	this.view = view;
 }
 
 RenderTargetBack.prototype = Object.assign(Object.create(RenderTargetBase.prototype), /** @lends zen3d.RenderTargetBack.prototype */{
 
-    constructor: RenderTargetBack,
+	constructor: RenderTargetBack,
 
-    resize: function(width, height) {
+	resize: function(width, height) {
+		this.view.width = width;
+		this.view.height = height;
 
-        this.view.width = width;
-        this.view.height = height;
+		this.width = width;
+		this.height = height;
+	},
 
-        this.width = width;
-        this.height = height;
-
-    },
-
-    dispose: function() {
-        // TODO dispose canvas?
-    }
+	dispose: function() {
+		// TODO dispose canvas?
+	}
 
 });
 

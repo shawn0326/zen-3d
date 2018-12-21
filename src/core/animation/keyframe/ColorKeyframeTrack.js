@@ -11,14 +11,14 @@ import { KeyframeTrack } from './KeyframeTrack.js';
  * @param {Boolean} interpolant
  */
 function ColorKeyframeTrack(target, propertyPath, times, values, interpolant) {
-    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
+	KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 }
 
 ColorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
-    constructor: ColorKeyframeTrack,
+	constructor: ColorKeyframeTrack,
 
-    valueTypeName: 'color'
+	valueTypeName: 'color'
 
 });
 

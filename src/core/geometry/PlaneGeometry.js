@@ -12,11 +12,9 @@ import { BufferAttribute } from './BufferAttribute.js';
  * @param {Integer} [heightSegments=1] — Optional.
  */
 function PlaneGeometry(width, height, widthSegments, heightSegments) {
-
 	Geometry.call(this);
 
 	this.buildGeometry(width, height, widthSegments, heightSegments);
-
 }
 
 PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -51,11 +49,9 @@ PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 		// generate vertices, normals and uvs
 
 		for (iy = 0; iy < gridY1; iy++) {
-
 			var y = iy * segment_height - height_half;
 
 			for (ix = 0; ix < gridX1; ix++) {
-
 				var x = ix * segment_width - width_half;
 
 				vertices.push(x, 0, y);
@@ -64,17 +60,13 @@ PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				uvs.push(ix / gridX);
 				uvs.push(1 - (iy / gridY));
-
 			}
-
 		}
 
 		// indices
 
 		for (iy = 0; iy < gridY; iy++) {
-
 			for (ix = 0; ix < gridX; ix++) {
-
 				var a = ix + gridX1 * iy;
 				var b = ix + gridX1 * (iy + 1);
 				var c = (ix + 1) + gridX1 * (iy + 1);
@@ -84,9 +76,7 @@ PlaneGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 				indices.push(a, b, d);
 				indices.push(b, c, d);
-
 			}
-
 		}
 
 		// build geometry

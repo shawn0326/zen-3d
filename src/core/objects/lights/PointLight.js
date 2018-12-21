@@ -15,45 +15,43 @@ import { PointLightShadow } from './PointLightShadow.js';
  * @param {number} [decay=1]
  */
 function PointLight(color, intensity, distance, decay) {
+	Light.call(this, color, intensity);
 
-    Light.call(this, color, intensity);
+	this.lightType = LIGHT_TYPE.POINT;
 
-    this.lightType = LIGHT_TYPE.POINT;
-
-    /**
+	/**
      * The amount the light dims along the distance of the light.
      * @type {number}
      * @default 1
      */
-    this.decay = (decay !== undefined) ? decay : 1;
+	this.decay = (decay !== undefined) ? decay : 1;
 
-    /**
+	/**
      * The distance from the light where the intensity is 0.
      * @type {number}
      * @default 200
      */
-    this.distance = (distance !== undefined) ? distance : 200;
+	this.distance = (distance !== undefined) ? distance : 200;
 
-    /**
+	/**
      * A {@link zen3d.PointLightShadow} used to calculate shadows for this light.
      * @type {zen3d.PointLightShadow}
      * @default zen3d.PointLightShadow()
      */
-    this.shadow = new PointLightShadow();
-
+	this.shadow = new PointLightShadow();
 }
 
 PointLight.prototype = Object.assign(Object.create(Light.prototype), /** @lends zen3d.PointLight.prototype */{
 
-    constructor: PointLight,
+	constructor: PointLight,
 
-    copy: function(source) {
-        Light.prototype.copy.call(this, source);
+	copy: function(source) {
+		Light.prototype.copy.call(this, source);
 
-        this.shadow.copy(source.shadow);
+		this.shadow.copy(source.shadow);
 
-        return this;
-    }
+		return this;
+	}
 });
 
 export { PointLight };

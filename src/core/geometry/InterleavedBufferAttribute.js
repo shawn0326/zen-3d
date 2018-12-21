@@ -9,33 +9,31 @@ import { generateUUID } from '../base.js';
  * @param {boolean} [normalized=false]
  */
 function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized) {
+	this.uuid = generateUUID();
 
-    this.uuid = generateUUID();
-
-    /**
+	/**
      * The InterleavedBuffer instance passed in the constructor.
      * @type {zen3d.InterleavedBuffer}
      */
-    this.data = interleavedBuffer;
+	this.data = interleavedBuffer;
 
-    /**
+	/**
      * How many values make up each item.
      * @type {Integer}
      */
-    this.size = size;
+	this.size = size;
 
-    /**
+	/**
      * The offset in the underlying array buffer where an item starts.
      * @type {Integer}
      */
-    this.offset = offset;
+	this.offset = offset;
 
-    /**
+	/**
      * @type {boolean}
      * @default false
      */
-    this.normalized = normalized === true;
-
+	this.normalized = normalized === true;
 }
 
 /**
@@ -47,30 +45,30 @@ InterleavedBufferAttribute.prototype.isInterleavedBufferAttribute = true;
 
 Object.defineProperties(InterleavedBufferAttribute.prototype, {
 
-    /**
+	/**
      * The value of data.count.
      * If the buffer is storing a 3-component item (such as a position, normal, or color), then this will count the number of such items stored.
      * @memberof zen3d.InterleavedBufferAttribute#
      * @readonly
      * @type {Integer}
      */
-    count: {
-        get: function() {
-            return this.data.count;
-        }
-    },
+	count: {
+		get: function() {
+			return this.data.count;
+		}
+	},
 
-    /**
+	/**
      * The value of data.array.
      * @memberof zen3d.InterleavedBufferAttribute#
      * @readonly
      * @type {TypedArray}
      */
-    array: {
-        get: function() {
-            return this.data.array;
-        }
-    }
+	array: {
+		get: function() {
+			return this.data.array;
+		}
+	}
 
 });
 

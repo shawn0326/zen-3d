@@ -11,14 +11,14 @@ import { KeyframeTrack } from './KeyframeTrack.js';
  * @param {Boolean} interpolant
  */
 function VectorKeyframeTrack(target, propertyPath, times, values, interpolant) {
-    KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
+	KeyframeTrack.call(this, target, propertyPath, times, values, interpolant);
 }
 
 VectorKeyframeTrack.prototype = Object.assign(Object.create(KeyframeTrack.prototype), {
 
-    constructor: VectorKeyframeTrack,
+	constructor: VectorKeyframeTrack,
 
-    valueTypeName: 'vector'
+	valueTypeName: 'vector'
 
 });
 

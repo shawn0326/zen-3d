@@ -9,11 +9,9 @@ import { Object3D } from './Object3D.js';
  * @extends zen3d.Object3D
  */
 function Group() {
+	Object3D.call(this);
 
-    Object3D.call(this);
-
-    this.type = OBJECT_TYPE.GROUP;
-
+	this.type = OBJECT_TYPE.GROUP;
 }
 
 Group.prototype = Object.create(Object3D.prototype);

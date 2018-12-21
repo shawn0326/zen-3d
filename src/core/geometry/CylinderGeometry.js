@@ -18,11 +18,9 @@ import { Vector3 } from '../math/Vector3.js';
  * @param {number} [thetaLength=2*Pi] — The central angle, often called theta, of the circular sector. The default is 2*Pi, which makes for a complete cylinder.
  */
 function CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
-
 	Geometry.call(this);
 
 	this.buildGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
-
 }
 
 CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -62,10 +60,8 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 		generateTorso();
 
 		if (openEnded === false) {
-
 			if (radiusTop > 0) generateCap(true);
 			if (radiusBottom > 0) generateCap(false);
-
 		}
 
 		// build geometry
@@ -76,7 +72,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 		this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
 
 		function generateTorso() {
-
 			var x, y;
 			var normal = new Vector3();
 			var vertex = new Vector3();
@@ -89,7 +84,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// generate vertices, normals and uvs
 
 			for (y = 0; y <= heightSegments; y++) {
-
 				var indexRow = [];
 
 				var v = y / heightSegments;
@@ -99,7 +93,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 				var radius = v * (radiusBottom - radiusTop) + radiusTop;
 
 				for (x = 0; x <= radialSegments; x++) {
-
 					var u = x / radialSegments;
 
 					var theta = u * thetaLength + thetaStart;
@@ -126,21 +119,17 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 					// save index of vertex in respective row
 
 					indexRow.push(index++);
-
 				}
 
 				// now save vertices of the row in our index array
 
 				indexArray.push(indexRow);
-
 			}
 
 			// generate indices
 
 			for (x = 0; x < radialSegments; x++) {
-
 				for (y = 0; y < heightSegments; y++) {
-
 					// we use the index array to access the correct indices
 
 					var a = indexArray[y][x];
@@ -156,9 +145,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 					// update group counter
 
 					groupCount += 6;
-
 				}
-
 			}
 
 			// add a group to the geometry. this will ensure multi material support
@@ -168,11 +155,9 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// calculate new start value for groups
 
 			groupStart += groupCount;
-
 		}
 
 		function generateCap(top) {
-
 			var x, centerIndexStart, centerIndexEnd;
 
 			var uv = new Vector2();
@@ -191,7 +176,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// we must generate a center vertex per face/segment
 
 			for (x = 1; x <= radialSegments; x++) {
-
 				// vertex
 
 				vertices.push(0, halfHeight * sign, 0);
@@ -207,7 +191,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 				// increase index
 
 				index++;
-
 			}
 
 			// save the index of the last center vertex
@@ -217,7 +200,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// now we generate the surrounding vertices, normals and uvs
 
 			for (x = 0; x <= radialSegments; x++) {
-
 				var u = x / radialSegments;
 				var theta = u * thetaLength + thetaStart;
 
@@ -244,32 +226,25 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 				// increase index
 
 				index++;
-
 			}
 
 			// generate indices
 
 			for (x = 0; x < radialSegments; x++) {
-
 				var c = centerIndexStart + x;
 				var i = centerIndexEnd + x;
 
 				if (top === true) {
-
 					// face top
 
 					indices.push(i, i + 1, c);
-
 				} else {
-
 					// face bottom
 
 					indices.push(i + 1, i, c);
-
 				}
 
 				groupCount += 3;
-
 			}
 
 			// add a group to the geometry. this will ensure multi material support
@@ -279,7 +254,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// calculate new start value for groups
 
 			groupStart += groupCount;
-
 		}
 
 		this.computeBoundingBox();

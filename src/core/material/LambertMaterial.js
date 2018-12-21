@@ -10,18 +10,16 @@ import { Material } from './Material.js';
  * @memberof zen3d
  */
 function LambertMaterial() {
+	Material.call(this);
 
-    Material.call(this);
+	this.type = MATERIAL_TYPE.LAMBERT;
 
-    this.type = MATERIAL_TYPE.LAMBERT;
-
-    /**
+	/**
      * Lambert material is affected by lights.
      * @type {boolean}
      * @default true
      */
-    this.acceptLight = true;
-
+	this.acceptLight = true;
 }
 
 LambertMaterial.prototype = Object.create(Material.prototype);

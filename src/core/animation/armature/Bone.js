@@ -13,17 +13,15 @@ import { Matrix4 } from '../../math/Matrix4.js';
  * @extends zen3d.Object3D
  */
 function Bone() {
+	Object3D.call(this);
 
-    Object3D.call(this);
+	this.type = "bone";
 
-    this.type = "bone";
-
-    /**
+	/**
      * The origin offset matrix - inverse matrix of the origin transform matrix.
      * @type {zen3d.Matrix4}
      */
-    this.offsetMatrix = new Matrix4();
-
+	this.offsetMatrix = new Matrix4();
 }
 
 Bone.prototype = Object.create(Object3D.prototype);

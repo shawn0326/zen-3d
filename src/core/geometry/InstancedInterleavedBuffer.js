@@ -10,26 +10,24 @@ import { InterleavedBuffer } from './InterleavedBuffer.js';
  * @param {Integer} [meshPerAttribute=1]
  */
 function InstancedInterleavedBuffer(array, itemSize, meshPerAttribute) {
+	InterleavedBuffer.call(this, array, itemSize);
 
-    InterleavedBuffer.call(this, array, itemSize);
-
-    /**
+	/**
      * @type {Integer}
      */
-    this.meshPerAttribute = meshPerAttribute || 1;
-
+	this.meshPerAttribute = meshPerAttribute || 1;
 }
 
 InstancedInterleavedBuffer.prototype = Object.assign(Object.create(InterleavedBuffer.prototype), /** @lends zen3d.InstancedInterleavedBuffer.prototype */{
 
-    constructor: InstancedInterleavedBuffer,
+	constructor: InstancedInterleavedBuffer,
 
-    /**
+	/**
      * @readonly
      * @type {boolean}
      * @default true
      */
-    isInstancedInterleavedBuffer: true
+	isInstancedInterleavedBuffer: true
 
 });
 

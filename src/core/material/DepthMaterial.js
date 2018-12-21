@@ -1,4 +1,4 @@
-import { MATERIAL_TYPE, BLEND_TYPE } from '../const.js';
+import { MATERIAL_TYPE } from '../const.js';
 import { Material } from './Material.js';
 
 /**
@@ -9,18 +9,16 @@ import { Material } from './Material.js';
  * @memberof zen3d
  */
 function DepthMaterial() {
+	Material.call(this);
 
-    Material.call(this);
+	this.type = MATERIAL_TYPE.DEPTH;
 
-    this.type = MATERIAL_TYPE.DEPTH;
-
-    /**
+	/**
      * Encoding for depth packing.
      * @type {boolean}
      * @default false
      */
-    this.packToRGBA = false;
-
+	this.packToRGBA = false;
 }
 
 DepthMaterial.prototype = Object.create(Material.prototype);

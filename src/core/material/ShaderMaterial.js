@@ -15,57 +15,55 @@ import { cloneUniforms } from '../base.js';
  * @param {Object} [shader.uniforms={}] - Uniforms of the shader.
  */
 function ShaderMaterial(shader) {
+	Material.call(this);
 
-    Material.call(this);
+	this.type = MATERIAL_TYPE.SHADER;
 
-    this.type = MATERIAL_TYPE.SHADER;
-
-    /**
+	/**
      * Vertex shader GLSL code. This is the actual code for the shader.
      * @type {number}
      * @default ""
      */
-    this.vertexShader = shader.vertexShader || "";
+	this.vertexShader = shader.vertexShader || "";
 
-    /**
+	/**
      * Fragment shader GLSL code. This is the actual code for the shader.
      * @type {number}
      * @default ""
      */
-    this.fragmentShader = shader.fragmentShader || "";
+	this.fragmentShader = shader.fragmentShader || "";
 
-    /**
+	/**
      * Defines of the shader
      * @type {Object}
      * @default {}
      */
-    this.defines = {};
+	this.defines = {};
 
-    // copy defines
-    Object.assign(this.defines, shader.defines);
+	// copy defines
+	Object.assign(this.defines, shader.defines);
 
-    /**
+	/**
      * Uniforms of the shader.
      * Uniforms should match with fragment shader
      * @type {Object}
      * @default {}
      */
-    this.uniforms = cloneUniforms(shader.uniforms);
-
+	this.uniforms = cloneUniforms(shader.uniforms);
 }
 
 ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.ShaderMaterial.prototype */{
 
-    constructor: ShaderMaterial,
+	constructor: ShaderMaterial,
 
-    copy: function(source) {
-        Material.prototype.copy.call(this, source);
+	copy: function(source) {
+		Material.prototype.copy.call(this, source);
 
-        this.vertexShader = source.vertexShader;
-        this.fragmentShader = source.fragmentShader;
+		this.vertexShader = source.vertexShader;
+		this.fragmentShader = source.fragmentShader;
 
-        return this;
-    }
+		return this;
+	}
 
 });
 
