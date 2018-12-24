@@ -5183,7 +5183,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 		var imageData = context.createImageData(header.width, header.height);
 
 		var result = tgaParse(use_rle, use_pal, header, offset, content);
-		imageData.data = getTgaRGBA(imageData.data, header.width, header.height, result.pixel_data, result.palettes);
+		getTgaRGBA(imageData.data, header.width, header.height, result.pixel_data, result.palettes);
 
 		context.putImageData(imageData, 0, 0);
 
@@ -10308,6 +10308,12 @@ function WebGLProgram(gl, vshader, fshader) {
 
 	this.uuid = generateUUID();
 
+	this.usedTimes = 1;
+
+	this.code = "";
+
+	this.gl = gl;
+
 	// vertex shader source
 	this.vshaderSource = vshader;
 
@@ -10333,8 +10339,8 @@ function WebGLProgram(gl, vshader, fshader) {
 	gl.deleteShader(fragmentShader);
 }
 
-WebGLProgram.prototype.dispose = function(gl) {
-	gl.deleteProgram(this.program);
+WebGLProgram.prototype.dispose = function() {
+	this.gl.deleteProgram(this.program);
 	this.program = undefined;
 };
 
@@ -10583,8 +10589,6 @@ var ShaderLib = {
 	point_frag: point_frag,
 	point_vert: point_vert
 };
-
-var programMap = {};
 
 // generate program code
 function generateProgramCode(props, material) {
@@ -10897,12 +10901,12 @@ function unrollLoops(string) {
 	return string.replace(pattern, replace);
 }
 
-function generateProps(glCore, camera, material, object, lights, fog, clippingPlanes) {
+function generateProps(state, capabilities, camera, material, object, lights, fog, clippingPlanes) {
 	var props = {}; // cache this props?
 
 	props.materialType = material.type;
 	// capabilities
-	var capabilities = glCore.capabilities;
+	var capabilities = capabilities;
 	props.version = capabilities.version;
 	props.precision = capabilities.maxPrecision;
 	props.useStandardDerivatives = capabilities.version >= 2 || !!capabilities.getExtension('OES_standard_derivatives') || !!capabilities.getExtension('GL_OES_standard_derivatives');
@@ -10931,7 +10935,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
 		props.shadowType = object.shadowType;
 	}
 	// encoding
-	var currentRenderTarget = glCore.state.currentRenderTarget;
+	var currentRenderTarget = state.currentRenderTarget;
 	props.gammaFactor = camera.gammaFactor;
 	props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
 	props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, camera.gammaInput);
@@ -10974,42 +10978,66 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
 	return props;
 }
 
-/**
- * get a suitable program
- * @param {WebGLCore} glCore
- * @param {Camera} camera
- * @param {Material} material
- * @param {Object3D} object?
- * @param {RenderCache} cache?
- * @ignore
- */
-function getProgram(glCore, camera, material, object, cache) {
-	var gl = glCore.gl;
-	var material = material || object.material;
+function WebGLPrograms(gl, state, capabilities) {
+	var programs = [];
 
-	// get render context from cache
-	var lights = (cache && material.acceptLight) ? cache.lights : null;
-	var fog = cache ? cache.fog : null;
-	var clippingPlanes = cache ? cache.clippingPlanes : null;
+	/**
+	 * get a suitable program
+	 * @param {Camera} camera
+	 * @param {Material} material
+	 * @param {Object3D} object?
+	 * @param {RenderCache} cache?
+	 * @ignore
+	 */
+	this.getProgram = function(camera, material, object, cache) {
+		var material = material || object.material;
 
-	var props = generateProps(glCore, camera, material, object, lights, fog, clippingPlanes);
-	var code = generateProgramCode(props, material);
-	var map = programMap;
-	var program;
+		// get render context from cache
+		var lights = (cache && material.acceptLight) ? cache.lights : null;
+		var fog = cache ? cache.fog : null;
+		var clippingPlanes = cache ? cache.clippingPlanes : null;
 
-	if (map[code]) {
-		program = map[code];
-	} else {
-		var customDefines = "";
-		if (material.defines !== undefined) {
-			customDefines = generateDefines(material.defines);
+		var props = generateProps(state, capabilities, camera, material, object, lights, fog, clippingPlanes);
+		var code = generateProgramCode(props, material);
+		var program;
+
+		for (var p = 0, pl = programs.length; p < pl; p++) {
+			var programInfo = programs[p];
+			if (programInfo.code === code) {
+				program = programInfo;
+				++program.usedTimes;
+				break;
+			}
 		}
-		program = createProgram(gl, props, customDefines);
 
-		map[code] = program;
-	}
+		if (program === undefined) {
+			var customDefines = "";
+			if (material.defines !== undefined) {
+				customDefines = generateDefines(material.defines);
+			}
+			program = createProgram(gl, props, customDefines);
+			program.code = code;
 
-	return program;
+			programs.push(program);
+		}
+
+		return program;
+	};
+
+	this.releaseProgram = function(program) {
+		if (--program.usedTimes === 0) {
+			// Remove from unordered set
+			var i = programs.indexOf(program);
+			programs[i] = programs[programs.length - 1];
+			programs.pop();
+	
+			// Free WebGL resources
+			program.dispose(gl);
+		}
+	};
+
+	// debug
+	this.programs = programs;
 }
 
 function _isPowerOfTwo$1(image) {
@@ -11411,6 +11439,8 @@ function WebGLCore(gl) {
 
 	this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
 
+	this.programs = new WebGLPrograms(gl, state, capabilities);
+
 	this._usedTextureUnits = 0;
 
 	this._currentGeometryProgram = "";
@@ -11543,7 +11573,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				if (materialProperties.program === undefined) {
 					material.addEventListener('dispose', this.onMaterialDispose, this);
 				}
-				materialProperties.program = getProgram(this, camera, material, object, scene);
+				var oldProgram = materialProperties.program;
+				materialProperties.program = this.programs.getProgram(camera, material, object, scene);
 				materialProperties.fog = scene.fog;
 
 				if (scene.lights) {
@@ -12199,6 +12230,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		material.removeEventListener('dispose', onMaterialDispose, this);
 
 		var program = materialProperties.get(material).program;
+
+		if (program !== undefined) {
+			// release program reference
+			this.programs.releaseProgram(program);
+		}
 
 		materialProperties.delete(material);
 	}
@@ -14593,4 +14629,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
  * @namespace zen3d
  */
 
-export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, TorusKnotGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniforms, WebGLAttribute, WebGLProgram, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, DefaultLoadingManager, LoadingManager, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_COMPARE_FUNC, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };
+export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, TorusKnotGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniforms, WebGLAttribute, WebGLProgram, WebGLPrograms, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, DefaultLoadingManager, LoadingManager, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_COMPARE_FUNC, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, ATTACHMENT, DRAW_BUFFER };

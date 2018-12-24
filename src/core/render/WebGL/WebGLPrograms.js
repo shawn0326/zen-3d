@@ -1,9 +1,7 @@
 import { MATERIAL_TYPE, TEXEL_ENCODING_TYPE, SHADOW_TYPE, SHADING_TYPE, FOG_TYPE, DRAW_SIDE, OBJECT_TYPE } from '../../const.js';
-import { WebGLProgram } from '../WebGL/WebGLProgram.js';
+import { WebGLProgram } from './WebGLProgram.js';
 import { ShaderChunk } from '../shader/ShaderChunk.js';
 import { ShaderLib } from '../shader/ShaderLib.js';
-
-var programMap = {};
 
 // generate program code
 function generateProgramCode(props, material) {
@@ -316,12 +314,12 @@ function unrollLoops(string) {
 	return string.replace(pattern, replace);
 }
 
-function generateProps(glCore, camera, material, object, lights, fog, clippingPlanes) {
+function generateProps(state, capabilities, camera, material, object, lights, fog, clippingPlanes) {
 	var props = {}; // cache this props?
 
 	props.materialType = material.type;
 	// capabilities
-	var capabilities = glCore.capabilities;
+	var capabilities = capabilities;
 	props.version = capabilities.version;
 	props.precision = capabilities.maxPrecision;
 	props.useStandardDerivatives = capabilities.version >= 2 || !!capabilities.getExtension('OES_standard_derivatives') || !!capabilities.getExtension('GL_OES_standard_derivatives');
@@ -350,7 +348,7 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
 		props.shadowType = object.shadowType;
 	}
 	// encoding
-	var currentRenderTarget = glCore.state.currentRenderTarget;
+	var currentRenderTarget = state.currentRenderTarget;
 	props.gammaFactor = camera.gammaFactor;
 	props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
 	props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, camera.gammaInput);
@@ -393,42 +391,66 @@ function generateProps(glCore, camera, material, object, lights, fog, clippingPl
 	return props;
 }
 
-/**
- * get a suitable program
- * @param {WebGLCore} glCore
- * @param {Camera} camera
- * @param {Material} material
- * @param {Object3D} object?
- * @param {RenderCache} cache?
- * @ignore
- */
-function getProgram(glCore, camera, material, object, cache) {
-	var gl = glCore.gl;
-	var material = material || object.material;
+function WebGLPrograms(gl, state, capabilities) {
+	var programs = [];
 
-	// get render context from cache
-	var lights = (cache && material.acceptLight) ? cache.lights : null;
-	var fog = cache ? cache.fog : null;
-	var clippingPlanes = cache ? cache.clippingPlanes : null;
+	/**
+	 * get a suitable program
+	 * @param {Camera} camera
+	 * @param {Material} material
+	 * @param {Object3D} object?
+	 * @param {RenderCache} cache?
+	 * @ignore
+	 */
+	this.getProgram = function(camera, material, object, cache) {
+		var material = material || object.material;
 
-	var props = generateProps(glCore, camera, material, object, lights, fog, clippingPlanes);
-	var code = generateProgramCode(props, material);
-	var map = programMap;
-	var program;
+		// get render context from cache
+		var lights = (cache && material.acceptLight) ? cache.lights : null;
+		var fog = cache ? cache.fog : null;
+		var clippingPlanes = cache ? cache.clippingPlanes : null;
 
-	if (map[code]) {
-		program = map[code];
-	} else {
-		var customDefines = "";
-		if (material.defines !== undefined) {
-			customDefines = generateDefines(material.defines);
+		var props = generateProps(state, capabilities, camera, material, object, lights, fog, clippingPlanes);
+		var code = generateProgramCode(props, material);
+		var program;
+
+		for (var p = 0, pl = programs.length; p < pl; p++) {
+			var programInfo = programs[p];
+			if (programInfo.code === code) {
+				program = programInfo;
+				++program.usedTimes;
+				break;
+			}
 		}
-		program = createProgram(gl, props, customDefines);
 
-		map[code] = program;
-	}
+		if (program === undefined) {
+			var customDefines = "";
+			if (material.defines !== undefined) {
+				customDefines = generateDefines(material.defines);
+			}
+			program = createProgram(gl, props, customDefines);
+			program.code = code;
 
-	return program;
+			programs.push(program);
+		}
+
+		return program;
+	};
+
+	this.releaseProgram = function(program) {
+		if (--program.usedTimes === 0) {
+			// Remove from unordered set
+			var i = programs.indexOf(program);
+			programs[i] = programs[programs.length - 1];
+			programs.pop();
+
+			// Free WebGL resources
+			program.dispose(gl);
+		}
+	};
+
+	// debug
+	this.programs = programs;
 }
 
-export { getProgram };
+export { WebGLPrograms };

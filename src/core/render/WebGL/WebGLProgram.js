@@ -71,6 +71,12 @@ function WebGLProgram(gl, vshader, fshader) {
 
 	this.uuid = generateUUID();
 
+	this.usedTimes = 1;
+
+	this.code = "";
+
+	this.gl = gl;
+
 	// vertex shader source
 	this.vshaderSource = vshader;
 
@@ -96,8 +102,8 @@ function WebGLProgram(gl, vshader, fshader) {
 	gl.deleteShader(fragmentShader);
 }
 
-WebGLProgram.prototype.dispose = function(gl) {
-	gl.deleteProgram(this.program);
+WebGLProgram.prototype.dispose = function() {
+	this.gl.deleteProgram(this.program);
 	this.program = undefined;
 }
 

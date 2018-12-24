@@ -4,7 +4,7 @@ import { Vector3 } from '../../math/Vector3.js';
 import { Vector4 } from '../../math/Vector4.js';
 import { Plane } from '../../math/Plane.js';
 import { Texture2D } from '../../texture/Texture2D.js';
-import { getProgram } from '../shader/Program.js';
+import { WebGLPrograms } from './WebGLPrograms.js';
 import { WebGLProperties } from './WebGLProperties.js';
 import { WebGLCapabilities } from './WebGLCapabilities.js';
 import { WebGLState } from './WebGLState.js';
@@ -73,6 +73,8 @@ function WebGLCore(gl) {
 	this.renderTarget = new WebGLRenderTarget(gl, state, texture, properties, capabilities);
 
 	this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
+
+	this.programs = new WebGLPrograms(gl, state, capabilities);
 
 	this._usedTextureUnits = 0;
 
@@ -206,7 +208,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				if (materialProperties.program === undefined) {
 					material.addEventListener('dispose', this.onMaterialDispose, this);
 				}
-				materialProperties.program = getProgram(this, camera, material, object, scene);
+				var oldProgram = materialProperties.program;
+				materialProperties.program = this.programs.getProgram(camera, material, object, scene);
+				if (oldProgram) {
+					// todo fix deferred renderer first: do not change defines everyframe
+					// this.programs.releaseProgram(oldProgram);
+				}
 				materialProperties.fog = scene.fog;
 
 				if (scene.lights) {
@@ -866,9 +873,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		var program = materialProperties.get(material).program;
 
 		if (program !== undefined) {
-
-			// todo release program reference
-
+			// release program reference
+			this.programs.releaseProgram(program);
 		}
 
 		materialProperties.delete(material);
