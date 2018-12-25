@@ -179,22 +179,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			beforeRender.call(this, renderItem, material);
 
 			var materialProperties = this.properties.get(material);
-			materialProperties.lightsHash = materialProperties.lightsHash || {};
-			var lightsHash = materialProperties.lightsHash;
 			if (material.needsUpdate === false) {
 				if (materialProperties.program === undefined) {
 					material.needsUpdate = true;
 				} else if (materialProperties.fog !== scene.fog) {
-					material.needsUpdate = true;
-				} else if (!!scene.lights && (scene.lights.ambientsNum !==  lightsHash.ambientsNum ||
-                    scene.lights.directsNum !==  lightsHash.directsNum ||
-                    scene.lights.pointsNum !==  lightsHash.pointsNum ||
-                    scene.lights.spotsNum !==  lightsHash.spotsNum ||
-                    scene.lights.shadowsNum !==  lightsHash.shadowsNum ||
-                    object.receiveShadow !== lightsHash.receiveShadow ||
-                    object.shadowType !== lightsHash.shadowType)) {
-					material.needsUpdate = true;
-				} else if (lightsHash.acceptLight !== (material.acceptLight && !!scene.lights)) {
 					material.needsUpdate = true;
 				} else if (scene.clippingPlanes && scene.clippingPlanes.length !==  materialProperties.numClippingPlanes) {
 					material.needsUpdate = true;
@@ -202,6 +190,17 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
                     camera.gammaOutput !==  materialProperties.gammaOutput ||
                     camera.gammaFactor !==  materialProperties.gammaFactor) {
 					material.needsUpdate = true;
+				} else {
+					var acceptLight = material.acceptLight && !!scene.lights && scene.lights.totalNum > 0;
+					if (acceptLight !== materialProperties.acceptLight) {
+						material.needsUpdate = true;
+					} else if (acceptLight) {
+						if (!scene.lights.hash.compare(materialProperties.lightsHash) ||
+							object.receiveShadow !== materialProperties.receiveShadow ||
+							object.shadowType !== materialProperties.shadowType) {
+							material.needsUpdate = true;
+						}
+					}
 				}
 			}
 			if (material.needsUpdate) {
@@ -217,23 +216,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				materialProperties.fog = scene.fog;
 
 				if (scene.lights) {
-					lightsHash.acceptLight = material.acceptLight;
-					lightsHash.ambientsNum = scene.lights.ambientsNum;
-					lightsHash.directsNum = scene.lights.directsNum;
-					lightsHash.pointsNum = scene.lights.pointsNum;
-					lightsHash.spotsNum = scene.lights.spotsNum;
-					lightsHash.shadowsNum = scene.lights.shadowsNum;
-					lightsHash.receiveShadow = object.receiveShadow;
-					lightsHash.shadowType = object.shadowType;
+					materialProperties.acceptLight = material.acceptLight;
+					materialProperties.lightsHash = scene.lights.hash.copyTo(materialProperties.lightsHash);
+					materialProperties.receiveShadow = object.receiveShadow;
+					materialProperties.shadowType = object.shadowType;
 				} else {
-					lightsHash.acceptLight = false;
-					lightsHash.ambientsNum = 0;
-					lightsHash.directsNum = 0;
-					lightsHash.pointsNum = 0;
-					lightsHash.spotsNum = 0;
-					lightsHash.shadowsNum = 0;
-					lightsHash.receiveShadow = false;
-					lightsHash.shadowType = "HARD";
+					materialProperties.acceptLight = false;
 				}
 
 				materialProperties.numClippingPlanes = scene.clippingPlanes ? scene.clippingPlanes.length : 0;

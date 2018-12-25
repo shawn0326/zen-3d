@@ -11036,7 +11036,7 @@
 				var i = programs.indexOf(program);
 				programs[i] = programs[programs.length - 1];
 				programs.pop();
-		
+
 				// Free WebGL resources
 				program.dispose(gl);
 			}
@@ -11550,22 +11550,10 @@
 				beforeRender.call(this, renderItem, material);
 
 				var materialProperties = this.properties.get(material);
-				materialProperties.lightsHash = materialProperties.lightsHash || {};
-				var lightsHash = materialProperties.lightsHash;
 				if (material.needsUpdate === false) {
 					if (materialProperties.program === undefined) {
 						material.needsUpdate = true;
 					} else if (materialProperties.fog !== scene.fog) {
-						material.needsUpdate = true;
-					} else if (!!scene.lights && (scene.lights.ambientsNum !==  lightsHash.ambientsNum ||
-	                    scene.lights.directsNum !==  lightsHash.directsNum ||
-	                    scene.lights.pointsNum !==  lightsHash.pointsNum ||
-	                    scene.lights.spotsNum !==  lightsHash.spotsNum ||
-	                    scene.lights.shadowsNum !==  lightsHash.shadowsNum ||
-	                    object.receiveShadow !== lightsHash.receiveShadow ||
-	                    object.shadowType !== lightsHash.shadowType)) {
-						material.needsUpdate = true;
-					} else if (lightsHash.acceptLight !== (material.acceptLight && !!scene.lights)) {
 						material.needsUpdate = true;
 					} else if (scene.clippingPlanes && scene.clippingPlanes.length !==  materialProperties.numClippingPlanes) {
 						material.needsUpdate = true;
@@ -11573,6 +11561,17 @@
 	                    camera.gammaOutput !==  materialProperties.gammaOutput ||
 	                    camera.gammaFactor !==  materialProperties.gammaFactor) {
 						material.needsUpdate = true;
+					} else {
+						var acceptLight = material.acceptLight && !!scene.lights && scene.lights.totalNum > 0;
+						if (acceptLight !== materialProperties.acceptLight) {
+							material.needsUpdate = true;
+						} else if (acceptLight) {
+							if (!scene.lights.hash.compare(materialProperties.lightsHash) ||
+								object.receiveShadow !== materialProperties.receiveShadow ||
+								object.shadowType !== materialProperties.shadowType) {
+								material.needsUpdate = true;
+							}
+						}
 					}
 				}
 				if (material.needsUpdate) {
@@ -11584,23 +11583,12 @@
 					materialProperties.fog = scene.fog;
 
 					if (scene.lights) {
-						lightsHash.acceptLight = material.acceptLight;
-						lightsHash.ambientsNum = scene.lights.ambientsNum;
-						lightsHash.directsNum = scene.lights.directsNum;
-						lightsHash.pointsNum = scene.lights.pointsNum;
-						lightsHash.spotsNum = scene.lights.spotsNum;
-						lightsHash.shadowsNum = scene.lights.shadowsNum;
-						lightsHash.receiveShadow = object.receiveShadow;
-						lightsHash.shadowType = object.shadowType;
+						materialProperties.acceptLight = material.acceptLight;
+						materialProperties.lightsHash = scene.lights.hash.copyTo(materialProperties.lightsHash);
+						materialProperties.receiveShadow = object.receiveShadow;
+						materialProperties.shadowType = object.shadowType;
 					} else {
-						lightsHash.acceptLight = false;
-						lightsHash.ambientsNum = 0;
-						lightsHash.directsNum = 0;
-						lightsHash.pointsNum = 0;
-						lightsHash.spotsNum = 0;
-						lightsHash.shadowsNum = 0;
-						lightsHash.receiveShadow = false;
-						lightsHash.shadowType = "HARD";
+						materialProperties.acceptLight = false;
 					}
 
 					materialProperties.numClippingPlanes = scene.clippingPlanes ? scene.clippingPlanes.length : 0;
@@ -12773,11 +12761,11 @@
 
 	var helpVector3$1 = new Vector3();
 
-	var lightCaches = {};
+	var lightCaches = new WeakMap();
 
 	function getLightCache(light) {
-		if (lightCaches[light.uuid] !== undefined) {
-			return lightCaches[light.uuid];
+		if (lightCaches.has(light)) {
+			return lightCaches.get(light);
 		}
 
 		var cache;
@@ -12823,10 +12811,39 @@
 			break;
 		}
 
-		lightCaches[light.uuid] = cache;
+		lightCaches.set(light, cache);
 
 		return cache;
 	}
+
+	function LightHash() {
+		this._factor = new Uint16Array(4);
+	}
+
+	Object.assign(LightHash.prototype, {
+		update: function(lights) {
+			this._factor[0] = lights.ambientsNum;
+			this._factor[1] = lights.directsNum;
+			this._factor[2] = lights.pointsNum;
+			this._factor[3] = lights.spotsNum;
+		},
+		compare: function(factor) {
+			if (!factor) {
+				return false;
+			}
+			return !(this._factor[0] !== factor[0] ||
+				this._factor[1] !== factor[1] ||
+				this._factor[2] !== factor[2] ||
+				this._factor[3] !== factor[3]);
+		},
+		copyTo: function(factor) {
+			if (!factor) {
+				factor = new Uint16Array(4);
+			}
+			factor.set(this._factor);
+			return factor;
+		}
+	});
 
 	/**
 	 * Light cache collect all lights in the scene.
@@ -12854,6 +12871,8 @@
 		this.spotsNum = 0;
 		this.shadowsNum = 0;
 		this.totalNum = 0;
+
+		this.hash = new LightHash();
 	}
 
 	Object.assign(LightCache.prototype, {
@@ -12904,7 +12923,7 @@
 	     * @memberof zen3d.LightCache#
 	     */
 		endCount: function () {
-			// do nothing
+			this.hash.update(this);
 		},
 
 		_doAddAmbientLight: function (object) {
@@ -13286,7 +13305,7 @@
 	     */
 		this.lights = new LightCache();
 
-		this._renderLists = {};
+		this._renderListMap = new WeakMap();
 	}
 
 	Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Scene.prototype */{
@@ -13299,13 +13318,11 @@
 	     * @return {RenderList} - The result render list.
 	     */
 		updateRenderList: function(camera) {
-			var id = camera.uuid;
-
-			if (!this._renderLists[id]) {
-				this._renderLists[id] = new RenderList();
+			if (!this._renderListMap.has(camera)) {
+				this._renderListMap.set(camera, new RenderList());
 			}
 
-			var renderList = this._renderLists[id];
+			var renderList = this._renderListMap.get(camera);
 
 			renderList.startCount();
 
@@ -13325,7 +13342,7 @@
 	     * @return {RenderList} - The target render list.
 	     */
 		getRenderList: function(camera) {
-			return this._renderLists[camera.uuid];
+			return this._renderListMap.get(camera);
 		},
 
 		/**

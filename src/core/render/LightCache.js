@@ -3,11 +3,11 @@ import { Vector3 } from '../math/Vector3.js';
 
 var helpVector3 = new Vector3();
 
-var lightCaches = {};
+var lightCaches = new WeakMap();
 
 function getLightCache(light) {
-	if (lightCaches[light.uuid] !== undefined) {
-		return lightCaches[light.uuid];
+	if (lightCaches.has(light)) {
+		return lightCaches.get(light);
 	}
 
 	var cache;
@@ -53,10 +53,39 @@ function getLightCache(light) {
 		break;
 	}
 
-	lightCaches[light.uuid] = cache;
+	lightCaches.set(light, cache);
 
 	return cache;
 }
+
+function LightHash() {
+	this._factor = new Uint16Array(4);
+}
+
+Object.assign(LightHash.prototype, {
+	update: function(lights) {
+		this._factor[0] = lights.ambientsNum;
+		this._factor[1] = lights.directsNum;
+		this._factor[2] = lights.pointsNum;
+		this._factor[3] = lights.spotsNum;
+	},
+	compare: function(factor) {
+		if (!factor) {
+			return false;
+		}
+		return !(this._factor[0] !== factor[0] ||
+			this._factor[1] !== factor[1] ||
+			this._factor[2] !== factor[2] ||
+			this._factor[3] !== factor[3]);
+	},
+	copyTo: function(factor) {
+		if (!factor) {
+			factor = new Uint16Array(4);
+		}
+		factor.set(this._factor);
+		return factor;
+	}
+});
 
 /**
  * Light cache collect all lights in the scene.
@@ -84,6 +113,8 @@ function LightCache() {
 	this.spotsNum = 0;
 	this.shadowsNum = 0;
 	this.totalNum = 0;
+
+	this.hash = new LightHash();
 }
 
 Object.assign(LightCache.prototype, {
@@ -134,7 +165,7 @@ Object.assign(LightCache.prototype, {
      * @memberof zen3d.LightCache#
      */
 	endCount: function () {
-		// do nothing
+		this.hash.update(this);
 	},
 
 	_doAddAmbientLight: function (object) {

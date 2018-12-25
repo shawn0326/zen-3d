@@ -45,7 +45,7 @@ function Scene() {
      */
 	this.lights = new LightCache();
 
-	this._renderLists = {};
+	this._renderListMap = new WeakMap();
 }
 
 Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Scene.prototype */{
@@ -58,13 +58,11 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
      * @return {RenderList} - The result render list.
      */
 	updateRenderList: function(camera) {
-		var id = camera.uuid;
-
-		if (!this._renderLists[id]) {
-			this._renderLists[id] = new RenderList();
+		if (!this._renderListMap.has(camera)) {
+			this._renderListMap.set(camera, new RenderList());
 		}
 
-		var renderList = this._renderLists[id];
+		var renderList = this._renderListMap.get(camera);
 
 		renderList.startCount();
 
@@ -84,7 +82,7 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
      * @return {RenderList} - The target render list.
      */
 	getRenderList: function(camera) {
-		return this._renderLists[camera.uuid];
+		return this._renderListMap.get(camera);
 	},
 
 	/**
