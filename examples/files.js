@@ -77,7 +77,8 @@ var files = {
 		"webvr_car"
 	],
 	"physics": [
-		"physics_cannon"
+		"physics_cannon",
+		"physics_ammo"
 	],
 	"help": [
 		"help_performance"

@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - cannon</title>
+	<title>zen3d - ammo</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -21,21 +21,21 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="./files/cannon.js"></script>
+	<script src="./files/ammo.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - physics cannon
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - physics ammo
 		<br/>
-        use <a href="http://schteppe.github.io/cannon.js" target="_blank">cannon.js</a>
+        use <a href="https://github.com/kripken/ammo.js/" target="_blank">ammo.js</a>
         <br/>
         touch screen to add a cube
     </div>
 
 	<script>
 
-		(function() {
+		Ammo().then(Ammo => {
 			var width = window.innerWidth || 2;
 	        var height = window.innerHeight || 2;
 
@@ -80,19 +80,27 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
-			// cannon.js init
-			var world = new CANNON.World();
-          	world.gravity.set(0,-9.8,0);
-          	world.broadphase = new CANNON.NaiveBroadphase();
-          	world.solver.iterations = 10;
-
-          	var c_plane_shape = new CANNON.Plane();
-			var c_plane_body = new CANNON.Body({
-				mass: 0
-			});
-			c_plane_body.addShape(c_plane_shape);
-			c_plane_body.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
-			world.addBody(c_plane_body);
+			// ammo.js init
+			var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+			var dispatcher = new Ammo.btCollisionDispatcher( collisionConfiguration );
+			var broadphase = new Ammo.btDbvtBroadphase();
+			var solver = new Ammo.btSequentialImpulseConstraintSolver();
+			var physicsWorld = new Ammo.btDiscreteDynamicsWorld( dispatcher, broadphase, solver, collisionConfiguration );
+			physicsWorld.setGravity( new Ammo.btVector3( 0, - 9.8, 0 ) );
+			var shape = new Ammo.btBoxShape( new Ammo.btVector3( 100, 1, 100 ) ); // ground
+			// shape.setMargin( 0.05 );
+			var transform = new Ammo.btTransform();
+			transform.setIdentity();
+			transform.setOrigin( new Ammo.btVector3( 0, -0.5, 0 ) );
+			transform.setRotation( new Ammo.btQuaternion( 0, 0, 0, 1 ) );
+			var motionState = new Ammo.btDefaultMotionState( transform );
+			var localInertia = new Ammo.btVector3( 0, 0, 0 );
+			shape.calculateLocalInertia( 0, localInertia );
+			var rbInfo = new Ammo.btRigidBodyConstructionInfo( 0, motionState, shape, localInertia );
+			var body = new Ammo.btRigidBody( rbInfo );
+			body.setFriction(0.8);
+			physicsWorld.addRigidBody( body );
+			var transformAux1 = new Ammo.btTransform();
 
 			var position = new zen3d.Vector3();
 			var sphere_meshes = [];
@@ -114,17 +122,24 @@
 				scene.add(sphere);
 				sphere_meshes.push(sphere);
 
-				var c_sphere_shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
-				var c_sphere_body = new CANNON.Body({
-					mass: 20
-				});
-				c_sphere_body.addShape(c_sphere_shape);
-				c_sphere_body.position.copy(position);
-				c_sphere_body.angularVelocity.set(0,10,0);
-				c_sphere_body.velocity.set(0,0,0);
-				c_sphere_body.angularDamping = 0.5;
-				world.addBody(c_sphere_body);
-				sphere_bodys.push(c_sphere_body);
+				var shape = new Ammo.btBoxShape( new Ammo.btVector3( 1, 1, 1 ) ); // ground
+				// shape.setMargin( 0.05 );
+				var transform = new Ammo.btTransform();
+				transform.setIdentity();
+				transform.setOrigin( new Ammo.btVector3( position.x, position.y, position.z ) );
+				transform.setRotation( new Ammo.btQuaternion( 0, 0, 0, 1 ) );
+				var motionState = new Ammo.btDefaultMotionState( transform );
+				var localInertia = new Ammo.btVector3( 0, 0, 0 );
+				shape.calculateLocalInertia( 2000, localInertia );
+				var rbInfo = new Ammo.btRigidBodyConstructionInfo( 2000, motionState, shape, localInertia );
+				var body = new Ammo.btRigidBody( rbInfo );
+				// body.setActivationState( 4 );
+				body.setAngularVelocity(new Ammo.btVector3( 0, 10, 0 ));
+				body.setRollingFriction(30)
+				body.setFriction(0.8);
+				body.setDamping(0.5, 0.5);
+				physicsWorld.addRigidBody( body );
+				sphere_bodys.push(body);
 			}
 
 			document.addEventListener("mouseup", addOneCube);
@@ -141,12 +156,18 @@
 				timeTamp = count;
 
 				// Step the physics world
-				world.step(time / 1000);
+				physicsWorld.stepSimulation( time / 1000, 10 );
 
 				for(var i = 0; i < size; i++) {
-					// Copy transform from Cannon.js to zen3d.js
-					sphere_meshes[i].position.copy(sphere_bodys[i].position);
-					sphere_meshes[i].quaternion.copy(sphere_bodys[i].quaternion);
+					// Copy transform from Ammo.js to zen3d.js
+					var ms = sphere_bodys[i].getMotionState();
+					if (ms) {
+						ms.getWorldTransform( transformAux1 );
+						var p = transformAux1.getOrigin();
+						var q = transformAux1.getRotation();
+						sphere_meshes[i].position.set( p.x(), p.y(), p.z() );
+						sphere_meshes[i].quaternion.set( q.x(), q.y(), q.z(), q.w() );
+					}
 				}
 
 	            renderer.render(scene, camera);
@@ -163,7 +184,7 @@
 				renderer.backRenderTarget.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
-		})();
+		});
 	</script>
 </body>
 </html>
