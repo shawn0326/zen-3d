@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - ammo softbody volume</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./js/Clock.js"></script>
+	<script src="./files/ammo.js"></script>
+	<script src="./files/stats.min.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - physics ammo softbody volume
+		<br/>
+        use <a href="https://github.com/kripken/ammo.js/" target="_blank">ammo.js</a>
+        <br/>
+        touch screen to throw a ball
+    </div>
+
+	<script>
+
+		Ammo().then(Ammo => {
+
+			// - Global variables -
+
+			// Graphics variables
+            var canvas, stats;
+            var camera, controls, scene, renderer;
+            var clock = new zen3d.Clock();
+            var clickRequest = false;
+            var mouseCoords = new zen3d.Vector2();
+            var raycaster = new zen3d.Raycaster();
+			var ballMaterial = new zen3d.PhongMaterial();
+			ballMaterial.diffuse.setHex(0x202020);
+            var pos = new zen3d.Vector3();
+			var quat = new zen3d.Quaternion();
+			
+			// Physics variables
+			var gravityConstant = - 9.8;
+			var physicsWorld;
+			var rigidBodies = [];
+			var softBodies = [];
+			var margin = 0.05;
+			var transformAux1 = new Ammo.btTransform();
+			var softBodyHelpers = new Ammo.btSoftBodyHelpers();
+
+			var geometryMap = new WeakMap();
+
+			var width = window.innerWidth || 2;
+			var height = window.innerHeight || 2;
+
+			init();
+			animate();
+
+			function init() {
+
+				initGraphics();
+
+				initPhysics();
+
+				createObjects();
+
+				initInput();
+
+			}
+
+
+			function initGraphics() {
+
+				canvas = document.createElement( 'canvas' );
+				canvas.width = width;
+				canvas.height = height;
+				document.body.appendChild( canvas );
+
+				camera = new zen3d.Camera();
+				camera.setPerspective(60 / 180 * Math.PI, width / height, 0.2, 2000);
+
+				scene = new zen3d.Scene();
+
+				camera.position.set( - 7, 5, 8 );
+				scene.add(camera);
+
+				controls = new zen3d.OrbitControls( camera, canvas );
+				controls.target.set( 0, 2, 0 );
+
+				renderer = new zen3d.Renderer(canvas);
+				renderer.glCore.state.colorBuffer.setClear(0.75, 0.82, 0.9, 1);
+
+				var ambientLight = new zen3d.AmbientLight();
+				ambientLight.intensity = 1;
+				scene.add( ambientLight );
+
+				var light = new zen3d.DirectionalLight();
+				light.intensity = 2.5;
+				light.position.set( - 10, 10, 5 );
+				light.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+				light.castShadow = true;
+				light.shadow.windowSize = 40;
+				light.shadow.cameraNear = 2;
+				light.shadow.cameraFar = 50;
+				light.shadow.bias = -0.003;
+				light.shadow.mapSize.set(1024, 1024);
+
+				scene.add( light );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				canvas.parentElement.appendChild( stats.domElement );
+
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function initPhysics() {
+
+				// Physics configuration
+
+				var collisionConfiguration = new Ammo.btSoftBodyRigidBodyCollisionConfiguration();
+				var dispatcher = new Ammo.btCollisionDispatcher( collisionConfiguration );
+				var broadphase = new Ammo.btDbvtBroadphase();
+				var solver = new Ammo.btSequentialImpulseConstraintSolver();
+				var softBodySolver = new Ammo.btDefaultSoftBodySolver();
+				physicsWorld = new Ammo.btSoftRigidDynamicsWorld( dispatcher, broadphase, solver, collisionConfiguration, softBodySolver );
+				physicsWorld.setGravity( new Ammo.btVector3( 0, gravityConstant, 0 ) );
+				physicsWorld.getWorldInfo().set_m_gravity( new Ammo.btVector3( 0, gravityConstant, 0 ) );
+
+			}
+
+			function createObjects() {
+
+				// Ground
+				pos.set( 0, - 0.5, 0 );
+				quat.set( 0, 0, 0, 1 );
+				var ground = createParalellepiped( 40, 1, 40, 0, pos, quat, new zen3d.PhongMaterial() );
+				ground.castShadow = true;
+				ground.receiveShadow = true;
+				ground.material.diffuse.setRGB(1, 1, 1);
+				ground.material.diffuseMap = zen3d.Texture2D.fromSrc("resources/grid.png");
+				ground.material.diffuseMap.wrapS = ground.material.diffuseMap.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+				ground.material.diffuseMap.repeat.set(40, 40);
+
+				// Create soft volumes
+				var volumeMass = 15;
+
+				var sphereGeometry = new zen3d.SphereGeometry( 1.5, 40, 25 );
+				// sphereGeometry.translate( 5, 5, 0 );
+				createSoftVolume( sphereGeometry, new zen3d.Vector3(5, 5, 0), volumeMass, 250 );
+
+				var boxGeometry = new zen3d.CubeGeometry( 1, 1, 5, 4, 4, 20 );
+				// boxGeometry.translate( - 2, 5, 0 );
+				createSoftVolume( boxGeometry, new zen3d.Vector3(- 2, 5, 0), volumeMass, 120 );
+
+				// Ramp
+				pos.set( 3, 1, 0 );
+				quat.setFromAxisAngle( new zen3d.Vector3( 0, 0, 1 ), 30 * Math.PI / 180 );
+				var obstacle = createParalellepiped( 10, 1, 4, 0, pos, quat, new zen3d.PhongMaterial() );
+				obstacle.material.diffuse.setHex(0x606060);
+				obstacle.castShadow = true;
+				obstacle.receiveShadow = true;
+
+			}
+
+			function processGeometry(geometry, pos) {
+
+				var verticesMap = {}; // Hashmap for looking up vertices by position coordinates (and making sure they are unique)
+				var unique = [], changes = [];
+
+				var v = new zen3d.Vector3(), key;
+				var precisionPoints = 4; // number of decimal points, e.g. 4 for epsilon of 0.0001
+				var precision = Math.pow( 10, precisionPoints );
+				var i, il;
+				var indices = [];
+
+				var position = geometry.attributes.a_Position;
+
+				for ( i = 0, il = position.count; i < il; i ++ ) {
+
+					v.fromArray(position.array, i * 3);
+					v.add(pos);
+					key = Math.round( v.x * precision ) + '_' + Math.round( v.y * precision ) + '_' + Math.round( v.z * precision );
+
+					if ( verticesMap[ key ] === undefined ) {
+
+						verticesMap[ key ] = i;
+						unique.push( v.x, v.y, v.z );
+						changes[ i ] = unique.length / 3 - 1;
+
+					} else {
+
+						//console.log('Duplicate vertex found. ', i, ' could be using ', verticesMap[key]);
+						changes[ i ] = changes[ verticesMap[ key ] ];
+
+					}
+
+				}
+
+				var index = geometry.index;
+
+				for ( i = 0, il = index.count; i < il; i ++ ) {
+
+					v.fromArray(index.array, i * 3);
+
+					v.x = changes[v.x];
+					v.y = changes[v.y];
+					v.z = changes[v.z];
+
+					if (v.x !== v.y && v.y !== v.z && v.x !== v.z) {
+						indices.push(v.x, v.y, v.z);
+					}
+					
+				}
+
+				return {
+					vertices: unique,
+					indices: indices,
+					changes: changes
+				}
+
+			}
+
+			function createSoftVolume( bufferGeom, pos, mass, pressure ) {
+
+				var ammoGeom = processGeometry(bufferGeom, pos);
+				geometryMap.set(bufferGeom, ammoGeom);
+
+				var volume = new zen3d.Mesh( bufferGeom, new zen3d.PhongMaterial() );
+				volume.castShadow = true;
+				volume.receiveShadow = true;
+				volume.frustumCulled = false;
+				scene.add( volume );
+
+				volume.material.diffuse.setRGB(1, 1, 1);
+				volume.material.diffuseMap = zen3d.Texture2D.fromSrc("resources/hi.png");
+
+				// Volume physic object
+
+				var volumeSoftBody = softBodyHelpers.CreateFromTriMesh(
+					physicsWorld.getWorldInfo(),
+					ammoGeom.vertices,
+					ammoGeom.indices,
+					ammoGeom.indices.length / 3,
+					true );
+
+				var sbConfig = volumeSoftBody.get_m_cfg();
+				sbConfig.set_viterations( 40 );
+				sbConfig.set_piterations( 40 );
+
+				// Soft-soft and soft-rigid collisions
+				sbConfig.set_collisions( 0x11 );
+
+				// Friction
+				sbConfig.set_kDF( 0.1 );
+				// Damping
+				sbConfig.set_kDP( 0.01 );
+				// Pressure
+				sbConfig.set_kPR( pressure );
+				// Stiffness
+				volumeSoftBody.get_m_materials().at( 0 ).set_m_kLST( 0.9 );
+				volumeSoftBody.get_m_materials().at( 0 ).set_m_kAST( 0.9 );
+
+				volumeSoftBody.setTotalMass( mass, false );
+				Ammo.castObject( volumeSoftBody, Ammo.btCollisionObject ).getCollisionShape().setMargin( margin );
+				physicsWorld.addSoftBody( volumeSoftBody, 1, - 1 );
+				volume.userData.physicsBody = volumeSoftBody;
+				// Disable deactivation
+				volumeSoftBody.setActivationState( 4 );
+
+				softBodies.push( volume );
+
+			}
+
+			function createParalellepiped( sx, sy, sz, mass, pos, quat, material ) {
+
+				var zenObject = new zen3d.Mesh( new zen3d.CubeGeometry( sx, sy, sz, 1, 1, 1 ), material );
+				var shape = new Ammo.btBoxShape( new Ammo.btVector3( sx * 0.5, sy * 0.5, sz * 0.5 ) );
+				shape.setMargin( margin );
+
+				createRigidBody( zenObject, shape, mass, pos, quat );
+
+				return zenObject;
+
+			}
+
+			function createRigidBody( zenObject, physicsShape, mass, pos, quat ) {
+
+				zenObject.position.copy( pos );
+				zenObject.quaternion.copy( quat );
+
+				var transform = new Ammo.btTransform();
+				transform.setIdentity();
+				transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+				transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+				var motionState = new Ammo.btDefaultMotionState( transform );
+
+				var localInertia = new Ammo.btVector3( 0, 0, 0 );
+				physicsShape.calculateLocalInertia( mass, localInertia );
+
+				var rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, physicsShape, localInertia );
+				var body = new Ammo.btRigidBody( rbInfo );
+
+				zenObject.userData.physicsBody = body;
+
+				scene.add( zenObject );
+
+				if ( mass > 0 ) {
+
+					rigidBodies.push( zenObject );
+
+					// Disable deactivation
+					body.setActivationState( 4 );
+
+				}
+
+				physicsWorld.addRigidBody( body );
+
+				return body;
+
+			}
+
+			function initInput() {
+
+				window.addEventListener( 'mousedown', function ( event ) {
+
+					if ( ! clickRequest ) {
+
+						mouseCoords.set(
+							( event.clientX / window.innerWidth ) * 2 - 1,
+							- ( event.clientY / window.innerHeight ) * 2 + 1
+						);
+
+						clickRequest = true;
+
+					}
+
+				}, false );
+
+				window.addEventListener( 'touchstart', function ( event ) {
+
+					if ( ! clickRequest ) {
+
+						mouseCoords.set(
+							( event.touches[0].clientX / window.innerWidth ) * 2 - 1,
+							- ( event.touches[0].clientY / window.innerHeight ) * 2 + 1
+						);
+
+						clickRequest = true;
+
+					}
+
+				}, false );
+
+			}
+
+			function processClick() {
+
+				if ( clickRequest ) {
+
+					raycaster.setFromCamera( mouseCoords, camera );
+
+					// Creates a ball
+					var ballMass = 3;
+					var ballRadius = 0.4;
+
+					var ball = new zen3d.Mesh( new zen3d.SphereGeometry( ballRadius, 18, 16 ), ballMaterial );
+					ball.castShadow = true;
+					ball.receiveShadow = true;
+					var ballShape = new Ammo.btSphereShape( ballRadius );
+					ballShape.setMargin( margin );
+					pos.copy( raycaster.ray.direction );
+					pos.add( raycaster.ray.origin );
+					quat.set( 0, 0, 0, 1 );
+					var ballBody = createRigidBody( ball, ballShape, ballMass, pos, quat );
+					ballBody.setFriction( 0.5 );
+
+					pos.copy( raycaster.ray.direction );
+					pos.multiplyScalar( 14 );
+					ballBody.setLinearVelocity( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+
+					clickRequest = false;
+
+				}
+
+			}
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(60 / 180 * Math.PI, window.innerWidth / window.innerHeight, 0.2, 2000);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				var deltaTime = clock.getDelta();
+
+				controls.update();
+
+				updatePhysics( deltaTime );
+
+				processClick();
+
+				renderer.render( scene, camera );
+
+			}
+
+
+			function updatePhysics( deltaTime ) {
+
+				// Step world
+				physicsWorld.stepSimulation( deltaTime, 10 );
+
+				// Update soft volumes
+				for ( var i = 0, il = softBodies.length; i < il; i ++ ) {
+
+					var volume = softBodies[ i ];
+					var geometry = volume.geometry;
+					var softBody = volume.userData.physicsBody;
+					var ammoGeom = geometryMap.get(geometry);
+					var volumePositions = geometry.attributes.a_Position.array;
+					var volumeNormals = geometry.attributes.a_Normal.array;
+					var changes = ammoGeom.changes;
+					var numVerts = changes.length;
+					var nodes = softBody.get_m_nodes();
+					for ( var j = 0; j < numVerts; j ++ ) {
+
+						var node = nodes.at( changes[j] );
+						var nodePos = node.get_m_x();
+						var x = nodePos.x();
+						var y = nodePos.y();
+						var z = nodePos.z();
+						var nodeNormal = node.get_m_n();
+						var nx = nodeNormal.x();
+						var ny = nodeNormal.y();
+						var nz = nodeNormal.z();
+
+						volumePositions[j * 3] = x;
+						volumePositions[j * 3 + 1] = y;
+						volumePositions[j * 3 + 2] = z;
+
+						volumeNormals[j * 3] = nx;
+						volumeNormals[j * 3 + 1] = ny;
+						volumeNormals[j * 3 + 2] = nz;
+
+					}
+
+					geometry.attributes.a_Position.version++;
+					geometry.attributes.a_Normal.version++;
+
+				}
+
+				// Update rigid bodies
+				for ( var i = 0, il = rigidBodies.length; i < il; i ++ ) {
+
+					var objZen = rigidBodies[ i ];
+					var objPhys = objZen.userData.physicsBody;
+					var ms = objPhys.getMotionState();
+					if ( ms ) {
+
+						ms.getWorldTransform( transformAux1 );
+						var p = transformAux1.getOrigin();
+						var q = transformAux1.getRotation();
+						objZen.position.set( p.x(), p.y(), p.z() );
+						objZen.quaternion.set( q.x(), q.y(), q.z(), q.w() );
+
+					}
+
+				}
+
+			}
+		});
+	</script>
+</body>
+</html>

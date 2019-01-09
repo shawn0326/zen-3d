@@ -78,7 +78,8 @@ var files = {
 	],
 	"physics": [
 		"physics_cannon",
-		"physics_ammo"
+		"physics_ammo",
+		"physics_ammo_softbody_volume"
 	],
 	"help": [
 		"help_performance"

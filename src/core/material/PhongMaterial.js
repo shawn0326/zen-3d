@@ -26,9 +26,9 @@ function PhongMaterial() {
      * Specular color of the material.
      * This defines how shiny the material is and the color of its shine.
      * @type {zen3d.Color3}
-     * @default zen3d.Color(0x666666)
+     * @default zen3d.Color(0x111111)
      */
-	this.specular = new Color3(0x666666);
+	this.specular = new Color3(0x111111);
 
 	/**
      * The specular map value affects both how much the specular surface highlight contributes and how much of the environment map affects the surface.
