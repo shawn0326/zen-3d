@@ -439,7 +439,7 @@
 			function updatePhysics( deltaTime ) {
 
 				// Step world
-				physicsWorld.stepSimulation( deltaTime, 10 );
+				physicsWorld.stepSimulation( deltaTime, 1 );
 
 				// Update soft volumes
 				for ( var i = 0, il = softBodies.length; i < il; i ++ ) {
