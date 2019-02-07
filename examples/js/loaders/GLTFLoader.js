@@ -1435,8 +1435,7 @@
 
             if (alphaMode === ALPHA_MODES.MASK) {
 
-                // TODO alphaTest support
-                // materialParams.alphaTest = materialDef.alphaCutoff !== undefined ? materialDef.alphaCutoff : 0.5;
+                materialParams.alphaTest = materialDef.alphaCutoff !== undefined ? materialDef.alphaCutoff : 0.5;
 
             }
 
