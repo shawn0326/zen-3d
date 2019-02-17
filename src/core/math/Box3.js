@@ -66,7 +66,7 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
 	},
 
 	/**
-	 *  
+	 *
 	 */
 	expandByBox3: function(box3) {
 		this.min.min(box3.min);
