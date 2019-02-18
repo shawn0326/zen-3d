@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - gltf draco</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+		.bar {
+			background: lightgreen;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./js/Clock.js"></script>
+	<script src="./js/loaders/DRACOLoader.js"></script>
+	<script src="./js/loaders/GLTFLoader.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./js/shaders/SkyBoxShader.js"></script>
+	<script src="./js/objects/SkyBox.js"></script>
+	<script src="./files/nanobar.min.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf draco
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width * window.devicePixelRatio;
+	        canvas.height = height * window.devicePixelRatio;
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var file = "resources/models/gltf/LittlestTokyo.glb";
+
+			var cube_texture = zen3d.TextureCube.fromSrc([
+				"resources/Bridge2/posx.jpg",
+			    "resources/Bridge2/negx.jpg",
+			    "resources/Bridge2/posy.jpg",
+			    "resources/Bridge2/negy.jpg",
+			    "resources/Bridge2/posz.jpg",
+			    "resources/Bridge2/negz.jpg"
+			]);
+			var sky_box = new zen3d.SkyBox(cube_texture);
+			sky_box.level = 4;
+
+			let objectMaterial;
+
+			var nanobar = new Nanobar();
+			nanobar.el.style.background = "gray";
+
+			var loadingManager = new zen3d.LoadingManager(function() {
+				nanobar.go(100);
+				nanobar.el.style.background = "transparent";
+			}, function(url, itemsLoaded, itemsTotal) {
+				if (itemsLoaded < itemsTotal) {
+					nanobar.go(itemsLoaded / itemsTotal * 100);
+				}
+			});
+
+			zen3d.DRACOLoader.setDecoderPath( 'files/draco/gltf/' );
+
+			var animation;
+
+			var loader = new zen3d.GLTFLoader(loadingManager);
+			loader.setDRACOLoader( new zen3d.DRACOLoader() );
+			loader.load(file, function(result) {
+				// add mesh to scene
+				let object = result.scene;
+
+				object.traverse(node => {
+					if (node.material) {
+						node.material.envMap = cube_texture;
+						node.material.envMapIntensity = 1;
+					}
+				});
+
+				animation = new zen3d.AnimationMixer();
+				animation.add(result.animations[0]);
+				animation.play(result.animations[0].name);
+
+				scene.add(object);
+			});
+
+			var ambientLight = new zen3d.AmbientLight(0xffffff, 2);
+	        scene.add(ambientLight);
+
+			var directionalLight = new zen3d.DirectionalLight(0xffffff, 1);
+			directionalLight.position.set(2, 1, 2);
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0))
+	        scene.add(directionalLight);
+
+			var camera = new zen3d.Camera();
+			camera.gammaOutput = true;
+	        camera.position.set(-200, 100, 1000);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 5000);
+			camera.add(sky_box);
+	        scene.add(camera);
+
+			var controller = new zen3d.OrbitControls(camera, canvas);
+			controller.enablePan = false;
+			controller.minDistance = 100;
+			controller.maxDistance = 2000;
+
+			var clock = new zen3d.Clock();
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				controller.update();
+
+				animation && animation.update(clock.getDelta());
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 5000);
+
+				renderer.backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
+
+				canvas.style.width = width + "px";
+				canvas.style.height = height + "px";
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

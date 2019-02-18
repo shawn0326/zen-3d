@@ -64,6 +64,12 @@
      */
 	var GLTFLoader = function(manager) {
 		this.manager = (manager !== undefined) ? manager : zen3d.DefaultLoadingManager;
+		this.dracoLoader = null;
+	}
+
+	GLTFLoader.prototype.setDRACOLoader = function (dracoLoader) {
+		this.dracoLoader = dracoLoader;
+		return this;
 	}
 
 	GLTFLoader.prototype.load = function(url, onLoad, onProgress, onError) {
@@ -144,9 +150,7 @@
 			}
 
 			if (json.extensionsUsed.indexOf(EXTENSIONS.KHR_DRACO_MESH_COMPRESSION) >= 0) {
-				// TODO need a draco loader
-				console.warn('GLTFLoader:: no draco loader.');
-				extensions[EXTENSIONS.KHR_DRACO_MESH_COMPRESSION] = new GLTFDracoMeshCompressionExtension();
+				extensions[EXTENSIONS.KHR_DRACO_MESH_COMPRESSION] = new GLTFDracoMeshCompressionExtension(this.dracoLoader);
 			}
 
 			if (json.extensionsUsed.indexOf(EXTENSIONS.KHR_TEXTURE_TRANSFORM) >= 0) {
