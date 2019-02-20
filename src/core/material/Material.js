@@ -111,10 +111,10 @@ function Material() {
 
 	/**
      * Defines whether vertex coloring is used.
-     * @type {boolean}
-     * @default false
+     * @type {zen3d.VERTEX_COLOR}
+     * @default zen3d.VERTEX_COLOR.NONE
      */
-	this.vertexColors = false;
+	this.vertexColors = zen3d.VERTEX_COLOR.NONE;
 
 	/**
      * The diffuse color.

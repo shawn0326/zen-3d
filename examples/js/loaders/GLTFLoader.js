@@ -738,7 +738,16 @@
 					}
 
 					if (useVertexColors) {
-						material.vertexColors = true;
+						switch (geometry.attributes.a_Color.size) {
+						case 3:
+							material.vertexColors = zen3d.VERTEX_COLOR.RGB;
+							break;
+						case 4:
+							material.vertexColors = zen3d.VERTEX_COLOR.RGBA;
+							break;
+						default:
+							console.warn("Illegal vertex color size: " + geometry.attributes.a_Color.size);
+						}
 					}
 
 					if (useFlatShading) {

@@ -354,6 +354,18 @@ export var DRAW_MODE = {
 }
 
 /**
+ * Enum for Vertex Color.
+ * @name zen3d.VERTEX_COLOR
+ * @readonly
+ * @enum {number}
+ */
+export var VERTEX_COLOR = {
+	NONE: 0,
+	RGB: 1,
+	RGBA: 2
+}
+
+/**
  * Enum for ATTACHMENT
  * @name zen3d.ATTACHMENT
  * @readonly

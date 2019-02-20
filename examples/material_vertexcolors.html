@@ -53,10 +53,11 @@
 			}
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-			addVertexColors(sphere_geometry, 1, 0, 0, 1);
+			addVertexColors(sphere_geometry, 1, 0, 0, 0.5);
 	        var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
-			phong.vertexColors = true;
+			phong.vertexColors = zen3d.VERTEX_COLOR.RGBA;
+			phong.transparent = true;
 	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 
@@ -64,7 +65,7 @@
 			addVertexColors(plane_geometry, 0, 1, 0, 1);
 	        var lambert = new zen3d.LambertMaterial();
 	        lambert.diffuse.setHex(0xffffff);
-			lambert.vertexColors = true;
+			lambert.vertexColors = zen3d.VERTEX_COLOR.RGBA;
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 	        scene.add(plane);

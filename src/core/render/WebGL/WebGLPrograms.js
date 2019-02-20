@@ -1,4 +1,4 @@
-import { MATERIAL_TYPE, TEXEL_ENCODING_TYPE, SHADOW_TYPE, SHADING_TYPE, FOG_TYPE, DRAW_SIDE, OBJECT_TYPE } from '../../const.js';
+import { MATERIAL_TYPE, TEXEL_ENCODING_TYPE, SHADOW_TYPE, SHADING_TYPE, VERTEX_COLOR, FOG_TYPE, DRAW_SIDE, OBJECT_TYPE } from '../../const.js';
 import { WebGLProgram } from './WebGLProgram.js';
 import { ShaderChunk } from '../shader/ShaderChunk.js';
 import { ShaderLib } from '../shader/ShaderLib.js';
@@ -116,7 +116,8 @@ function createProgram(gl, props, defines) {
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
-		props.useVertexColors ? '#define USE_VCOLOR' : '',
+		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
+		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
 
 		props.useSkinning ? '#define USE_SKINNING' : '',
 		(props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
@@ -181,7 +182,8 @@ function createProgram(gl, props, defines) {
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
-		props.useVertexColors ? '#define USE_VCOLOR' : '',
+		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
+		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
 		props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
 		props.fog ? '#define USE_FOG' : '',
 		props.fogExp2 ? '#define USE_EXP2_FOG' : '',
