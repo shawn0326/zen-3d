@@ -634,21 +634,23 @@
 						node.updateMatrix();
 
 						var TypedKeyframeTrack;
-						var isVector3 = false;
 
 						switch (PATH_PROPERTIES[target.path]) {
 						case PATH_PROPERTIES.rotation:
-
 							TypedKeyframeTrack = zen3d.QuaternionKeyframeTrack;
 							break;
-
+						case PATH_PROPERTIES.weights:
+							console.warn("GLTFLoader: PATH_PROPERTIES weights not supported yet.");
+							break;
 						case PATH_PROPERTIES.position:
 						case PATH_PROPERTIES.scale:
 						default:
-
 							TypedKeyframeTrack = zen3d.VectorKeyframeTrack;
-							isVector3 = true;
 							break;
+						}
+
+						if (!TypedKeyframeTrack) {
+							continue;
 						}
 
 						var input = new inputAccessor.array.constructor(inputAccessor.array.subarray(0, inputAccessor.array.length));
@@ -774,18 +776,21 @@
 					} else if (primitive.mode === WEBGL_CONSTANTS.LINES ||
                         primitive.mode === WEBGL_CONSTANTS.LINE_STRIP ||
                         primitive.mode === WEBGL_CONSTANTS.LINE_LOOP) {
-						// TODO line Material support
-						console.warn("GLTFLoader: line material may has bug");
+						if (primitive.mode === WEBGL_CONSTANTS.LINE_STRIP) {
+							// TODO
+							console.warn("GLTFLoader: LINE_STRIP not supported yet.");
+						}
 
 						var cacheKey = 'LineBasicMaterial:' + material.uuid;
 
 						var lineMaterial = scope.cache.get(cacheKey);
 
 						if (!lineMaterial) {
-							lineMaterial = new zen3d.LineMaterial();
-							zen3d.Material.prototype.copy.call(lineMaterial, material);
-							lineMaterial.color.copy(material.color);
-							lineMaterial.lights = false; // LineBasicMaterial doesn't support lights yet
+							lineMaterial = primitive.mode === WEBGL_CONSTANTS.LINES ? new zen3d.LineMaterial() : new zen3d.LineLoopMaterial();
+							lineMaterial.lineWidth = material.lineWidth;
+							lineMaterial.diffuse.copy(material.diffuse);
+							lineMaterial.diffuseMap = material.diffuseMap;
+							lineMaterial.lights = false; // LineBasicMaterial doesn't support lights
 
 							scope.cache.add(cacheKey, lineMaterial);
 						}
@@ -801,7 +806,7 @@
 						if (!pointsMaterial) {
 							pointsMaterial = new zen3d.PointsMaterial();
 							zen3d.Material.prototype.copy.call(pointsMaterial, material);
-							pointsMaterial.diffuse.copy(material.color);
+							pointsMaterial.diffuse.copy(material.diffuse);
 							pointsMaterial.diffuseMap = material.map;
 							pointsMaterial.acceptLight = false; // PointsMaterial doesn't support lights yet
 
@@ -997,7 +1002,7 @@
 			// Ignore empty accessors, which may be used to declare runtime
 			// information about attributes coming from another source (e.g. Draco
 			// compression extension).
-			return null;
+			return Promise.resolve(null);
 		}
 
 		var pendingBufferViews = [];
@@ -1023,7 +1028,7 @@
 			var elementBytes = TypedArray.BYTES_PER_ELEMENT;
 			var itemBytes = elementBytes * itemSize;
 			var byteOffset = accessorDef.byteOffset || 0;
-			var byteStride = json.bufferViews[accessorDef.bufferView].byteStride;
+			var byteStride = accessorDef.bufferView !== undefined ? json.bufferViews[accessorDef.bufferView].byteStride : undefined;
 			var normalized = accessorDef.normalized === true;
 			var array, bufferAttribute;
 
