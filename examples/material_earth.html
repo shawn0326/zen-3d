@@ -110,18 +110,19 @@
 			earth_mat.shininess = 8;
 			// earth_mat.premultipliedAlpha = true;
 
+			var glow_mat = new zen3d.ShaderMaterial(glowShader);
+			glow_mat.side = zen3d.DRAW_SIDE.BACK;
+			glow_mat.transparent = true;
+			glow_mat.blending = zen3d.BLEND_TYPE.ADD;
+
 			var cloud_mat = new zen3d.LambertMaterial();
 	        cloud_mat.diffuse.setHex(0xffffff);
 			cloud_mat.diffuseMap = cloud_tex;
 			cloud_mat.transparent = true;
 			cloud_mat.opacity = 1;
 			cloud_mat.blending = zen3d.BLEND_TYPE.ADD;
+			cloud_mat.side = zen3d.DRAW_SIDE.DOUBLE;
 			cloud_mat.premultipliedAlpha = true;
-
-			var glow_mat = new zen3d.ShaderMaterial(glowShader);
-			glow_mat.side = zen3d.DRAW_SIDE.BACK;
-			glow_mat.transparent = true;
-			glow_mat.blending = zen3d.BLEND_TYPE.ADD;
 
 			var glow = new zen3d.Mesh(glow_geo, glow_mat);
 			glow.scale.set(1.8, 1.8, 1.8);
@@ -130,10 +131,12 @@
 	        var earth = new zen3d.Mesh(earth_geo, earth_mat);
 			scene.add(earth);
 
-	        var cloud1 = new zen3d.Mesh(cloud1_geo, cloud_mat);
+			var cloud1 = new zen3d.Mesh(cloud1_geo, cloud_mat);
+			cloud1.renderOrder = 1;
 			scene.add(cloud1);
 
-	        var cloud2 = new zen3d.Mesh(cloud2_geo, cloud_mat);
+			var cloud2 = new zen3d.Mesh(cloud2_geo, cloud_mat);
+			cloud2.renderOrder = 2;
 			scene.add(cloud2);
 
 	        var ambientLight = new zen3d.AmbientLight(0x393939);
@@ -166,9 +169,9 @@
 				// camera.position.x = 60 * Math.sin(count / 1000 * .5);
 				// camera.position.z = 60 * Math.cos(count / 1000 * .5);
 				// camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-				earth.euler.set(0, count / 1000 * .10, 0);
-				cloud1.euler.set(0, count / 1000 * .14, 0);
-				cloud2.euler.set(0, count / 1000 * .18, Math.PI);
+				earth.euler.set(0, count / 1000 * .15, 0);
+				cloud1.euler.set(0, count / 1000 * .13, 0);
+				cloud2.euler.set(0, count / 1000 * .10, Math.PI);
 
 	            renderer.render(scene, camera);
 	        }
