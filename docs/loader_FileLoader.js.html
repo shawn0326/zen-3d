@@ -26,156 +26,158 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {DefaultLoadingManager} from './LoadingManager.js';
+            <pre class="prettyprint source linenums"><code>import { DefaultLoadingManager } from './LoadingManager.js';
 
 /**
- * A low level class for loading resources with XMLHttpRequest, used internaly by most loaders. 
+ * A low level class for loading resources with XMLHttpRequest, used internaly by most loaders.
  * It can also be used directly to load any file type that does not have a loader.
  * @constructor
  * @memberof zen3d
  * @param {zen3d.LoadingManager} manager — The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.
  */
 function FileLoader(manager) {
-    this.path = undefined;
-    this.responseType = undefined;
-    this.withCredentials = undefined;
-    this.mimeType = undefined;
-    this.requestHeader = undefined;
-    this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
+	this.path = undefined;
+	this.responseType = undefined;
+	this.withCredentials = undefined;
+	this.mimeType = undefined;
+	this.requestHeader = undefined;
+	this.manager = (manager !== undefined) ? manager : DefaultLoadingManager;
 }
 
 Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 
-    /**
-     * Load the URL and pass the response to the onLoad function. 
+	/**
+     * Load the URL and pass the response to the onLoad function.
      * @param {string} url — the path or URL to the file. This can also be a Data URI.
      * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded response.
      * @param {Function} [onProgress=] — Will be called while load progresses. The argument will be the XMLHttpRequest instance, which contains .total and .loaded bytes.
      * @param {Function} [onError=] — Will be called if an error occurs.
      */
-    load: function(url, onLoad, onProgress, onError) {
-        if (url === undefined) url = '';
-        if (this.path != undefined) url = this.path + url;
+	load: function(url, onLoad, onProgress, onError) {
+		if (url === undefined) url = '';
+		if (this.path != undefined) url = this.path + url;
 
-        url = this.manager.resolveURL( url );
+		url = this.manager.resolveURL(url);
 
-        var scope = this;
+		var scope = this;
 
-        // Check for data: URI
-        var dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
-        var dataUriRegexResult = url.match(dataUriRegex);
+		// Check for data: URI
+		var dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
+		var dataUriRegexResult = url.match(dataUriRegex);
 
-        if (dataUriRegexResult) { // Safari can not handle Data URIs through XMLHttpRequest so process manually
-            var mimeType = dataUriRegexResult[1];
-            var isBase64 = !!dataUriRegexResult[2];
-            var data = dataUriRegexResult[3];
-            data = window.decodeURIComponent(data);
-            if (isBase64) data = window.atob(data); // decode base64
-            try {
-                var response;
-                var responseType = (this.responseType || '').toLowerCase();
-                switch (responseType) {
-                    case 'arraybuffer':
-                    case 'blob':
-                        response = new ArrayBuffer(data.length);
-                        var view = new Uint8Array(response);
-                        for (var i = 0; i &lt; data.length; i++) {
-                            view[i] = data.charCodeAt(i);
-                        }
-                        if (responseType === 'blob') {
-                            response = new Blob([response], {
-                                type: mimeType
-                            });
-                        }
-                        break;
-                    case 'document':
-                        var parser = new DOMParser();
-                        response = parser.parseFromString(data, mimeType);
-                        break;
-                    case 'json':
-                        response = JSON.parse(data);
-                        break;
-                    default: // 'text' or other
-                        response = data;
-                        break;
-                }
+		var request;
 
-                // Wait for next browser tick
-                window.setTimeout(function() {
-                    if (onLoad) onLoad(response);
-                    scope.manager.itemEnd( url );
-                }, 0);
-            } catch (error) {
-                // Wait for next browser tick
-                window.setTimeout(function() {
-                    onError &amp;&amp; onError(error);
-                    scope.manager.itemError( url );
-					scope.manager.itemEnd( url );
-                }, 0);
-            }
-        } else {
-            var request = new XMLHttpRequest();
-            request.open('GET', url, true);
+		if (dataUriRegexResult) { // Safari can not handle Data URIs through XMLHttpRequest so process manually
+			var mimeType = dataUriRegexResult[1];
+			var isBase64 = !!dataUriRegexResult[2];
+			var data = dataUriRegexResult[3];
+			data = window.decodeURIComponent(data);
+			if (isBase64) data = window.atob(data); // decode base64
+			try {
+				var response;
+				var responseType = (this.responseType || '').toLowerCase();
+				switch (responseType) {
+				case 'arraybuffer':
+				case 'blob':
+					response = new ArrayBuffer(data.length);
+					var view = new Uint8Array(response);
+					for (var i = 0; i &lt; data.length; i++) {
+						view[i] = data.charCodeAt(i);
+					}
+					if (responseType === 'blob') {
+						response = new Blob([response], {
+							type: mimeType
+						});
+					}
+					break;
+				case 'document':
+					var parser = new DOMParser();
+					response = parser.parseFromString(data, mimeType);
+					break;
+				case 'json':
+					response = JSON.parse(data);
+					break;
+				default: // 'text' or other
+					response = data;
+					break;
+				}
 
-            request.addEventListener('load', function(event) {
-                var response = event.target.response;
-                if (this.status === 200) {
-                    if (onLoad) onLoad(response);
-                    scope.manager.itemEnd( url );
-                } else if (this.status === 0) {
-                    // Some browsers return HTTP Status 0 when using non-http protocol
-                    // e.g. 'file://' or 'data://'. Handle as success.
-                    console.warn('THREE.FileLoader: HTTP Status 0 received.');
-                    if (onLoad) onLoad(response);
-                    scope.manager.itemEnd( url );
-                } else {
-                    if (onError) onError(event);
-                    scope.manager.itemError( url );
-					scope.manager.itemEnd( url );
-                }
-            }, false);
+				// Wait for next browser tick
+				window.setTimeout(function() {
+					if (onLoad) onLoad(response);
+					scope.manager.itemEnd(url);
+				}, 0);
+			} catch (error) {
+				// Wait for next browser tick
+				window.setTimeout(function() {
+					onError &amp;&amp; onError(error);
+					scope.manager.itemError(url);
+					scope.manager.itemEnd(url);
+				}, 0);
+			}
+		} else {
+			request = new XMLHttpRequest();
+			request.open('GET', url, true);
 
-            if (onProgress !== undefined) {
-                request.addEventListener('progress', function(event) {
-                    onProgress(event);
-                }, false);
-            }
+			request.addEventListener('load', function(event) {
+				var response = event.target.response;
+				if (this.status === 200) {
+					if (onLoad) onLoad(response);
+					scope.manager.itemEnd(url);
+				} else if (this.status === 0) {
+					// Some browsers return HTTP Status 0 when using non-http protocol
+					// e.g. 'file://' or 'data://'. Handle as success.
+					console.warn('THREE.FileLoader: HTTP Status 0 received.');
+					if (onLoad) onLoad(response);
+					scope.manager.itemEnd(url);
+				} else {
+					if (onError) onError(event);
+					scope.manager.itemError(url);
+					scope.manager.itemEnd(url);
+				}
+			}, false);
 
-            if (onError !== undefined) {
-                request.addEventListener('error', function(event) {
-                    onError(event);
-                    scope.manager.itemError( url );
-				    scope.manager.itemEnd( url );
-                }, false);
-            }
+			if (onProgress !== undefined) {
+				request.addEventListener('progress', function(event) {
+					onProgress(event);
+				}, false);
+			}
 
-            if (this.responseType !== undefined) request.responseType = this.responseType;
-            if (this.withCredentials !== undefined) request.withCredentials = this.withCredentials;
-            if (request.overrideMimeType) request.overrideMimeType(this.mimeType !== undefined ? this.mimeType : 'text/plain');
-            for (var header in this.requestHeader) {
-                request.setRequestHeader(header, this.requestHeader[header]);
-            }
+			if (onError !== undefined) {
+				request.addEventListener('error', function(event) {
+					onError(event);
+					scope.manager.itemError(url);
+					scope.manager.itemEnd(url);
+				}, false);
+			}
 
-            request.send(null);
-        }
+			if (this.responseType !== undefined) request.responseType = this.responseType;
+			if (this.withCredentials !== undefined) request.withCredentials = this.withCredentials;
+			if (request.overrideMimeType) request.overrideMimeType(this.mimeType !== undefined ? this.mimeType : 'text/plain');
+			for (var header in this.requestHeader) {
+				request.setRequestHeader(header, this.requestHeader[header]);
+			}
 
-        scope.manager.itemStart( url );
+			request.send(null);
+		}
 
-        return request;
-    },
+		scope.manager.itemStart(url);
 
-    /**
-     * Set the base path or URL from which to load files. 
+		return request;
+	},
+
+	/**
+     * Set the base path or URL from which to load files.
      * This can be useful if you are loading many models from the same directory.
      * @param {string} value
      * @return {zen3d.FileLoader}
      */
-    setPath: function(value) {
-        this.path = value;
-        return this;
-    },
+	setPath: function(value) {
+		this.path = value;
+		return this;
+	},
 
-    /**
+	/**
      * Change the response type. Valid values are:
      * text or empty string (default) - returns the data as string.
      * arraybuffer - loads the data into a ArrayBuffer and returns that.
@@ -185,48 +187,48 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
      * @param {string} value
      * @return {zen3d.FileLoader}
      */
-    setResponseType: function(value) {
-        this.responseType = value;
-        return this;
-    },
+	setResponseType: function(value) {
+		this.responseType = value;
+		return this;
+	},
 
-    /**
-     * Whether the XMLHttpRequest uses credentials such as cookies, authorization headers or TLS client certificates. 
+	/**
+     * Whether the XMLHttpRequest uses credentials such as cookies, authorization headers or TLS client certificates.
      * See {@link https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials XMLHttpRequest.withCredentials}.
      * Note that this has no effect if you are loading files locally or from the same domain.
      * @param {boolean} value
      * @return {zen3d.FileLoader}
      */
-    setWithCredentials: function(value) {
-        this.withCredentials = value;
-        return this;
-    },
+	setWithCredentials: function(value) {
+		this.withCredentials = value;
+		return this;
+	},
 
-    /**
-     * Set the expected mimeType of the file being loaded. 
+	/**
+     * Set the expected mimeType of the file being loaded.
      * Note that in many cases this will be determined automatically, so by default it is undefined.
      * @param {string} value
-     * @return {zen3d.FileLoader} 
+     * @return {zen3d.FileLoader}
      */
-    setMimeType: function(value) {
-        this.mimeType = value;
-        return this;
-    },
+	setMimeType: function(value) {
+		this.mimeType = value;
+		return this;
+	},
 
-    /**
+	/**
      * The request header used in HTTP request.
      * Default is undefined.
      * @param {string} value
-     * @return {zen3d.FileLoader} 
+     * @return {zen3d.FileLoader}
      */
-    setRequestHeader: function(value) {
-        this.requestHeader = value;
-        return this;
-    }
+	setRequestHeader: function(value) {
+		this.requestHeader = value;
+		return this;
+	}
 
 });
 
-export {FileLoader};</code></pre>
+export { FileLoader };</code></pre>
         </article>
     </section>
 
@@ -236,13 +238,13 @@ export {FileLoader};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

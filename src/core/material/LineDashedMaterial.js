@@ -43,7 +43,7 @@ function LineDashedMaterial() {
 	this.gapSize = 1;
 
 	/**
-     * Set draw mode to LINE_STRIP.
+     * Set draw mode to LINES / LINE_LOOP / LINE_STRIP
      * @type {zen3d.DRAW_MODE}
      * @default zen3d.DRAW_MODE.LINE_STRIP
      */

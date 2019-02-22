@@ -26,16 +26,16 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {EventDispatcher} from '../EventDispatcher.js';
-import {generateUUID} from '../base.js';
-import {Box3} from '../math/Box3.js';
-import {Sphere} from '../math/Sphere.js';
-import {BufferAttribute} from './BufferAttribute.js';
+            <pre class="prettyprint source linenums"><code>import { EventDispatcher } from '../EventDispatcher.js';
+import { generateUUID } from '../base.js';
+import { Box3 } from '../math/Box3.js';
+import { Sphere } from '../math/Sphere.js';
+import { BufferAttribute } from './BufferAttribute.js';
 
 var geometryId = 1;
 
 /**
- * An efficient representation of mesh, line, or point geometry. 
+ * An efficient representation of mesh, line, or point geometry.
  * Includes vertex positions, face indices, normals, colors, UVs, and custom attributes within buffers, reducing the cost of passing all this data to the GPU.
  * To read and edit data in {@link zen3d.Geometry#attributes}.
  * @constructor
@@ -43,159 +43,157 @@ var geometryId = 1;
  * @extends zen3d.EventDispatcher
  */
 function Geometry() {
+	EventDispatcher.call(this);
 
-    EventDispatcher.call(this);
+	Object.defineProperty(this, 'id', { value: geometryId++ });
 
-    Object.defineProperty( this, 'id', { value: geometryId ++ } );
-
-    /**
-     * UUID of this geometry instance. 
+	/**
+     * UUID of this geometry instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
-    this.uuid = generateUUID();
+	this.uuid = generateUUID();
 
-    /**
-     * This hashmap has as id the name of the attribute to be set and as value the buffer to set it to. 
-     * Rather than accessing this property directly, use {@link zen3d.Geometry#addAttribute} and {@link zen3d.Geometry#getAttribute} to access attributes of this geometry. 
+	/**
+     * This hashmap has as id the name of the attribute to be set and as value the buffer to set it to.
+     * Rather than accessing this property directly, use {@link zen3d.Geometry#addAttribute} and {@link zen3d.Geometry#getAttribute} to access attributes of this geometry.
      * @type {Object}
      */
-    this.attributes = {};
+	this.attributes = {};
 
-    /**
-     * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices. 
-     * This attribute therefore stores the index of each vertex for each triangular face. 
+	/**
+     * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices.
+     * This attribute therefore stores the index of each vertex for each triangular face.
      * If this attribute is not set, the renderer assumes that each three contiguous positions represent a single triangle.
      * @type {zen3d.BufferAttribute|null}
      */
-    this.index = null;
+	this.index = null;
 
-    /**
+	/**
      * Bounding box for the bufferGeometry, which can be calculated with {@link zen3d.Geometry#computeBoundingBox}.
-     * @type {zen3d.Box3} 
+     * @type {zen3d.Box3}
      * @default zen3d.Box3()
      */
-    this.boundingBox = new Box3();
+	this.boundingBox = new Box3();
 
-    /**
+	/**
      * Bounding sphere for the bufferGeometry, which can be calculated with {@link zen3d.Geometry#computeBoundingSphere}.
-     * @type {zen3d.Sphere} 
+     * @type {zen3d.Sphere}
      * @default zen3d.Sphere()
      */
-    this.boundingSphere = new Sphere();
+	this.boundingSphere = new Sphere();
 
-    /**
+	/**
      * Split the geometry into groups, each of which will be rendered in a separate WebGL draw call. This allows an array of materials to be used with the geometry.
      * Each group is an object of the form:
      * { start: Integer, count: Integer, materialIndex: Integer }
-     * @type {Array} 
+     * @type {Array}
      * @default []
      */
-    this.groups = [];
-
+	this.groups = [];
 }
 
 Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.Geometry.prototype */{
 
-    constructor: Geometry,
+	constructor: Geometry,
 
-    /**
-     * Adds an attribute to this geometry. 
+	/**
+     * Adds an attribute to this geometry.
      * Use this rather than the attributes property.
      * @param {string} name
      * @param {zen3d.BufferAttribute|zen3d.InterleavedBufferAttribute} attribute
      */
-    addAttribute: function(name, attribute) {
-        this.attributes[name] = attribute;
-    },
+	addAttribute: function(name, attribute) {
+		this.attributes[name] = attribute;
+	},
 
-    /**
+	/**
      * Returns the attribute with the specified name.
      * @return {zen3d.BufferAttribute|zen3d.InterleavedBufferAttribute}
      */
-    getAttribute: function(name) {
-        return this.attributes[name];
-    },
+	getAttribute: function(name) {
+		return this.attributes[name];
+	},
 
-    /**
+	/**
      * Removes the attribute with the specified name.
      */
-    removeAttribute: function(name) {
-        delete this.attributes[name];
-    },
+	removeAttribute: function(name) {
+		delete this.attributes[name];
+	},
 
-    /**
+	/**
      * Set the {@link zen3d.Geometry#index} buffer.
      * @param {Array|zen3d.BufferAttribute} index
      */
-    setIndex: function(index) {
-        if(Array.isArray(index)) {
-            this.index = new BufferAttribute(new Uint16Array( index ), 1);
-        } else {
-            this.index = index;
-        }
-    },
+	setIndex: function(index) {
+		if (Array.isArray(index)) {
+			this.index = new BufferAttribute(new Uint16Array(index), 1);
+		} else {
+			this.index = index;
+		}
+	},
 
-    /**
+	/**
      * Adds a group to this geometry; see the {@link zen3d.Geometry#groups} for details.
      * @param {Integer} start
      * @param {Integer} count
      * @param {Integer} materialIndex
      */
-    addGroup: function(start, count, materialIndex) {
-        this.groups.push({
-            start: start,
-            count: count,
-            materialIndex: materialIndex !== undefined ? materialIndex : 0
-        });
-    },
+	addGroup: function(start, count, materialIndex) {
+		this.groups.push({
+			start: start,
+			count: count,
+			materialIndex: materialIndex !== undefined ? materialIndex : 0
+		});
+	},
 
-    /**
+	/**
      * Clears all groups.
      */
-    clearGroups: function() {
-        this.groups = [];
-    },
+	clearGroups: function() {
+		this.groups = [];
+	},
 
-    /**
+	/**
      * Computes bounding box of the geometry, updating {@link zen3d.Geometry#boundingBox}.
      * Bounding boxes aren't computed by default. They need to be explicitly computed.
      */
-    computeBoundingBox: function() {
-        var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
-            var data = position.data;
-            this.boundingBox.setFromArray(data.array, data.stride);
-        } else {
-            this.boundingBox.setFromArray(position.array, position.size);
-        }
-    },
+	computeBoundingBox: function() {
+		var position = this.attributes["a_Position"] || this.attributes["position"];
+		if (position.isInterleavedBufferAttribute) {
+			var data = position.data;
+			this.boundingBox.setFromArray(data.array, data.stride);
+		} else {
+			this.boundingBox.setFromArray(position.array, position.size);
+		}
+	},
 
-    /**
+	/**
      * Computes bounding sphere of the geometry, updating {@link zen3d.Geometry#boundingSphere}.
      * Bounding spheres aren't computed by default. They need to be explicitly computed.
      */
-    computeBoundingSphere: function() {
-        var position = this.attributes["a_Position"] || this.attributes["position"];
-        if(position.isInterleavedBufferAttribute) {
-            var data = position.data;
-            this.boundingSphere.setFromArray(data.array, data.stride);
-        } else {
-            this.boundingSphere.setFromArray(position.array, position.size);
-        }
-    },
+	computeBoundingSphere: function() {
+		var position = this.attributes["a_Position"] || this.attributes["position"];
+		if (position.isInterleavedBufferAttribute) {
+			var data = position.data;
+			this.boundingSphere.setFromArray(data.array, data.stride);
+		} else {
+			this.boundingSphere.setFromArray(position.array, position.size);
+		}
+	},
 
-    /**
-     * Disposes the object from memory. 
+	/**
+     * Disposes the object from memory.
      * You need to call this when you want the BufferGeometry removed while the application is running.
      */
-    dispose: function() {
-        this.dispatchEvent({type: 'dispose'});
-    }
+	dispose: function() {
+		this.dispatchEvent({ type: 'dispose' });
+	}
 
 });
 
-export {Geometry};</code></pre>
+export { Geometry };</code></pre>
         </article>
     </section>
 
@@ -205,13 +203,13 @@ export {Geometry};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

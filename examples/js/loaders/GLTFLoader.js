@@ -776,21 +776,18 @@
 					} else if (primitive.mode === WEBGL_CONSTANTS.LINES ||
                         primitive.mode === WEBGL_CONSTANTS.LINE_STRIP ||
                         primitive.mode === WEBGL_CONSTANTS.LINE_LOOP) {
-						if (primitive.mode === WEBGL_CONSTANTS.LINE_STRIP) {
-							// TODO
-							console.warn("GLTFLoader: LINE_STRIP not supported yet.");
-						}
-
-						var cacheKey = 'LineBasicMaterial:' + material.uuid;
+						var cacheKey = 'LineMaterial:' + material.uuid;
 
 						var lineMaterial = scope.cache.get(cacheKey);
 
 						if (!lineMaterial) {
-							lineMaterial = primitive.mode === WEBGL_CONSTANTS.LINES ? new zen3d.LineMaterial() : new zen3d.LineLoopMaterial();
+							lineMaterial = new zen3d.LineMaterial();
 							lineMaterial.lineWidth = material.lineWidth;
 							lineMaterial.diffuse.copy(material.diffuse);
 							lineMaterial.diffuseMap = material.diffuseMap;
-							lineMaterial.lights = false; // LineBasicMaterial doesn't support lights
+							lineMaterial.lights = false; // LineMaterial doesn't support lights
+
+							lineMaterial.drawMode = primitive.mode;
 
 							scope.cache.add(cacheKey, lineMaterial);
 						}

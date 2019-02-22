@@ -67,7 +67,6 @@ export { PhongMaterial } from './material/PhongMaterial.js';
 export { PBRMaterial } from './material/PBRMaterial.js';
 export { PointsMaterial } from './material/PointsMaterial.js';
 export { LineMaterial } from './material/LineMaterial.js';
-export { LineLoopMaterial } from './material/LineLoopMaterial.js';
 export { LineDashedMaterial } from './material/LineDashedMaterial.js';
 export { ShaderMaterial } from './material/ShaderMaterial.js';
 export { DepthMaterial } from './material/DepthMaterial.js';

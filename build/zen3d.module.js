@@ -220,7 +220,6 @@ var MATERIAL_TYPE = {
 	PBR: "pbr",
 	POINT: "point",
 	LINE: "line",
-	LINE_LOOP: "lineloop",
 	LINE_DASHED: "linedashed",
 	CANVAS2D: "canvas2d",
 	SHADER: "shader",
@@ -8417,7 +8416,7 @@ function LineMaterial() {
 	this.lineWidth = 1;
 
 	/**
-     * Set draw mode to LINES.
+     * Set draw mode to LINES / LINE_LOOP / LINE_STRIP
      * @type {zen3d.DRAW_MODE}
      * @default zen3d.DRAW_MODE.LINES
      */
@@ -8427,47 +8426,6 @@ function LineMaterial() {
 LineMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.LineMaterial.prototype */{
 
 	constructor: LineMaterial,
-
-	copy: function(source) {
-		Material.prototype.copy.call(this, source);
-
-		this.lineWidth = source.lineWidth;
-
-		return this;
-	}
-
-});
-
-/**
- * A material for drawing loop lines.
- * @constructor
- * @extends zen3d.Material
- * @memberof zen3d
- */
-function LineLoopMaterial() {
-	Material.call(this);
-
-	this.type = MATERIAL_TYPE.LINE_LOOP;
-
-	/**
-     * Controls line thickness.
-     * Due to limitations of the OpenGL Core Profile with the WebGL renderer on most platforms linewidth will always be 1 regardless of the set value.
-     * @type {number}
-     * @default 1
-     */
-	this.lineWidth = 1;
-
-	/**
-     * Set draw mode to LINE_LOOP.
-     * @type {zen3d.DRAW_MODE}
-     * @default zen3d.DRAW_MODE.LINE_LOOP
-     */
-	this.drawMode = DRAW_MODE.LINE_LOOP;
-}
-
-LineLoopMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.LineLoopMaterial.prototype */{
-
-	constructor: LineLoopMaterial,
 
 	copy: function(source) {
 		Material.prototype.copy.call(this, source);
@@ -8521,7 +8479,7 @@ function LineDashedMaterial() {
 	this.gapSize = 1;
 
 	/**
-     * Set draw mode to LINE_STRIP.
+     * Set draw mode to LINES / LINE_LOOP / LINE_STRIP
      * @type {zen3d.DRAW_MODE}
      * @default zen3d.DRAW_MODE.LINE_STRIP
      */
@@ -14670,4 +14628,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
  * @namespace zen3d
  */
 
-export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, TorusKnotGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineLoopMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniforms, WebGLAttribute, WebGLProgram, WebGLPrograms, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, DefaultLoadingManager, LoadingManager, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_COMPARE_FUNC, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, VERTEX_COLOR, ATTACHMENT, DRAW_BUFFER };
+export { EventDispatcher, Raycaster, Euler, Vector2, Vector3, Vector4, Matrix3, Matrix4, Quaternion, Box2, Box3, Sphere, Plane, Frustum, Color3, Ray, Triangle, Curve, Spherical, TextureBase, Texture2D, TextureCube, Texture3D, Bone, Skeleton, AnimationMixer, BooleanKeyframeTrack, ColorKeyframeTrack, KeyframeClip, KeyframeTrack, NumberKeyframeTrack, PropertyBindingMixer, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, BufferAttribute, CubeGeometry, CylinderGeometry, Geometry, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, PlaneGeometry, SphereGeometry, TorusKnotGeometry, Material, BasicMaterial, LambertMaterial, PhongMaterial, PBRMaterial, PointsMaterial, LineMaterial, LineDashedMaterial, ShaderMaterial, DepthMaterial, DistanceMaterial, WebGLCapabilities, WebGLState, WebGLProperties, WebGLTexture, WebGLGeometry, WebGLUniforms, WebGLAttribute, WebGLProgram, WebGLPrograms, WebGLCore, ShaderChunk, ShaderLib, EnvironmentMapPass, ShadowMapPass, ShaderPostPass, Renderer, LightCache, RenderList, RenderTargetBase, RenderTargetBack, RenderTarget2D, RenderTargetCube, Object3D, Scene, Fog, FogExp2, Group, Light, AmbientLight, DirectionalLight, PointLight, SpotLight, LightShadow, DirectionalLightShadow, SpotLightShadow, PointLightShadow, Camera, Mesh, SkinnedMesh, DefaultLoadingManager, LoadingManager, FileLoader, ImageLoader, TGALoader, generateUUID, isMobile, isWeb, createCheckerBoardPixels, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo, cloneUniforms, halton, OBJECT_TYPE, LIGHT_TYPE, MATERIAL_TYPE, FOG_TYPE, BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, CULL_FACE_TYPE, DRAW_SIDE, SHADING_TYPE, WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_COMPARE_FUNC, WEBGL_UNIFORM_TYPE, WEBGL_ATTRIBUTE_TYPE, SHADOW_TYPE, TEXEL_ENCODING_TYPE, ENVMAP_COMBINE_TYPE, DRAW_MODE, VERTEX_COLOR, ATTACHMENT, DRAW_BUFFER };

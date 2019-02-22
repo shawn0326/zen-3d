@@ -21,7 +21,7 @@ function LineMaterial() {
 	this.lineWidth = 1;
 
 	/**
-     * Set draw mode to LINES.
+     * Set draw mode to LINES / LINE_LOOP / LINE_STRIP
      * @type {zen3d.DRAW_MODE}
      * @default zen3d.DRAW_MODE.LINES
      */

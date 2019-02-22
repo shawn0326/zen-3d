@@ -26,12 +26,12 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {generateUUID} from '../base.js';
-import {SHADOW_TYPE} from '../const.js';
-import {Vector3} from '../math/Vector3.js';
-import {Euler} from '../math/Euler.js';
-import {Quaternion} from '../math/Quaternion.js';
-import {Matrix4} from '../math/Matrix4.js';
+            <pre class="prettyprint source linenums"><code>import { generateUUID } from '../base.js';
+import { SHADOW_TYPE } from '../const.js';
+import { Vector3 } from '../math/Vector3.js';
+import { Euler } from '../math/Euler.js';
+import { Quaternion } from '../math/Quaternion.js';
+import { Matrix4 } from '../math/Matrix4.js';
 
 var object3DId = 0;
 
@@ -42,358 +42,342 @@ var object3DId = 0;
  * @memberof zen3d
  */
 function Object3D() {
+	Object.defineProperty(this, 'id', { value: object3DId++ });
 
-    Object.defineProperty( this, 'id', { value: object3DId ++ } );
-
-    /**
-     * UUID of this object instance. 
+	/**
+     * UUID of this object instance.
      * This gets automatically assigned, so this shouldn't be edited.
      * @type {string}
      */
-    this.uuid = generateUUID();
+	this.uuid = generateUUID();
 
-    /**
+	/**
      * Optional name of the object (doesn't need to be unique).
      * @type {string}
      * @default ""
      */
-    this.name = "";
+	this.name = "";
 
-    /**
+	/**
      * Type of the object.
      * Set by Subclass.
-     * @type {zen3d.OBJECT_TYPE} 
+     * @type {zen3d.OBJECT_TYPE}
      */
-    this.type = "";
+	this.type = "";
 
-    /**
+	/**
      * A Vector3 representing the object's local position.
-     * @type {zen3d.Vector3} 
+     * @type {zen3d.Vector3}
      * @default Vector3(0, 0, 0)
      */
-    this.position = new Vector3();
+	this.position = new Vector3();
 
-    /**
+	/**
      * The object's local scale.
-     * @type {zen3d.Vector3} 
+     * @type {zen3d.Vector3}
      * @default Vector3(1, 1, 1)
      */
-    this.scale = new Vector3(1, 1, 1);
+	this.scale = new Vector3(1, 1, 1);
 
-    /**
+	/**
      * Object's local rotation as an {@link zen3d.Euler}, in radians.
-     * @type {zen3d.Euler} 
+     * @type {zen3d.Euler}
      * @default Euler(0, 0, 0)
      */
-    this.euler = new Euler();
+	this.euler = new Euler();
 
-    /**
+	/**
      * Object's local rotation as a {@link zen3d.Quaternion}.
      * @type {zen3d.Quaternion}
      * @default Quaternion(0, 0, 0, 1)
      */
-    this.quaternion = new Quaternion();
+	this.quaternion = new Quaternion();
 
-    // bind euler and quaternion
-    var euler = this.euler, quaternion = this.quaternion;
-    euler.onChange(function() {
-        quaternion.setFromEuler(euler, false);
-    });
-    quaternion.onChange(function() {
-        euler.setFromQuaternion(quaternion, undefined, false);
-    });
+	// bind euler and quaternion
+	var euler = this.euler, quaternion = this.quaternion;
+	euler.onChange(function() {
+		quaternion.setFromEuler(euler, false);
+	});
+	quaternion.onChange(function() {
+		euler.setFromQuaternion(quaternion, undefined, false);
+	});
 
-    /**
+	/**
      * The local transform matrix.
      * @type {zen3d.Matrix4}
      */
-    this.matrix = new Matrix4();
+	this.matrix = new Matrix4();
 
-    /**
-     * The global transform of the object. 
+	/**
+     * The global transform of the object.
      * If the Object3D has no parent, then it's identical to the local transform {@link zen3d.Object3D#matrix}.
      * @type {zen3d.Matrix4}
      */
-    this.worldMatrix = new Matrix4();
+	this.worldMatrix = new Matrix4();
 
-    /**
-     * Object's parent in the scene graph. 
+	/**
+     * Object's parent in the scene graph.
      * An object can have at most one parent.
      * @type {zen3d.Object3D[]}
      */
-    this.children = new Array();
+	this.children = new Array();
 
-    /**
-     * Object's parent in the scene graph. 
+	/**
+     * Object's parent in the scene graph.
      * An object can have at most one parent.
      * @type {zen3d.Object3D}
      */
-    this.parent = null;
+	this.parent = null;
 
-    /**
+	/**
      * Whether the object gets rendered into shadow map.
      * @type {boolean}
      * @default false
      */
-    this.castShadow = false;
+	this.castShadow = false;
 
-    /**
+	/**
      * Whether the material receives shadows.
      * @type {boolean}
      * @default false
      */
-    this.receiveShadow = false;
+	this.receiveShadow = false;
 
-    /**
+	/**
      * Defines shadow map type.
      * @type {zen3d.SHADOW_TYPE}
      * @default SHADOW_TYPE.PCF3_SOFT
      */
-    this.shadowType = SHADOW_TYPE.PCF3_SOFT;
+	this.shadowType = SHADOW_TYPE.PCF3_SOFT;
 
-    /**
-     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object. 
+	/**
+     * When this is set, it checks every frame if the object is in the frustum of the camera before rendering the object.
      * Otherwise the object gets rendered every frame even if it isn't visible.
      * @type {boolean}
      * @default true
      */
-    this.frustumCulled = true;
+	this.frustumCulled = true;
 
-    /**
+	/**
      * Object gets rendered if true.
-     * @type {boolean} 
+     * @type {boolean}
      * @default true
      */
-    this.visible = true;
+	this.visible = true;
 
-    /**
-     * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently. 
+	/**
+     * This value allows the default rendering order of scene graph objects to be overridden although opaque and transparent objects remain sorted independently.
      * Sorting is from lowest to highest renderOrder.
      * @type {number}
      * @default 0
      */
-    this.renderOrder = 0;
+	this.renderOrder = 0;
 
-    /**
-     * An object that can be used to store custom data about the {@link zen3d.Object3D}. 
+	/**
+     * An object that can be used to store custom data about the {@link zen3d.Object3D}.
      * It should not hold references to functions as these will not be cloned.
      * @type {Object}
      * @default {}
      */
-    this.userData = {};
+	this.userData = {};
 }
 
 Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 
-    /**
+	/**
      * An optional callback that is executed immediately before the Object3D is rendered.
      * @type {Function}
      */
-    onBeforeRender: function () {},
+	onBeforeRender: function () {},
 
-    /**
+	/**
      * An optional callback that is executed immediately after the Object3D is rendered.
      * @type {Function}
      */
 	onAfterRender: function () {},
 
-    /**
+	/**
      * Add object as child of this object.
      * @param {zen3d.Object3D} object
      */
-    add: function(object) {
-        this.children.push(object);
-        object.parent = this;
-    },
+	add: function(object) {
+		this.children.push(object);
+		object.parent = this;
+	},
 
-    /**
+	/**
      * Remove object as child of this object.
      * @param {zen3d.Object3D} object
      */
-    remove: function(object) {
-        var index = this.children.indexOf(object);
-        if (index !== -1) {
-            this.children.splice(index, 1);
-        }
-        object.parent = null;
-    },
+	remove: function(object) {
+		var index = this.children.indexOf(object);
+		if (index !== -1) {
+			this.children.splice(index, 1);
+		}
+		object.parent = null;
+	},
 
-    /**
+	/**
      * Searches through the object's children and returns the first with a matching name.
-     * Note that for most objects the name is an empty string by default. 
+     * Note that for most objects the name is an empty string by default.
      * You will have to set it manually to make use of this method.
-     * @param {string} name - String to match to the children's {@link zen3d.Object3D#name} property. 
+     * @param {string} name - String to match to the children's {@link zen3d.Object3D#name} property.
      * @return {zen3d.Object3D}
      */
-    getObjectByName: function(name) {
-        return this.getObjectByProperty('name', name);
-    },
+	getObjectByName: function(name) {
+		return this.getObjectByProperty('name', name);
+	},
 
-    /**
+	/**
      * Searches through the object's children and returns the first with a property that matches the value given.
-     * @param {string} name - the property name to search for. 
-     * @param {number} value - value of the given property. 
+     * @param {string} name - the property name to search for.
+     * @param {number} value - value of the given property.
      * @return {zen3d.Object3D}
      */
-    getObjectByProperty: function(name, value) {
-        if (this[name] === value) return this;
+	getObjectByProperty: function(name, value) {
+		if (this[name] === value) return this;
 
-        for (var i = 0, l = this.children.length; i &lt; l; i++) {
+		for (var i = 0, l = this.children.length; i &lt; l; i++) {
+			var child = this.children[i];
+			var object = child.getObjectByProperty(name, value);
 
-            var child = this.children[i];
-            var object = child.getObjectByProperty(name, value);
+			if (object !== undefined) {
+				return object;
+			}
+		}
 
-            if (object !== undefined) {
+		return undefined;
+	},
 
-                return object;
-
-            }
-
-        }
-
-        return undefined;
-    },
-
-    /**
+	/**
      * Update the local transform.
      */
-    updateMatrix: function() {
-        var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
+	updateMatrix: function() {
+		var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
 
-        this.worldMatrix.copy(matrix);
+		this.worldMatrix.copy(matrix);
 
-        if (this.parent) {
-            var parentMatrix = this.parent.worldMatrix;
-            this.worldMatrix.premultiply(parentMatrix);
-        }
+		if (this.parent) {
+			var parentMatrix = this.parent.worldMatrix;
+			this.worldMatrix.premultiply(parentMatrix);
+		}
 
-        var children = this.children;
-        for (var i = 0, l = children.length; i &lt; l; i++) {
-            children[i].updateMatrix();
-        }
-    },
+		var children = this.children;
+		for (var i = 0, l = children.length; i &lt; l; i++) {
+			children[i].updateMatrix();
+		}
+	},
 
-    /**
+	/**
      * Returns a vector representing the direction of object's positive z-axis in world space.
      * This call must be after {@link zen3d.Object3D#updateMatrix}.
      * @method
      * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
      * @return {Vector3} - the result.
      */
-    getWorldDirection: function() {
+	getWorldDirection: function() {
+		var position = new Vector3();
+		var quaternion = new Quaternion();
+		var scale = new Vector3();
 
-        var position = new Vector3();
-        var quaternion = new Quaternion();
-        var scale = new Vector3();
+		return function getWorldDirection(optionalTarget) {
+			var result = optionalTarget || new Vector3();
 
-        return function getWorldDirection(optionalTarget) {
+			this.worldMatrix.decompose(position, quaternion, scale);
 
-            var result = optionalTarget || new Vector3();
+			result.set(0, 0, 1).applyQuaternion(quaternion);
 
-            this.worldMatrix.decompose(position, quaternion, scale);
+			return result;
+		};
+	}(),
 
-            result.set(0, 0, 1).applyQuaternion(quaternion);
-
-            return result;
-
-        };
-    }(),
-
-    /**
+	/**
      * Rotates the object to face a point in local space.
      * @method
      * @param {Vector3} target - A vector representing a position in local space.
      * @param {Vector3} up — A vector representing the up direction in local space.
      */
-    lookAt: function() {
+	lookAt: function() {
+		var m = new Matrix4();
 
-        var m = new Matrix4();
+		return function lookAt(target, up) {
+			m.lookAtRH(target, this.position, up);
+			this.quaternion.setFromRotationMatrix(m);
+		};
+	}(),
 
-        return function lookAt(target, up) {
-
-            m.lookAtRH(target, this.position, up);
-            this.quaternion.setFromRotationMatrix(m);
-
-        };
-
-    }(),
-
-    /**
+	/**
      * Method to get intersections between a casted ray and this object.
      * @abstract
      * @param {Raycaster} raycaster - The {@link zen3d.Raycaster} instance.
      * @param {Array} intersects - output intersects array.
      */
-    raycast: function(raycaster, intersects) {
-        
-    },
+	raycast: function(raycaster, intersects) {
 
-    /**
+	},
+
+	/**
      * Executes the callback on this object and all descendants.
      * @param {Function} callback - A function with as first argument an object3D object.
      */
-    traverse: function ( callback ) {
-        callback( this );
+	traverse: function (callback) {
+		callback(this);
 
-        var children = this.children;
-        for ( var i = 0, l = children.length; i &lt; l; i ++ ) {
-            children[ i ].traverse( callback );
-        }
-    },
-    
-    /**
+		var children = this.children;
+		for (var i = 0, l = children.length; i &lt; l; i++) {
+			children[i].traverse(callback);
+		}
+	},
+
+	/**
      * Returns a clone of this object and optionally all descendants.
      * @param {Function} [recursive=true] - if true, descendants of the object are also cloned.
      * @return {zen3d.Object3D}
      */
-    clone: function ( recursive ) {
-        return new this.constructor().copy( this, recursive );
-    },
+	clone: function (recursive) {
+		return new this.constructor().copy(this, recursive);
+	},
 
-    /**
+	/**
      * Copy the given object into this object.
      * @param {zen3d.Object3D} source - The object to be copied.
      * @param {Function} [recursive=true] - if true, descendants of the object are also copied.
      * @return {zen3d.Object3D}
      */
-    copy: function( source, recursive ) {
-        if ( recursive === undefined ) recursive = true;
+	copy: function(source, recursive) {
+		if (recursive === undefined) recursive = true;
 
-        this.name = source.name;
+		this.name = source.name;
 
-        this.type = source.type;
+		this.type = source.type;
 
-        this.position.copy( source.position );
-        this.quaternion.copy( source.quaternion );
-        this.scale.copy( source.scale );
+		this.position.copy(source.position);
+		this.quaternion.copy(source.quaternion);
+		this.scale.copy(source.scale);
 
-        this.matrix.copy( source.matrix );
-        this.worldMatrix.copy( source.worldMatrix );
+		this.matrix.copy(source.matrix);
+		this.worldMatrix.copy(source.worldMatrix);
 
-        this.castShadow = source.castShadow;
-        this.receiveShadow = source.receiveShadow;
+		this.castShadow = source.castShadow;
+		this.receiveShadow = source.receiveShadow;
 
-        this.frustumCulled = source.frustumCulled;
+		this.frustumCulled = source.frustumCulled;
 
-        this.userData = JSON.parse( JSON.stringify( source.userData ) );
+		this.userData = JSON.parse(JSON.stringify(source.userData));
 
-        if ( recursive === true ) {
+		if (recursive === true) {
+			for (var i = 0; i &lt; source.children.length; i++) {
+				var child = source.children[i];
+				this.add(child.clone());
+			}
+		}
 
-            for ( var i = 0; i &lt; source.children.length; i ++ ) {
-
-                var child = source.children[ i ];
-                this.add( child.clone() );
-
-            }
-
-        }
-
-        return this;
-    }
+		return this;
+	}
 
 });
 
-export {Object3D};</code></pre>
+export { Object3D };</code></pre>
         </article>
     </section>
 
@@ -403,13 +387,13 @@ export {Object3D};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

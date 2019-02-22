@@ -26,10 +26,10 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {OBJECT_TYPE} from '../const.js';
-import {LightCache} from '../render/LightCache.js';
-import {RenderList} from '../render/RenderList.js';
-import {Object3D} from './Object3D.js';
+            <pre class="prettyprint source linenums"><code>import { OBJECT_TYPE } from '../const.js';
+import { LightCache } from '../render/LightCache.js';
+import { RenderList } from '../render/RenderList.js';
+import { Object3D } from './Object3D.js';
 
 /**
  * Scenes allow you to set up what and where is to be rendered by zen3d.
@@ -39,146 +39,141 @@ import {Object3D} from './Object3D.js';
  * @extends zen3d.Object3D
  */
 function Scene() {
+	Object3D.call(this);
 
-    Object3D.call(this);
+	this.type = OBJECT_TYPE.SCENE;
 
-    this.type = OBJECT_TYPE.SCENE;
-
-    /**
+	/**
      * If not null, it will force everything in the scene to be rendered with that material.
      * @type {zen3d.Material}
      * @default null
      */
-    this.overrideMaterial = null;
+	this.overrideMaterial = null;
 
-    /**
+	/**
      * A {@link zen3d.Fog} instance defining the type of fog that affects everything rendered in the scene.
      * @type {zen3d.Fog}
      * @default null
      */
-    this.fog = null;
+	this.fog = null;
 
-    /**
-     * User-defined clipping planes specified as {@link zen3d.Plane} objects in world space. 
+	/**
+     * User-defined clipping planes specified as {@link zen3d.Plane} objects in world space.
      * These planes apply to the scene.
      * Points in space whose dot product with the plane is negative are cut away.
      * @type {zen3d.Plane[]}
      * @default []
      */
-    this.clippingPlanes = [];
+	this.clippingPlanes = [];
 
-    /**
+	/**
      * A {@link zen3d.LightCache} instance that collected all lights info after the calling of {@link zen3d.Scene#updateLights}.
      * @type {zen3d.LightCache}
      * @default zen3d.LightCache()
      */
-    this.lights = new LightCache();
+	this.lights = new LightCache();
 
-    this._renderLists = {};
+	this._renderListMap = new WeakMap();
 }
 
 Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Scene.prototype */{
 
-    constructor: Scene,
+	constructor: Scene,
 
-    /**
+	/**
      * Update {@link zen3d.RenderList} for the scene and camera.
      * @param {zen3d.Camera} camera - The camera.
      * @return {RenderList} - The result render list.
      */
-    updateRenderList: function(camera) {
-        var id = camera.uuid;
+	updateRenderList: function(camera) {
+		if (!this._renderListMap.has(camera)) {
+			this._renderListMap.set(camera, new RenderList());
+		}
 
-        if(!this._renderLists[id]) {
-            this._renderLists[id] = new RenderList();
-        }
+		var renderList = this._renderListMap.get(camera);
 
-        var renderList = this._renderLists[id];
+		renderList.startCount();
 
-        renderList.startCount();
+		this._doUpdateRenderList(this, camera, renderList);
 
-        this._doUpdateRenderList(this, camera, renderList);
+		renderList.endCount();
 
-        renderList.endCount();
+		renderList.sort();
 
-        renderList.sort();
+		return renderList;
+	},
 
-        return renderList;
-    },
-
-    /**
+	/**
      * Get {@link zen3d.RenderList} for the scene and camera.
      * The Render List must be updated before this calling.
      * @param {zen3d.Camera} camera - The camera.
      * @return {RenderList} - The target render list.
      */
-    getRenderList: function(camera) {
-        return this._renderLists[camera.uuid];
-    },
+	getRenderList: function(camera) {
+		return this._renderListMap.get(camera);
+	},
 
-    /**
+	/**
      * Update all lights in the scene.
      * @return {LightCache} - An instance of {@link LightCache} whitch contains all lights in the scene.
      */
-    updateLights: function() {
-        var lights = this.lights;
+	updateLights: function() {
+		var lights = this.lights;
 
-        lights.startCount();
+		lights.startCount();
 
-        this._doUpdateLights(this);
+		this._doUpdateLights(this);
 
-        lights.endCount();
+		lights.endCount();
 
-        return lights;
-    },
+		return lights;
+	},
 
-    _doUpdateRenderList: function(object, camera, renderList) {
+	_doUpdateRenderList: function(object, camera, renderList) {
+		if (!object.visible) {
+			return;
+		}
 
-        if (!object.visible) {
-            return;
-        }
+		if (!!object.geometry &amp;&amp; !!object.material) { // renderable
+			renderList.add(object, camera);
+		}
 
-        if (!!object.geometry &amp;&amp; !!object.material) { // renderable
-            renderList.add(object, camera);
-        }
+		// skip ui children
+		if (OBJECT_TYPE.CANVAS2D === object.type) {
+			return;
+		}
 
-        // skip ui children
-        if(OBJECT_TYPE.CANVAS2D === object.type) {
-            return;
-        }
+		// handle children by recursion
+		var children = object.children;
+		for (var i = 0, l = children.length; i &lt; l; i++) {
+			this._doUpdateRenderList(children[i], camera, renderList);
+		}
+	},
 
-        // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i &lt; l; i++) {
-            this._doUpdateRenderList(children[i], camera, renderList);
-        }
-    },
+	_doUpdateLights: function(object) {
+		if (!object.visible) {
+			return;
+		}
 
-    _doUpdateLights: function(object) {
+		if (OBJECT_TYPE.LIGHT === object.type) { // light
+			this.lights.add(object);
+		}
 
-        if (!object.visible) {
-            return;
-        }
+		// skip ui children
+		if (OBJECT_TYPE.CANVAS2D === object.type) {
+			return;
+		}
 
-        if (OBJECT_TYPE.LIGHT === object.type) { // light
-            this.lights.add(object);
-        }
-
-        // skip ui children
-        if(OBJECT_TYPE.CANVAS2D === object.type) {
-            return;
-        }
-
-        // handle children by recursion
-        var children = object.children;
-        for (var i = 0, l = children.length; i &lt; l; i++) {
-            this._doUpdateLights(children[i]);
-        }
-    }
+		// handle children by recursion
+		var children = object.children;
+		for (var i = 0, l = children.length; i &lt; l; i++) {
+			this._doUpdateLights(children[i]);
+		}
+	}
 
 });
 
-export {Scene};
+export { Scene };
 </code></pre>
         </article>
     </section>
@@ -189,13 +184,13 @@ export {Scene};
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

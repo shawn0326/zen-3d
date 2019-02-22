@@ -34,38 +34,26 @@
  * @return {string} - The uuid.
  */
 export var generateUUID = (function () {
+	var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+	var uuid = new Array(36);
+	var rnd = 0, r;
 
-    var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split( '' );
-    var uuid = new Array( 36 );
-    var rnd = 0, r;
+	return function generateUUID() {
+		for (var i = 0; i &lt; 36; i++) {
+			if (i === 8 || i === 13 || i === 18 || i === 23) {
+				uuid[i] = '-';
+			} else if (i === 14) {
+				uuid[i] = '4';
+			} else {
+				if (rnd &lt;= 0x02) rnd = 0x2000000 + (Math.random() * 0x1000000) | 0;
+				r = rnd &amp; 0xf;
+				rnd = rnd >> 4;
+				uuid[i] = chars[(i === 19) ? (r &amp; 0x3) | 0x8 : r];
+			}
+		}
 
-    return function generateUUID() {
-
-        for ( var i = 0; i &lt; 36; i ++ ) {
-
-            if ( i === 8 || i === 13 || i === 18 || i === 23 ) {
-
-                uuid[ i ] = '-';
-
-            } else if ( i === 14 ) {
-
-                uuid[ i ] = '4';
-
-            } else {
-
-                if ( rnd &lt;= 0x02 ) rnd = 0x2000000 + ( Math.random() * 0x1000000 ) | 0;
-                r = rnd &amp; 0xf;
-                rnd = rnd >> 4;
-                uuid[ i ] = chars[ ( i === 19 ) ? ( r &amp; 0x3 ) | 0x8 : r ];
-
-            }
-
-        }
-
-        return uuid.join( '' );
-
-    };
-
+		return uuid.join('');
+	};
 })();
 
 /**
@@ -74,11 +62,11 @@ export var generateUUID = (function () {
  * @type {boolean}
  */
 export var isMobile = (function () {
-    if (!window.navigator) {
-        return true;
-    }
-    var ua = navigator.userAgent.toLowerCase();
-    return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
+	if (!window.navigator) {
+		return true;
+	}
+	var ua = navigator.userAgent.toLowerCase();
+	return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
 })();
 
 /**
@@ -87,7 +75,7 @@ export var isMobile = (function () {
  * @type {boolean}
  */
 export var isWeb = (function () {
-    return !!document;
+	return !!document;
 })();
 
 /**
@@ -100,38 +88,37 @@ export var isWeb = (function () {
  * @return {Uint8Array} - The Board Pixels Data.
  */
 export function createCheckerBoardPixels(width, height, blockSize) {
-    var pixelArray = new Uint8Array(width * height * 4);
+	var pixelArray = new Uint8Array(width * height * 4);
 
-    // white and blasck
-    var colors = [[255, 255, 255, 255], [0, 0, 0, 255]];
+	// white and blasck
+	var colors = [[255, 255, 255, 255], [0, 0, 0, 255]];
 
-    blockSize = blockSize || 5;
+	blockSize = blockSize || 5;
 
-    var colorIndex = 0;
+	var colorIndex = 0;
 
-    for(var y = 0; y &lt; height; y++) {
-        for(var x = 0; x &lt; width; x++) {
+	for (var y = 0; y &lt; height; y++) {
+		for (var x = 0; x &lt; width; x++) {
+			if (x == 0) {
+				colorIndex = 1;
+			} else if ((x % blockSize) == 0) {
+				colorIndex = (colorIndex + 1) % 2;
+			}
 
-            if(x == 0) {
-                colorIndex = 1;
-            } else if((x % blockSize) == 0) {
-                colorIndex = (colorIndex + 1) % 2;
-            }
+			if ((y % blockSize) == 0 &amp;&amp; x == 0) {
+				var tmp = colors[0];
+				colors[0] = colors[1];
+				colors[1] = tmp;
+			}
 
-            if ((y % blockSize) == 0 &amp;&amp; x == 0) {
-                var tmp = colors[0];
-                colors[0] = colors[1];
-                colors[1] = tmp;
-            }
+			pixelArray[(y * (width * 4) + x * 4) + 0] = colors[colorIndex][0];
+			pixelArray[(y * (width * 4) + x * 4) + 1] = colors[colorIndex][1];
+			pixelArray[(y * (width * 4) + x * 4) + 2] = colors[colorIndex][2];
+			pixelArray[(y * (width * 4) + x * 4) + 3] = colors[colorIndex][3];
+		}
+	}
 
-            pixelArray[(y * (width * 4) + x * 4) + 0] = colors[colorIndex][0];
-            pixelArray[(y * (width * 4) + x * 4) + 1] = colors[colorIndex][1];
-            pixelArray[(y * (width * 4) + x * 4) + 2] = colors[colorIndex][2];
-            pixelArray[(y * (width * 4) + x * 4) + 3] = colors[colorIndex][3];
-        }
-    }
-
-    return pixelArray;
+	return pixelArray;
 }
 
 /**
@@ -142,7 +129,7 @@ export function createCheckerBoardPixels(width, height, blockSize) {
  * @return {boolean} - Is this number a power of two.
  */
 export function isPowerOfTwo(value) {
-    return ( value &amp; ( value - 1 ) ) === 0 &amp;&amp; value !== 0;
+	return (value &amp; (value - 1)) === 0 &amp;&amp; value !== 0;
 }
 
 /**
@@ -152,8 +139,8 @@ export function isPowerOfTwo(value) {
  * @param {number} value - The input number.
  * @return {number} - The result number.
  */
-export function nearestPowerOfTwo( value ) {
-    return Math.pow( 2, Math.round( Math.log( value ) / Math.LN2 ) );
+export function nearestPowerOfTwo(value) {
+	return Math.pow(2, Math.round(Math.log(value) / Math.LN2));
 }
 
 /**
@@ -163,16 +150,16 @@ export function nearestPowerOfTwo( value ) {
  * @param {number} value - The input number.
  * @return {number} - The result number.
  */
-export function nextPowerOfTwo( value ) {
-    value --;
-    value |= value >> 1;
-    value |= value >> 2;
-    value |= value >> 4;
-    value |= value >> 8;
-    value |= value >> 16;
-    value ++;
+export function nextPowerOfTwo(value) {
+	value--;
+	value |= value >> 1;
+	value |= value >> 2;
+	value |= value >> 4;
+	value |= value >> 8;
+	value |= value >> 16;
+	value++;
 
-    return value;
+	return value;
 }
 
 /**
@@ -183,19 +170,19 @@ export function nextPowerOfTwo( value ) {
  * @return {Object} - The result uniforms.
  */
 export function cloneUniforms(uniforms_src) {
-    var uniforms_dst = {};
+	var uniforms_dst = {};
 
-    for(var name in uniforms_src) {
-        var uniform_src = uniforms_src[name];
-        // TODO zen3d object clone
-        if ( Array.isArray( uniform_src ) ) {
-            uniforms_dst[name] = uniform_src.slice();
-        } else {
-            uniforms_dst[name] = uniform_src;
-        }
-    }
+	for (var name in uniforms_src) {
+		var uniform_src = uniforms_src[name];
+		// TODO zen3d object clone
+		if (Array.isArray(uniform_src)) {
+			uniforms_dst[name] = uniform_src.slice();
+		} else {
+			uniforms_dst[name] = uniform_src;
+		}
+	}
 
-    return uniforms_dst;
+	return uniforms_dst;
 }
 
 /**
@@ -207,15 +194,15 @@ export function cloneUniforms(uniforms_src) {
  * @return {number} - The result halton number.
  */
 export function halton(index, base) {
-    var result = 0;
-    var f = 1 / base;
-    var i = index;
-    while (i > 0) {
-        result = result + f * (i % base);
-        i = Math.floor(i / base);
-        f = f / base;
-    }
-    return result;
+	var result = 0;
+	var f = 1 / base;
+	var i = index;
+	while (i > 0) {
+		result = result + f * (i % base);
+		i = Math.floor(i / base);
+		f = f / base;
+	}
+	return result;
 }</code></pre>
         </article>
     </section>
@@ -226,13 +213,13 @@ export function halton(index, base) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

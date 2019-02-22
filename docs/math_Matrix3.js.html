@@ -32,259 +32,242 @@
  * @memberof zen3d
  */
 function Matrix3() {
-    this.elements = new Float32Array([
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1
-    ]);
+	this.elements = new Float32Array([
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1
+	]);
 }
 
 Object.assign(Matrix3.prototype, /** @lends zen3d.Matrix3.prototype */{
 
-    /**
-     * 
+	/**
+     *
      */
-    identity: function() {
-        this.set(
-            1, 0, 0,
-            0, 1, 0,
-            0, 0, 1
-        );
+	identity: function() {
+		this.set(
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+		);
 
-        return this;
-    },
+		return this;
+	},
 
-    /**
-     * 
+	/**
+     *
      */
-    inverse: function() {
-        return this.getInverse(this);
-    },
+	inverse: function() {
+		return this.getInverse(this);
+	},
 
-    /**
-     * 
+	/**
+     *
      */
-    getInverse: function ( matrix ) {
+	getInverse: function (matrix) {
+		var me = matrix.elements,
+			te = this.elements,
 
-        var me = matrix.elements,
-            te = this.elements,
+			n11 = me[0], n21 = me[1], n31 = me[2],
+			n12 = me[3], n22 = me[4], n32 = me[5],
+			n13 = me[6], n23 = me[7], n33 = me[8],
 
-            n11 = me[ 0 ], n21 = me[ 1 ], n31 = me[ 2 ],
-            n12 = me[ 3 ], n22 = me[ 4 ], n32 = me[ 5 ],
-            n13 = me[ 6 ], n23 = me[ 7 ], n33 = me[ 8 ],
+			t11 = n33 * n22 - n32 * n23,
+			t12 = n32 * n13 - n33 * n12,
+			t13 = n23 * n12 - n22 * n13,
 
-            t11 = n33 * n22 - n32 * n23,
-            t12 = n32 * n13 - n33 * n12,
-            t13 = n23 * n12 - n22 * n13,
+			det = n11 * t11 + n21 * t12 + n31 * t13;
 
-            det = n11 * t11 + n21 * t12 + n31 * t13;
+		if (det === 0) {
+			var msg = "zen3d.Matrix3: .getInverse() can't invert matrix, determinant is 0";
+			console.warn(msg);
+			return this.identity();
+		}
 
-        if ( det === 0 ) {
+		var detInv = 1 / det;
 
-            var msg = "zen3d.Matrix3: .getInverse() can't invert matrix, determinant is 0";
-            console.warn( msg );
-            return this.identity();
+		te[0] = t11 * detInv;
+		te[1] = (n31 * n23 - n33 * n21) * detInv;
+		te[2] = (n32 * n21 - n31 * n22) * detInv;
 
-        }
+		te[3] = t12 * detInv;
+		te[4] = (n33 * n11 - n31 * n13) * detInv;
+		te[5] = (n31 * n12 - n32 * n11) * detInv;
 
-        var detInv = 1 / det;
+		te[6] = t13 * detInv;
+		te[7] = (n21 * n13 - n23 * n11) * detInv;
+		te[8] = (n22 * n11 - n21 * n12) * detInv;
 
-        te[ 0 ] = t11 * detInv;
-        te[ 1 ] = ( n31 * n23 - n33 * n21 ) * detInv;
-        te[ 2 ] = ( n32 * n21 - n31 * n22 ) * detInv;
+		return this;
+	},
 
-        te[ 3 ] = t12 * detInv;
-        te[ 4 ] = ( n33 * n11 - n31 * n13 ) * detInv;
-        te[ 5 ] = ( n31 * n12 - n32 * n11 ) * detInv;
+	transpose: function () {
+		var tmp, m = this.elements;
 
-        te[ 6 ] = t13 * detInv;
-        te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv;
-        te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv;
+		tmp = m[1]; m[1] = m[3]; m[3] = tmp;
+		tmp = m[2]; m[2] = m[6]; m[6] = tmp;
+		tmp = m[5]; m[5] = m[7]; m[7] = tmp;
 
-        return this;
+		return this;
+	},
 
-    },
-
-    transpose: function () {
-
-        var tmp, m = this.elements;
-
-        tmp = m[ 1 ]; m[ 1 ] = m[ 3 ]; m[ 3 ] = tmp;
-        tmp = m[ 2 ]; m[ 2 ] = m[ 6 ]; m[ 6 ] = tmp;
-        tmp = m[ 5 ]; m[ 5 ] = m[ 7 ]; m[ 7 ] = tmp;
-
-        return this;
-
-    },
-
-    /**
-     * 
+	/**
+     *
      */
-    set: function(n11, n12, n13,
-        n21, n22, n23,
-        n31, n32, n33) {
+	set: function(n11, n12, n13,
+		n21, n22, n23,
+		n31, n32, n33) {
+		var ele = this.elements;
+		ele[0] = n11;
+		ele[3] = n12;
+		ele[6] = n13;
 
-        var ele = this.elements;
-        ele[0] = n11;
-        ele[3] = n12;
-        ele[6] = n13;
+		ele[1] = n21;
+		ele[4] = n22;
+		ele[7] = n23;
 
-        ele[1] = n21;
-        ele[4] = n22;
-        ele[7] = n23;
+		ele[2] = n31;
+		ele[5] = n32;
+		ele[8] = n33;
 
-        ele[2] = n31;
-        ele[5] = n32;
-        ele[8] = n33;
+		return this;
+	},
 
-        return this;
-    },
-
-    /**
-     * 
+	/**
+     *
      */
-    copy: function(m) {
-        this.elements.set(m.elements);
+	copy: function(m) {
+		this.elements.set(m.elements);
 
-        return this;
-    },
+		return this;
+	},
 
-    /**
-     * 
+	/**
+     *
      */
-    multiply: function(m) {
+	multiply: function(m) {
+		return this.multiplyMatrices(this, m);
+	},
 
-        return this.multiplyMatrices(this, m);
-
-    },
-
-    /**
-     * 
+	/**
+     *
      */
-    premultiply: function(m) {
+	premultiply: function(m) {
+		return this.multiplyMatrices(m, this);
+	},
 
-        return this.multiplyMatrices(m, this);
-
-    },
-
-    /**
-     * 
+	/**
+     *
      */
-    multiplyMatrices: function(a, b) {
+	multiplyMatrices: function(a, b) {
+		var ae = a.elements;
+		var be = b.elements;
+		var te = this.elements;
 
-        var ae = a.elements;
-        var be = b.elements;
-        var te = this.elements;
+		var a11 = ae[0],
+			a12 = ae[3],
+			a13 = ae[6];
+		var a21 = ae[1],
+			a22 = ae[4],
+			a23 = ae[7];
+		var a31 = ae[2],
+			a32 = ae[5],
+			a33 = ae[8];
 
-        var a11 = ae[0],
-            a12 = ae[3],
-            a13 = ae[6];
-        var a21 = ae[1],
-            a22 = ae[4],
-            a23 = ae[7];
-        var a31 = ae[2],
-            a32 = ae[5],
-            a33 = ae[8];
+		var b11 = be[0],
+			b12 = be[3],
+			b13 = be[6];
+		var b21 = be[1],
+			b22 = be[4],
+			b23 = be[7];
+		var b31 = be[2],
+			b32 = be[5],
+			b33 = be[8];
 
-        var b11 = be[0],
-            b12 = be[3],
-            b13 = be[6];
-        var b21 = be[1],
-            b22 = be[4],
-            b23 = be[7];
-        var b31 = be[2],
-            b32 = be[5],
-            b33 = be[8];
+		te[0] = a11 * b11 + a12 * b21 + a13 * b31;
+		te[3] = a11 * b12 + a12 * b22 + a13 * b32;
+		te[6] = a11 * b13 + a12 * b23 + a13 * b33;
 
-        te[0] = a11 * b11 + a12 * b21 + a13 * b31;
-        te[3] = a11 * b12 + a12 * b22 + a13 * b32;
-        te[6] = a11 * b13 + a12 * b23 + a13 * b33;
+		te[1] = a21 * b11 + a22 * b21 + a23 * b31;
+		te[4] = a21 * b12 + a22 * b22 + a23 * b32;
+		te[7] = a21 * b13 + a22 * b23 + a23 * b33;
 
-        te[1] = a21 * b11 + a22 * b21 + a23 * b31;
-        te[4] = a21 * b12 + a22 * b22 + a23 * b32;
-        te[7] = a21 * b13 + a22 * b23 + a23 * b33;
+		te[2] = a31 * b11 + a32 * b21 + a33 * b31;
+		te[5] = a31 * b12 + a32 * b22 + a33 * b32;
+		te[8] = a31 * b13 + a32 * b23 + a33 * b33;
 
-        te[2] = a31 * b11 + a32 * b21 + a33 * b31;
-        te[5] = a31 * b12 + a32 * b22 + a33 * b32;
-        te[8] = a31 * b13 + a32 * b23 + a33 * b33;
+		return this;
+	},
 
-        return this;
-
-    },
-
-    /**
+	/**
      * Transform 2D
      */
-    transform: function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
-        var te = this.elements;
+	transform: function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
+		var te = this.elements;
 
-        var cr = 1;
-        var sr = 0;
-        if (rotation % 360) {
-            var r = rotation;
-            cr = Math.cos(r);
-            sr = Math.sin(r);
-        }
+		var cr = 1;
+		var sr = 0;
+		if (rotation % 360) {
+			var r = rotation;
+			cr = Math.cos(r);
+			sr = Math.sin(r);
+		}
 
-        te[0] = cr * scaleX;
-        te[3] = -sr * scaleY;
-        te[6] = x;
+		te[0] = cr * scaleX;
+		te[3] = -sr * scaleY;
+		te[6] = x;
 
-        te[1] = sr * scaleX;
-        te[4] = cr * scaleY;
-        te[7] = y;
+		te[1] = sr * scaleX;
+		te[4] = cr * scaleY;
+		te[7] = y;
 
-        te[2] = 0;
-        te[5] = 0;
-        te[8] = 1;
+		te[2] = 0;
+		te[5] = 0;
+		te[8] = 1;
 
-        if (anchorX || anchorY) {
-            // prepend the anchor offset:
-            te[6] -= anchorX * te[0] + anchorY * te[3];
-            te[7] -= anchorX * te[1] + anchorY * te[4];
-        }
+		if (anchorX || anchorY) {
+			// prepend the anchor offset:
+			te[6] -= anchorX * te[0] + anchorY * te[3];
+			te[7] -= anchorX * te[1] + anchorY * te[4];
+		}
 
-        return this;
-    },
+		return this;
+	},
 
-    /**
-     * 
+	/**
+     *
      */
-    setUvTransform: function ( tx, ty, sx, sy, rotation, cx, cy ) {
+	setUvTransform: function (tx, ty, sx, sy, rotation, cx, cy) {
+		var c = Math.cos(rotation);
+		var s = Math.sin(rotation);
 
-        var c = Math.cos( rotation );
-        var s = Math.sin( rotation );
+		this.set(
+			sx * c, sx * s, -sx * (c * cx + s * cy) + cx + tx,
+			-sy * s, sy * c, -sy * (-s * cx + c * cy) + cy + ty,
+			0, 0, 1
+		);
+	},
 
-        this.set(
-            sx * c, sx * s, - sx * ( c * cx + s * cy ) + cx + tx,
-            - sy * s, sy * c, - sy * ( - s * cx + c * cy ) + cy + ty,
-            0, 0, 1
-        );
-
-    },
-
-    /**
-     * 
+	/**
+     *
      */
-    setFromMatrix4: function ( m ) {
+	setFromMatrix4: function (m) {
+		var me = m.elements;
 
-        var me = m.elements;
+		this.set(
 
-        this.set(
+			me[0], me[4], me[8],
+			me[1], me[5], me[9],
+			me[2], me[6], me[10]
 
-            me[ 0 ], me[ 4 ], me[ 8 ],
-            me[ 1 ], me[ 5 ], me[ 9 ],
-            me[ 2 ], me[ 6 ], me[ 10 ]
+		);
 
-        );
-
-        return this;
-
-    }
+		return this;
+	}
 
 });
 
-export {Matrix3};</code></pre>
+export { Matrix3 };</code></pre>
         </article>
     </section>
 
@@ -294,13 +277,13 @@ export {Matrix3};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

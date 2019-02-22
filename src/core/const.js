@@ -40,7 +40,6 @@ export var MATERIAL_TYPE = {
 	PBR: "pbr",
 	POINT: "point",
 	LINE: "line",
-	LINE_LOOP: "lineloop",
 	LINE_DASHED: "linedashed",
 	CANVAS2D: "canvas2d",
 	SHADER: "shader",

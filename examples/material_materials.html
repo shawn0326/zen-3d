@@ -62,7 +62,8 @@
 			pbr.roughness = 0.7;
 			var line = new zen3d.LineMaterial();
 			var points = new zen3d.PointsMaterial();
-			var lineloop = new zen3d.LineLoopMaterial();
+			var lineloop = new zen3d.LineMaterial();
+			lineloop.drawMode = zen3d.DRAW_MODE.LINE_LOOP;
 
 			var materials = [points, line, lineloop, baisc, lambert, phong, pbr];
 

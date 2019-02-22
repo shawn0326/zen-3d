@@ -26,18 +26,18 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {OBJECT_TYPE} from '../const.js';
-import {Object3D} from './Object3D.js';
-import {Sphere} from '../math/Sphere.js';
-import {Box3} from '../math/Box3.js';
-import {Matrix4} from '../math/Matrix4.js';
-import {Ray} from '../math/Ray.js';
-import {Vector3} from '../math/Vector3.js';
-import {Vector2} from '../math/Vector2.js';
-import {Triangle} from '../math/Triangle.js';
+            <pre class="prettyprint source linenums"><code>import { OBJECT_TYPE } from '../const.js';
+import { Object3D } from './Object3D.js';
+import { Sphere } from '../math/Sphere.js';
+import { Box3 } from '../math/Box3.js';
+import { Matrix4 } from '../math/Matrix4.js';
+import { Ray } from '../math/Ray.js';
+import { Vector3 } from '../math/Vector3.js';
+import { Vector2 } from '../math/Vector2.js';
+import { Triangle } from '../math/Triangle.js';
 
 /**
- * Class representing triangular polygon mesh based objects. 
+ * Class representing triangular polygon mesh based objects.
  * Also serves as a base for other classes such as {@link zen3d.SkinnedMesh}.
  * @constructor
  * @memberof zen3d
@@ -46,152 +46,150 @@ import {Triangle} from '../math/Triangle.js';
  * @param {zen3d.Material} material - a single or an array of {@link zen3d.Material}.
  */
 function Mesh(geometry, material) {
+	Object3D.call(this);
 
-    Object3D.call(this);
-
-    /**
+	/**
      * an instance of {@link zen3d.Geometry}.
      * @type {zen3d.Geometry}
      */
-    this.geometry = geometry;
+	this.geometry = geometry;
 
-    /**
+	/**
      * a single or an array of {@link zen3d.Material}.
      * @type {zen3d.Material|zen3d.Material[]}
      */
-    this.material = material;
+	this.material = material;
 
-    this.type = OBJECT_TYPE.MESH;
-
+	this.type = OBJECT_TYPE.MESH;
 }
 
 Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen3d.Mesh.prototype */{
 
-    constructor: Mesh,
+	constructor: Mesh,
 
-    /**
-     * @override 
+	/**
+     * @override
      */
-    raycast: function() {
-        var sphere = new Sphere();
-        var box = new Box3();
-        var inverseMatrix = new Matrix4();
-        var ray = new Ray();
+	raycast: function() {
+		var sphere = new Sphere();
+		var box = new Box3();
+		var inverseMatrix = new Matrix4();
+		var ray = new Ray();
 
-        var barycoord = new Vector3();
+		var barycoord = new Vector3();
 
-        var vA = new Vector3();
-        var vB = new Vector3();
-        var vC = new Vector3();
+		var vA = new Vector3();
+		var vB = new Vector3();
+		var vC = new Vector3();
 
-        var uvA = new Vector2();
-        var uvB = new Vector2();
-        var uvC = new Vector2();
+		var uvA = new Vector2();
+		var uvB = new Vector2();
+		var uvC = new Vector2();
 
-        var intersectionPoint = new Vector3();
-        var intersectionPointWorld = new Vector3();
+		var intersectionPoint = new Vector3();
+		var intersectionPointWorld = new Vector3();
 
-        function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
-            Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
+		function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
+			Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
 
-            uv1.multiplyScalar(barycoord.x);
-            uv2.multiplyScalar(barycoord.y);
-            uv3.multiplyScalar(barycoord.z);
+			uv1.multiplyScalar(barycoord.x);
+			uv2.multiplyScalar(barycoord.y);
+			uv3.multiplyScalar(barycoord.z);
 
-            uv1.add(uv2).add(uv3);
+			uv1.add(uv2).add(uv3);
 
-            return uv1.clone();
-        }
+			return uv1.clone();
+		}
 
-        function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
-            var intersect;
-            var material = object.material;
+		function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
+			var intersect;
+			// var material = object.material;
 
-            // if (material.side === BackSide) {
-            //     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
-            // } else {
-                // intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
-            // }
-            intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+			// if (material.side === BackSide) {
+			//     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+			// } else {
+			// intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
+			// }
+			intersect = ray.intersectTriangle(pC, pB, pA, true, point);
 
-            if (intersect === null) return null;
+			if (intersect === null) return null;
 
-            intersectionPointWorld.copy(point);
-            intersectionPointWorld.applyMatrix4(object.worldMatrix);
+			intersectionPointWorld.copy(point);
+			intersectionPointWorld.applyMatrix4(object.worldMatrix);
 
-            var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
+			var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
 
-            if (distance &lt; raycaster.near || distance > raycaster.far) return null;
+			if (distance &lt; raycaster.near || distance > raycaster.far) return null;
 
-            return {
-                distance: distance,
-                point: intersectionPointWorld.clone(),
-                object: object
-            };
-        }
+			return {
+				distance: distance,
+				point: intersectionPointWorld.clone(),
+				object: object
+			};
+		}
 
-        return function raycast(raycaster, intersects) {
-            var geometry = this.geometry;
-            var worldMatrix = this.worldMatrix;
+		return function raycast(raycaster, intersects) {
+			var geometry = this.geometry;
+			var worldMatrix = this.worldMatrix;
 
-            // sphere test
-            sphere.copy(geometry.boundingSphere);
-            sphere.applyMatrix4(worldMatrix);
-            if (!raycaster.ray.intersectsSphere(sphere)) {
-                return;
-            }
+			// sphere test
+			sphere.copy(geometry.boundingSphere);
+			sphere.applyMatrix4(worldMatrix);
+			if (!raycaster.ray.intersectsSphere(sphere)) {
+				return;
+			}
 
-            // box test
-            box.copy(geometry.boundingBox);
-            box.applyMatrix4(worldMatrix);
-            if (!raycaster.ray.intersectsBox(box)) {
-                return;
-            }
+			// box test
+			box.copy(geometry.boundingBox);
+			box.applyMatrix4(worldMatrix);
+			if (!raycaster.ray.intersectsBox(box)) {
+				return;
+			}
 
-            // vertex test
-            inverseMatrix.getInverse(worldMatrix);
-            ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+			// vertex test
+			inverseMatrix.getInverse(worldMatrix);
+			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
 
-            var index = geometry.index.array;
-            var position = geometry.getAttribute("a_Position");
-            var uv = geometry.getAttribute("a_Uv");
-            var a, b, c;
+			var index = geometry.index.array;
+			var position = geometry.getAttribute("a_Position");
+			var uv = geometry.getAttribute("a_Uv");
+			var a, b, c;
 
-            for (var i = 0; i &lt; index.length; i += 3) {
-                a = index[i];
-                b = index[i + 1];
-                c = index[i + 2];
+			for (var i = 0; i &lt; index.length; i += 3) {
+				a = index[i];
+				b = index[i + 1];
+				c = index[i + 2];
 
-                vA.fromArray(position.array, a * 3);
-                vB.fromArray(position.array, b * 3);
-                vC.fromArray(position.array, c * 3);
+				vA.fromArray(position.array, a * 3);
+				vB.fromArray(position.array, b * 3);
+				vC.fromArray(position.array, c * 3);
 
-                var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
+				var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
 
-                if (intersection) {
-                    // uv
-                    uvA.fromArray(uv.array, a * 2);
-                    uvB.fromArray(uv.array, b * 2);
-                    uvC.fromArray(uv.array, c * 2);
+				if (intersection) {
+					// uv
+					uvA.fromArray(uv.array, a * 2);
+					uvB.fromArray(uv.array, b * 2);
+					uvC.fromArray(uv.array, c * 2);
 
-                    intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
+					intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
 
-                    intersection.face = [a, b, c];
-                    intersection.faceIndex = a;
+					intersection.face = [a, b, c];
+					intersection.faceIndex = a;
 
-                    intersects.push(intersection);
-                }
-            }
-        }
-    }(),
+					intersects.push(intersection);
+				}
+			}
+		}
+	}(),
 
-    clone: function() {
-        return new this.constructor( this.geometry, this.material ).copy( this );
-    }
+	clone: function() {
+		return new this.constructor(this.geometry, this.material).copy(this);
+	}
 
 });
 
-export {Mesh};</code></pre>
+export { Mesh };</code></pre>
         </article>
     </section>
 
@@ -201,13 +199,13 @@ export {Mesh};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

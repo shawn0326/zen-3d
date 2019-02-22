@@ -26,10 +26,10 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {Geometry} from './Geometry.js';
-import {BufferAttribute} from './BufferAttribute.js';
-import {Vector2} from '../math/Vector2.js';
-import {Vector3} from '../math/Vector3.js';
+            <pre class="prettyprint source linenums"><code>import { Geometry } from './Geometry.js';
+import { BufferAttribute } from './BufferAttribute.js';
+import { Vector2 } from '../math/Vector2.js';
+import { Vector3 } from '../math/Vector3.js';
 
 /**
  * A class for generating cylinder geometries.
@@ -46,11 +46,9 @@ import {Vector3} from '../math/Vector3.js';
  * @param {number} [thetaLength=2*Pi] — The central angle, often called theta, of the circular sector. The default is 2*Pi, which makes for a complete cylinder.
  */
 function CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength) {
-
 	Geometry.call(this);
 
 	this.buildGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
-	
 }
 
 CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
@@ -64,8 +62,8 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 		radiusBottom = radiusBottom !== undefined ? radiusBottom : 1;
 		height = height || 1;
 
-		radialSegments = Math.floor( radialSegments ) || 8;
-		heightSegments = Math.floor( heightSegments ) || 1;
+		radialSegments = Math.floor(radialSegments) || 8;
+		heightSegments = Math.floor(heightSegments) || 1;
 
 		openEnded = openEnded !== undefined ? openEnded : false;
 		thetaStart = thetaStart !== undefined ? thetaStart : 0.0;
@@ -89,11 +87,9 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 		generateTorso();
 
-		if ( openEnded === false ) {
-
-			if ( radiusTop > 0 ) generateCap( true );
-			if ( radiusBottom > 0 ) generateCap( false );
-
+		if (openEnded === false) {
+			if (radiusTop > 0) generateCap(true);
+			if (radiusBottom > 0) generateCap(false);
 		}
 
 		// build geometry
@@ -104,7 +100,6 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 		this.addAttribute('a_Uv', new BufferAttribute(new Float32Array(uvs), 2));
 
 		function generateTorso() {
-
 			var x, y;
 			var normal = new Vector3();
 			var vertex = new Vector3();
@@ -112,95 +107,85 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			var groupCount = 0;
 
 			// this will be used to calculate the normal
-			var slope = ( radiusBottom - radiusTop ) / height;
+			var slope = (radiusBottom - radiusTop) / height;
 
 			// generate vertices, normals and uvs
 
-			for ( y = 0; y &lt;= heightSegments; y ++ ) {
-
+			for (y = 0; y &lt;= heightSegments; y++) {
 				var indexRow = [];
 
 				var v = y / heightSegments;
 
 				// calculate the radius of the current row
 
-				var radius = v * ( radiusBottom - radiusTop ) + radiusTop;
+				var radius = v * (radiusBottom - radiusTop) + radiusTop;
 
-				for ( x = 0; x &lt;= radialSegments; x ++ ) {
-
+				for (x = 0; x &lt;= radialSegments; x++) {
 					var u = x / radialSegments;
 
 					var theta = u * thetaLength + thetaStart;
 
-					var sinTheta = Math.sin( theta );
-					var cosTheta = Math.cos( theta );
+					var sinTheta = Math.sin(theta);
+					var cosTheta = Math.cos(theta);
 
 					// vertex
 
 					vertex.x = radius * sinTheta;
-					vertex.y = - v * height + halfHeight;
+					vertex.y = -v * height + halfHeight;
 					vertex.z = radius * cosTheta;
-					vertices.push( vertex.x, vertex.y, vertex.z );
+					vertices.push(vertex.x, vertex.y, vertex.z);
 
 					// normal
 
-					normal.set( sinTheta, slope, cosTheta ).normalize();
-					normals.push( normal.x, normal.y, normal.z );
+					normal.set(sinTheta, slope, cosTheta).normalize();
+					normals.push(normal.x, normal.y, normal.z);
 
 					// uv
 
-					uvs.push( u, 1 - v );
+					uvs.push(u, 1 - v);
 
 					// save index of vertex in respective row
 
-					indexRow.push( index ++ );
-
+					indexRow.push(index++);
 				}
 
 				// now save vertices of the row in our index array
 
-				indexArray.push( indexRow );
-
+				indexArray.push(indexRow);
 			}
 
 			// generate indices
 
-			for ( x = 0; x &lt; radialSegments; x ++ ) {
-
-				for ( y = 0; y &lt; heightSegments; y ++ ) {
-
+			for (x = 0; x &lt; radialSegments; x++) {
+				for (y = 0; y &lt; heightSegments; y++) {
 					// we use the index array to access the correct indices
 
-					var a = indexArray[ y ][ x ];
-					var b = indexArray[ y + 1 ][ x ];
-					var c = indexArray[ y + 1 ][ x + 1 ];
-					var d = indexArray[ y ][ x + 1 ];
+					var a = indexArray[y][x];
+					var b = indexArray[y + 1][x];
+					var c = indexArray[y + 1][x + 1];
+					var d = indexArray[y][x + 1];
 
 					// faces
 
-					indices.push( a, b, d );
-					indices.push( b, c, d );
+					indices.push(a, b, d);
+					indices.push(b, c, d);
 
 					// update group counter
 
 					groupCount += 6;
-
 				}
-
 			}
 
 			// add a group to the geometry. this will ensure multi material support
 
-			scope.addGroup( groupStart, groupCount, 0 );
+			scope.addGroup(groupStart, groupCount, 0);
 
 			// calculate new start value for groups
 
 			groupStart += groupCount;
-
 		}
 
-		function generateCap( top ) {
-
+		function generateCap(top) {
 			var x, centerIndexStart, centerIndexEnd;
 
 			var uv = new Vector2();
@@ -208,8 +193,8 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			var groupCount = 0;
 
-			var radius = ( top === true ) ? radiusTop : radiusBottom;
-			var sign = ( top === true ) ? 1 : - 1;
+			var radius = (top === true) ? radiusTop : radiusBottom;
+			var sign = (top === true) ? 1 : -1;
 
 			// save the index of the first center vertex
 			centerIndexStart = index;
@@ -218,24 +203,22 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 			// because the geometry needs one set of uvs per face,
 			// we must generate a center vertex per face/segment
 
-			for ( x = 1; x &lt;= radialSegments; x ++ ) {
-
+			for (x = 1; x &lt;= radialSegments; x++) {
 				// vertex
 
-				vertices.push( 0, halfHeight * sign, 0 );
+				vertices.push(0, halfHeight * sign, 0);
 
 				// normal
 
-				normals.push( 0, sign, 0 );
+				normals.push(0, sign, 0);
 
 				// uv
 
-				uvs.push( 0.5, 0.5 );
+				uvs.push(0.5, 0.5);
 
 				// increase index
 
-				index ++;
-
+				index++;
 			}
 
 			// save the index of the last center vertex
@@ -244,70 +227,61 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 			// now we generate the surrounding vertices, normals and uvs
 
-			for ( x = 0; x &lt;= radialSegments; x ++ ) {
-
+			for (x = 0; x &lt;= radialSegments; x++) {
 				var u = x / radialSegments;
 				var theta = u * thetaLength + thetaStart;
 
-				var cosTheta = Math.cos( theta );
-				var sinTheta = Math.sin( theta );
+				var cosTheta = Math.cos(theta);
+				var sinTheta = Math.sin(theta);
 
 				// vertex
 
 				vertex.x = radius * sinTheta;
 				vertex.y = halfHeight * sign;
 				vertex.z = radius * cosTheta;
-				vertices.push( vertex.x, vertex.y, vertex.z );
+				vertices.push(vertex.x, vertex.y, vertex.z);
 
 				// normal
 
-				normals.push( 0, sign, 0 );
+				normals.push(0, sign, 0);
 
 				// uv
 
-				uv.x = ( cosTheta * 0.5 ) + 0.5;
-				uv.y = ( sinTheta * 0.5 * sign ) + 0.5;
-				uvs.push( uv.x, uv.y );
+				uv.x = (cosTheta * 0.5) + 0.5;
+				uv.y = (sinTheta * 0.5 * sign) + 0.5;
+				uvs.push(uv.x, uv.y);
 
 				// increase index
 
-				index ++;
-
+				index++;
 			}
 
 			// generate indices
 
-			for ( x = 0; x &lt; radialSegments; x ++ ) {
-
+			for (x = 0; x &lt; radialSegments; x++) {
 				var c = centerIndexStart + x;
 				var i = centerIndexEnd + x;
 
-				if ( top === true ) {
-
+				if (top === true) {
 					// face top
 
-					indices.push( i, i + 1, c );
-
+					indices.push(i, i + 1, c);
 				} else {
-
 					// face bottom
 
-					indices.push( i + 1, i, c );
-
+					indices.push(i + 1, i, c);
 				}
 
 				groupCount += 3;
-
 			}
 
 			// add a group to the geometry. this will ensure multi material support
 
-			scope.addGroup( groupStart, groupCount, top === true ? 1 : 2 );
+			scope.addGroup(groupStart, groupCount, top === true ? 1 : 2);
 
 			// calculate new start value for groups
 
 			groupStart += groupCount;
-
 		}
 
 		this.computeBoundingBox();
@@ -316,7 +290,7 @@ CylinderGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 
 });
 
-export {CylinderGeometry};</code></pre>
+export { CylinderGeometry };</code></pre>
         </article>
     </section>
 
@@ -326,13 +300,13 @@ export {CylinderGeometry};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -26,29 +26,29 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {DepthMaterial} from '../../material/DepthMaterial.js';
-import {DistanceMaterial} from '../../material/DistanceMaterial.js';
-import {LIGHT_TYPE} from '../../const.js';
+            <pre class="prettyprint source linenums"><code>import { DepthMaterial } from '../../material/DepthMaterial.js';
+import { DistanceMaterial } from '../../material/DistanceMaterial.js';
+import { LIGHT_TYPE } from '../../const.js';
 import { Vector4 } from '../../math/Vector4.js';
-import {Texture2D} from '../../texture/Texture2D.js';
-import {WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_TEXTURE_COMPARE} from '../../const.js';
+import { Texture2D } from '../../texture/Texture2D.js';
+import { WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_COMPARE_FUNC } from '../../const.js';
 
 function convertLightShadowToWebGL2(lightShadow) {
-    if (!lightShadow.depthMap) {
-        var depthTexture = new Texture2D();
-        depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
-        depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
-        depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
-        depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-        depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-        depthTexture.compare = WEBGL_TEXTURE_COMPARE.LESS;
-        depthTexture.generateMipmaps = false;
-        lightShadow.renderTarget.attach(
-            depthTexture,
-            ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
-        );
-        lightShadow.depthMap = depthTexture;
-    }
+	if (!lightShadow.depthMap) {
+		var depthTexture = new Texture2D();
+		depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
+		depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+		depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
+		depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+		depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+		depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
+		depthTexture.generateMipmaps = false;
+		lightShadow.renderTarget.attach(
+			depthTexture,
+			ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+		);
+		lightShadow.depthMap = depthTexture;
+	}
 }
 
 /**
@@ -57,100 +57,93 @@ function convertLightShadowToWebGL2(lightShadow) {
  * @memberof zen3d
  */
 function ShadowMapPass() {
-    this.depthMaterial = new DepthMaterial();
-    this.depthMaterial.packToRGBA = true;
+	this.depthMaterial = new DepthMaterial();
+	this.depthMaterial.packToRGBA = true;
 
-    this.distanceMaterial = new DistanceMaterial();
+	this.distanceMaterial = new DistanceMaterial();
 
-    this.oldClearColor = new Vector4();
+	this.oldClearColor = new Vector4();
 }
 
 /**
  * Render shadow map.
- * @param {zen3d.WebGLCore} glCore 
- * @param {zen3d.Scene} scene 
+ * @param {zen3d.WebGLCore} glCore
+ * @param {zen3d.Scene} scene
  */
 ShadowMapPass.prototype.render = function(glCore, scene) {
-    
-    var gl = glCore.gl;
-    var state = glCore.state;
+	var gl = glCore.gl;
+	var state = glCore.state;
 
-    // force disable stencil
-    var useStencil = state.states[gl.STENCIL_TEST];
-    if(useStencil) {
-        state.disable(gl.STENCIL_TEST);
-    }
+	// force disable stencil
+	var useStencil = state.states[gl.STENCIL_TEST];
+	if (useStencil) {
+		state.stencilBuffer.setTest(false);
+	}
 
-    this.oldClearColor.copy(state.currentClearColor);
-    state.clearColor(1, 1, 1, 1);
+	this.oldClearColor.copy(state.colorBuffer.getClear());
+	state.colorBuffer.setClear(1, 1, 1, 1);
 
-    var lights = scene.lights.shadows;
-    for (var i = 0; i &lt; lights.length; i++) {
-        var light = lights[i];
+	var lights = scene.lights.shadows;
+	for (var i = 0; i &lt; lights.length; i++) {
+		var light = lights[i];
 
-        var shadow = light.shadow;
-        var camera = shadow.camera;
-        var shadowTarget = shadow.renderTarget;
-        var isPointLight = light.lightType == LIGHT_TYPE.POINT ? true : false;
-        var faces = isPointLight ? 6 : 1;
+		var shadow = light.shadow;
+		var camera = shadow.camera;
+		var shadowTarget = shadow.renderTarget;
+		var isPointLight = light.lightType == LIGHT_TYPE.POINT ? true : false;
+		var faces = isPointLight ? 6 : 1;
 
-        if (glCore.capabilities.version >= 2) {
+		if (glCore.capabilities.version >= 2) {
+			if (!isPointLight) {
+				convertLightShadowToWebGL2(shadow);
+			}
+		}
 
-            if (!isPointLight) {
-                convertLightShadowToWebGL2(shadow);
-            }
+		for (var j = 0; j &lt; faces; j++) {
+			if (isPointLight) {
+				shadow.update(light, j);
+				shadowTarget.activeCubeFace = j;
+			} else {
+				shadow.update(light);
+			}
 
-        }
+			var renderList = scene.updateRenderList(camera);
 
-        for (var j = 0; j &lt; faces; j++) {
+			glCore.renderTarget.setRenderTarget(shadowTarget);
 
-            if (isPointLight) {
-                shadow.update(light, j);
-                shadowTarget.activeCubeFace = j;
-            } else {
-                shadow.update(light);
-            }
+			glCore.clear(true, true);
 
-            var renderList = scene.updateRenderList(camera);
+			var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
+			material.uniforms = material.uniforms || {};
+			material.uniforms["nearDistance"] = shadow.cameraNear;
+			material.uniforms["farDistance"] = shadow.cameraFar;
 
-            glCore.renderTarget.setRenderTarget(shadowTarget);
+			glCore.renderPass(renderList.opaque, camera, {
+				getMaterial: function(renderable) {
+					// copy draw side
+					material.side = renderable.material.side;
+					return material;
+				},
+				ifRender: function(renderable) {
+					return renderable.object.castShadow;
+				}
+			});
 
-            glCore.clear(true, true);
+			// ignore transparent objects?
+		}
 
-            var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
-            material.uniforms = material.uniforms || {};
-            material.uniforms["nearDistance"] = shadow.cameraNear;
-            material.uniforms["farDistance"] = shadow.cameraFar;
+		// set generateMipmaps false
+		// glCore.renderTarget.updateRenderTargetMipmap(shadowTarget);
+	}
 
-            glCore.renderPass(renderList.opaque, camera, {
-                getMaterial: function(renderable) {
-                    // copy draw side
-                    material.side = renderable.material.side;
-                    return material;
-                },
-                ifRender: function(renderable) {
-                    return renderable.object.castShadow;
-                }
-            });
+	if (useStencil) {
+		state.stencilBuffer.setTest(true);
+	}
 
-            // ignore transparent objects?
-
-        }
-
-        // set generateMipmaps false
-        // glCore.renderTarget.updateRenderTargetMipmap(shadowTarget);
-
-    }
-
-    if(useStencil) {
-        state.enable(gl.STENCIL_TEST);
-    }
-
-    state.clearColor(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
-    
+	state.colorBuffer.setClear(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
 }
 
-export {ShadowMapPass};</code></pre>
+export { ShadowMapPass };</code></pre>
         </article>
     </section>
 
@@ -160,13 +153,13 @@ export {ShadowMapPass};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

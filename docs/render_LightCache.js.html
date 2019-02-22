@@ -26,324 +26,352 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {LIGHT_TYPE} from '../const.js';
-import {Vector3} from '../math/Vector3.js';
+            <pre class="prettyprint source linenums"><code>import { LIGHT_TYPE } from '../const.js';
+import { Vector3 } from '../math/Vector3.js';
 
 var helpVector3 = new Vector3();
 
-var lightCaches = {};
+var lightCaches = new WeakMap();
 
 function getLightCache(light) {
-    if(lightCaches[light.uuid] !== undefined) {
-        return lightCaches[light.uuid];
-    }
+	if (lightCaches.has(light)) {
+		return lightCaches.get(light);
+	}
 
-    var cache;
-    switch ( light.lightType ) {
-        case LIGHT_TYPE.DIRECT:
-            cache = {
-                direction: new Float32Array(3),
-                color: new Float32Array([0, 0, 0, 1]),
-                shadow: 0,
-                shadowBias: 0,
-                shadowRadius: 1,
-                shadowMapSize: new Float32Array(2)
-            };
-            break;
-        case LIGHT_TYPE.POINT:
-            cache = {
-                position: new Float32Array(3),
-                color: new Float32Array([0, 0, 0, 1]),
-                distance: 0,
-                decay: 0,
-                shadow: 0,
-                shadowBias: 0,
-                shadowRadius: 1,
-                shadowMapSize: new Float32Array(2),
-                shadowCameraNear: 1,
-                shadowCameraFar: 1000
-            };
-            break;
-        case LIGHT_TYPE.SPOT:
-            cache = {
-                position: new Float32Array(3),
-                direction: new Float32Array(3),
-                color: new Float32Array([0, 0, 0, 1]),
-                distance: 0,
-                coneCos: 0,
-                penumbraCos: 0,
-                decay: 0,
-                shadow: 0,
-                shadowBias: 0,
-                shadowRadius: 1,
-                shadowMapSize: new Float32Array(2)
-            };
-            break;
-    }
+	var cache;
+	switch (light.lightType) {
+	case LIGHT_TYPE.DIRECT:
+		cache = {
+			direction: new Float32Array(3),
+			color: new Float32Array([0, 0, 0, 1]),
+			shadow: 0,
+			shadowBias: 0,
+			shadowRadius: 1,
+			shadowMapSize: new Float32Array(2)
+		};
+		break;
+	case LIGHT_TYPE.POINT:
+		cache = {
+			position: new Float32Array(3),
+			color: new Float32Array([0, 0, 0, 1]),
+			distance: 0,
+			decay: 0,
+			shadow: 0,
+			shadowBias: 0,
+			shadowRadius: 1,
+			shadowMapSize: new Float32Array(2),
+			shadowCameraNear: 1,
+			shadowCameraFar: 1000
+		};
+		break;
+	case LIGHT_TYPE.SPOT:
+		cache = {
+			position: new Float32Array(3),
+			direction: new Float32Array(3),
+			color: new Float32Array([0, 0, 0, 1]),
+			distance: 0,
+			coneCos: 0,
+			penumbraCos: 0,
+			decay: 0,
+			shadow: 0,
+			shadowBias: 0,
+			shadowRadius: 1,
+			shadowMapSize: new Float32Array(2)
+		};
+		break;
+	}
 
-    lightCaches[light.uuid] = cache;
+	lightCaches.set(light, cache);
 
-    return cache;
+	return cache;
 }
+
+function LightHash() {
+	this._factor = new Uint16Array(4);
+}
+
+Object.assign(LightHash.prototype, {
+	update: function(lights) {
+		this._factor[0] = lights.ambientsNum;
+		this._factor[1] = lights.directsNum;
+		this._factor[2] = lights.pointsNum;
+		this._factor[3] = lights.spotsNum;
+	},
+	compare: function(factor) {
+		if (!factor) {
+			return false;
+		}
+		return !(this._factor[0] !== factor[0] ||
+			this._factor[1] !== factor[1] ||
+			this._factor[2] !== factor[2] ||
+			this._factor[3] !== factor[3]);
+	},
+	copyTo: function(factor) {
+		if (!factor) {
+			factor = new Uint16Array(4);
+		}
+		factor.set(this._factor);
+		return factor;
+	}
+});
 
 /**
  * Light cache collect all lights in the scene.
  * @constructor
  * @hideconstructor
- * @memberof zen3d 
+ * @memberof zen3d
  */
 function LightCache() {
-    this.ambient = new Float32Array([0, 0, 0, 1]);
-    this.directional = [];
-    this.directionalShadowMap = [];
-    this.directionalDepthMap = [];
-    this.directionalShadowMatrix = [];
-    this.point = [];
-    this.pointShadowMap = [];
-    this.pointShadowMatrix = [];
-    this.spot = [];
-    this.spotShadowMap = [];
-    this.spotDepthMap = [];
-    this.spotShadowMatrix = [];
-    this.shadows = [];
-    this.ambientsNum = 0;
-    this.directsNum = 0;
-    this.pointsNum = 0;
-    this.spotsNum = 0;
-    this.shadowsNum = 0;
-    this.totalNum = 0;
+	this.ambient = new Float32Array([0, 0, 0, 1]);
+	this.directional = [];
+	this.directionalShadowMap = [];
+	this.directionalDepthMap = [];
+	this.directionalShadowMatrix = [];
+	this.point = [];
+	this.pointShadowMap = [];
+	this.pointShadowMatrix = [];
+	this.spot = [];
+	this.spotShadowMap = [];
+	this.spotDepthMap = [];
+	this.spotShadowMatrix = [];
+	this.shadows = [];
+	this.ambientsNum = 0;
+	this.directsNum = 0;
+	this.pointsNum = 0;
+	this.spotsNum = 0;
+	this.shadowsNum = 0;
+	this.totalNum = 0;
+
+	this.hash = new LightHash();
 }
 
 Object.assign(LightCache.prototype, {
 
-    /**
+	/**
      * Mark count start.
      * @memberof zen3d.LightCache#
      */
-    startCount: function () {
-        for(var i = 0; i &lt; 3; i++) {
-            this.ambient[i] = 0;
-        }
-        this.shadows.length = 0;
-        this.ambientsNum = 0;
-        this.directsNum = 0;
-        this.pointsNum = 0;
-        this.spotsNum = 0;
-        this.shadowsNum = 0;
-        this.totalNum = 0;
-    },
+	startCount: function () {
+		for (var i = 0; i &lt; 3; i++) {
+			this.ambient[i] = 0;
+		}
+		this.shadows.length = 0;
+		this.ambientsNum = 0;
+		this.directsNum = 0;
+		this.pointsNum = 0;
+		this.spotsNum = 0;
+		this.shadowsNum = 0;
+		this.totalNum = 0;
+	},
 
-    /**
+	/**
      * Collect a light.
      * @memberof zen3d.LightCache#
      * @param {zen3d.Light} object - The light to be collected.
      */
-    add: function (object) {
-        if (object.lightType == LIGHT_TYPE.AMBIENT) {
-            this._doAddAmbientLight(object);
-        } else if (object.lightType == LIGHT_TYPE.DIRECT) {
-            this._doAddDirectLight(object);
-        } else if (object.lightType == LIGHT_TYPE.POINT) {
-            this._doAddPointLight(object);
-        } else if (object.lightType == LIGHT_TYPE.SPOT) {
-            this._doAddSpotLight(object);
-        }
+	add: function (object) {
+		if (object.lightType == LIGHT_TYPE.AMBIENT) {
+			this._doAddAmbientLight(object);
+		} else if (object.lightType == LIGHT_TYPE.DIRECT) {
+			this._doAddDirectLight(object);
+		} else if (object.lightType == LIGHT_TYPE.POINT) {
+			this._doAddPointLight(object);
+		} else if (object.lightType == LIGHT_TYPE.SPOT) {
+			this._doAddSpotLight(object);
+		}
 
-        if (object.castShadow &amp;&amp; object.lightType !== LIGHT_TYPE.AMBIENT) {
-            this.shadows.push(object);
-            this.shadowsNum++;
-        }
+		if (object.castShadow &amp;&amp; object.lightType !== LIGHT_TYPE.AMBIENT) {
+			this.shadows.push(object);
+			this.shadowsNum++;
+		}
 
-        this.totalNum++;
-    },
+		this.totalNum++;
+	},
 
-    /**
+	/**
      * Mark count finished.
      * @memberof zen3d.LightCache#
      */
-    endCount: function () {
-        // do nothing
-    },
+	endCount: function () {
+		this.hash.update(this);
+	},
 
-    _doAddAmbientLight: function (object) {
-        var intensity = object.intensity;
-        var color = object.color;
+	_doAddAmbientLight: function (object) {
+		var intensity = object.intensity;
+		var color = object.color;
 
-        this.ambient[0] += color.r * intensity;
-        this.ambient[1] += color.g * intensity;
-        this.ambient[2] += color.b * intensity;
+		this.ambient[0] += color.r * intensity;
+		this.ambient[1] += color.g * intensity;
+		this.ambient[2] += color.b * intensity;
 
-        this.ambientsNum++;
-    },
+		this.ambientsNum++;
+	},
 
-    _doAddDirectLight: function (object) {
-        var intensity = object.intensity;
-        var color = object.color;
+	_doAddDirectLight: function (object) {
+		var intensity = object.intensity;
+		var color = object.color;
 
-        var cache = getLightCache(object);
+		var cache = getLightCache(object);
 
-        cache.color[0] = color.r * intensity;
-        cache.color[1] = color.g * intensity;
-        cache.color[2] = color.b * intensity;
+		cache.color[0] = color.r * intensity;
+		cache.color[1] = color.g * intensity;
+		cache.color[2] = color.b * intensity;
 
-        var direction = helpVector3;
-        object.getWorldDirection(direction);
-        //direction.transformDirection(camera.viewMatrix);
+		var direction = helpVector3;
+		object.getWorldDirection(direction);
+		// direction.transformDirection(camera.viewMatrix);
 
-        cache.direction[0] = direction.x;
-        cache.direction[1] = direction.y;
-        cache.direction[2] = direction.z;
+		cache.direction[0] = direction.x;
+		cache.direction[1] = direction.y;
+		cache.direction[2] = direction.z;
 
-        if(object.castShadow) {
-            cache.shadow = 1;
-            cache.shadowBias = object.shadow.bias;
-            cache.shadowRadius = object.shadow.radius;
-            cache.shadowMapSize[0] = object.shadow.mapSize.x;
-            cache.shadowMapSize[1] = object.shadow.mapSize.y;
-        } else {
-            cache.shadow = 0;
-        }
+		if (object.castShadow) {
+			cache.shadow = 1;
+			cache.shadowBias = object.shadow.bias;
+			cache.shadowRadius = object.shadow.radius;
+			cache.shadowMapSize[0] = object.shadow.mapSize.x;
+			cache.shadowMapSize[1] = object.shadow.mapSize.y;
+		} else {
+			cache.shadow = 0;
+		}
 
-        if(object.castShadow) {
+		if (object.castShadow) {
+			// resize typed array
+			var needSize = (this.directsNum + 1) * 16;
+			if (this.directionalShadowMatrix.length &lt; needSize) {
+				var old = this.directionalShadowMatrix;
+				this.directionalShadowMatrix = new Float32Array(needSize);
+				this.directionalShadowMatrix.set(old);
+			}
 
-            // resize typed array
-            var needSize = (this.directsNum + 1) * 16;
-            if(this.directionalShadowMatrix.length &lt; needSize) {
-                var old = this.directionalShadowMatrix;
-                this.directionalShadowMatrix = new Float32Array(needSize);
-                this.directionalShadowMatrix.set(old);
-            }
+			this.directionalShadowMatrix.set(object.shadow.matrix.elements, this.directsNum * 16);
+			this.directionalShadowMap[this.directsNum] = object.shadow.depthMap || object.shadow.map;
+			this.directionalDepthMap[this.directsNum] = object.shadow.map;
+		}
 
-            this.directionalShadowMatrix.set(object.shadow.matrix.elements, this.directsNum * 16);
-            this.directionalShadowMap[this.directsNum] = object.shadow.depthMap || object.shadow.map;
-            this.directionalDepthMap[this.directsNum] = object.shadow.map;
-        }
+		this.directional[this.directsNum] = cache;
 
-        this.directional[this.directsNum] = cache;
+		this.directsNum++;
+	},
 
-        this.directsNum++;
-    },
+	_doAddPointLight: function (object) {
+		var intensity = object.intensity;
+		var color = object.color;
+		var distance = object.distance;
+		var decay = object.decay;
 
-    _doAddPointLight: function (object) {
-        var intensity = object.intensity;
-        var color = object.color;
-        var distance = object.distance;
-        var decay = object.decay;
+		var cache = getLightCache(object);
 
-        var cache = getLightCache(object);
+		cache.color[0] = color.r * intensity;
+		cache.color[1] = color.g * intensity;
+		cache.color[2] = color.b * intensity;
 
-        cache.color[0] = color.r * intensity;
-        cache.color[1] = color.g * intensity;
-        cache.color[2] = color.b * intensity;
+		cache.distance = distance;
+		cache.decay = decay;
 
-        cache.distance = distance;
-        cache.decay = decay;
+		var position = helpVector3.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
-        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+		cache.position[0] = position.x;
+		cache.position[1] = position.y;
+		cache.position[2] = position.z;
 
-        cache.position[0] = position.x;
-        cache.position[1] = position.y;
-        cache.position[2] = position.z;
+		if (object.castShadow) {
+			cache.shadow = 1;
+			cache.shadowBias = object.shadow.bias;
+			cache.shadowRadius = object.shadow.radius;
+			cache.shadowMapSize[0] = object.shadow.mapSize.x;
+			cache.shadowMapSize[1] = object.shadow.mapSize.y;
+			cache.shadowCameraNear = object.shadow.cameraNear;
+			cache.shadowCameraFar = object.shadow.cameraFar;
+		} else {
+			cache.shadow = 0;
+		}
 
-        if(object.castShadow) {
-            cache.shadow = 1;
-            cache.shadowBias = object.shadow.bias;
-            cache.shadowRadius = object.shadow.radius;
-            cache.shadowMapSize[0] = object.shadow.mapSize.x;
-            cache.shadowMapSize[1] = object.shadow.mapSize.y;
-            cache.shadowCameraNear = object.shadow.cameraNear;
-            cache.shadowCameraFar = object.shadow.cameraFar;
-        } else {
-            cache.shadow = 0;
-        }
+		if (object.castShadow) {
+			// resize typed array
+			var needSize = (this.pointsNum + 1) * 16;
+			if (this.pointShadowMatrix.length &lt; needSize) {
+				var old = this.pointShadowMatrix;
+				this.pointShadowMatrix = new Float32Array(needSize);
+				this.pointShadowMatrix.set(old);
+			}
 
-        if(object.castShadow) {
+			this.pointShadowMatrix.set(object.shadow.matrix.elements, this.pointsNum * 16);
+			this.pointShadowMap[this.pointsNum] = object.shadow.map;
+		}
 
-            // resize typed array
-            var needSize = (this.pointsNum + 1) * 16;
-            if(this.pointShadowMatrix.length &lt; needSize) {
-                var old = this.pointShadowMatrix;
-                this.pointShadowMatrix = new Float32Array(needSize);
-                this.pointShadowMatrix.set(old);
-            }
+		this.point[this.pointsNum] = cache;
 
-            this.pointShadowMatrix.set(object.shadow.matrix.elements, this.pointsNum * 16);
-            this.pointShadowMap[this.pointsNum] = object.shadow.map;
-        }
+		this.pointsNum++;
+	},
 
-        this.point[this.pointsNum] = cache;
+	_doAddSpotLight: function (object) {
+		var intensity = object.intensity;
+		var color = object.color;
+		var distance = object.distance;
+		var decay = object.decay;
 
-        this.pointsNum++;
-    },
+		var cache = getLightCache(object);
 
-    _doAddSpotLight: function (object) {
-        var intensity = object.intensity;
-        var color = object.color;
-        var distance = object.distance;
-        var decay = object.decay;
+		cache.color[0] = color.r * intensity;
+		cache.color[1] = color.g * intensity;
+		cache.color[2] = color.b * intensity;
 
-        var cache = getLightCache(object);
+		cache.distance = distance;
+		cache.decay = decay;
 
-        cache.color[0] = color.r * intensity;
-        cache.color[1] = color.g * intensity;
-        cache.color[2] = color.b * intensity;
+		var position = helpVector3.setFromMatrixPosition(object.worldMatrix);// .applyMatrix4(camera.viewMatrix);
 
-        cache.distance = distance;
-        cache.decay = decay;
+		cache.position[0] = position.x;
+		cache.position[1] = position.y;
+		cache.position[2] = position.z;
 
-        var position = helpVector3.setFromMatrixPosition(object.worldMatrix);//.applyMatrix4(camera.viewMatrix);
+		var direction = helpVector3;
+		object.getWorldDirection(helpVector3);
+		// helpVector3.transformDirection(camera.viewMatrix);
 
-        cache.position[0] = position.x;
-        cache.position[1] = position.y;
-        cache.position[2] = position.z;
+		cache.direction[0] = direction.x;
+		cache.direction[1] = direction.y;
+		cache.direction[2] = direction.z;
 
-        var direction = helpVector3;
-        object.getWorldDirection(helpVector3);
-        // helpVector3.transformDirection(camera.viewMatrix);
+		var coneCos = Math.cos(object.angle);
+		var penumbraCos = Math.cos(object.angle * (1 - object.penumbra));
 
-        cache.direction[0] = direction.x;
-        cache.direction[1] = direction.y;
-        cache.direction[2] = direction.z;
+		cache.coneCos = coneCos;
+		cache.penumbraCos = penumbraCos;
 
-        var coneCos = Math.cos(object.angle);
-        var penumbraCos = Math.cos(object.angle * (1 - object.penumbra));
+		if (object.castShadow) {
+			cache.shadow = 1;
+			cache.shadowBias = object.shadow.bias;
+			cache.shadowRadius = object.shadow.radius;
+			cache.shadowMapSize[0] = object.shadow.mapSize.x;
+			cache.shadowMapSize[1] = object.shadow.mapSize.y;
+		} else {
+			cache.shadow = 0;
+		}
 
-        cache.coneCos = coneCos;
-        cache.penumbraCos = penumbraCos;
+		if (object.castShadow) {
+			// resize typed array
+			var needSize = (this.spotsNum + 1) * 16;
+			if (this.spotShadowMatrix.length &lt; needSize) {
+				var old = this.spotShadowMatrix;
+				this.spotShadowMatrix = new Float32Array(needSize);
+				this.spotShadowMatrix.set(old);
+			}
 
-        if(object.castShadow) {
-            cache.shadow = 1;
-            cache.shadowBias = object.shadow.bias;
-            cache.shadowRadius = object.shadow.radius;
-            cache.shadowMapSize[0] = object.shadow.mapSize.x;
-            cache.shadowMapSize[1] = object.shadow.mapSize.y;
-        } else {
-            cache.shadow = 0;
-        }
+			this.spotShadowMatrix.set(object.shadow.matrix.elements, this.spotsNum * 16);
+			this.spotShadowMap[this.spotsNum] = object.shadow.depthMap || object.shadow.map;
+			this.spotDepthMap[this.spotsNum] = object.shadow.map;
+		}
 
-        if(object.castShadow) {
+		this.spot[this.spotsNum] = cache;
 
-            // resize typed array
-            var needSize = (this.spotsNum + 1) * 16;
-            if(this.spotShadowMatrix.length &lt; needSize) {
-                var old = this.spotShadowMatrix;
-                this.spotShadowMatrix = new Float32Array(needSize);
-                this.spotShadowMatrix.set(old);
-            }
-
-            this.spotShadowMatrix.set(object.shadow.matrix.elements, this.spotsNum * 16);
-            this.spotShadowMap[this.spotsNum] = object.shadow.depthMap || object.shadow.map;
-            this.spotDepthMap[this.spotsNum] = object.shadow.map;
-        }
-
-        this.spot[this.spotsNum] = cache;
-
-        this.spotsNum++;
-    }
+		this.spotsNum++;
+	}
 
 });
 
-export {LightCache};</code></pre>
+export { LightCache };</code></pre>
         </article>
     </section>
 
@@ -353,13 +381,13 @@ export {LightCache};</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineLoopMaterial.html">LineLoopMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Dec 06 2018 12:28:42 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Feb 22 2019 14:39:17 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>
