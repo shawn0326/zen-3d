@@ -569,8 +569,26 @@
      * @return {Promise<zen3d.Camera>}
      */
 	GLTFParser.prototype.loadCamera = function(cameraIndex) {
-		// TODO
-		console.warn("GLTFLoader: camera is not supported yet");
+		var camera = new zen3d.Camera();
+		var cameraDef = this.json.cameras[cameraIndex];
+		var params = cameraDef[cameraDef.type];
+
+		if (!params) {
+			console.warn('zen3d.GLTFLoader: Missing camera parameters.');
+			return;
+		}
+
+		if (cameraDef.type === 'perspective') {
+			camera.setPerspective(params.yfov, params.aspectRatio || 1, params.znear || 1, params.zfar || 2e6);
+		} else if (cameraDef.type === 'orthographic') {
+			camera.setOrtho(params.xmag / -2, params.xmag / 2, params.ymag / -2, params.ymag / 2, params.znear || 1, params.zfar || 2e6);
+		}
+
+		if (cameraDef.name !== undefined) camera.name = cameraDef.name;
+
+		if (cameraDef.extras) camera.userData = cameraDef.extras;
+
+		return Promise.resolve(camera);
 	}
 
 	/**
