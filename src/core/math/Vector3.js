@@ -256,6 +256,20 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 	/**
      *
      */
+	toArray: function (array, offset) {
+		if (array === undefined) array = [];
+		if (offset === undefined) offset = 0;
+
+		array[offset] = this.x;
+		array[offset + 1] = this.y;
+		array[offset + 2] = this.z;
+
+		return array;
+	},
+
+	/**
+     *
+     */
 	copy: function(v) {
 		this.x = v.x;
 		this.y = v.y;

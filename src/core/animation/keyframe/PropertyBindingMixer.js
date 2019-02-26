@@ -59,8 +59,8 @@ function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
 		mixFunction = lerp;
 	}
 
-	// [result-value | new-value]
-	this.buffer = new BufferType(valueSize * 2);
+	// [ incoming | accu | orig ]
+	this.buffer = new BufferType(valueSize * 3);
 
 	this._mixBufferFunction = mixFunction;
 
@@ -89,6 +89,41 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 			this.property = propertyPath[0];
 			this.target = target;
 		}
+	},
+
+	// remember the state of the bound property and copy it to both accus
+	saveOriginalState: function () {
+		var buffer = this.buffer,
+			stride = this.valueSize,
+			originalValueOffset = stride * 2;
+
+		// get value
+		if (this.valueSize > 1) {
+			this.target[this.property].toArray(buffer, originalValueOffset);
+		} else {
+			this.target[this.property] = buffer[originalValueOffset];
+		}
+
+		// accu[0..1] := orig -- initially detect changes against the original
+		for (var i = stride, e = originalValueOffset; i !== e; ++i) {
+			buffer[i] = buffer[originalValueOffset + (i % stride)];
+		}
+
+		this.cumulativeWeight = 0;
+	},
+
+	// apply the state previously taken via 'saveOriginalState' to the binding
+	restoreOriginalState: function () {
+		var buffer = this.buffer,
+			stride = this.valueSize,
+			originalValueOffset = stride * 2;
+
+		// accu[0..1] := orig -- initially detect changes against the original
+		for (var i = stride, e = originalValueOffset; i !== e; ++i) {
+			buffer[i] = buffer[originalValueOffset + (i % stride)];
+		}
+
+		this.apply();
 	},
 
 	/**
@@ -122,22 +157,24 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
      */
 	apply: function() {
 		var buffer = this.buffer,
-			offset = this.valueSize,
+			stride = this.valueSize,
 			weight = this.cumulativeWeight;
 
 		this.cumulativeWeight = 0;
 
 		if (weight < 1) {
+			// accuN := accuN + original * ( 1 - cumulativeWeight )
 
-			// TODO blend with original value?
+			var originalValueOffset = stride * 2;
 
+			this._mixBufferFunction(buffer, stride, originalValueOffset, 1 - weight, stride);
 		}
 
 		// set value
 		if (this.valueSize > 1) {
-			this.target[this.property].fromArray(buffer, offset);
+			this.target[this.property].fromArray(buffer, stride);
 		} else {
-			this.target[this.property] = buffer[offset];
+			this.target[this.property] = buffer[stride];
 		}
 	}
 

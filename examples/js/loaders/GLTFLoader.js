@@ -388,7 +388,6 @@
 					var skinEntry = skins[nodeDef.skin];
 
 					var bones = [];
-					// var boneInverses = [];
 
 					for (var j = 0, jl = skinEntry.joints.length; j < jl; j++) {
 						var jointId = skinEntry.joints[j];
@@ -405,7 +404,6 @@
 
 							// copy mat to jointNode.offsetMatrix
 							jointNode.offsetMatrix.copy(mat);
-							// boneInverses.push(mat);
 						} else {
 							console.warn('GLTFLoader: Joint "%s" could not be found.', jointId);
 						}

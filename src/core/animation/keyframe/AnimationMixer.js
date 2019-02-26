@@ -92,7 +92,9 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 			var binding = this._bindings[trackName];
 
 			if (binding) {
-				binding.useCount++;
+				if (binding.useCount++ === 0) {
+					binding.saveOriginalState();
+				}
 			}
 		}
 	},
@@ -120,7 +122,9 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 			var binding = this._bindings[trackName];
 
 			if (binding && binding.useCount > 0) {
-				binding.useCount--;
+				if (--binding.useCount === 0) {
+					binding.restoreOriginalState();
+				}
 			}
 		}
 	},

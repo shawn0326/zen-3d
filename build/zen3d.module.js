@@ -1495,6 +1495,20 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 	/**
      *
      */
+	toArray: function (array, offset) {
+		if (array === undefined) array = [];
+		if (offset === undefined) offset = 0;
+
+		array[offset] = this.x;
+		array[offset + 1] = this.y;
+		array[offset + 2] = this.z;
+
+		return array;
+	},
+
+	/**
+     *
+     */
 	copy: function(v) {
 		this.x = v.x;
 		this.y = v.y;
@@ -2523,6 +2537,35 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 	/**
      *
      */
+	fromArray: function (array, offset) {
+		if (offset === undefined) offset = 0;
+
+		this.x = array[offset];
+		this.y = array[offset + 1];
+		this.z = array[offset + 2];
+		this.w = array[offset + 3];
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	toArray: function (array, offset) {
+		if (array === undefined) array = [];
+		if (offset === undefined) offset = 0;
+
+		array[offset] = this.x;
+		array[offset + 1] = this.y;
+		array[offset + 2] = this.z;
+		array[offset + 3] = this.w;
+
+		return array;
+	},
+
+	/**
+     *
+     */
 	copy: function(v) {
 		this.x = v.x;
 		this.y = v.y;
@@ -3213,6 +3256,18 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 		this.onChangeCallback();
 
 		return this;
+	},
+
+	toArray: function (array, offset) {
+		if (array === undefined) array = [];
+		if (offset === undefined) offset = 0;
+
+		array[offset] = this._x;
+		array[offset + 1] = this._y;
+		array[offset + 2] = this._z;
+		array[offset + 3] = this._w;
+
+		return array;
 	},
 
 	onChange: function(callback) {
@@ -5915,6 +5970,29 @@ function Skeleton(bones) {
 Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
 
 	/**
+     * Returns the skeleton to the base pose.
+     * @method
+     */
+	pose: function() {
+		for (var i = 0; i < this.bones.length; i++) {
+			var bone = this.bones[i];
+			bone.worldMatrix.getInverse(bone.offsetMatrix);
+		}
+
+		for (var i = 0; i < this.bones.length; i++) {
+			var bone = this.bones[i];
+			if (bone.parent && bone.parent.type == "bone") {
+				bone.matrix.getInverse(bone.parent.worldMatrix);
+				bone.matrix.multiply(bone.worldMatrix);
+			} else {
+				bone.matrix.copy(bone.worldMatrix);
+			}
+
+			bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
+		}
+	},
+
+	/**
      * Updates the boneMatrices and boneTexture after changing the bones.
      * This is called automatically if the skeleton is used with a SkinnedMesh.
      * @method
@@ -6014,8 +6092,8 @@ function PropertyBindingMixer(target, propertyPath, typeName, valueSize) {
 		mixFunction = lerp;
 	}
 
-	// [result-value | new-value]
-	this.buffer = new BufferType(valueSize * 2);
+	// [ incoming | accu | orig ]
+	this.buffer = new BufferType(valueSize * 3);
 
 	this._mixBufferFunction = mixFunction;
 
@@ -6044,6 +6122,41 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 			this.property = propertyPath[0];
 			this.target = target;
 		}
+	},
+
+	// remember the state of the bound property and copy it to both accus
+	saveOriginalState: function () {
+		var buffer = this.buffer,
+			stride = this.valueSize,
+			originalValueOffset = stride * 2;
+
+		// get value
+		if (this.valueSize > 1) {
+			this.target[this.property].toArray(buffer, originalValueOffset);
+		} else {
+			this.target[this.property] = buffer[originalValueOffset];
+		}
+
+		// accu[0..1] := orig -- initially detect changes against the original
+		for (var i = stride, e = originalValueOffset; i !== e; ++i) {
+			buffer[i] = buffer[originalValueOffset + (i % stride)];
+		}
+
+		this.cumulativeWeight = 0;
+	},
+
+	// apply the state previously taken via 'saveOriginalState' to the binding
+	restoreOriginalState: function () {
+		var buffer = this.buffer,
+			stride = this.valueSize,
+			originalValueOffset = stride * 2;
+
+		// accu[0..1] := orig -- initially detect changes against the original
+		for (var i = stride, e = originalValueOffset; i !== e; ++i) {
+			buffer[i] = buffer[originalValueOffset + (i % stride)];
+		}
+
+		this.apply();
 	},
 
 	/**
@@ -6077,16 +6190,24 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
      */
 	apply: function() {
 		var buffer = this.buffer,
-			offset = this.valueSize,
+			stride = this.valueSize,
 			weight = this.cumulativeWeight;
 
 		this.cumulativeWeight = 0;
 
+		if (weight < 1) {
+			// accuN := accuN + original * ( 1 - cumulativeWeight )
+
+			var originalValueOffset = stride * 2;
+
+			this._mixBufferFunction(buffer, stride, originalValueOffset, 1 - weight, stride);
+		}
+
 		// set value
 		if (this.valueSize > 1) {
-			this.target[this.property].fromArray(buffer, offset);
+			this.target[this.property].fromArray(buffer, stride);
 		} else {
-			this.target[this.property] = buffer[offset];
+			this.target[this.property] = buffer[stride];
 		}
 	}
 
@@ -6184,7 +6305,9 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 			var binding = this._bindings[trackName];
 
 			if (binding) {
-				binding.useCount++;
+				if (binding.useCount++ === 0) {
+					binding.saveOriginalState();
+				}
 			}
 		}
 	},
@@ -6212,7 +6335,9 @@ Object.assign(AnimationMixer.prototype, /** @lends zen3d.AnimationMixer.prototyp
 			var binding = this._bindings[trackName];
 
 			if (binding && binding.useCount > 0) {
-				binding.useCount--;
+				if (--binding.useCount === 0) {
+					binding.restoreOriginalState();
+				}
 			}
 		}
 	},
