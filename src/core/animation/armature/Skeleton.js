@@ -34,6 +34,29 @@ function Skeleton(bones) {
 Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
 
 	/**
+     * Returns the skeleton to the base pose.
+     * @method
+     */
+	pose: function() {
+		for (var i = 0; i < this.bones.length; i++) {
+			var bone = this.bones[i];
+			bone.worldMatrix.getInverse(bone.offsetMatrix);
+		}
+
+		for (var i = 0; i < this.bones.length; i++) {
+			var bone = this.bones[i];
+			if (bone.parent && bone.parent.type == "bone") {
+				bone.matrix.getInverse(bone.parent.worldMatrix);
+				bone.matrix.multiply(bone.worldMatrix);
+			} else {
+				bone.matrix.copy(bone.worldMatrix);
+			}
+
+			bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
+		}
+	},
+
+	/**
      * Updates the boneMatrices and boneTexture after changing the bones.
      * This is called automatically if the skeleton is used with a SkinnedMesh.
      * @method

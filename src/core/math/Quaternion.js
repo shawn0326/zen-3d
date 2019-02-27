@@ -441,6 +441,18 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 		return this;
 	},
 
+	toArray: function (array, offset) {
+		if (array === undefined) array = [];
+		if (offset === undefined) offset = 0;
+
+		array[offset] = this._x;
+		array[offset + 1] = this._y;
+		array[offset + 2] = this._z;
+		array[offset + 3] = this._w;
+
+		return array;
+	},
+
 	onChange: function(callback) {
 		this.onChangeCallback = callback;
 

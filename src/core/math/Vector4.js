@@ -141,6 +141,35 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 	/**
      *
      */
+	fromArray: function (array, offset) {
+		if (offset === undefined) offset = 0;
+
+		this.x = array[offset];
+		this.y = array[offset + 1];
+		this.z = array[offset + 2];
+		this.w = array[offset + 3];
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	toArray: function (array, offset) {
+		if (array === undefined) array = [];
+		if (offset === undefined) offset = 0;
+
+		array[offset] = this.x;
+		array[offset + 1] = this.y;
+		array[offset + 2] = this.z;
+		array[offset + 3] = this.w;
+
+		return array;
+	},
+
+	/**
+     *
+     */
 	copy: function(v) {
 		this.x = v.x;
 		this.y = v.y;

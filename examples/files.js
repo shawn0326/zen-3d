@@ -16,6 +16,7 @@ var files = {
 		"geometry_loader_gltf_materials_unlit",
 		"geometry_loader_gltf_uvtransform",
 		"geometry_loader_gltf_draco",
+		"geometry_loader_gltf_camera",
 		"geometry_groups"
 	],
 	"material": [
