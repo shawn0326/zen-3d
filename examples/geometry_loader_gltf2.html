@@ -83,8 +83,8 @@
 			plane.receiveShadow = true;
 	        scene.add(plane);
 
-			// var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        // scene.add(ambientLight);
+			var ambientLight = new zen3d.AmbientLight(0xffffff);
+	        scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
 			directionalLight.position.set(5, 5, 0);

@@ -19,11 +19,11 @@
     #endif
 
     #ifdef USE_AMBIENT_LIGHT
-        #ifdef USE_PBR
-            indirectIrradiance += PI * diffuseColor * u_AmbientLightColor;
-        #else
-            indirectIrradiance += diffuseColor * u_AmbientLightColor;
-        #endif
+        // #ifdef USE_PBR
+            indirectIrradiance += u_AmbientLightColor;
+        // #else
+        //     indirectIrradiance += PI * u_AmbientLightColor;
+        // #endif
     #endif
 
     // TODO light map
@@ -36,7 +36,7 @@
     	    #else
     	        envDir = v_EnvPos;
     	    #endif
-            indirectIrradiance += getLightProbeIndirectIrradiance(8, envDir);
+            // indirectIrradiance += getLightProbeIndirectIrradiance(8, envDir);
             indirectRadiance += getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir);
     	#endif
     #endif
@@ -69,9 +69,9 @@
                 #endif
             #endif
 
-            #ifdef USE_PBR
-                irradiance *= PI;
-            #endif
+            // #ifndef USE_PBR
+            //     irradiance *= PI;
+            // #endif
 
             reflectLight = irradiance * BRDF_Diffuse_Lambert(diffuseColor);
 
@@ -101,9 +101,9 @@
             dotNL = saturate( dot(N, L) );
             irradiance = light * dotNL;
 
-            #ifdef USE_PBR
-                irradiance *= PI;
-            #endif
+            // #ifndef USE_PBR
+            //     irradiance *= PI;
+            // #endif
 
             #ifdef USE_SHADOW
                 worldV = v_modelPos - u_Point[ i ].position;
@@ -146,9 +146,9 @@
                 dotNL = saturate( dot(N, L) );
                 irradiance = light * dotNL;
 
-                #ifdef USE_PBR
-                    irradiance *= PI;
-                #endif
+                // #ifndef USE_PBR
+                //     irradiance *= PI;
+                // #endif
 
                 #ifdef USE_SHADOW
                     #ifdef USE_PCSS_SOFT_SHADOW

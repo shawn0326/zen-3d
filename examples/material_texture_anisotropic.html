@@ -51,10 +51,12 @@
 			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			texture.wrapT = texture.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
 			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
 
 			var texture2 = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			texture2.wrapT = texture2.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+			texture2.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
 
 	        var plane_geometry = new zen3d.PlaneGeometry(1000, 1000);
 			var vertexCount = plane_geometry.getAttribute("a_Position").count;
@@ -72,16 +74,11 @@
 	        plane.position.y = -10;
 	        scene.add(plane);
 
-	        var ambientLight = new zen3d.AmbientLight(0x666666);
+	        var ambientLight = new zen3d.AmbientLight(0xffffff, 3);
 	        scene.add(ambientLight);
 
-			var directionalLight = new zen3d.DirectionalLight(0xdfebff, 1.5);
-	        directionalLight.euler.set(Math.PI / 2, 0, 0);
-	        directionalLight.position.set(-40, 40, 0);
-	        scene.add(directionalLight);
-
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
+			camera.gammaFactor = 1.5;
 			camera.gammaOutput = true;
 	        camera.position.set(0, 25, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));

@@ -73,10 +73,10 @@
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 			scene.add(plane);
 			
-			var ambientLight = new zen3d.AmbientLight(0xffffff, 0.5);
+			var ambientLight = new zen3d.AmbientLight(0xffffff, 1);
 	        scene.add(ambientLight);
 
-			var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.5);
+			var directionalLight = new zen3d.DirectionalLight(0xffffff, 1);
 			directionalLight.position.set(2, 1, 2);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0))
 	        scene.add(directionalLight);

@@ -68,6 +68,7 @@
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			texture.anisotropy = glCore.capabilities.maxAnisotropy;
 			texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
 			texture.addEventListener("onload", function() {
 				sceneChange = true;
 			});
@@ -79,8 +80,8 @@
 			scene.add(cube);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			// camera.gammaOutput = true;
+			camera.gammaFactor = 1.5;
+			camera.gammaOutput = true;
 	        camera.position.set(10, 10, 30);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
