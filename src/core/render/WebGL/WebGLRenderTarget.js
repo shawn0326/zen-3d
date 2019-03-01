@@ -66,7 +66,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 				if (renderTarget.multipleSampling > 0) {
 					var renderbuffer = gl.createRenderbuffer();
 					gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.RGBA8, renderTarget.width, renderTarget.height);
+					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
 					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
 
 					renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
@@ -83,7 +83,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 
 					if (renderTarget.stencilBuffer) {
 						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
+							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
 						} else {
 							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
 						}
@@ -91,7 +91,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 					} else {
 						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 						} else {
 							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 						}
@@ -174,7 +174,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 				if (renderTarget.multipleSampling > 0) {
 					var renderbuffer = gl.createRenderbuffer();
 					gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.RGBA8, renderTarget.width, renderTarget.height);
+					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
 					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
 
 					renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
@@ -191,7 +191,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 
 					if (renderTarget.stencilBuffer) {
 						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
+							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
 						} else {
 							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
 						}
@@ -199,7 +199,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 					} else {
 						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 						} else {
 							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 						}

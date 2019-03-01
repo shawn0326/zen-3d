@@ -58,6 +58,8 @@ function WebGLCapabilities(gl) {
 		return 'lowp';
 	}
 
+	var version = parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]);
+
 	// This extension is available to both, WebGL1 and WebGL2 contexts.
 	var anisotropyExt = getExtension('EXT_texture_filter_anisotropic');
 
@@ -67,7 +69,7 @@ function WebGLCapabilities(gl) {
          * WebGL version.
          * @type {number}
          */
-		version: parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]),
+		version: version,
 
 		/**
          * The max precision supported in shaders.
@@ -122,6 +124,12 @@ function WebGLCapabilities(gl) {
          * @type {Integer}
          */
 		maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1,
+
+		/**
+         * The max samples value.
+         * @type {Integer}
+         */
+		maxSamples: version > 1 ? gl.getParameter(gl.MAX_SAMPLES) : 1,
 
 		getExtension: getExtension
 

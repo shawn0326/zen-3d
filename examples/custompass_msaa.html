@@ -101,11 +101,12 @@
 				return renderTargets[value];
 			}
 
-			var params = {"msaa": true, "samplers": 5};
+			var params = {"msaa": true, "samplers": Math.min(5, glCore.capabilities.maxSamples)};
 			var gui = new dat.GUI();
 			gui.add( { version: "WebGL " + glCore.capabilities.version }, "version" );
+			gui.add( { MaxSamples: glCore.capabilities.maxSamples }, "MaxSamples" );
 			gui.add(params, "msaa");
-			gui.add(params, "samplers", 1, 8, 1);
+			gui.add(params, "samplers", 1, glCore.capabilities.maxSamples, 1);
 
 	        function loop(count) {
 

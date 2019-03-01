@@ -8797,6 +8797,8 @@
 			return 'lowp';
 		}
 
+		var version = parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]);
+
 		// This extension is available to both, WebGL1 and WebGL2 contexts.
 		var anisotropyExt = getExtension('EXT_texture_filter_anisotropic');
 
@@ -8806,7 +8808,7 @@
 	         * WebGL version.
 	         * @type {number}
 	         */
-			version: parseFloat(/^WebGL\ ([0-9])/.exec(gl.getParameter(gl.VERSION))[1]),
+			version: version,
 
 			/**
 	         * The max precision supported in shaders.
@@ -8861,6 +8863,12 @@
 	         * @type {Integer}
 	         */
 			maxAnisotropy: (anisotropyExt !== null) ? gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1,
+
+			/**
+	         * The max samples value.
+	         * @type {Integer}
+	         */
+			maxSamples: version > 1 ? gl.getParameter(gl.MAX_SAMPLES) : 1,
 
 			getExtension: getExtension
 
@@ -11218,7 +11226,7 @@
 					if (renderTarget.multipleSampling > 0) {
 						var renderbuffer = gl.createRenderbuffer();
 						gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-						gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.RGBA8, renderTarget.width, renderTarget.height);
+						gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
 						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
 
 						renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
@@ -11235,7 +11243,7 @@
 
 						if (renderTarget.stencilBuffer) {
 							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
+								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
 							} else {
 								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
 							}
@@ -11243,7 +11251,7 @@
 							gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 						} else {
 							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 							} else {
 								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 							}
@@ -11326,7 +11334,7 @@
 					if (renderTarget.multipleSampling > 0) {
 						var renderbuffer = gl.createRenderbuffer();
 						gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-						gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.RGBA8, renderTarget.width, renderTarget.height);
+						gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
 						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
 
 						renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
@@ -11343,7 +11351,7 @@
 
 						if (renderTarget.stencilBuffer) {
 							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
+								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
 							} else {
 								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
 							}
@@ -11351,7 +11359,7 @@
 							gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
 						} else {
 							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, 8), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 							} else {
 								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
 							}
