@@ -1223,10 +1223,8 @@
 
 		if (alphaMode === ALPHA_MODES.BLEND) {
 			materialParams.transparent = true;
-			materialParams.depthWrite = false;
 		} else {
 			materialParams.transparent = false;
-			materialParams.depthWrite = true;
 
 			if (alphaMode === ALPHA_MODES.MASK) {
 				materialParams.alphaTest = materialDef.alphaCutoff !== undefined ? materialDef.alphaCutoff : 0.5;
@@ -1246,7 +1244,6 @@
 			// }
 		}
 
-		// AOMap support
 		if (materialDef.occlusionTexture !== undefined) {
         	pending.push(parser.assignTexture(materialParams, 'aoMap', materialDef.occlusionTexture.index));
 

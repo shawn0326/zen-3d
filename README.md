@@ -76,6 +76,10 @@ npm run example
 
 build path is `./build`.
 
+### Projects ###
+
+* [zen-viewer](https://shawn0326.github.io/zen-viewer/)
+
 ### About Me ###
 
 * Blog: [Half Lab](http://www.halflab.me)
