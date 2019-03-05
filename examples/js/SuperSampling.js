@@ -1,121 +1,117 @@
 (function() {
-    
-    function SuperSampling(width, height, samplingSize) {
+	function SuperSampling(width, height, samplingSize) {
+		this._samplingSize = samplingSize || 30;
 
-        this._samplingSize = samplingSize || 30;
+		var haltonSequence = [[0.5, 0.5]]; // first center
+		var halton = zen3d.halton;
 
-        var haltonSequence = [];
-        var halton = zen3d.halton;
+		for (var i = 0; i < this._samplingSize - 1; i++) {
+			haltonSequence.push([
+				halton(i, 2), halton(i, 3)
+			]);
+		}
 
-        for (var i = 0; i < this._samplingSize; i++) {
-            haltonSequence.push([
-                halton(i, 2), halton(i, 3)
-            ]);
-        }
+		this._haltonSequence = haltonSequence;
 
-        this._haltonSequence = haltonSequence;
+		var prevFrame = new zen3d.RenderTarget2D(width, height);
+		prevFrame.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		prevFrame.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		prevFrame.texture.generateMipmaps = false;
 
-        var prevFrame = new zen3d.RenderTarget2D(width, height);
-        prevFrame.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        prevFrame.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        prevFrame.texture.generateMipmaps = false;
+		this._prevFrame = prevFrame;
 
-        this._prevFrame = prevFrame;
-        
-        var output = new zen3d.RenderTarget2D(width, height);
-        output.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        output.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        output.texture.generateMipmaps = false;
+		var output = new zen3d.RenderTarget2D(width, height);
+		output.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		output.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		output.texture.generateMipmaps = false;
 
-        this._output = output;
+		this._output = output;
 
-        this._blendPass = new zen3d.ShaderPostPass(zen3d.BlendShader);
-        this._blendPass.material.depthWrite = false;
-        this._blendPass.material.depthTest = false;
+		this._blendPass = new zen3d.ShaderPostPass(zen3d.BlendShader);
+		this._blendPass.material.depthWrite = false;
+		this._blendPass.material.depthTest = false;
 
-        this._frame = 0;
-    }
-    
-    SuperSampling.prototype = Object.assign(SuperSampling.prototype, {
+		this._frame = 0;
+	}
 
-        constructor: SuperSampling,
+	SuperSampling.prototype = Object.assign(SuperSampling.prototype, {
 
-        resize: function(width, height) {
-            this._prevFrame.resize(width, height);
-            this._output.resize(width, height);
-        },
+		constructor: SuperSampling,
 
-        start: function() {
-            this._frame = 0;
-        },
+		resize: function(width, height) {
+			this._prevFrame.resize(width, height);
+			this._output.resize(width, height);
+		},
 
-        finished: function() {
-            return this._frame >= this._samplingSize;
-        },
+		start: function() {
+			this._frame = 0;
+		},
 
-        frame: function() {
-            return this._frame;
-        },
+		finished: function() {
+			return this._frame >= this._samplingSize;
+		},
 
-        /**
+		frame: function() {
+			return this._frame;
+		},
+
+		/**
          * Jitter camera projectionMatrix
          * @param {zen3d.Camera} camera
          * @param {number} width screen width
          * @param {number} height screen height
          */
-        jitterProjection: function(camera, width, height) {
-            var offset = this._haltonSequence[this._frame];
+		jitterProjection: function(camera, width, height) {
+			var offset = this._haltonSequence[this._frame];
 
-            if(!offset) {
-                console.error("SuperSampling: try to jitter camera after finished!", this._frame, this._haltonSequence.length);
-            }
+			if (!offset) {
+				console.error("SuperSampling: try to jitter camera after finished!", this._frame, this._haltonSequence.length);
+			}
 
-            var translationMat = new zen3d.Matrix4();
-            translationMat.elements[12] = (offset[0] * 2.0 - 1.0) / width;
-            translationMat.elements[13] = (offset[1] * 2.0 - 1.0) / height;
+			var translationMat = new zen3d.Matrix4();
+			translationMat.elements[12] = (offset[0] * 2.0 - 1.0) / width;
+			translationMat.elements[13] = (offset[1] * 2.0 - 1.0) / height;
 
-            camera.projectionMatrix.premultiply(translationMat);
-        },
-    
-        /**
+			camera.projectionMatrix.premultiply(translationMat);
+		},
+
+		/**
          * @param {zen3d.GLCore} glCore
          * @param {zen3d.TextureBase} texture input texture
          * @return {zen3d.TextureBase} output texture
          */
-        sample: function(glCore, texture) {
+		sample: function(glCore, texture) {
+			var first = this._frame === 0;
 
-            var first = this._frame === 0;
+			this._blendPass.uniforms["tDiffuse1"] = texture;
+			this._blendPass.uniforms["tDiffuse2"] = this._prevFrame.texture;
+			this._blendPass.uniforms["opacity1"] = first ? 1 : 0.1;
+			this._blendPass.uniforms["opacity2"] = first ? 0 : 0.9;
 
-            this._blendPass.uniforms["tDiffuse1"] = texture;
-            this._blendPass.uniforms["tDiffuse2"] = this._prevFrame.texture;
-            this._blendPass.uniforms["opacity1"] = first ? 1 : 0.1;
-            this._blendPass.uniforms["opacity2"] = first ? 0 : 0.9;
+			glCore.renderTarget.setRenderTarget(this._output);
 
-            glCore.renderTarget.setRenderTarget(this._output);
+			glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			glCore.clear(true, true, true);
 
-            glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-            glCore.clear(true, true, true);
+			this._blendPass.render(glCore);
 
-            this._blendPass.render(glCore);
+			var temp = this._prevFrame;
+			this._prevFrame = this._output;
+			this._output = temp;
 
-            var temp = this._prevFrame;
-            this._prevFrame = this._output;
-            this._output = temp;
+			this._frame++;
 
-            this._frame++;
+			return this._prevFrame.texture;
+		},
 
-            return this._prevFrame.texture;
-
-        },
-
-        /**
+		/**
          * @return {zen3d.TextureBase} output texture
          */
-        output: function() {
-            return this._prevFrame.texture;
-        }
-    
-    });
+		output: function() {
+			return this._prevFrame.texture;
+		}
 
-    zen3d.SuperSampling = SuperSampling;
+	});
+
+	zen3d.SuperSampling = SuperSampling;
 })();
