@@ -9936,11 +9936,11 @@
 			geometry.removeEventListener('dispose', this.onGeometryDispose, this);
 
 			if (geometry.index !== null) {
-				removeAttribute(gl, properties, geometry.index);
+				removeAttribute(gl, this.properties, geometry.index);
 			}
 
 			for (var name in geometry.attributes) {
-				removeAttribute(gl, properties, geometry.attributes[name]);
+				removeAttribute(gl, this.properties, geometry.attributes[name]);
 			}
 
 			// dispose vaos
