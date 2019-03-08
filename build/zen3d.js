@@ -10463,7 +10463,7 @@
 		this.program = undefined;
 	};
 
-	var alphaTest_frag = "#ifdef ALPHATEST\r\n\r\n\tif ( outColor.a < ALPHATEST ) discard;\r\n\r\n#endif";
+	var alphaTest_frag = "#ifdef ALPHATEST\r\n\r\n\tif ( outColor.a < ALPHATEST ) {\r\n\t\tdiscard;\r\n\t} else {\r\n\t\t// Prevent alpha test edge gradient\r\n\t\toutColor.a = u_Opacity;\r\n\t}\r\n\r\n#endif";
 
 	var ambientlight_pars_frag = "uniform vec4 u_AmbientLightColor;";
 
