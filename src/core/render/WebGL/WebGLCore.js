@@ -111,7 +111,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
      * Render opaque and transparent objects.
      * @param {zen3d.Scene} scene
      * @param {zen3d.Camera} camera
-     * @param {boolean} [updateRenderList=false]
+     * @param {boolean} [updateRenderList=true]
      */
 	render: function(scene, camera, updateRenderList) {
 		updateRenderList = (updateRenderList !== undefined ? updateRenderList : true);
