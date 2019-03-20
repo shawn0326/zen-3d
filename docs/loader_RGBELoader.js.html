@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: loader/RGBELoader.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: loader/RGBELoader.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { FileLoader } from './FileLoader.js';
+import { DefaultLoadingManager } from './LoadingManager.js';
+import { WEBGL_PIXEL_TYPE, WEBGL_PIXEL_FORMAT } from '../const.js';
+
+/**
+ * A loader for loading a .hdr Image.
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.LoadingManager} manager — The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.
+ */
+
+function RGBELoader(manager) {
+	this.manager = (manager !== undefined) ? manager : DefaultLoadingManager;
+	this.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+}
+
+Object.assign(RGBELoader.prototype, {
+
+	/**
+     * Load the URL and pass the response to the onLoad function.
+     * @param {string} url — the path or URL to the file. This can also be a Data URI.
+     * @param {Function} [onLoad=] — Will be called when loading completes. The argument will be the loaded image ( draw to an canvas element ).
+     * @param {Function} [onProgress=] — Will be called while load progresses. The argument will be the XMLHttpRequest instance, which contains .total and .loaded bytes.
+     * @param {Function} [onError=] — Will be called if an error occurs.
+     */
+	load: function(url, onLoad, onProgress, onError) {
+		var that = this;
+
+		var loader = new FileLoader(this.manager);
+		loader.setResponseType('arraybuffer');
+		loader.load(url, function(buffer) {
+			if (onLoad !== undefined) {
+				onLoad(that.parse(buffer));
+			}
+		}, onProgress, onError);
+	},
+
+	// adapted from http://www.graphics.cornell.edu/~bjw/rgbe.html
+	parse: function(buffer) {
+		var
+			/* return codes for rgbe routines */
+			// RGBE_RETURN_SUCCESS = 0,
+			RGBE_RETURN_FAILURE = -1,
+
+			/* default error routine.  change this to change error handling */
+			rgbe_read_error = 1,
+			rgbe_write_error = 2,
+			rgbe_format_error = 3,
+			rgbe_memory_error = 4,
+			rgbe_error = function (rgbe_error_code, msg) {
+				switch (rgbe_error_code) {
+				case rgbe_read_error: console.error("zen3d.RGBELoader Read Error: " + (msg || ''));
+					break;
+				case rgbe_write_error: console.error("zen3d.RGBELoader Write Error: " + (msg || ''));
+					break;
+				case rgbe_format_error: console.error("zen3d.RGBELoader Bad File Format: " + (msg || ''));
+					break;
+				default:
+				case rgbe_memory_error: console.error("zen3d.RGBELoader: Error: " + (msg || ''));
+				}
+				return RGBE_RETURN_FAILURE;
+			},
+
+			/* offsets to red, green, and blue components in a data (float) pixel */
+			// RGBE_DATA_RED = 0,
+			// RGBE_DATA_GREEN = 1,
+			// RGBE_DATA_BLUE = 2,
+
+			/* number of floats per pixel, use 4 since stored in rgba image format */
+			// RGBE_DATA_SIZE = 4,
+
+			/* flags indicating which fields in an rgbe_header_info are valid */
+			RGBE_VALID_PROGRAMTYPE = 1,
+			RGBE_VALID_FORMAT = 2,
+			RGBE_VALID_DIMENSIONS = 4,
+
+			NEWLINE = "\n",
+
+			fgets = function (buffer, lineLimit, consume) {
+				lineLimit = !lineLimit ? 1024 : lineLimit;
+				var p = buffer.pos,
+					i = -1, len = 0, s = '', chunkSize = 128,
+					chunk = String.fromCharCode.apply(null, new Uint16Array(buffer.subarray(p, p + chunkSize)));
+				while ((0 > (i = chunk.indexOf(NEWLINE))) &amp;&amp; (len &lt; lineLimit) &amp;&amp; (p &lt; buffer.byteLength)) {
+					s += chunk; len += chunk.length;
+					p += chunkSize;
+					chunk += String.fromCharCode.apply(null, new Uint16Array(buffer.subarray(p, p + chunkSize)));
+				}
+
+				if (-1 &lt; i) {
+					/* for (i=l-1; i>=0; i--) {
+					byteCode = m.charCodeAt(i);
+					if (byteCode > 0x7f &amp;&amp; byteCode &lt;= 0x7ff) byteLen++;
+					else if (byteCode > 0x7ff &amp;&amp; byteCode &lt;= 0xffff) byteLen += 2;
+					if (byteCode >= 0xDC00 &amp;&amp; byteCode &lt;= 0xDFFF) i--; //trail surrogate
+				} */
+					if (false !== consume) buffer.pos += len + i + 1;
+					return s + chunk.slice(0, i);
+				}
+				return false;
+			},
+
+			/* minimal header reading.  modify if you want to parse more information */
+			RGBE_ReadHeader = function (buffer) {
+				var line, match,
+
+					// regexes to parse header info fields
+					magic_token_re = /^#\?(\S+)$/,
+					gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/,
+					exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/,
+					format_re = /^\s*FORMAT=(\S+)\s*$/,
+					dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/,
+
+					// RGBE format header struct
+					header = {
+
+						valid: 0, /* indicate which fields are valid */
+
+						string: '', /* the actual header string */
+
+						comments: '', /* comments found in header */
+
+						programtype: 'RGBE', /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */
+
+						format: '', /* RGBE format, default 32-bit_rle_rgbe */
+
+						gamma: 1.0, /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */
+
+						exposure: 1.0, /* a value of 1.0 in an image corresponds to &lt;exposure> watts/steradian/m^2. defaults to 1.0 */
+
+						width: 0, height: 0 /* image dimensions, width/height */
+
+					};
+
+				if (buffer.pos >= buffer.byteLength || !(line = fgets(buffer))) {
+					return rgbe_error(rgbe_read_error, "no header found");
+				}
+				/* if you want to require the magic token then uncomment the next line */
+				if (!(match = line.match(magic_token_re))) {
+					return rgbe_error(rgbe_format_error, "bad initial token");
+				}
+				header.valid |= RGBE_VALID_PROGRAMTYPE;
+				header.programtype = match[1];
+				header.string += line + "\n";
+
+				while (true) {
+					line = fgets(buffer);
+					if (false === line) break;
+					header.string += line + "\n";
+
+					if ('#' === line.charAt(0)) {
+						header.comments += line + "\n";
+						continue; // comment line
+					}
+
+					if (match = line.match(gamma_re)) {
+						header.gamma = parseFloat(match[1], 10);
+					}
+					if (match = line.match(exposure_re)) {
+						header.exposure = parseFloat(match[1], 10);
+					}
+					if (match = line.match(format_re)) {
+						header.valid |= RGBE_VALID_FORMAT;
+						header.format = match[1];// '32-bit_rle_rgbe';
+					}
+					if (match = line.match(dimensions_re)) {
+						header.valid |= RGBE_VALID_DIMENSIONS;
+						header.height = parseInt(match[1], 10);
+						header.width = parseInt(match[2], 10);
+					}
+
+					if ((header.valid &amp; RGBE_VALID_FORMAT) &amp;&amp; (header.valid &amp; RGBE_VALID_DIMENSIONS)) break;
+				}
+
+				if (!(header.valid &amp; RGBE_VALID_FORMAT)) {
+					return rgbe_error(rgbe_format_error, "missing format specifier");
+				}
+				if (!(header.valid &amp; RGBE_VALID_DIMENSIONS)) {
+					return rgbe_error(rgbe_format_error, "missing image size specifier");
+				}
+
+				return header;
+			},
+
+			RGBE_ReadPixels_RLE = function (buffer, w, h) {
+				var data_rgba, offset, pos, count, byteValue,
+					scanline_buffer, ptr, ptr_end, i, l, off, isEncodedRun,
+					scanline_width = w, num_scanlines = h, rgbeStart;
+				if (
+				// run length encoding is not allowed so read flat
+					((scanline_width &lt; 8) || (scanline_width > 0x7fff)) ||
+				// this file is not run length encoded
+				((2 !== buffer[0]) || (2 !== buffer[1]) || (buffer[2] &amp; 0x80))
+				) {
+					// return the flat buffer
+					return new Uint8Array(buffer);
+				}
+
+				if (scanline_width !== ((buffer[2] &lt;&lt; 8) | buffer[3])) {
+					return rgbe_error(rgbe_format_error, "wrong scanline width");
+				}
+
+				data_rgba = new Uint8Array(4 * w * h);
+
+				if (!data_rgba || !data_rgba.length) {
+					return rgbe_error(rgbe_memory_error, "unable to allocate buffer space");
+				}
+
+				offset = 0; pos = 0; ptr_end = 4 * scanline_width;
+				rgbeStart = new Uint8Array(4);
+				scanline_buffer = new Uint8Array(ptr_end);
+
+				// read in each successive scanline
+				while ((num_scanlines > 0) &amp;&amp; (pos &lt; buffer.byteLength)) {
+					if (pos + 4 > buffer.byteLength) {
+						return rgbe_error(rgbe_read_error);
+					}
+
+					rgbeStart[0] = buffer[pos++];
+					rgbeStart[1] = buffer[pos++];
+					rgbeStart[2] = buffer[pos++];
+					rgbeStart[3] = buffer[pos++];
+
+					if ((2 != rgbeStart[0]) || (2 != rgbeStart[1]) || (((rgbeStart[2] &lt;&lt; 8) | rgbeStart[3]) != scanline_width)) {
+						return rgbe_error(rgbe_format_error, "bad rgbe scanline format");
+					}
+
+					// read each of the four channels for the scanline into the buffer
+					// first red, then green, then blue, then exponent
+					ptr = 0;
+					while ((ptr &lt; ptr_end) &amp;&amp; (pos &lt; buffer.byteLength)) {
+						count = buffer[pos++];
+						isEncodedRun = count > 128;
+						if (isEncodedRun) count -= 128;
+
+						if ((0 === count) || (ptr + count > ptr_end)) {
+							return rgbe_error(rgbe_format_error, "bad scanline data");
+						}
+
+						if (isEncodedRun) {
+							// a (encoded) run of the same value
+							byteValue = buffer[pos++];
+							for (i = 0; i &lt; count; i++) {
+								scanline_buffer[ptr++] = byteValue;
+							}
+							// ptr += count;
+						} else {
+							// a literal-run
+							scanline_buffer.set(buffer.subarray(pos, pos + count), ptr);
+							ptr += count; pos += count;
+						}
+					}
+
+
+					// now convert data from buffer into rgba
+					// first red, then green, then blue, then exponent (alpha)
+					l = scanline_width; // scanline_buffer.byteLength;
+					for (i = 0; i &lt; l; i++) {
+						off = 0;
+						data_rgba[offset] = scanline_buffer[i + off];
+						off += scanline_width; // 1;
+						data_rgba[offset + 1] = scanline_buffer[i + off];
+						off += scanline_width; // 1;
+						data_rgba[offset + 2] = scanline_buffer[i + off];
+						off += scanline_width; // 1;
+						data_rgba[offset + 3] = scanline_buffer[i + off];
+						offset += 4;
+					}
+
+					num_scanlines--;
+				}
+
+				return data_rgba;
+			};
+		var byteArray = new Uint8Array(buffer);
+		// var byteLength = byteArray.byteLength;
+		byteArray.pos = 0;
+		var rgbe_header_info = RGBE_ReadHeader(byteArray);
+
+		if (RGBE_RETURN_FAILURE !== rgbe_header_info) {
+			var w = rgbe_header_info.width,
+				h = rgbe_header_info.height,
+				image_rgba_data = RGBE_ReadPixels_RLE(byteArray.subarray(byteArray.pos), w, h);
+			if (RGBE_RETURN_FAILURE !== image_rgba_data) {
+				if (this.type === WEBGL_PIXEL_TYPE.UNSIGNED_BYTE) {
+					var data = image_rgba_data;
+					var format = WEBGL_PIXEL_FORMAT.RGBA; // RGBE handled as RGBA in shaders
+					var type = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+				} else if (this.type === WEBGL_PIXEL_TYPE.FLOAT) {
+					var RGBEByteToRGBFloat = function (sourceArray, sourceOffset, destArray, destOffset) {
+						var e = sourceArray[sourceOffset + 3];
+						var scale = Math.pow(2.0, e - 128.0) / 255.0;
+
+						destArray[destOffset + 0] = sourceArray[sourceOffset + 0] * scale;
+						destArray[destOffset + 1] = sourceArray[sourceOffset + 1] * scale;
+						destArray[destOffset + 2] = sourceArray[sourceOffset + 2] * scale;
+					};
+
+					var numElements = (image_rgba_data.length / 4) * 3;
+					var floatArray = new Float32Array(numElements);
+
+					for (var j = 0; j &lt; numElements; j++) {
+						RGBEByteToRGBFloat(image_rgba_data, j * 4, floatArray, j * 3);
+					}
+
+					var data = floatArray;
+					var format = WEBGL_PIXEL_FORMAT.RGB;
+					var type = WEBGL_PIXEL_TYPE.FLOAT;
+				} else {
+					console.error('zen3d.RGBELoader: unsupported type: ', this.type);
+				}
+
+				return {
+					width: w, height: h,
+					data: data,
+					header: rgbe_header_info.string,
+					gamma: rgbe_header_info.gamma,
+					exposure: rgbe_header_info.exposure,
+					format: format,
+					type: type
+				};
+			}
+		}
+
+		return null;
+	}
+
+});
+
+export { RGBELoader };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.RGBELoader.html">RGBELoader</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#load">load</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Mar 20 2019 15:31:17 GMT+0800 (中国标准时间)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

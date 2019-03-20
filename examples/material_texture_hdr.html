@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - hdr</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - hdr
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+			var scene = new zen3d.Scene();
+
+			var aspect = width / height;
+			
+			var camera = new zen3d.Camera();
+			// camera.gammaOutput = true;
+			camera.setOrtho(-aspect, aspect, -1, 1, 0, 1);
+			scene.add(camera);
+			
+			new zen3d.RGBELoader().load('resources/miranda_uncropped.hdr', function(textureData) {
+				// console.log(textureData);
+				var texture = new zen3d.Texture2D();
+				texture.image = {data: textureData.data, width: textureData.width, height: textureData.height};
+				texture.version++;
+				texture.encoding = zen3d.TEXEL_ENCODING_TYPE.RGBE;
+				texture.type = textureData.type;
+				texture.format = textureData.format;
+				texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+				texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+
+				var plane_geometry = new zen3d.PlaneGeometry(textureData.width / textureData.height, 1);
+				var plane_material = new zen3d.BasicMaterial();
+				plane_material.diffuseMap = texture;
+				var mesh = new zen3d.Mesh( plane_geometry, plane_material );
+				mesh.euler.x = Math.PI / 2;
+
+				scene.add(mesh);
+			});
+
+	        function loop(count) {
+	            requestAnimationFrame(loop);
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				var aspect = width / height;
+
+				camera.setOrtho(-aspect, aspect, -1, 1, 0, 1);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

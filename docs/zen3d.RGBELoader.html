@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: Box2</title>
+    <title>JSDoc: Class: RGBELoader</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: Box2</h1>
+    <h1 class="page-title">Class: RGBELoader</h1>
 
     
 
@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>Box2<span class="signature">(min, max)</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>RGBELoader<span class="signature">(manager)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -42,12 +42,16 @@
     
 
     
-    <h4 class="name" id="Box2"><span class="type-signature"></span>new Box2<span class="signature">(min, max)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="RGBELoader"><span class="type-signature"></span>new RGBELoader<span class="signature">(manager)</span><span class="type-signature"></span></h4>
     
 
     
 
 
+
+<div class="description">
+    A loader for loading a .hdr Image.
+</div>
 
 
 
@@ -82,13 +86,13 @@
 
         <tr>
             
-                <td class="name"><code>min</code></td>
+                <td class="name"><code>manager</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="zen3d.Vector2.html">zen3d.Vector2</a></span>
+<span class="param-type">zen3d.LoadingManager</span>
 
 
             
@@ -98,30 +102,7 @@
 
             
 
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>max</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="zen3d.Vector2.html">zen3d.Vector2</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
+            <td class="description last">— The loadingManager for the loader to use. Default is zen3d.DefaultLoadingManager.</td>
         </tr>
 
     
@@ -162,7 +143,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="math_Box2.js.html">math/Box2.js</a>, <a href="math_Box2.js.html#line9">line 9</a>
+        <a href="loader_RGBELoader.js.html">loader/RGBELoader.js</a>, <a href="loader_RGBELoader.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -208,359 +189,6 @@
     
 
     
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">(box)</span><span class="type-signature"> &rarr; {<a href="zen3d.Box2.html">zen3d.Box2</a>}</span></h4>
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>box</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="zen3d.Box2.html">zen3d.Box2</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="math_Box2.js.html">math/Box2.js</a>, <a href="math_Box2.js.html#line31">line 31</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="zen3d.Box2.html">zen3d.Box2</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="set"><span class="type-signature"></span>set<span class="signature">(x1, y1, x2, y2)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>x1</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>y1</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>x2</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>y2</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="math_Box2.js.html">math/Box2.js</a>, <a href="math_Box2.js.html#line22">line 22</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-    
 
     
 
@@ -581,7 +209,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Mar 20 2019 15:31:17 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Mar 20 2019 15:31:18 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>
