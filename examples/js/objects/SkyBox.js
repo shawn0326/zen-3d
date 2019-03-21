@@ -13,11 +13,13 @@
 
 		var material = new zen3d.ShaderMaterial(SkyBoxShader);
 		material.side = zen3d.DRAW_SIDE.BACK;
-		material.cubeMap = cubeTexture;
+
 		this.material = material;
 
-		// udpate encoding
-		cubeTexture.addEventListener("onload", () => material.needsUpdate = true);
+		if (cubeTexture) {
+			material.cubeMap = cubeTexture;
+			cubeTexture.addEventListener("onload", () => material.needsUpdate = true);
+		}
 
 		zen3d.Mesh.call(this, geometry, material);
 
@@ -42,6 +44,16 @@
 			},
 			set: function(val) {
 				this.material.defines.GAMMA = val;
+				this.material.needsUpdate = true;
+			}
+		},
+		texture: {
+			get: function() {
+				return this.material.cubeMap;
+			},
+			set: function(val) {
+				this.material.cubeMap = val;
+				val.addEventListener("onload", () => this.material.needsUpdate = true);
 				this.material.needsUpdate = true;
 			}
 		}
