@@ -33,6 +33,7 @@ var files = {
 		"material_depth_texture",
 		"material_cubetexture_skybox",
 		"material_cubetexture_skybox_tga",
+		"material_cubetexture_skybox_hdr",
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",
 		"material_texture3d",

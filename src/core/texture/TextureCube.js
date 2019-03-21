@@ -1,7 +1,8 @@
 import { TextureBase } from './TextureBase.js';
-import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT } from '../const.js';
+import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_TEXTURE_FILTER, TEXEL_ENCODING_TYPE } from '../const.js';
 import { ImageLoader } from '../loader/ImageLoader.js';
 import { TGALoader } from '../loader/TGALoader.js';
+import { RGBELoader } from '../loader/RGBELoader.js';
 
 /**
  * Creates a cube texture made up of six images.
@@ -74,23 +75,42 @@ TextureCube.fromSrc = function(srcArray) {
 
 	var isTGA = src.search(/\.(tga)$/) > 0 || src.search(/^data\:image\/tga/) === 0;
 
+	var isHDR = src.search(/\.(hdr)$/) > 0;
+
+	var loader;
+	if (isHDR) {
+		loader = new RGBELoader();
+	} else {
+		loader = isTGA ? new TGALoader() : new ImageLoader();
+	}
+
 	var count = 0;
 	function next(image) {
 		if (image) {
-			images.push(image);
+			if (isHDR) {
+				images.push({ data: image.data, width: image.width, height: image.height });
+			} else {
+				images.push(image);
+			}
 			count++;
 		}
 		if (count >= 6) {
-			loaded();
+			loaded(isHDR ? image : undefined);
 			return;
 		}
-		var loader = isTGA ? new TGALoader() : new ImageLoader();
 		loader.load(srcArray[count], next);
 	}
 	next();
 
-	function loaded() {
-		texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+	function loaded(imageData) {
+		if (imageData) {
+			texture.encoding = TEXEL_ENCODING_TYPE.RGBE;
+			texture.type = imageData.type;
+			texture.format = imageData.format;
+		} else {
+			texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+		}
+
 		texture.version++;
 		texture.dispatchEvent({ type: 'onload' });
 	}

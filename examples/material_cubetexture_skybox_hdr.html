@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - hdr</title>
+	<title>zen3d - skybox</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -21,11 +21,15 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+
+	<script src="./js/shaders/SkyBoxShader.js"></script>
+	<script src="./js/objects/SkyBox.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - hdr
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - skybox
     </div>
 
 	<script>
@@ -41,37 +45,35 @@
 
 	        var renderer = new zen3d.Renderer(canvas);
 
-			var scene = new zen3d.Scene();
+	        var scene = new zen3d.Scene();
 
-			var aspect = width / height;
-			
+			var cube_texture = zen3d.TextureCube.fromSrc([
+				"resources/hdr/pisaHDR/px.hdr",
+			    "resources/hdr/pisaHDR/nx.hdr",
+				"resources/hdr/pisaHDR/py.hdr",
+				"resources/hdr/pisaHDR/ny.hdr",
+			    "resources/hdr/pisaHDR/pz.hdr",
+			    "resources/hdr/pisaHDR/nz.hdr"
+			]);
+			var sky_box = new zen3d.SkyBox(cube_texture);
+			sky_box.gamma = true;
+
 			var camera = new zen3d.Camera();
-			// camera.gammaOutput = true;
-			camera.setOrtho(-aspect, aspect, -1, 1, 0, 1);
+			camera.gammaOutput = true;
+			camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 10000);
+			camera.add(sky_box);
 			scene.add(camera);
 			
-			new zen3d.RGBELoader().load('resources/hdr/miranda_uncropped.hdr', function(textureData) {
-				// console.log(textureData);
-				var texture = new zen3d.Texture2D();
-				texture.image = {data: textureData.data, width: textureData.width, height: textureData.height};
-				texture.version++;
-				texture.encoding = zen3d.TEXEL_ENCODING_TYPE.RGBE;
-				texture.type = textureData.type;
-				texture.format = textureData.format;
-				texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-				texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-
-				var plane_geometry = new zen3d.PlaneGeometry(textureData.width / textureData.height, 1);
-				var plane_material = new zen3d.BasicMaterial();
-				plane_material.diffuseMap = texture;
-				var mesh = new zen3d.Mesh( plane_geometry, plane_material );
-				mesh.euler.x = Math.PI / 2;
-
-				scene.add(mesh);
-			});
+			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
+			gui.add(sky_box, "level", 0, 8).step(1);
 
 	        function loop(count) {
+
 	            requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.euler.y = -count / 1000 * 0.2;
 
 	            renderer.render(scene, camera);
 	        }
@@ -82,9 +84,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				var aspect = width / height;
-
-				camera.setOrtho(-aspect, aspect, -1, 1, 0, 1);
+				camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 10000);
 
 				renderer.backRenderTarget.resize(width, height);
 			}

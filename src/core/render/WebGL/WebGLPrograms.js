@@ -353,7 +353,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	var currentRenderTarget = state.currentRenderTarget;
 	props.gammaFactor = camera.gammaFactor;
 	props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
-	props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap, camera.gammaInput);
+	props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap || material.cubeMap, camera.gammaInput);
 	props.envMapEncoding = getTextureEncodingFromMap(material.envMap, camera.gammaInput);
 	props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, camera.gammaInput);
 	// other

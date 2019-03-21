@@ -4,6 +4,7 @@ import { Matrix3 } from '../math/Matrix3.js';
 import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT } from '../const.js';
 import { ImageLoader } from '../loader/ImageLoader.js';
 import { TGALoader } from '../loader/TGALoader.js';
+import { RGBELoader } from '../loader/RGBELoader.js';
 
 /**
  * Creates a cube texture made up of single image.
@@ -143,14 +144,32 @@ Texture2D.fromSrc = function(src) {
 
 	var isTGA = src.search(/\.(tga)$/) > 0 || src.search(/^data\:image\/tga/) === 0;
 
-	var loader = isTGA ? new TGALoader() : new ImageLoader();
-	loader.load(src, function(image) {
-		texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
-		texture.image = image;
-		texture.version++;
+	var isHDR = src.search(/\.(hdr)$/) > 0;
 
-		texture.dispatchEvent({ type: 'onload' });
-	});
+	if (isHDR) {
+		var loader = new RGBELoader();
+		loader.load(src, function(textureData) {
+			texture.image = { data: textureData.data, width: textureData.width, height: textureData.height };
+			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.RGBE;
+			texture.type = textureData.type;
+			texture.format = textureData.format;
+
+			texture.version++;
+
+			texture.dispatchEvent({ type: 'onload' });
+		});
+	} else {
+		var loader = isTGA ? new TGALoader() : new ImageLoader();
+		loader.load(src, function(image) {
+			texture.format = isJPEG ? WEBGL_PIXEL_FORMAT.RGB : WEBGL_PIXEL_FORMAT.RGBA;
+			texture.image = image;
+
+			texture.version++;
+
+			texture.dispatchEvent({ type: 'onload' });
+		});
+	}
+
 
 	return texture;
 }

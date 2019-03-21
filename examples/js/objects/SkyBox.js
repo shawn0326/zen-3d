@@ -1,41 +1,51 @@
 (function() {
-
-    /**
+	/**
      * SkyBox
      * @class
      */
-    var SkyBox = function(cubeTexture) {
-        var geometry = new zen3d.CubeGeometry(1, 1, 1);
+	var SkyBox = function(cubeTexture) {
+		var geometry = new zen3d.CubeGeometry(1, 1, 1);
 
-        var SkyBoxShader = zen3d.SkyBoxShader;
-        if(SkyBoxShader === undefined) {
-            console.error("zen3d.SkyBox required zen3d.SkyBoxShader");
-        }
+		var SkyBoxShader = zen3d.SkyBoxShader;
+		if (SkyBoxShader === undefined) {
+			console.error("zen3d.SkyBox required zen3d.SkyBoxShader");
+		}
 
-        var material = new zen3d.ShaderMaterial(SkyBoxShader);
-        material.side = zen3d.DRAW_SIDE.BACK;
-        material.cubeMap = cubeTexture;
-        this.material = material;
+		var material = new zen3d.ShaderMaterial(SkyBoxShader);
+		material.side = zen3d.DRAW_SIDE.BACK;
+		material.cubeMap = cubeTexture;
+		this.material = material;
 
-        zen3d.Mesh.call(this, geometry, material);
+		// udpate encoding
+		cubeTexture.addEventListener("onload", () => material.needsUpdate = true);
 
-        this.frustumCulled = false;
-    }
+		zen3d.Mesh.call(this, geometry, material);
 
-    SkyBox.prototype = Object.create(zen3d.Mesh.prototype);
-    SkyBox.prototype.constructor = SkyBox;
+		this.frustumCulled = false;
+	}
 
-    Object.defineProperties(SkyBox.prototype, {
-        level: {
-            get: function() {
-                return this.material.uniforms.level;
-            },
-            set: function(val) {
-                this.material.uniforms.level = val;
-            }
-        }
-    });
+	SkyBox.prototype = Object.create(zen3d.Mesh.prototype);
+	SkyBox.prototype.constructor = SkyBox;
 
-    zen3d.SkyBox = SkyBox;
+	Object.defineProperties(SkyBox.prototype, {
+		level: {
+			get: function() {
+				return this.material.uniforms.level;
+			},
+			set: function(val) {
+				this.material.uniforms.level = val;
+			}
+		},
+		gamma: {
+			get: function() {
+				return this.material.defines.GAMMA;
+			},
+			set: function(val) {
+				this.material.defines.GAMMA = val;
+				this.material.needsUpdate = true;
+			}
+		}
+	});
 
+	zen3d.SkyBox = SkyBox;
 })();
