@@ -3,7 +3,7 @@
      * SkyBox
      * @class
      */
-	var SkyBox = function(cubeTexture) {
+	var SkyBox = function(texture) {
 		var geometry = new zen3d.CubeGeometry(1, 1, 1);
 
 		var SkyBoxShader = zen3d.SkyBoxShader;
@@ -16,9 +16,8 @@
 
 		this.material = material;
 
-		if (cubeTexture) {
-			material.cubeMap = cubeTexture;
-			cubeTexture.addEventListener("onload", () => material.needsUpdate = true);
+		if (texture) {
+			this.texture = texture;
 		}
 
 		zen3d.Mesh.call(this, geometry, material);
@@ -49,10 +48,16 @@
 		},
 		texture: {
 			get: function() {
-				return this.material.cubeMap;
+				return this.material.diffuseMap || this.material.cubeMap;
 			},
 			set: function(val) {
-				this.material.cubeMap = val;
+				if (val.textureType === zen3d.WEBGL_TEXTURE_TYPE.TEXTURE_CUBE_MAP) {
+					this.material.cubeMap = val;
+					this.material.defines['PANORAMA'] = false;
+				} else {
+					this.material.diffuseMap = val;
+					this.material.defines['PANORAMA'] = true;
+				}
 				val.addEventListener("onload", () => this.material.needsUpdate = true);
 				this.material.needsUpdate = true;
 			}

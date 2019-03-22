@@ -3,7 +3,8 @@
 zen3d.SkyBoxShader = {
 
 	defines: {
-		"GAMMA": false
+		"GAMMA": false,
+		"PANORAMA": false
 	},
 
 	uniforms: {
@@ -22,18 +23,46 @@ zen3d.SkyBoxShader = {
 
 	fragmentShader: [
 		"#include <common_frag>",
+
+		"#ifdef PANORAMA",
+		"uniform sampler2D diffuseMap;",
+		"#else",
 		"uniform samplerCube cubeMap;",
+		"#endif",
+
 		"uniform float level;",
 		"varying vec3 v_ModelPos;",
+
 		"void main() {",
+
 		"#include <begin_frag>",
 
+		"vec3 V = normalize(v_ModelPos);",
+
+		"#ifdef PANORAMA",
+
+		"float phi = acos(V.y);",
+		// consistent with cubemap.
+		// atan(y, x) is same with atan2 ?
+		"float theta = atan(V.x, V.z) + PI * 0.5;",
+		"vec2 uv = vec2(theta / 2.0 / PI, -phi / PI);",
+
 		"#ifdef TEXTURE_LOD_EXT",
-		"outColor *= mapTexelToLinear(textureCubeLodEXT(cubeMap, v_ModelPos, level));",
+		"outColor *= mapTexelToLinear(texture2DLodEXT(diffuseMap, fract(uv), level));",
 		"#else",
-		"outColor *= mapTexelToLinear(textureCube(cubeMap, v_ModelPos, level));",
+		"outColor *= mapTexelToLinear(texture2D(diffuseMap, fract(uv), level));",
 		"#endif",
-		// "outColor = vec4(1., 0., 0., 1.);",
+
+		"#else",
+
+		"#ifdef TEXTURE_LOD_EXT",
+		"outColor *= mapTexelToLinear(textureCubeLodEXT(cubeMap, V, level));",
+		"#else",
+		"outColor *= mapTexelToLinear(textureCube(cubeMap, V, level));",
+		"#endif",
+
+		"#endif",
+
 		"#include <end_frag>",
 		"#ifdef GAMMA",
 		"#include <encodings_frag>",
