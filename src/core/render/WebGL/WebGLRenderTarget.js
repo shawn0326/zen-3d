@@ -282,6 +282,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 
 	onRenderTargetDispose: function(event) {
 		var gl = this.gl;
+		var state = this.state;
 		var renderTarget = event.target;
 		var renderTargetProperties = this.properties.get(renderTarget);
 
@@ -296,6 +297,10 @@ Object.assign(WebGLRenderTarget.prototype, {
 		}
 
 		this.properties.delete(renderTarget);
+
+		if (state.currentRenderTarget === renderTarget) {
+			state.currentRenderTarget = null;
+		}
 	},
 
 	setRenderTarget: function(target) {

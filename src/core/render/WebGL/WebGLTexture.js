@@ -238,7 +238,8 @@ Object.assign(WebGLTexture.prototype, {
 
 			var images = [];
 
-			var format = texture.format,
+			var mipmap, mipmaps = texture.mipmaps,
+				format = texture.format,
 				internalformat = texture.internalformat || texture.format,
 				type = texture.type;
 
@@ -300,9 +301,23 @@ Object.assign(WebGLTexture.prototype, {
 				var isElement = image.__isElement;
 
 				if (isElement) {
-					gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, image);
+					if (mipmaps.length > 0 && !needFallback) {
+						for (var j = 0, jl = mipmaps.length; j < jl; j++) {
+							mipmap = mipmaps[j][i];
+							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, mipmap);
+						}
+					} else {
+						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, image);
+					}
 				} else {
-					gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
+					if (mipmaps.length > 0 && !needFallback) {
+						for (var j = 0, jl = mipmaps.length; j < jl; j++) {
+							mipmap = mipmaps[j][i];
+							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, j, internalformat, mipmap.width, mipmap.height, texture.border, format, type, mipmap.data);
+						}
+					} else {
+						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
+					}
 				}
 			}
 

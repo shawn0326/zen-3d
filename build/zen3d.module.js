@@ -4325,6 +4325,13 @@ function TextureBase() {
 	this.textureType = "";
 
 	/**
+     * Array of user-specified mipmaps (optional).
+     * @member {HTMLImageElement[]|Object[]}
+     * @default []
+     */
+	this.mipmaps = [];
+
+	/**
      * WebGLTexture border.
      * See {@link https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D WebGLTexture texImage2D()}.
      * Must be zero.
@@ -5610,13 +5617,6 @@ function Texture2D() {
      * @default null
      */
 	this.image = null;
-
-	/**
-     * Array of user-specified mipmaps (optional).
-     * @member {HTMLImageElement[]|Object[]}
-     * @default []
-     */
-	this.mipmaps = [];
 
 	/**
      * How much a single repetition of the texture is offset from the beginning, in each direction U and V.
@@ -9961,7 +9961,8 @@ Object.assign(WebGLTexture.prototype, {
 
 			var images = [];
 
-			var format = texture.format,
+			var mipmap, mipmaps = texture.mipmaps,
+				format = texture.format,
 				internalformat = texture.internalformat || texture.format,
 				type = texture.type;
 
@@ -10023,9 +10024,23 @@ Object.assign(WebGLTexture.prototype, {
 				var isElement = image.__isElement;
 
 				if (isElement) {
-					gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, image);
+					if (mipmaps.length > 0 && !needFallback) {
+						for (var j = 0, jl = mipmaps.length; j < jl; j++) {
+							mipmap = mipmaps[j][i];
+							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, mipmap);
+						}
+					} else {
+						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, image);
+					}
 				} else {
-					gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
+					if (mipmaps.length > 0 && !needFallback) {
+						for (var j = 0, jl = mipmaps.length; j < jl; j++) {
+							mipmap = mipmaps[j][i];
+							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, j, internalformat, mipmap.width, mipmap.height, texture.border, format, type, mipmap.data);
+						}
+					} else {
+						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
+					}
 				}
 			}
 
@@ -11798,6 +11813,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 
 	onRenderTargetDispose: function(event) {
 		var gl = this.gl;
+		var state = this.state;
 		var renderTarget = event.target;
 		var renderTargetProperties = this.properties.get(renderTarget);
 
@@ -11812,6 +11828,10 @@ Object.assign(WebGLRenderTarget.prototype, {
 		}
 
 		this.properties.delete(renderTarget);
+
+		if (state.currentRenderTarget === renderTarget) {
+			state.currentRenderTarget = null;
+		}
 	},
 
 	setRenderTarget: function(target) {

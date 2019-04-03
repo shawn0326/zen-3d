@@ -23,6 +23,13 @@ function TextureBase() {
 	this.textureType = "";
 
 	/**
+     * Array of user-specified mipmaps (optional).
+     * @member {HTMLImageElement[]|Object[]}
+     * @default []
+     */
+	this.mipmaps = [];
+
+	/**
      * WebGLTexture border.
      * See {@link https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D WebGLTexture texImage2D()}.
      * Must be zero.

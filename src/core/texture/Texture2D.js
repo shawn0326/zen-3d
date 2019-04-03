@@ -25,13 +25,6 @@ function Texture2D() {
 	this.image = null;
 
 	/**
-     * Array of user-specified mipmaps (optional).
-     * @member {HTMLImageElement[]|Object[]}
-     * @default []
-     */
-	this.mipmaps = [];
-
-	/**
      * How much a single repetition of the texture is offset from the beginning, in each direction U and V.
      * Typical range is 0.0 to 1.0.
      * _Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model.
