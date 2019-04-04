@@ -856,16 +856,16 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		var material = event.target;
 		var materialProperties = this.properties.get(material);
 
-		material.removeEventListener('dispose', onMaterialDispose, this);
+		material.removeEventListener('dispose', this.onMaterialDispose, this);
 
-		var program = materialProperties.get(material).program;
+		var program = materialProperties.program;
 
 		if (program !== undefined) {
 			// release program reference
 			this.programs.releaseProgram(program);
 		}
 
-		materialProperties.delete(material);
+		this.properties.delete(material);
 	}
 
 });

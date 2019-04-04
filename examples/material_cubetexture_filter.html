@@ -61,10 +61,9 @@
 			cube_texture.addEventListener('onload', () => {
 				cube_texture = zen3d.PMREM.prefilterEnvironmentMap(renderer.glCore, cube_texture, {
 					width: cube_texture.images[0].width,
-					height: cube_texture.images[0].height
+					height: cube_texture.images[0].height,
+					sampleSize: 128
 				});
-
-				console.log(cube_texture)
 				
 				var sky_box = new zen3d.SkyBox(cube_texture);
 				camera.add(sky_box);

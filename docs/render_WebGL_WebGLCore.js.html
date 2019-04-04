@@ -884,7 +884,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		var material = event.target;
 		var materialProperties = this.properties.get(material);
 
-		material.removeEventListener('dispose', onMaterialDispose, this);
+		material.removeEventListener('dispose', this.onMaterialDispose, this);
 
 		var program = materialProperties.get(material).program;
 
