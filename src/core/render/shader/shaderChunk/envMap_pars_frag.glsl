@@ -6,4 +6,5 @@
     #endif
     uniform samplerCube envMap;
     uniform float u_EnvMap_Intensity;
+    uniform int maxMipLevel;
 #endif

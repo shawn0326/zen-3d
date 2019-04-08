@@ -353,6 +353,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				case "u_EnvMap_Intensity":
 					uniform.setValue(material.envMapIntensity);
 					break;
+				case "maxMipLevel":
+					uniform.setValue(this.properties.get(material.envMap).__maxMipLevel || 0);
+					break;
 				case "u_Specular":
 					uniform.setValue(material.shininess);
 					break;

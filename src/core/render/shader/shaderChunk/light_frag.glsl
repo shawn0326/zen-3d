@@ -36,8 +36,8 @@
     	    #else
     	        envDir = v_EnvPos;
     	    #endif
-            indirectIrradiance += getLightProbeIndirectIrradiance(8, envDir);
-            indirectRadiance += getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), 8, envDir);
+            indirectIrradiance += getLightProbeIndirectIrradiance(maxMipLevel, envDir);
+            indirectRadiance += getLightProbeIndirectRadiance(GGXRoughnessToBlinnExponent(roughness), maxMipLevel, envDir);
     	#endif
     #endif
 

@@ -185,8 +185,10 @@ Object.assign(WebGLTexture.prototype, {
 					}
 
 					texture.generateMipmaps = false;
+					textureProperties.__maxMipLevel = mipmaps.length - 1;
 				} else {
 					gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, format, type, image);
+					textureProperties.__maxMipLevel = 0;
 				}
 			} else {
 				if (mipmaps.length > 0 && !needFallback) {
@@ -196,13 +198,15 @@ Object.assign(WebGLTexture.prototype, {
 					}
 
 					texture.generateMipmaps = false;
+					textureProperties.__maxMipLevel = mipmaps.length - 1;
 				} else {
 					gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
+					textureProperties.__maxMipLevel = 0;
 				}
 			}
 
 			if (texture.generateMipmaps && !needFallback) {
-				gl.generateMipmap(gl.TEXTURE_2D);
+				this.generateMipmap(gl.TEXTURE_2D, texture, image.width, image.height);
 			}
 
 			textureProperties.__version = texture.version;
@@ -306,8 +310,11 @@ Object.assign(WebGLTexture.prototype, {
 							mipmap = mipmaps[j][i];
 							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, mipmap);
 						}
+						textureProperties.__maxMipLevel = mipmaps.length - 1;
+						texture.generateMipmaps = false;
 					} else {
 						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, format, type, image);
+						textureProperties.__maxMipLevel = 0;
 					}
 				} else {
 					if (mipmaps.length > 0 && !needFallback) {
@@ -315,14 +322,17 @@ Object.assign(WebGLTexture.prototype, {
 							mipmap = mipmaps[j][i];
 							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, j, internalformat, mipmap.width, mipmap.height, texture.border, format, type, mipmap.data);
 						}
+						textureProperties.__maxMipLevel = mipmaps.length - 1;
+						texture.generateMipmaps = false;
 					} else {
 						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, image.width, image.height, texture.border, format, type, image.data);
+						textureProperties.__maxMipLevel = 0;
 					}
 				}
 			}
 
 			if (texture.generateMipmaps && !needFallback) {
-				gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+				this.generateMipmap(gl.TEXTURE_CUBE_MAP, texture, image.width, image.height);
 			}
 
 			textureProperties.__version = texture.version;
@@ -373,7 +383,7 @@ Object.assign(WebGLTexture.prototype, {
 			gl.texImage3D(gl.TEXTURE_3D, 0, internalformat, image.width, image.height, image.depth, texture.border, format, type, image.data);
 
 			if (texture.generateMipmaps) {
-				gl.generateMipmap(gl.TEXTURE_3D);
+				this.generateMipmap(gl.TEXTURE_3D, texture, image.width, image.height);
 			}
 
 			textureProperties.__version = texture.version;
@@ -440,6 +450,14 @@ Object.assign(WebGLTexture.prototype, {
 			}
 		}
 		// }
+	},
+
+	generateMipmap: function(target, texture, width, height) {
+		var gl = this.gl;
+		gl.generateMipmap(target);
+		var textureProperties = this.properties.get(texture);
+		// Note: Math.log( x ) * Math.LOG2E used instead of Math.log2( x ) which is not supported by IE11
+		textureProperties.__maxMipLevel = Math.log(Math.max(width, height)) * Math.LOG2E;
 	},
 
 	onTextureDispose: function(event) {
