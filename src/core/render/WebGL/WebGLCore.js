@@ -676,13 +676,19 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				var light = lights.directional[k];
 				var shadow = light.shadow && receiveShadow;
 				if (shadow) {
+					var shadowObj = lights.directionalShadow[k];
+
+					if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
+						shadowObj._initDepthMap();
+					}
+
 					var slot = this.allocTexUnit();
-					this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
+					this.texture.setTexture2D(shadowObj.depthMap || shadowObj.map, slot);
 					directShadowMaps[k] = slot;
 
 					if (uniforms.has("directionalDepthMap")) {
 						slot = this.allocTexUnit();
-						this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
+						this.texture.setTexture2D(shadowObj.map, slot);
 						directDepthMaps[k] = slot;
 					}
 				}
@@ -710,8 +716,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				var light = lights.point[k];
 				var shadow = light.shadow && receiveShadow;
 				if (shadow) {
+					var shadowObj = lights.pointShadow[k];
+
 					slot = this.allocTexUnit();
-					this.texture.setTextureCube(lights.pointShadowMap[k], slot);
+					this.texture.setTextureCube(shadowObj.map, slot);
 					pointShadowMaps[k] = slot;
 				}
 			}
@@ -731,13 +739,19 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				var shadow = light.shadow && receiveShadow;
 
 				if (shadow) {
+					var shadowObj = lights.spotShadow[k];
+
+					if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
+						shadowObj._initDepthMap();
+					}
+
 					slot = this.allocTexUnit();
-					this.texture.setTexture2D(lights.spotShadowMap[k], slot);
+					this.texture.setTexture2D(shadowObj.depthMap || shadowObj.map, slot);
 					spotShadowMaps[k] = slot;
 
 					if (uniforms.has("spotDepthMap")) {
 						slot = this.allocTexUnit();
-						this.texture.setTexture2D(lights.spotDepthMap[k], slot);
+						this.texture.setTexture2D(shadowObj.map, slot);
 						spotDepthMaps[k] = slot;
 					}
 				}

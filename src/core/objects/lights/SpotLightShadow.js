@@ -1,4 +1,5 @@
-import { WEBGL_TEXTURE_FILTER } from '../../const.js';
+import { WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_COMPARE_FUNC } from '../../const.js';
+import { Texture2D } from '../../texture/Texture2D.js';
 import { LightShadow } from './LightShadow.js';
 import { RenderTarget2D } from '../../render/RenderTarget2D.js';
 import { Vector3 } from '../../math/Vector3.js';
@@ -19,6 +20,8 @@ function SpotLightShadow() {
 	map.generateMipmaps = false;
 	map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
 	this.map = map;
+
+	this.depthMap = null;
 
 	this._lookTarget = new Vector3();
 
@@ -71,6 +74,22 @@ SpotLightShadow.prototype = Object.assign(Object.create(LightShadow.prototype), 
 
 		matrix.multiply(camera.projectionMatrix);
 		matrix.multiply(camera.viewMatrix);
+	},
+
+	_initDepthMap: function() {
+		var depthTexture = new Texture2D();
+		depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
+		depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+		depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
+		depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+		depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+		depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
+		depthTexture.generateMipmaps = false;
+		this.renderTarget.attach(
+			depthTexture,
+			ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+		);
+		this.depthMap = depthTexture;
 	}
 
 });

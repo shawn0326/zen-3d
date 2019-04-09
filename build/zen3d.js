@@ -12558,13 +12558,19 @@
 					var light = lights.directional[k];
 					var shadow = light.shadow && receiveShadow;
 					if (shadow) {
+						var shadowObj = lights.directionalShadow[k];
+
+						if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
+							shadowObj._initDepthMap();
+						}
+
 						var slot = this.allocTexUnit();
-						this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
+						this.texture.setTexture2D(shadowObj.depthMap || shadowObj.map, slot);
 						directShadowMaps[k] = slot;
 
 						if (uniforms.has("directionalDepthMap")) {
 							slot = this.allocTexUnit();
-							this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
+							this.texture.setTexture2D(shadowObj.map, slot);
 							directDepthMaps[k] = slot;
 						}
 					}
@@ -12592,8 +12598,10 @@
 					var light = lights.point[k];
 					var shadow = light.shadow && receiveShadow;
 					if (shadow) {
+						var shadowObj = lights.pointShadow[k];
+
 						slot = this.allocTexUnit();
-						this.texture.setTextureCube(lights.pointShadowMap[k], slot);
+						this.texture.setTextureCube(shadowObj.map, slot);
 						pointShadowMaps[k] = slot;
 					}
 				}
@@ -12613,13 +12621,19 @@
 					var shadow = light.shadow && receiveShadow;
 
 					if (shadow) {
+						var shadowObj = lights.spotShadow[k];
+
+						if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
+							shadowObj._initDepthMap();
+						}
+
 						slot = this.allocTexUnit();
-						this.texture.setTexture2D(lights.spotShadowMap[k], slot);
+						this.texture.setTexture2D(shadowObj.depthMap || shadowObj.map, slot);
 						spotShadowMaps[k] = slot;
 
 						if (uniforms.has("spotDepthMap")) {
 							slot = this.allocTexUnit();
-							this.texture.setTexture2D(lights.spotDepthMap[k], slot);
+							this.texture.setTexture2D(shadowObj.map, slot);
 							spotDepthMaps[k] = slot;
 						}
 					}
@@ -13167,24 +13181,6 @@
 		}
 	};
 
-	function convertLightShadowToWebGL2(lightShadow) {
-		if (!lightShadow.depthMap) {
-			var depthTexture = new Texture2D();
-			depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
-			depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
-			depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
-			depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-			depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-			depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
-			depthTexture.generateMipmaps = false;
-			lightShadow.renderTarget.attach(
-				depthTexture,
-				ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
-			);
-			lightShadow.depthMap = depthTexture;
-		}
-	}
-
 	/**
 	 * Shadow map pre pass.
 	 * @constructor
@@ -13228,8 +13224,8 @@
 			var faces = isPointLight ? 6 : 1;
 
 			if (glCore.capabilities.version >= 2) {
-				if (!isPointLight) {
-					convertLightShadowToWebGL2(shadow);
+				if (!isPointLight && !shadow.depthMap) {
+					shadow._initDepthMap();
 				}
 			}
 
@@ -13372,15 +13368,13 @@
 	function LightCache() {
 		this.ambient = new Float32Array([0, 0, 0]);
 		this.directional = [];
-		this.directionalShadowMap = [];
-		this.directionalDepthMap = [];
+		this.directionalShadow = [];
 		this.directionalShadowMatrix = [];
 		this.point = [];
-		this.pointShadowMap = [];
+		this.pointShadow = [];
 		this.pointShadowMatrix = [];
 		this.spot = [];
-		this.spotShadowMap = [];
-		this.spotDepthMap = [];
+		this.spotShadow = [];
 		this.spotShadowMatrix = [];
 		this.shadows = [];
 		this.ambientsNum = 0;
@@ -13493,8 +13487,7 @@
 				}
 
 				this.directionalShadowMatrix.set(object.shadow.matrix.elements, this.directsNum * 16);
-				this.directionalShadowMap[this.directsNum] = object.shadow.depthMap || object.shadow.map;
-				this.directionalDepthMap[this.directsNum] = object.shadow.map;
+				this.directionalShadow[this.directsNum] = object.shadow;
 			}
 
 			this.directional[this.directsNum] = cache;
@@ -13545,7 +13538,7 @@
 				}
 
 				this.pointShadowMatrix.set(object.shadow.matrix.elements, this.pointsNum * 16);
-				this.pointShadowMap[this.pointsNum] = object.shadow.map;
+				this.pointShadow[this.pointsNum] = object.shadow;
 			}
 
 			this.point[this.pointsNum] = cache;
@@ -13608,8 +13601,7 @@
 				}
 
 				this.spotShadowMatrix.set(object.shadow.matrix.elements, this.spotsNum * 16);
-				this.spotShadowMap[this.spotsNum] = object.shadow.depthMap || object.shadow.map;
-				this.spotDepthMap[this.spotsNum] = object.shadow.map;
+				this.spotShadow[this.spotsNum] = object.shadow;
 			}
 
 			this.spot[this.spotsNum] = cache;
@@ -14702,6 +14694,8 @@
 		map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
 		this.map = map;
 
+		this.depthMap = null;
+
 		/**
 	     * The cast shadow window size.
 	     * @type {number}
@@ -14768,6 +14762,22 @@
 			this.windowSize = source.windowSize;
 
 			return this;
+		},
+
+		_initDepthMap: function() {
+			var depthTexture = new Texture2D();
+			depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
+			depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+			depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
+			depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+			depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+			depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
+			depthTexture.generateMipmaps = false;
+			this.renderTarget.attach(
+				depthTexture,
+				ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+			);
+			this.depthMap = depthTexture;
 		}
 
 	});
@@ -14959,6 +14969,8 @@
 		map.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
 		this.map = map;
 
+		this.depthMap = null;
+
 		this._lookTarget = new Vector3();
 
 		this._up = new Vector3(0, 1, 0);
@@ -15010,6 +15022,22 @@
 
 			matrix.multiply(camera.projectionMatrix);
 			matrix.multiply(camera.viewMatrix);
+		},
+
+		_initDepthMap: function() {
+			var depthTexture = new Texture2D();
+			depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
+			depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+			depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
+			depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+			depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
+			depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
+			depthTexture.generateMipmaps = false;
+			this.renderTarget.attach(
+				depthTexture,
+				ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+			);
+			this.depthMap = depthTexture;
 		}
 
 	});

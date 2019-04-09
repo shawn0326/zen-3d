@@ -2,26 +2,6 @@ import { DepthMaterial } from '../../material/DepthMaterial.js';
 import { DistanceMaterial } from '../../material/DistanceMaterial.js';
 import { LIGHT_TYPE } from '../../const.js';
 import { Vector4 } from '../../math/Vector4.js';
-import { Texture2D } from '../../texture/Texture2D.js';
-import { WEBGL_TEXTURE_FILTER, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, ATTACHMENT, WEBGL_COMPARE_FUNC } from '../../const.js';
-
-function convertLightShadowToWebGL2(lightShadow) {
-	if (!lightShadow.depthMap) {
-		var depthTexture = new Texture2D();
-		depthTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
-		depthTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
-		depthTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
-		depthTexture.magFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-		depthTexture.minFilter = WEBGL_TEXTURE_FILTER.LINEAR;
-		depthTexture.compare = WEBGL_COMPARE_FUNC.LESS;
-		depthTexture.generateMipmaps = false;
-		lightShadow.renderTarget.attach(
-			depthTexture,
-			ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
-		);
-		lightShadow.depthMap = depthTexture;
-	}
-}
 
 /**
  * Shadow map pre pass.
@@ -66,8 +46,8 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 		var faces = isPointLight ? 6 : 1;
 
 		if (glCore.capabilities.version >= 2) {
-			if (!isPointLight) {
-				convertLightShadowToWebGL2(shadow);
+			if (!isPointLight && !shadow.depthMap) {
+				shadow._initDepthMap();
 			}
 		}
 
