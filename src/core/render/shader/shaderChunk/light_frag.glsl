@@ -3,6 +3,8 @@
     vec3 L;
 
     vec4 totalReflect = vec4(0., 0., 0., 0.); // direct light
+
+    // https://computergraphics.stackexchange.com/questions/7503/what-is-the-difference-between-radiance-and-irradiance-in-brdf
     vec3 indirectIrradiance = vec3(0., 0., 0.); // for indirect diffuse
     vec3 indirectRadiance = vec3(0., 0., 0.); // for indirect specular
 
