@@ -1,1 +1,1 @@
-uniform vec4 u_AmbientLightColor;
+uniform vec3 u_AmbientLightColor;

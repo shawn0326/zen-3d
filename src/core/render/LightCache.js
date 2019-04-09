@@ -94,7 +94,7 @@ Object.assign(LightHash.prototype, {
  * @memberof zen3d
  */
 function LightCache() {
-	this.ambient = new Float32Array([0, 0, 0, 1]);
+	this.ambient = new Float32Array([0, 0, 0]);
 	this.directional = [];
 	this.directionalShadowMap = [];
 	this.directionalDepthMap = [];

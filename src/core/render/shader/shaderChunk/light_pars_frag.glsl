@@ -13,7 +13,7 @@
 
 #if defined(USE_PBR) && defined(USE_ENV_MAP)
 
-    vec4 getLightProbeIndirectIrradiance(const in int maxMIPLevel, const in vec3 envDir) {
+    vec3 getLightProbeIndirectIrradiance(const in int maxMIPLevel, const in vec3 envDir) {
         // TODO: replace with properly filtered cubemaps and access the irradiance LOD level, be it the last LOD level
     	// of a specular cubemap, or just the default level of a specially created irradiance cubemap.
 
@@ -30,7 +30,7 @@
 
         envMapColor = envMapTexelToLinear( envMapColor );
 
-        return PI * envMapColor * u_EnvMap_Intensity;
+        return PI * envMapColor.rgb * u_EnvMap_Intensity;
     }
 
     // taken from here: http://casual-effects.blogspot.ca/2011/08/plausible-environment-lighting-in-two.html
@@ -47,7 +47,7 @@
 
     }
 
-    vec4 getLightProbeIndirectRadiance(const in float blinnShininessExponent, const in int maxMIPLevel, const in vec3 envDir) {
+    vec3 getLightProbeIndirectRadiance(const in float blinnShininessExponent, const in int maxMIPLevel, const in vec3 envDir) {
         float specularMIPLevel = getSpecularMIPLevel( blinnShininessExponent, maxMIPLevel );
 
         #ifdef TEXTURE_LOD_EXT
@@ -62,7 +62,7 @@
 
         envMapColor = envMapTexelToLinear( envMapColor );
 
-        return envMapColor * u_EnvMap_Intensity;
+        return envMapColor.rgb * u_EnvMap_Intensity;
     }
 
     // ref: https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf

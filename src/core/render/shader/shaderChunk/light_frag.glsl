@@ -3,8 +3,8 @@
     vec3 L;
 
     vec4 totalReflect = vec4(0., 0., 0., 0.); // direct light
-    vec4 indirectIrradiance = vec4(0., 0., 0., 0.); // for indirect diffuse
-    vec4 indirectRadiance = vec4(0., 0., 0., 0.); // for indirect specular
+    vec3 indirectIrradiance = vec3(0., 0., 0.); // for indirect diffuse
+    vec3 indirectRadiance = vec3(0., 0., 0.); // for indirect specular
 
     #ifdef USE_PBR
         vec4 diffuseColor = outColor.xyzw * (1.0 - metalnessFactor);
@@ -19,11 +19,7 @@
     #endif
 
     #ifdef USE_AMBIENT_LIGHT
-        // #ifdef USE_PBR
-            indirectIrradiance += u_AmbientLightColor;
-        // #else
-        //     indirectIrradiance += PI * u_AmbientLightColor;
-        // #endif
+        indirectIrradiance += u_AmbientLightColor;
     #endif
 
     // TODO light map
@@ -175,11 +171,11 @@
 
     #endif
 
-    vec4 indirectDiffuse = indirectIrradiance * BRDF_Diffuse_Lambert(diffuseColor);
-    vec4 indirectSpecular = vec4(0., 0., 0., 0.);
+    vec3 indirectDiffuse = indirectIrradiance * BRDF_Diffuse_Lambert(diffuseColor).rgb;
+    vec3 indirectSpecular = vec3(0., 0., 0.);
 
     #if defined( USE_ENV_MAP ) && defined( USE_PBR )
-        indirectSpecular += indirectRadiance * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness) * specularStrength;
+        indirectSpecular += indirectRadiance * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness).rgb * specularStrength;
     #endif
 
     #ifdef USE_AOMAP
@@ -199,5 +195,5 @@
 
     #endif
 
-    outColor.xyz = totalReflect.xyz + indirectDiffuse.xyz + indirectSpecular.xyz;
+    outColor.xyz = totalReflect.xyz + indirectDiffuse + indirectSpecular;
 #endif
