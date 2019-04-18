@@ -263,28 +263,13 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 			// update uniforms
 			var uniforms = program.uniforms;
-			var slot;
 			for (var n = 0, ll = uniforms.seq.length; n < ll; n++) {
 				var uniform = uniforms.seq[n];
 				var key = uniform.id;
 
 				// upload custom uniforms
 				if (material.uniforms && material.uniforms[key] !== undefined) {
-					if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture2D(material.uniforms[key], slot);
-						uniform.setValue(slot);
-					} else if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW) {
-						slot = this.allocTexUnit();
-						this.texture.setTextureCube(material.uniforms[key], slot);
-						uniform.setValue(slot);
-					} else if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_3D) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture3D(material.uniforms[key], slot);
-						uniform.setValue(slot);
-					} else {
-						uniform.set(material.uniforms[key]);
-					}
+					uniform.set(material.uniforms[key], this);
 					continue;
 				}
 
@@ -322,32 +307,22 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					break;
 
 				case "diffuseMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.diffuseMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.diffuseMap, this);
 					break;
 				case "normalMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.normalMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.normalMap, this);
 					break;
 				case "bumpMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.bumpMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.bumpMap, this);
 					break;
 				case "bumpScale":
 					uniform.setValue(material.bumpScale);
 					break;
 				case "envMap":
-					slot = this.allocTexUnit();
-					this.texture.setTextureCube(material.envMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.envMap, this);
 					break;
 				case "cubeMap":
-					slot = this.allocTexUnit();
-					this.texture.setTextureCube(material.cubeMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.cubeMap, this);
 					break;
 
 				case "u_EnvMap_Intensity":
@@ -364,14 +339,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(color.r, color.g, color.b, 1);
 					break;
 				case "specularMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.specularMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.specularMap, this);
 					break;
 				case "aoMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.aoMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.aoMap, this);
 					break;
 				case "aoMapIntensity":
 					uniform.setValue(material.aoMapIntensity);
@@ -380,17 +351,13 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(material.roughness);
 					break;
 				case "roughnessMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.roughnessMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.roughnessMap, this);
 					break;
 				case "u_Metalness":
 					uniform.setValue(material.metalness);
 					break;
 				case "metalnessMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.metalnessMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.metalnessMap, this);
 					break;
 				case "emissive":
 					var color = material.emissive;
@@ -398,9 +365,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(color.r * intensity, color.g * intensity, color.b * intensity);
 					break;
 				case "emissiveMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.emissiveMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.emissiveMap, this);
 					break;
 				case "u_CameraPosition":
 					helpVector3.setFromMatrixPosition(camera.worldMatrix);
@@ -493,9 +458,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				for (var j = 0; j < object.drawArray.length; j++) {
 					var drawData = object.drawArray[j];
 
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(drawData.texture, slot);
-					uniforms.set("spriteTexture", slot);
+					uniforms.set("spriteTexture", drawData.texture, this);
 
 					gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
 					_offset += drawData.count * 6;
@@ -649,10 +612,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					skeleton.boneTexture = boneTexture;
 				}
 
-				var slot = this.allocTexUnit();
-				this.texture.setTexture2D(skeleton.boneTexture, slot);
-
-				uniforms.set("boneTexture", slot);
+				uniforms.set("boneTexture", skeleton.boneTexture, this);
 				uniforms.set("boneTextureSize", skeleton.boneTexture.image.width);
 			} else {
 				uniforms.set("boneMatrices", skeleton.boneMatrices);
@@ -682,29 +642,22 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						shadowObj._initDepthMap();
 					}
 
-					var slot = this.allocTexUnit();
-					this.texture.setTexture2D(shadowObj.depthMap || shadowObj.map, slot);
-					directShadowMaps[k] = slot;
+					directShadowMaps[k] = shadowObj.depthMap || shadowObj.map;
 
 					if (uniforms.has("directionalDepthMap")) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture2D(shadowObj.map, slot);
-						directDepthMaps[k] = slot;
+						directDepthMaps[k] = shadowObj.map;
 					}
 				}
 			}
 
 			if (directShadowMaps.length > 0) {
-				uniforms.set("directionalShadowMap", directShadowMaps);
-
+				uniforms.set("directionalShadowMap", directShadowMaps, this);
 				directShadowMaps.length = 0;
-
 				uniforms.set("directionalShadowMatrix", lights.directionalShadowMatrix);
 			}
 
 			if (directDepthMaps.length > 0) {
-				uniforms.set("directionalDepthMap", directDepthMaps);
-
+				uniforms.set("directionalDepthMap", directDepthMaps, this);
 				directDepthMaps.length = 0;
 			}
 		}
@@ -717,16 +670,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				var shadow = light.shadow && receiveShadow;
 				if (shadow) {
 					var shadowObj = lights.pointShadow[k];
-
-					slot = this.allocTexUnit();
-					this.texture.setTextureCube(shadowObj.map, slot);
-					pointShadowMaps[k] = slot;
+					pointShadowMaps[k] = shadowObj.map;
 				}
 			}
 
 			if (pointShadowMaps.length > 0) {
-				uniforms.set("pointShadowMap", pointShadowMaps);
-
+				uniforms.set("pointShadowMap", pointShadowMaps, this);
 				pointShadowMaps.length = 0;
 			}
 		}
@@ -745,29 +694,22 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						shadowObj._initDepthMap();
 					}
 
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(shadowObj.depthMap || shadowObj.map, slot);
-					spotShadowMaps[k] = slot;
+					spotShadowMaps[k] = shadowObj.depthMap || shadowObj.map;
 
 					if (uniforms.has("spotDepthMap")) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture2D(shadowObj.map, slot);
-						spotDepthMaps[k] = slot;
+						spotDepthMaps[k] = shadowObj.map;
 					}
 				}
 			}
 
 			if (spotShadowMaps.length > 0) {
-				uniforms.set("spotShadowMap", spotShadowMaps);
-
+				uniforms.set("spotShadowMap", spotShadowMaps, this);
 				spotShadowMaps.length = 0;
-
 				uniforms.set("spotShadowMatrix", lights.spotShadowMatrix);
 			}
 
 			if (spotDepthMaps.length > 0) {
-				uniforms.set("spotDepthMap", spotDepthMaps);
-
+				uniforms.set("spotDepthMap", spotDepthMaps, this);
 				spotDepthMaps.length = 0;
 			}
 		}

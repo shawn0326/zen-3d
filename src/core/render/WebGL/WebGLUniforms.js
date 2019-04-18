@@ -1,5 +1,13 @@
 import { WEBGL_UNIFORM_TYPE } from '../../const.js';
 
+import { Texture2D } from '../../texture/Texture2D.js';
+import { TextureCube } from '../../texture/TextureCube.js';
+import { Texture3D } from '../../texture/Texture3D.js';
+
+var emptyTexture = new Texture2D();
+var emptyTexture3d = new Texture3D();
+var emptyCubeTexture = new TextureCube();
+
 // --- Base for inner nodes (including the root) ---
 
 function UniformContainer() {
@@ -21,6 +29,23 @@ function copyArray(a, b) {
 	for (var i = 0, l = b.length; i < l; i++) {
 		a[i] = b[i];
 	}
+}
+
+// Texture unit allocation
+
+var arrayCacheI32 = [];
+
+function allocTexUnits(glCore, n) {
+	var r = arrayCacheI32[n];
+
+	if (r === undefined) {
+		r = new Int32Array(n);
+		arrayCacheI32[n] = r;
+	}
+
+	for (var i = 0; i !== n; ++i) { r[i] = glCore.allocTexUnit(); }
+
+	return r;
 }
 
 // Helper to pick the right setter for uniform
@@ -49,10 +74,76 @@ function generateSetter(uniform, pureArray) {
 		}
 		break;
 	case WEBGL_UNIFORM_TYPE.SAMPLER_2D:
-	case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
 	case WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW:
+		uniform.setValue = function(value, glCore) {
+			var unit = glCore.allocTexUnit();
+			glCore.texture.setTexture2D(value || emptyTexture, unit);
+			if (cache[0] === unit) return;
+			gl.uniform1i(location, unit);
+			cache[0] = unit;
+		}
+		if (pureArray) {
+			uniform.set = function(value, glCore) {
+				var n = value.length;
+				var units = allocTexUnits(glCore, n);
+				for (var i = 0; i !== n; ++i) {
+					glCore.texture.setTexture2D(value[i] || emptyTexture, units[i]);
+				}
+				if (arraysEqual(cache, units)) return;
+				gl.uniform1iv(location, units);
+				copyArray(cache, units);
+			}
+		} else {
+			uniform.set = uniform.setValue;
+		}
+		break;
+	case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE:
 	case WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW:
+		uniform.setValue = function(value, glCore) {
+			var unit = glCore.allocTexUnit();
+			glCore.texture.setTextureCube(value || emptyCubeTexture, unit);
+			if (cache[0] === unit) return;
+			gl.uniform1i(location, unit);
+			cache[0] = unit;
+		}
+		if (pureArray) {
+			uniform.set = function(value, glCore) {
+				var n = value.length;
+				var units = allocTexUnits(glCore, n);
+				for (var i = 0; i !== n; ++i) {
+					glCore.texture.setTextureCube(value[i] || emptyCubeTexture, units[i]);
+				}
+				if (arraysEqual(cache, units)) return;
+				gl.uniform1iv(location, units);
+				copyArray(cache, units);
+			}
+		} else {
+			uniform.set = uniform.setValue;
+		}
+		break;
 	case WEBGL_UNIFORM_TYPE.SAMPLER_3D:
+		uniform.setValue = function(value, glCore) {
+			var unit = glCore.allocTexUnit();
+			glCore.texture.setTexture3D(value || emptyTexture3d, unit);
+			if (cache[0] === unit) return;
+			gl.uniform1i(location, unit);
+			cache[0] = unit;
+		}
+		if (pureArray) {
+			uniform.set = function(value, glCore) {
+				var n = value.length;
+				var units = allocTexUnits(glCore, n);
+				for (var i = 0; i !== n; ++i) {
+					glCore.texture.setTexture3D(value[i] || emptyTexture3d, units[i]);
+				}
+				if (arraysEqual(cache, units)) return;
+				gl.uniform1iv(location, units);
+				copyArray(cache, units);
+			}
+		} else {
+			uniform.set = uniform.setValue;
+		}
+		break;
 	case WEBGL_UNIFORM_TYPE.BOOL:
 	case WEBGL_UNIFORM_TYPE.INT:
 		uniform.setValue = function(value) {
@@ -234,12 +325,12 @@ function StructuredUniform(id) {
 	UniformContainer.call(this); // mix-in
 }
 
-StructuredUniform.prototype.set = function (value) {
+StructuredUniform.prototype.set = function (value, glCore) {
 	var seq = this.seq;
 
 	for (var i = 0, n = seq.length; i !== n; ++i) {
 		var u = seq[i];
-		u.set(value[u.id]);
+		u.set(value[u.id], glCore);
 	}
 };
 
@@ -319,9 +410,9 @@ function WebGLUniforms(gl, program) {
 	}
 }
 
-WebGLUniforms.prototype.set = function(name, value) {
+WebGLUniforms.prototype.set = function(name, value, glCore) {
 	var u = this.map[name];
-	if (u !== undefined) u.set(value);
+	if (u !== undefined) u.set(value, glCore);
 }
 
 WebGLUniforms.prototype.has = function(name) {
