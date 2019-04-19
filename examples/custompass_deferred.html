@@ -410,7 +410,7 @@
 							pass.uniforms["shadowMapSize"][0] = directionalLight.shadowMapSize[0];
 							pass.uniforms["shadowMapSize"][1] = directionalLight.shadowMapSize[1];
 
-							pass.uniforms["shadowMap"] = scene.lights.directionalShadowMap[i];
+							pass.uniforms["shadowMap"] = scene.lights.directionalShadow[i].map;
 							pass.uniforms["shadowMatrix"].set(scene.lights.directionalShadowMatrix, i * 16);
 						} else {
 							pass.material.defines["SHADOW"] = 0;
@@ -452,7 +452,7 @@
 							pass.uniforms["shadowMapSize"][0] = pointLight.shadowMapSize[0];
 							pass.uniforms["shadowMapSize"][1] = pointLight.shadowMapSize[1];
 
-							pass.uniforms["shadowMap"] = scene.lights.pointShadowMap[i];
+							pass.uniforms["shadowMap"] = scene.lights.pointShadow[i].map;
 
 							pass.uniforms["shadowCameraNear"] = pointLight.shadowCameraNear;
 							pass.uniforms["shadowCameraFar"] = pointLight.shadowCameraFar;
@@ -499,7 +499,7 @@
 							pass.uniforms["shadowMapSize"][0] = spotLight.shadowMapSize[0];
 							pass.uniforms["shadowMapSize"][1] = spotLight.shadowMapSize[1];
 
-							pass.uniforms["shadowMap"] = scene.lights.spotShadowMap[i];
+							pass.uniforms["shadowMap"] = scene.lights.spotShadow[i].map;
 							pass.uniforms["shadowMatrix"].set(scene.lights.spotShadowMatrix, i * 16);
 						} else {
 							pass.material.defines["SHADOW"] = 0;

@@ -59,7 +59,7 @@
             dotNL = saturate( dot(N, L) );
             irradiance = light * dotNL;
 
-            #ifdef USE_SHADOW
+            #if NUM_DIR_SHADOWS > 0
                 #ifdef USE_PCSS_SOFT_SHADOW
                     irradiance *= bool( u_Directional[ i ].shadow ) ? getShadowWithPCSS( directionalDepthMap[ i ], directionalShadowMap[ i ], vDirectionalShadowCoord[ i ], u_Directional[ i ].shadowBias, u_Directional[ i ].shadowRadius, u_Directional[ i ].shadowMapSize ) : 1.0;
                 #else
@@ -103,7 +103,7 @@
             //     irradiance *= PI;
             // #endif
 
-            #ifdef USE_SHADOW
+            #if NUM_POINT_SHADOWS > 0
                 worldV = v_modelPos - u_Point[ i ].position;
                 irradiance *= bool( u_Point[ i ].shadow ) ? getPointShadow( pointShadowMap[ i ], worldV, u_Point[ i ].shadowBias, u_Point[ i ].shadowRadius, u_Point[ i ].shadowMapSize, u_Point[ i ].shadowCameraNear, u_Point[ i ].shadowCameraFar ) : 1.0;
             #endif
@@ -148,7 +148,7 @@
                 //     irradiance *= PI;
                 // #endif
 
-                #ifdef USE_SHADOW
+                #if NUM_SPOT_SHADOWS > 0
                     #ifdef USE_PCSS_SOFT_SHADOW
                         irradiance *= bool( u_Spot[ i ].shadow ) ? getShadowWithPCSS( spotDepthMap[ i ], spotShadowMap[ i ], vSpotShadowCoord[ i ], u_Spot[ i ].shadowBias, u_Spot[ i ].shadowRadius, u_Spot[ i ].shadowMapSize ) : 1.0;
                     #else

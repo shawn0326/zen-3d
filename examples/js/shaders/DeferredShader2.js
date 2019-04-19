@@ -1,497 +1,495 @@
 (function() {
+	var DeferredShaderChunk = {
 
-    var DeferredShaderChunk = {
+		light_vertex: [
 
-        light_vertex: [
+			"attribute vec3 a_Position;",
 
-            "attribute vec3 a_Position;",
+			"uniform mat4 u_Projection;",
+			"uniform mat4 u_View;",
+			"uniform mat4 u_Model;",
 
-            "uniform mat4 u_Projection;",
-            "uniform mat4 u_View;",
-            "uniform mat4 u_Model;",
+			"void main() {",
 
-            "void main() {",
+			"gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
 
-                "gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+			"}"
 
-            "}"
+		].join('\n'),
 
-        ].join( '\n' ),
+		light_head: [
 
-        light_head: [
+			"uniform sampler2D normalGlossinessTexture;",
+			"uniform sampler2D depthTexture;",
+			"uniform sampler2D albedoMetalnessTexture;",
 
-            "uniform sampler2D normalGlossinessTexture;",
-            "uniform sampler2D depthTexture;",
-            "uniform sampler2D albedoMetalnessTexture;",
+			"uniform vec2 windowSize;",
 
-            "uniform vec2 windowSize;",
+			"uniform mat4 matProjViewInverse;",
 
-            "uniform mat4 matProjViewInverse;",
+		].join('\n'),
 
-        ].join( '\n' ),
+		gbuffer_read: [
+			// Extract
+			// - N, z, position
+			// - albedo, metalness, specularColor, diffuseColor
 
-        gbuffer_read: [
-            // Extract
-            // - N, z, position
-            // - albedo, metalness, specularColor, diffuseColor
+			"vec2 texCoord = gl_FragCoord.xy / windowSize;",
 
-            "vec2 texCoord = gl_FragCoord.xy / windowSize;",
+			"vec4 texel1 = texture2D(normalGlossinessTexture, texCoord);",
+			"vec4 texel3 = texture2D(albedoMetalnessTexture, texCoord);",
 
-            "vec4 texel1 = texture2D(normalGlossinessTexture, texCoord);",
-            "vec4 texel3 = texture2D(albedoMetalnessTexture, texCoord);",
+			// Is empty
+			"if (dot(texel1.rgb, vec3(1.0)) == 0.0) {",
+			"discard;",
+			"}",
 
-            // Is empty
-            "if (dot(texel1.rgb, vec3(1.0)) == 0.0) {",
-                "discard;",
-            "}",
+			"float glossiness = texel1.a;",
+			"float metalness = texel3.a;",
 
-            "float glossiness = texel1.a;",
-            "float metalness = texel3.a;",
+			"vec3 N = texel1.rgb * 2.0 - 1.0;",
 
-            "vec3 N = texel1.rgb * 2.0 - 1.0;",
+			// Depth buffer range is 0.0 - 1.0
+			"float z = texture2D(depthTexture, texCoord).r * 2.0 - 1.0;",
 
-            // Depth buffer range is 0.0 - 1.0
-            "float z = texture2D(depthTexture, texCoord).r * 2.0 - 1.0;",
+			"vec2 xy = texCoord * 2.0 - 1.0;",
 
-            "vec2 xy = texCoord * 2.0 - 1.0;",
+			"vec4 projectedPos = vec4(xy, z, 1.0);",
+			"vec4 p4 = matProjViewInverse * projectedPos;",
 
-            "vec4 projectedPos = vec4(xy, z, 1.0);",
-            "vec4 p4 = matProjViewInverse * projectedPos;",
+			"vec3 position = p4.xyz / p4.w;",
 
-            "vec3 position = p4.xyz / p4.w;",
+			"vec3 albedo = texel3.rgb;",
 
-            "vec3 albedo = texel3.rgb;",
+			"vec3 diffuseColor = albedo * (1.0 - metalness);",
+			"vec3 specularColor = mix(vec3(0.04), albedo, metalness);",
 
-            "vec3 diffuseColor = albedo * (1.0 - metalness);",
-            "vec3 specularColor = mix(vec3(0.04), albedo, metalness);",
+		].join('\n'),
 
-        ].join( '\n' ),
+		calculate_attenuation: [
 
-        calculate_attenuation: [
+			"uniform float attenuationFactor;",
 
-            "uniform float attenuationFactor;",
+			"float lightAttenuation(float dist, float range)",
+			"{",
+			"float attenuation = 1.0;",
+			"attenuation = dist*dist/(range*range+1.0);",
+			"float att_s = attenuationFactor;",
+			"attenuation = 1.0/(attenuation*att_s+1.0);",
+			"att_s = 1.0/(att_s+1.0);",
+			"attenuation = attenuation - att_s;",
+			"attenuation /= 1.0 - att_s;",
+			"return clamp(attenuation, 0.0, 1.0);",
+			"}"
 
-            "float lightAttenuation(float dist, float range)",
-            "{",
-                "float attenuation = 1.0;",
-                "attenuation = dist*dist/(range*range+1.0);",
-                "float att_s = attenuationFactor;",
-                "attenuation = 1.0/(attenuation*att_s+1.0);",
-                "att_s = 1.0/(att_s+1.0);",
-                "attenuation = attenuation - att_s;",
-                "attenuation /= 1.0 - att_s;",
-                "return clamp(attenuation, 0.0, 1.0);",
-            "}"
+		].join('\n'),
 
-        ].join( '\n' ),
+		light_equation: [
 
-        light_equation: [
+			"float D_Phong(in float g, in float ndh) {",
+			// from black ops 2
+			"float a = pow(8192.0, g);",
+			"return (a + 2.0) / 8.0 * pow(ndh, a);",
+			"}",
 
-            "float D_Phong(in float g, in float ndh) {",
-                // from black ops 2
-                "float a = pow(8192.0, g);",
-                "return (a + 2.0) / 8.0 * pow(ndh, a);",
-            "}",
-            
-            "float D_GGX(in float g, in float ndh) {",
-                "float r = 1.0 - g;",
-                "float a = r * r;",
-                "float tmp = ndh * ndh * (a - 1.0) + 1.0;",
-                "return a / (3.1415926 * tmp * tmp);",
-            "}",
-            
-            // Fresnel
-            "vec3 F_Schlick(in float ndv, vec3 spec) {",
-                "return spec + (1.0 - spec) * pow(1.0 - ndv, 5.0);",
-            "}",
-            
-            "vec3 lightEquation(",
-                "in vec3 lightColor, in vec3 diffuseColor, in vec3 specularColor,",
-                "in float ndl, in float ndh, in float ndv, in float g",
-            ")",
-            "{",
-                "return ndl * lightColor",
-                    "* (diffuseColor + D_Phong(g, ndh) * F_Schlick(ndv, specularColor));",
-            "}"
+			"float D_GGX(in float g, in float ndh) {",
+			"float r = 1.0 - g;",
+			"float a = r * r;",
+			"float tmp = ndh * ndh * (a - 1.0) + 1.0;",
+			"return a / (3.1415926 * tmp * tmp);",
+			"}",
 
-        ].join( '\n' )
+			// Fresnel
+			"vec3 F_Schlick(in float ndv, vec3 spec) {",
+			"return spec + (1.0 - spec) * pow(1.0 - ndv, 5.0);",
+			"}",
 
-    }
+			"vec3 lightEquation(",
+			"in vec3 lightColor, in vec3 diffuseColor, in vec3 specularColor,",
+			"in float ndl, in float ndh, in float ndv, in float g",
+			")",
+			"{",
+			"return ndl * lightColor",
+			"* (diffuseColor + D_Phong(g, ndh) * F_Schlick(ndv, specularColor));",
+			"}"
 
-    zen3d.DeferredShader2 = {
+		].join('\n')
 
-        directionalLight: {
+	}
 
-            defines: {
+	zen3d.DeferredShader2 = {
 
-                "SHADOW": 0
+		directionalLight: {
 
-            },
+			defines: {
 
-            uniforms: {
+				"SHADOW": 0
 
-                normalGlossinessTexture: null,
-                depthTexture: null,
-                albedoMetalnessTexture: null,
+			},
 
-                windowSize: [800, 600],
+			uniforms: {
 
-                matProjViewInverse: new Float32Array(16),
+				normalGlossinessTexture: null,
+				depthTexture: null,
+				albedoMetalnessTexture: null,
 
-                lightColor: [0, 0, 0],
-                lightDirection: [0, 1, 0],
+				windowSize: [800, 600],
 
-                eyePosition: [0, 1, 0],
+				matProjViewInverse: new Float32Array(16),
 
-                shadowMatrix: new Float32Array(16),
-                shadowMap: null,
-                shadowBias: 0,
-                shadowRadius: 1,
-                shadowMapSize: [1024, 1024]
+				lightColor: [0, 0, 0],
+				lightDirection: [0, 1, 0],
 
-            },
+				eyePosition: [0, 1, 0],
 
-            vertexShader: DeferredShaderChunk.light_vertex,
+				shadowMatrix: new Float32Array(16),
+				shadowMap: null,
+				shadowBias: 0,
+				shadowRadius: 1,
+				shadowMapSize: [1024, 1024]
 
-            fragmentShader: [
+			},
 
-                DeferredShaderChunk.light_head,
-                DeferredShaderChunk.light_equation,
+			vertexShader: DeferredShaderChunk.light_vertex,
 
-                "uniform vec3 lightDirection;",
-                "uniform vec3 lightColor;",
+			fragmentShader: [
 
-                "uniform vec3 eyePosition;",
+				DeferredShaderChunk.light_head,
+				DeferredShaderChunk.light_equation,
 
-                "#if SHADOW == 1",
+				"uniform vec3 lightDirection;",
+				"uniform vec3 lightColor;",
 
-                    "uniform sampler2DShadow shadowMap;",
-                    "uniform mat4 shadowMatrix;",
+				"uniform vec3 eyePosition;",
 
-                    "uniform float shadowBias;",
-                    "uniform float shadowRadius;",
-                    "uniform vec2 shadowMapSize;",
-                    
-                    "#include <packing>",
-                    "#include <shadow>",
+				"#if SHADOW == 1",
 
-                "#endif",
+				"uniform sampler2DShadow shadowMap;",
+				"uniform mat4 shadowMatrix;",
 
-                "void main() {",
+				"uniform float shadowBias;",
+				"uniform float shadowRadius;",
+				"uniform vec2 shadowMapSize;",
 
-                    DeferredShaderChunk.gbuffer_read,
+				"#include <packing>",
+				"#include <shadow>",
 
-                    "vec3 L = -normalize(lightDirection);",
-                    "vec3 V = normalize(eyePosition - position);",
+				"#endif",
 
-                    "vec3 H = normalize(L + V);",
-                    "float ndl = clamp(dot(N, L), 0.0, 1.0);",
-                    "float ndh = clamp(dot(N, H), 0.0, 1.0);",
-                    "float ndv = clamp(dot(N, V), 0.0, 1.0);",
+				"void main() {",
 
-                    "gl_FragColor.rgb = lightEquation(",
-                        "lightColor, diffuseColor, specularColor, ndl, ndh, ndv, glossiness",
-                    ");",
+				DeferredShaderChunk.gbuffer_read,
 
-                    "#if SHADOW == 1",
-                        "float shadowContrib = getShadow(shadowMap, shadowMatrix * vec4(position, 1.), shadowBias, shadowRadius, shadowMapSize);",
-                        "gl_FragColor.rgb *= shadowContrib;",
-                    "#endif",
+				"vec3 L = -normalize(lightDirection);",
+				"vec3 V = normalize(eyePosition - position);",
 
-                    "gl_FragColor.a = 1.0;",
+				"vec3 H = normalize(L + V);",
+				"float ndl = clamp(dot(N, L), 0.0, 1.0);",
+				"float ndh = clamp(dot(N, H), 0.0, 1.0);",
+				"float ndv = clamp(dot(N, V), 0.0, 1.0);",
 
-                "}"
+				"gl_FragColor.rgb = lightEquation(",
+				"lightColor, diffuseColor, specularColor, ndl, ndh, ndv, glossiness",
+				");",
 
-            ].join( '\n' )
+				"#if SHADOW == 1",
+				"float shadowContrib = getShadow(shadowMap, shadowMatrix * vec4(position, 1.), shadowBias, shadowRadius, shadowMapSize);",
+				"gl_FragColor.rgb *= shadowContrib;",
+				"#endif",
 
-        },
+				"gl_FragColor.a = 1.0;",
 
-        pointLight: {
-            
-            defines: {
+				"}"
 
-                "SHADOW": 0
+			].join('\n')
 
-            },
+		},
 
-            uniforms: {
+		pointLight: {
 
-                normalGlossinessTexture: null,
-                depthTexture: null,
-                albedoMetalnessTexture: null,
+			defines: {
 
-                windowSize: [800, 600],
+				"SHADOW": 0
 
-                matProjViewInverse: new Float32Array(16),
+			},
 
-                lightColor: [0, 0, 0],
-                lightPosition: [0, 1, 0],
-                lightRange: 1,
+			uniforms: {
 
-                attenuationFactor: 5.0,
+				normalGlossinessTexture: null,
+				depthTexture: null,
+				albedoMetalnessTexture: null,
 
-                eyePosition: [0, 1, 0],
+				windowSize: [800, 600],
 
-                shadowMap: null,
-                shadowBias: 0,
-                shadowRadius: 1,
-                shadowMapSize: [1024, 1024],
-                shadowCameraNear: 1,
-                shadowCameraFar: 100,
+				matProjViewInverse: new Float32Array(16),
 
-            },
+				lightColor: [0, 0, 0],
+				lightPosition: [0, 1, 0],
+				lightRange: 1,
 
-            vertexShader: DeferredShaderChunk.light_vertex,
+				attenuationFactor: 5.0,
 
-            fragmentShader: [
+				eyePosition: [0, 1, 0],
 
-                DeferredShaderChunk.light_head,
-                DeferredShaderChunk.calculate_attenuation,
-                DeferredShaderChunk.light_equation,
+				shadowMap: null,
+				shadowBias: 0,
+				shadowRadius: 1,
+				shadowMapSize: [1024, 1024],
+				shadowCameraNear: 1,
+				shadowCameraFar: 100,
 
-                "uniform vec3 lightPosition;",
-                "uniform vec3 lightColor;",
-                "uniform float lightRange;",
+			},
 
-                "uniform vec3 eyePosition;",
+			vertexShader: DeferredShaderChunk.light_vertex,
 
-                "#if SHADOW == 1",
+			fragmentShader: [
 
-                    "uniform samplerCube shadowMap;",
+				DeferredShaderChunk.light_head,
+				DeferredShaderChunk.calculate_attenuation,
+				DeferredShaderChunk.light_equation,
 
-                    "uniform float shadowBias;",
-                    "uniform float shadowRadius;",
-                    "uniform vec2 shadowMapSize;",
+				"uniform vec3 lightPosition;",
+				"uniform vec3 lightColor;",
+				"uniform float lightRange;",
 
-                    "uniform float shadowCameraNear;",
-                    "uniform float shadowCameraFar;",
-                    
-                    "#include <packing>",
-                    "#include <shadow>",
+				"uniform vec3 eyePosition;",
 
-                "#endif",
+				"#if SHADOW == 1",
 
-                "void main() {",
+				"uniform samplerCube shadowMap;",
 
-                    DeferredShaderChunk.gbuffer_read,
+				"uniform float shadowBias;",
+				"uniform float shadowRadius;",
+				"uniform vec2 shadowMapSize;",
 
-                    "vec3 L = lightPosition - position;",
-                    "vec3 V = normalize(eyePosition - position);",
+				"uniform float shadowCameraNear;",
+				"uniform float shadowCameraFar;",
 
-                    "float dist = length(L);",
-                    "L /= dist;",
+				"#include <packing>",
+				"#include <shadow>",
 
-                    "vec3 H = normalize(L + V);",
+				"#endif",
 
-                    "float ndl = clamp(dot(N, L), 0.0, 1.0);",
-                    "float ndh = clamp(dot(N, H), 0.0, 1.0);",
-                    "float ndv = clamp(dot(N, V), 0.0, 1.0);",
-                    "float attenuation = lightAttenuation(dist, lightRange);",
-                    // Diffuse term
-                    "gl_FragColor.rgb = attenuation * lightEquation(",
-                        "lightColor, diffuseColor, specularColor, ndl, ndh, ndv, glossiness",
-                    ");",
+				"void main() {",
 
-                    "#if SHADOW == 1",
-                        "float shadowContrib = getPointShadow(shadowMap, -L * dist, shadowBias, shadowRadius, shadowMapSize, shadowCameraNear, shadowCameraFar);",
-                        "gl_FragColor.rgb *= clamp(shadowContrib, 0.0, 1.0);",
-                    "#endif",
+				DeferredShaderChunk.gbuffer_read,
 
-                    "gl_FragColor.a = 1.0;",
+				"vec3 L = lightPosition - position;",
+				"vec3 V = normalize(eyePosition - position);",
 
-                "}"
+				"float dist = length(L);",
+				"L /= dist;",
 
-            ].join( '\n' )
+				"vec3 H = normalize(L + V);",
 
-        },
+				"float ndl = clamp(dot(N, L), 0.0, 1.0);",
+				"float ndh = clamp(dot(N, H), 0.0, 1.0);",
+				"float ndv = clamp(dot(N, V), 0.0, 1.0);",
+				"float attenuation = lightAttenuation(dist, lightRange);",
+				// Diffuse term
+				"gl_FragColor.rgb = attenuation * lightEquation(",
+				"lightColor, diffuseColor, specularColor, ndl, ndh, ndv, glossiness",
+				");",
 
-        spotLight: {
+				"#if SHADOW == 1",
+				"float shadowContrib = getPointShadow(shadowMap, -L * dist, shadowBias, shadowRadius, shadowMapSize, shadowCameraNear, shadowCameraFar);",
+				"gl_FragColor.rgb *= clamp(shadowContrib, 0.0, 1.0);",
+				"#endif",
 
-            defines: {
+				"gl_FragColor.a = 1.0;",
 
-                "SHADOW": 0
+				"}"
 
-            },
+			].join('\n')
 
-            uniforms: {
+		},
 
-                normalGlossinessTexture: null,
-                depthTexture: null,
-                albedoMetalnessTexture: null,
+		spotLight: {
 
-                windowSize: [800, 600],
+			defines: {
 
-                matProjViewInverse: new Float32Array(16),
+				"SHADOW": 0
 
-                lightColor: [0, 0, 0],
-                lightPosition: [0, 1, 0],
-                lightDirection: [0, 1, 0],
-                lightConeCos: 1,
-                lightPenumbraCos: 1,
-                lightRange: 1,
-                falloffFactor: 1.,
+			},
 
-                attenuationFactor: 5.0,
+			uniforms: {
 
-                eyePosition: [0, 1, 0],
+				normalGlossinessTexture: null,
+				depthTexture: null,
+				albedoMetalnessTexture: null,
 
-                shadowMatrix: new Float32Array(16),
-                shadowMap: null,
-                shadowBias: 0,
-                shadowRadius: 1,
-                shadowMapSize: [1024, 1024],
+				windowSize: [800, 600],
 
-            },
+				matProjViewInverse: new Float32Array(16),
 
-            vertexShader: DeferredShaderChunk.light_vertex,
+				lightColor: [0, 0, 0],
+				lightPosition: [0, 1, 0],
+				lightDirection: [0, 1, 0],
+				lightConeCos: 1,
+				lightPenumbraCos: 1,
+				lightRange: 1,
+				falloffFactor: 1.,
 
-            fragmentShader: [
+				attenuationFactor: 5.0,
 
-                DeferredShaderChunk.light_head,
-                DeferredShaderChunk.calculate_attenuation,
-                DeferredShaderChunk.light_equation,
+				eyePosition: [0, 1, 0],
 
-                "uniform vec3 lightPosition;",
-                "uniform vec3 lightDirection;",
-                "uniform vec3 lightColor;",
-                "uniform float lightConeCos;",
-                "uniform float lightPenumbraCos;",
-                "uniform float lightRange;",
-                "uniform float falloffFactor;",
+				shadowMatrix: new Float32Array(16),
+				shadowMap: null,
+				shadowBias: 0,
+				shadowRadius: 1,
+				shadowMapSize: [1024, 1024],
 
-                "uniform vec3 eyePosition;",
+			},
 
-                "#if SHADOW == 1",
+			vertexShader: DeferredShaderChunk.light_vertex,
 
-                    "uniform sampler2DShadow shadowMap;",
-                    "uniform mat4 shadowMatrix;",
+			fragmentShader: [
 
-                    "uniform float shadowBias;",
-                    "uniform float shadowRadius;",
-                    "uniform vec2 shadowMapSize;",
-                    
-                    "#include <packing>",
-                    "#include <shadow>",
+				DeferredShaderChunk.light_head,
+				DeferredShaderChunk.calculate_attenuation,
+				DeferredShaderChunk.light_equation,
 
-                "#endif",
+				"uniform vec3 lightPosition;",
+				"uniform vec3 lightDirection;",
+				"uniform vec3 lightColor;",
+				"uniform float lightConeCos;",
+				"uniform float lightPenumbraCos;",
+				"uniform float lightRange;",
+				"uniform float falloffFactor;",
 
-                "void main() {",
+				"uniform vec3 eyePosition;",
 
-                    DeferredShaderChunk.gbuffer_read,
+				"#if SHADOW == 1",
 
-                    "vec3 L = lightPosition - position;",
-                    "vec3 V = normalize(eyePosition - position);",
+				"uniform sampler2DShadow shadowMap;",
+				"uniform mat4 shadowMatrix;",
 
-                    "float dist = length(L);",
-                    "L /= dist;",
+				"uniform float shadowBias;",
+				"uniform float shadowRadius;",
+				"uniform vec2 shadowMapSize;",
 
-                    "float attenuation = lightAttenuation(dist, lightRange);",
-                    "float angleCos = dot( -normalize(lightDirection), L );",
+				"#include <packing>",
+				"#include <shadow>",
 
-                    "if ( angleCos <= lightConeCos ) discard;",
-                    "if ( dist > lightRange ) discard;",
+				"#endif",
 
-                    "float spotEffect = smoothstep( lightConeCos, lightPenumbraCos, angleCos );",
+				"void main() {",
 
-                    "vec3 H = normalize(L + V);",
-                    "float ndl = clamp(dot(N, L), 0.0, 1.0);",
-                    "float ndh = clamp(dot(N, H), 0.0, 1.0);",
-                    "float ndv = clamp(dot(N, V), 0.0, 1.0);",
+				DeferredShaderChunk.gbuffer_read,
 
-                    // Diffuse term
-                    "gl_FragColor.rgb = spotEffect * attenuation * lightEquation(",
-                        "lightColor, diffuseColor, specularColor, ndl, ndh, ndv, glossiness",
-                    ");",
+				"vec3 L = lightPosition - position;",
+				"vec3 V = normalize(eyePosition - position);",
 
-                    "#if SHADOW == 1",
-                        "float shadowContrib = getShadow(shadowMap, shadowMatrix * vec4(position, 1.), shadowBias, shadowRadius, shadowMapSize);",
-                        "gl_FragColor.rgb *= shadowContrib;",
-                    "#endif",
+				"float dist = length(L);",
+				"L /= dist;",
 
-                    "gl_FragColor.a = 1.0;",
+				"float attenuation = lightAttenuation(dist, lightRange);",
+				"float angleCos = dot( -normalize(lightDirection), L );",
 
-                "}"
+				"if ( angleCos <= lightConeCos ) discard;",
+				"if ( dist > lightRange ) discard;",
 
-            ].join( '\n' )
+				"float spotEffect = smoothstep( lightConeCos, lightPenumbraCos, angleCos );",
 
-        },
+				"vec3 H = normalize(L + V);",
+				"float ndl = clamp(dot(N, L), 0.0, 1.0);",
+				"float ndh = clamp(dot(N, H), 0.0, 1.0);",
+				"float ndv = clamp(dot(N, V), 0.0, 1.0);",
 
-        ambientCubemapLight: {
+				// Diffuse term
+				"gl_FragColor.rgb = spotEffect * attenuation * lightEquation(",
+				"lightColor, diffuseColor, specularColor, ndl, ndh, ndv, glossiness",
+				");",
 
-            defines: {
+				"#if SHADOW == 1",
+				"float shadowContrib = getShadow(shadowMap, shadowMatrix * vec4(position, 1.), shadowBias, shadowRadius, shadowMapSize);",
+				"gl_FragColor.rgb *= shadowContrib;",
+				"#endif",
 
-            },
+				"gl_FragColor.a = 1.0;",
 
-            uniforms: {
+				"}"
 
-                normalGlossinessTexture: null,
-                depthTexture: null,
-                albedoMetalnessTexture: null,
+			].join('\n')
 
-                windowSize: [800, 600],
+		},
 
-                matProjViewInverse: new Float32Array(16),
+		ambientCubemapLight: {
 
-                cubeMap: null,
-                intensity: 1.0,
+			defines: {
 
-                eyePosition: [0, 1, 0]
+			},
 
-            },
+			uniforms: {
 
-            vertexShader: DeferredShaderChunk.light_vertex,
+				normalGlossinessTexture: null,
+				depthTexture: null,
+				albedoMetalnessTexture: null,
 
-            fragmentShader: [
+				windowSize: [800, 600],
 
-                DeferredShaderChunk.light_head,
-                DeferredShaderChunk.light_equation,
+				matProjViewInverse: new Float32Array(16),
 
-                "uniform samplerCube cubeMap;",
-                "uniform float intensity;",
+				cubeMap: null,
+				intensity: 1.0,
 
-                "uniform vec3 eyePosition;",
+				eyePosition: [0, 1, 0]
 
-                "void main() {",
+			},
 
-                    DeferredShaderChunk.gbuffer_read,
+			vertexShader: DeferredShaderChunk.light_vertex,
 
-                    "vec3 V = normalize(eyePosition - position);",
-                    "vec3 L = reflect(-V, N);",
+			fragmentShader: [
 
-                    "vec3 H = normalize(L + V);",
+				DeferredShaderChunk.light_head,
+				DeferredShaderChunk.light_equation,
 
-                    "float ndv = clamp(dot(N, V), 0.0, 1.0);",
-                    "float ndh = clamp(dot(N, H), 0.0, 1.0);",
-                    "float rough = clamp(1.0 - glossiness, 0.0, 1.0);",
+				"uniform samplerCube cubeMap;",
+				"uniform float intensity;",
 
-                    // FIXME fixed maxMipmapLevel ?
-                    "float level = rough * 5.0;",
+				"uniform vec3 eyePosition;",
 
-                    "#ifdef TEXTURE_LOD_EXT",
+				"void main() {",
 
-                        "vec4 cubeMapColor1 = textureCubeLodEXT( cubeMap, L, 8. );",
-                        "vec4 cubeMapColor2 = textureCubeLodEXT( cubeMap, L, level );",
+				DeferredShaderChunk.gbuffer_read,
 
-                    "#else",
+				"vec3 V = normalize(eyePosition - position);",
+				"vec3 L = reflect(-V, N);",
 
-                        // force the bias high to get the last LOD level as it is the most blurred.
-                        "vec4 cubeMapColor1 = textureCubeLodEXT( cubeMap, L, 8. );",
-                        "vec4 cubeMapColor2 = textureCube( cubeMap, L, level );",
+				"vec3 H = normalize(L + V);",
 
-                    "#endif",
+				"float ndv = clamp(dot(N, V), 0.0, 1.0);",
+				"float ndh = clamp(dot(N, H), 0.0, 1.0);",
+				"float rough = clamp(1.0 - glossiness, 0.0, 1.0);",
 
-                    // Diffuse term
-                    // TODO
-                    "gl_FragColor.rgb = intensity * (cubeMapColor2.xyz * F_Schlick(ndv, specularColor) + cubeMapColor1.xyz * diffuseColor / PI);",
+				// FIXME fixed maxMipmapLevel ?
+				"float level = rough * 5.0;",
 
-                    "gl_FragColor.a = 1.0;",
+				"#ifdef TEXTURE_LOD_EXT",
 
-                "}"
+				"vec4 cubeMapColor1 = textureCubeLodEXT( cubeMap, L, 8. );",
+				"vec4 cubeMapColor2 = textureCubeLodEXT( cubeMap, L, level );",
 
-            ].join( '\n' )
+				"#else",
 
-        }
+				// force the bias high to get the last LOD level as it is the most blurred.
+				"vec4 cubeMapColor1 = textureCubeLodEXT( cubeMap, L, 8. );",
+				"vec4 cubeMapColor2 = textureCube( cubeMap, L, level );",
 
-    };
+				"#endif",
 
+				// Diffuse term
+				// TODO
+				"gl_FragColor.rgb = intensity * (cubeMapColor2.xyz * F_Schlick(ndv, specularColor) + cubeMapColor1.xyz * diffuseColor / PI);",
+
+				"gl_FragColor.a = 1.0;",
+
+				"}"
+
+			].join('\n')
+
+		}
+
+	};
 })();

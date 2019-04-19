@@ -640,6 +640,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 					if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
 						shadowObj._initDepthMap();
+						// init texture for render target texture
+						this.texture.setTexture2D(shadowObj.depthMap);
 					}
 
 					directShadowMaps[k] = shadowObj.depthMap || shadowObj.map;
@@ -692,6 +694,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 					if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
 						shadowObj._initDepthMap();
+						// init texture for render target texture
+						this.texture.setTexture2D(shadowObj.depthMap);
 					}
 
 					spotShadowMaps[k] = shadowObj.depthMap || shadowObj.map;

@@ -292,7 +292,10 @@ function replaceLightNums(string, parameters) {
 	return string
 		.replace(/NUM_DIR_LIGHTS/g, parameters.directLightNum)
 		.replace(/NUM_SPOT_LIGHTS/g, parameters.spotLightNum)
-		.replace(/NUM_POINT_LIGHTS/g, parameters.pointLightNum);
+		.replace(/NUM_POINT_LIGHTS/g, parameters.pointLightNum)
+		.replace(/NUM_DIR_SHADOWS/g, parameters.directShadowNum)
+		.replace(/NUM_SPOT_SHADOWS/g, parameters.spotShadowNum)
+		.replace(/NUM_POINT_SHADOWS/g, parameters.pointShadowNum);
 }
 
 function replaceClippingPlaneNums(string, parameters) {
@@ -342,6 +345,9 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.directLightNum = !!lights ? lights.directsNum : 0;
 	props.pointLightNum = !!lights ? lights.pointsNum : 0;
 	props.spotLightNum = !!lights ? lights.spotsNum : 0;
+	props.directShadowNum = (object.receiveShadow && !!lights) ? lights.directShadowNum : 0;
+	props.pointShadowNum = (object.receiveShadow && !!lights) ? lights.pointShadowNum : 0;
+	props.spotShadowNum = (object.receiveShadow && !!lights) ? lights.spotShadowNum : 0;
 	props.useShadow = object.receiveShadow && !!lights && lights.shadowsNum > 0;
 	if (object.shadowType.indexOf("pcss") > -1 && capabilities.version < 2) {
 		console.warn("WebGL 1.0 not support PCSS soft shadow, fallback to POISSON_SOFT");

@@ -109,6 +109,9 @@ function LightCache() {
 	this.directsNum = 0;
 	this.pointsNum = 0;
 	this.spotsNum = 0;
+	this.directShadowNum = 0;
+	this.pointShadowNum = 0;
+	this.spotShadowNum = 0;
 	this.shadowsNum = 0;
 	this.totalNum = 0;
 
@@ -130,6 +133,9 @@ Object.assign(LightCache.prototype, {
 		this.directsNum = 0;
 		this.pointsNum = 0;
 		this.spotsNum = 0;
+		this.directShadowNum = 0;
+		this.pointShadowNum = 0;
+		this.spotShadowNum = 0;
 		this.shadowsNum = 0;
 		this.totalNum = 0;
 	},
@@ -201,6 +207,8 @@ Object.assign(LightCache.prototype, {
 			cache.shadowRadius = object.shadow.radius;
 			cache.shadowMapSize[0] = object.shadow.mapSize.x;
 			cache.shadowMapSize[1] = object.shadow.mapSize.y;
+
+			this.directShadowNum++;
 		} else {
 			cache.shadow = 0;
 		}
@@ -252,6 +260,8 @@ Object.assign(LightCache.prototype, {
 			cache.shadowMapSize[1] = object.shadow.mapSize.y;
 			cache.shadowCameraNear = object.shadow.cameraNear;
 			cache.shadowCameraFar = object.shadow.cameraFar;
+
+			this.pointShadowNum++;
 		} else {
 			cache.shadow = 0;
 		}
@@ -315,6 +325,8 @@ Object.assign(LightCache.prototype, {
 			cache.shadowRadius = object.shadow.radius;
 			cache.shadowMapSize[0] = object.shadow.mapSize.x;
 			cache.shadowMapSize[1] = object.shadow.mapSize.y;
+
+			this.spotShadowNum++;
 		} else {
 			cache.shadow = 0;
 		}
