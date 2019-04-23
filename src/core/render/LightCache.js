@@ -96,13 +96,15 @@ Object.assign(LightHash.prototype, {
 function LightCache() {
 	this.ambient = new Float32Array([0, 0, 0]);
 	this.directional = [];
-	this.directionalShadow = [];
+	this.directionalShadowMap = [];
+	this.directionalShadowDepthMap = [];
 	this.directionalShadowMatrix = [];
 	this.point = [];
-	this.pointShadow = [];
+	this.pointShadowMap = [];
 	this.pointShadowMatrix = [];
 	this.spot = [];
-	this.spotShadow = [];
+	this.spotShadowMap = [];
+	this.spotShadowDepthMap = [];
 	this.spotShadowMatrix = [];
 	this.shadows = [];
 	this.ambientsNum = 0;
@@ -223,7 +225,8 @@ Object.assign(LightCache.prototype, {
 			}
 
 			this.directionalShadowMatrix.set(object.shadow.matrix.elements, this.directsNum * 16);
-			this.directionalShadow[this.directsNum] = object.shadow;
+			this.directionalShadowMap[this.directsNum] = object.shadow.map;
+			this.directionalShadowDepthMap[this.directsNum] = object.shadow.depthMap;
 		}
 
 		this.directional[this.directsNum] = cache;
@@ -276,7 +279,7 @@ Object.assign(LightCache.prototype, {
 			}
 
 			this.pointShadowMatrix.set(object.shadow.matrix.elements, this.pointsNum * 16);
-			this.pointShadow[this.pointsNum] = object.shadow;
+			this.pointShadowMap[this.pointsNum] = object.shadow.map;
 		}
 
 		this.point[this.pointsNum] = cache;
@@ -341,7 +344,8 @@ Object.assign(LightCache.prototype, {
 			}
 
 			this.spotShadowMatrix.set(object.shadow.matrix.elements, this.spotsNum * 16);
-			this.spotShadow[this.spotsNum] = object.shadow;
+			this.spotShadowMap[this.spotsNum] = object.shadow.map;
+			this.spotShadowDepthMap[this.spotsNum] = object.shadow.depthMap;
 		}
 
 		this.spot[this.spotsNum] = cache;

@@ -1,10 +1,26 @@
-import { WEBGL_UNIFORM_TYPE } from '../../const.js';
+import { WEBGL_UNIFORM_TYPE, WEBGL_PIXEL_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_TEXTURE_FILTER, WEBGL_COMPARE_FUNC } from '../../const.js';
 
 import { Texture2D } from '../../texture/Texture2D.js';
 import { TextureCube } from '../../texture/TextureCube.js';
 import { Texture3D } from '../../texture/Texture3D.js';
 
 var emptyTexture = new Texture2D();
+emptyTexture.image = { data: new Uint8Array([1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1]), width: 2, height: 2 };
+emptyTexture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+emptyTexture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+emptyTexture.generateMipmaps = false;
+emptyTexture.version++;
+var emptyShadowTexture = new Texture2D();
+emptyShadowTexture.image = { data: null, width: 2, height: 2 };
+emptyShadowTexture.version++;
+emptyShadowTexture.type = WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
+emptyShadowTexture.format = WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+emptyShadowTexture.internalformat = WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
+emptyShadowTexture.magFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+emptyShadowTexture.minFilter = WEBGL_TEXTURE_FILTER.NEAREST;
+emptyShadowTexture.compare = WEBGL_COMPARE_FUNC.LESS;
+emptyShadowTexture.generateMipmaps = false;
+emptyShadowTexture.version++;
 var emptyTexture3d = new Texture3D();
 var emptyCubeTexture = new TextureCube();
 
@@ -77,7 +93,7 @@ function generateSetter(uniform, pureArray) {
 	case WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW:
 		uniform.setValue = function(value, glCore) {
 			var unit = glCore.allocTexUnit();
-			glCore.texture.setTexture2D(value || emptyTexture, unit);
+			glCore.texture.setTexture2D(value || (type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW ? emptyShadowTexture : emptyTexture), unit);
 			if (cache[0] === unit) return;
 			gl.uniform1i(location, unit);
 			cache[0] = unit;
@@ -87,7 +103,7 @@ function generateSetter(uniform, pureArray) {
 				var n = value.length;
 				var units = allocTexUnits(glCore, n);
 				for (var i = 0; i !== n; ++i) {
-					glCore.texture.setTexture2D(value[i] || emptyTexture, units[i]);
+					glCore.texture.setTexture2D(value[i] || (type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW ? emptyShadowTexture : emptyTexture), units[i]);
 				}
 				if (arraysEqual(cache, units)) return;
 				gl.uniform1iv(location, units);

@@ -15,7 +15,7 @@
     #else
         vec4 diffuseColor = outColor.xyzw;
         #ifdef USE_PHONG
-            vec4 specularColor = u_SpecularColor;
+            vec4 specularColor = vec4(u_SpecularColor, 1.);
             float shininess = u_Specular;
         #endif
     #endif

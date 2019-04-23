@@ -282,7 +282,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						var projectionMat = camera.projectionMatrix.elements;
 					}
 
-					uniform.setValue(projectionMat);
+					uniform.set(projectionMat);
 					break;
 				case "u_View":
 					if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
@@ -291,11 +291,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						var viewMatrix = camera.viewMatrix.elements;
 					}
 
-					uniform.setValue(viewMatrix);
+					uniform.set(viewMatrix);
 					break;
 				case "u_Model":
 					var modelMatrix = object.worldMatrix.elements;
-					uniform.setValue(modelMatrix);
+					uniform.set(modelMatrix);
 					break;
 
 				case "u_Color":
@@ -303,7 +303,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(color.r, color.g, color.b);
 					break;
 				case "u_Opacity":
-					uniform.setValue(material.opacity);
+					uniform.set(material.opacity);
 					break;
 
 				case "diffuseMap":
@@ -316,7 +316,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.set(material.bumpMap, this);
 					break;
 				case "bumpScale":
-					uniform.setValue(material.bumpScale);
+					uniform.set(material.bumpScale);
 					break;
 				case "envMap":
 					uniform.set(material.envMap, this);
@@ -326,17 +326,17 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					break;
 
 				case "u_EnvMap_Intensity":
-					uniform.setValue(material.envMapIntensity);
+					uniform.set(material.envMapIntensity);
 					break;
 				case "maxMipLevel":
-					uniform.setValue(this.properties.get(material.envMap).__maxMipLevel || 0);
+					uniform.set(this.properties.get(material.envMap).__maxMipLevel || 0);
 					break;
 				case "u_Specular":
-					uniform.setValue(material.shininess);
+					uniform.set(material.shininess);
 					break;
 				case "u_SpecularColor":
 					var color = material.specular;
-					uniform.setValue(color.r, color.g, color.b, 1);
+					uniform.setValue(color.r, color.g, color.b);
 					break;
 				case "specularMap":
 					uniform.set(material.specularMap, this);
@@ -345,16 +345,16 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.set(material.aoMap, this);
 					break;
 				case "aoMapIntensity":
-					uniform.setValue(material.aoMapIntensity);
+					uniform.set(material.aoMapIntensity);
 					break;
 				case "u_Roughness":
-					uniform.setValue(material.roughness);
+					uniform.set(material.roughness);
 					break;
 				case "roughnessMap":
 					uniform.set(material.roughnessMap, this);
 					break;
 				case "u_Metalness":
-					uniform.setValue(material.metalness);
+					uniform.set(material.metalness);
 					break;
 				case "metalnessMap":
 					uniform.set(material.metalnessMap, this);
@@ -376,29 +376,29 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(color.r, color.g, color.b);
 					break;
 				case "u_FogDensity":
-					uniform.setValue(scene.fog.density);
+					uniform.set(scene.fog.density);
 					break;
 				case "u_FogNear":
-					uniform.setValue(scene.fog.near);
+					uniform.set(scene.fog.near);
 					break;
 				case "u_FogFar":
-					uniform.setValue(scene.fog.far);
+					uniform.set(scene.fog.far);
 					break;
 				case "u_PointSize":
-					uniform.setValue(material.size);
+					uniform.set(material.size);
 					break;
 				case "u_PointScale":
 					var scale = currentRenderTarget.height * 0.5; // three.js do this
-					uniform.setValue(scale);
+					uniform.set(scale);
 					break;
 				case "dashSize":
-					uniform.setValue(material.dashSize);
+					uniform.set(material.dashSize);
 					break;
 				case "totalSize":
-					uniform.setValue(material.dashSize + material.gapSize);
+					uniform.set(material.dashSize + material.gapSize);
 					break;
 				case "scale":
-					uniform.setValue(material.scale);
+					uniform.set(material.scale);
 					break;
 				case "clippingPlanes":
 					var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
@@ -413,7 +413,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						if (uvScaleMap.matrixAutoUpdate) {
 							uvScaleMap.updateMatrix();
 						}
-						uniform.setValue(uvScaleMap.matrix.elements);
+						uniform.set(uvScaleMap.matrix.elements);
 					}
 					break;
 				default:
@@ -632,89 +632,42 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		if (lights.directsNum > 0) {
 			uniforms.set("u_Directional", lights.directional);
 
-			for (var k = 0; k < lights.directsNum; k++) {
-				var light = lights.directional[k];
-				var shadow = light.shadow && receiveShadow;
-				if (shadow) {
-					var shadowObj = lights.directionalShadow[k];
-
-					if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
-						shadowObj._initDepthMap();
-						// init texture for render target texture
-						this.texture.setTexture2D(shadowObj.depthMap);
-					}
-
-					directShadowMaps[k] = shadowObj.depthMap || shadowObj.map;
-
-					if (uniforms.has("directionalDepthMap")) {
-						directDepthMaps[k] = shadowObj.map;
-					}
+			if (uniforms.has("directionalShadowMap")) {
+				if (this.capabilities.version >= 2) {
+					uniforms.set("directionalShadowMap", lights.directionalShadowDepthMap, this);
+				} else {
+					uniforms.set("directionalShadowMap", lights.directionalShadowMap, this);
 				}
-			}
-
-			if (directShadowMaps.length > 0) {
-				uniforms.set("directionalShadowMap", directShadowMaps, this);
-				directShadowMaps.length = 0;
 				uniforms.set("directionalShadowMatrix", lights.directionalShadowMatrix);
 			}
 
-			if (directDepthMaps.length > 0) {
-				uniforms.set("directionalDepthMap", directDepthMaps, this);
-				directDepthMaps.length = 0;
+			if (uniforms.has("directionalDepthMap")) {
+				uniforms.set("directionalDepthMap", lights.directionalShadowMap, this);
 			}
 		}
 
 		if (lights.pointsNum > 0) {
 			uniforms.set("u_Point", lights.point);
 
-			for (var k = 0; k < lights.pointsNum; k++) {
-				var light = lights.point[k];
-				var shadow = light.shadow && receiveShadow;
-				if (shadow) {
-					var shadowObj = lights.pointShadow[k];
-					pointShadowMaps[k] = shadowObj.map;
-				}
-			}
-
-			if (pointShadowMaps.length > 0) {
-				uniforms.set("pointShadowMap", pointShadowMaps, this);
-				pointShadowMaps.length = 0;
+			if (uniforms.has("pointShadowMap")) {
+				uniforms.set("pointShadowMap", lights.pointShadowMap, this);
 			}
 		}
 
 		if (lights.spotsNum > 0) {
 			uniforms.set("u_Spot", lights.spot);
 
-			for (var k = 0; k < lights.spotsNum; k++) {
-				var light = lights.spot[k];
-				var shadow = light.shadow && receiveShadow;
-
-				if (shadow) {
-					var shadowObj = lights.spotShadow[k];
-
-					if (this.capabilities.version >= 2 && !shadowObj.depthMap) {
-						shadowObj._initDepthMap();
-						// init texture for render target texture
-						this.texture.setTexture2D(shadowObj.depthMap);
-					}
-
-					spotShadowMaps[k] = shadowObj.depthMap || shadowObj.map;
-
-					if (uniforms.has("spotDepthMap")) {
-						spotDepthMaps[k] = shadowObj.map;
-					}
+			if (uniforms.has("spotShadowMap")) {
+				if (this.capabilities.version >= 2) {
+					uniforms.set("spotShadowMap", lights.spotShadowDepthMap, this);
+				} else {
+					uniforms.set("spotShadowMap", lights.spotShadowMap, this);
 				}
-			}
-
-			if (spotShadowMaps.length > 0) {
-				uniforms.set("spotShadowMap", spotShadowMaps, this);
-				spotShadowMaps.length = 0;
 				uniforms.set("spotShadowMatrix", lights.spotShadowMatrix);
 			}
 
-			if (spotDepthMaps.length > 0) {
-				uniforms.set("spotDepthMap", spotDepthMaps, this);
-				spotDepthMaps.length = 0;
+			if (uniforms.has("spotDepthMap")) {
+				uniforms.set("spotDepthMap", lights.spotShadowMap, this);
 			}
 		}
 	},

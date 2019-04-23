@@ -121,7 +121,7 @@
 					pass.uniforms["shadowMapSize"][0] = light.shadowMapSize[0];
 					pass.uniforms["shadowMapSize"][1] = light.shadowMapSize[1];
 
-					pass.uniforms["shadowMap"] = scene.lights.directionalShadow[i].depthMap;
+					pass.uniforms["shadowMap"] = glCore.capabilities.version >= 2 ? scene.lights.directionalShadowDepthMap[i] : scene.lights.directionalShadowMap[i];
 					pass.uniforms["shadowMatrix"].set(scene.lights.directionalShadowMatrix, i * 16);
 				} else {
 					pass.material.defines["SHADOW"] = 0;
@@ -152,7 +152,7 @@
 					pass.uniforms["shadowMapSize"][0] = light.shadowMapSize[0];
 					pass.uniforms["shadowMapSize"][1] = light.shadowMapSize[1];
 
-					pass.uniforms["shadowMap"] = scene.lights.pointShadow[i].depthMap;
+					pass.uniforms["shadowMap"] = scene.lights.pointShadowMap[i];
 
 					pass.uniforms["shadowCameraNear"] = light.shadowCameraNear;
 					pass.uniforms["shadowCameraFar"] = light.shadowCameraFar;
@@ -188,7 +188,7 @@
 					pass.uniforms["shadowMapSize"][0] = light.shadowMapSize[0];
 					pass.uniforms["shadowMapSize"][1] = light.shadowMapSize[1];
 
-					pass.uniforms["shadowMap"] = scene.lights.spotShadow[i].depthMap;
+					pass.uniforms["shadowMap"] = glCore.capabilities.version >= 2 ? scene.lights.spotShadowDepthMap[i] : scene.lights.spotShadowMap[i];
 					pass.uniforms["shadowMatrix"].set(scene.lights.spotShadowMatrix, i * 16);
 				} else {
 					pass.material.defines["SHADOW"] = 0;
