@@ -42,11 +42,9 @@
 		this._renderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 		this._renderTarget2.texture.generateMipmaps = false;
 
-		this._normalGlossinessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.normalGlossiness);
-
-		this._albedoMetalnessMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.albedoMetalness);
-
-		this._MRTMaterial = new zen3d.ShaderMaterial(zen3d.GBufferShader.MRT);
+		this._normalGlossinessMaterials = new Map();
+		this._albedoMetalnessMaterials = new Map();
+		this._MRTMaterials = new Map();
 
 		this._debugPass = new zen3d.ShaderPostPass(zen3d.GBufferShader.debug);
 
@@ -69,6 +67,7 @@
 
 		update: function(glCore, scene, camera) {
 			var renderList = scene.getRenderList(camera);
+			var that = this;
 
 			// Use MRT if support
 			if (glCore.capabilities.version >= 2 || glCore.capabilities.getExtension('WEBGL_draw_buffers')) {
@@ -99,8 +98,6 @@
 					);
 				}
 
-				var mrtMaterial = this._MRTMaterial;
-
 				glCore.renderTarget.setRenderTarget(this._renderTarget1);
 
 				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
@@ -109,50 +106,14 @@
 				glCore.renderPass(renderList.opaque, camera, {
 					scene: scene,
 					getMaterial: function(renderable) {
-						if (!renderable.geometry.attributes["a_Normal"]) {
-							mrtMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
-						} else {
-							mrtMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
-						}
+						var mrtMaterial = that._getMrtMaterial(renderable);
 
 						mrtMaterial.diffuse.copy(renderable.material.diffuse);
-
-						// ignore if alpha < 0.99
-						if (renderable.material.diffuseMap) {
-							mrtMaterial.defines["USE_DIFFUSE_MAP"] = "";
-							mrtMaterial.defines["ALPHATEST"] = 0.999;
-							mrtMaterial.diffuseMap = renderable.material.diffuseMap;
-						} else {
-							mrtMaterial.defines["USE_DIFFUSE_MAP"] = false;
-							mrtMaterial.defines["ALPHATEST"] = false;
-							mrtMaterial.diffuseMap = null;
-						}
-
-						if (renderable.material.roughness !== undefined) {
-							mrtMaterial.uniforms["roughness"] = renderable.material.roughness;
-						} else {
-							mrtMaterial.uniforms["roughness"] = 0.5;
-						}
-
-						if (renderable.material.roughnessMap) {
-							mrtMaterial.roughnessMap = renderable.material.roughnessMap;
-						} else {
-							mrtMaterial.roughnessMap = null;
-						}
-
-						if (renderable.material.metalness !== undefined) {
-							mrtMaterial.uniforms["metalness"] = renderable.material.metalness;
-						} else {
-							mrtMaterial.uniforms["metalness"] = 0.5;
-						}
-
-						if (renderable.material.metalnessMap) {
-							mrtMaterial.metalnessMap = renderable.material.metalnessMap;
-						} else {
-							mrtMaterial.metalnessMap = null;
-						}
-
-						mrtMaterial.needsUpdate = true; // TODO
+						mrtMaterial.diffuseMap = renderable.material.diffuseMap;
+						mrtMaterial.uniforms["roughness"] = renderable.material.roughness !== undefined ? renderable.material.roughness : 0.5;
+						mrtMaterial.roughnessMap = renderable.material.roughnessMap;
+						mrtMaterial.uniforms["metalness"] = renderable.material.metalness !== undefined ? renderable.material.metalness : 0.5;
+						mrtMaterial.metalnessMap = renderable.material.metalnessMap;
 
 						return mrtMaterial;
 					},
@@ -167,8 +128,6 @@
 			// render normalDepthRenderTarget
 
 			if (this.enableNormalGlossiness) {
-				var normalGlossinessMaterial = this._normalGlossinessMaterial;
-
 				glCore.renderTarget.setRenderTarget(this._renderTarget1);
 
 				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
@@ -177,36 +136,11 @@
 				glCore.renderPass(renderList.opaque, camera, {
 					scene: scene,
 					getMaterial: function(renderable) {
-						if (!renderable.geometry.attributes["a_Normal"]) {
-							normalGlossinessMaterial.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
-						} else {
-							normalGlossinessMaterial.shading = zen3d.SHADING_TYPE.SMOOTH_SHADING;
-						}
+						var normalGlossinessMaterial = that._getNormalGlossinessMaterial(renderable);
 
-						// ignore if alpha < 0.99
-						if (renderable.material.diffuseMap) {
-							normalGlossinessMaterial.defines["USE_DIFFUSE_MAP"] = "";
-							normalGlossinessMaterial.defines["ALPHATEST"] = 0.999;
-							normalGlossinessMaterial.diffuseMap = renderable.material.diffuseMap;
-						} else {
-							normalGlossinessMaterial.defines["USE_DIFFUSE_MAP"] = false;
-							normalGlossinessMaterial.defines["ALPHATEST"] = false;
-							normalGlossinessMaterial.diffuseMap = null;
-						}
-
-						if (renderable.material.roughness !== undefined) {
-							normalGlossinessMaterial.uniforms["roughness"] = renderable.material.roughness;
-						} else {
-							normalGlossinessMaterial.uniforms["roughness"] = 0.5;
-						}
-
-						if (renderable.material.roughnessMap) {
-							normalGlossinessMaterial.roughnessMap = renderable.material.roughnessMap;
-						} else {
-							normalGlossinessMaterial.roughnessMap = null;
-						}
-
-						normalGlossinessMaterial.needsUpdate = true; // TODO
+						normalGlossinessMaterial.diffuseMap = renderable.material.diffuseMap;
+						normalGlossinessMaterial.uniforms["roughness"] = renderable.material.roughness !== undefined ? renderable.material.roughness : 0.5;
+						normalGlossinessMaterial.roughnessMap = renderable.material.roughnessMap;
 
 						return normalGlossinessMaterial;
 					},
@@ -219,8 +153,6 @@
 			// render albedoMetalnessRenderTarget
 
 			if (this.enableAlbedoMetalness) {
-				var albedoMetalnessMaterial = this._albedoMetalnessMaterial;
-
 				glCore.renderTarget.setRenderTarget(this._renderTarget2);
 
 				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
@@ -229,22 +161,12 @@
 				glCore.renderPass(renderList.opaque, camera, {
 					scene: scene,
 					getMaterial: function(renderable) {
+						var albedoMetalnessMaterial = that._getAlbedoMetalnessMaterial(renderable);
+
 						albedoMetalnessMaterial.diffuse.copy(renderable.material.diffuse);
 						albedoMetalnessMaterial.diffuseMap = renderable.material.diffuseMap;
-
-						if (renderable.material.metalness !== undefined) {
-							albedoMetalnessMaterial.uniforms["metalness"] = renderable.material.metalness;
-						} else {
-							albedoMetalnessMaterial.uniforms["metalness"] = 0.5;
-						}
-
-						if (renderable.material.metalnessMap) {
-							albedoMetalnessMaterial.metalnessMap = renderable.material.metalnessMap;
-						} else {
-							albedoMetalnessMaterial.metalnessMap = null;
-						}
-
-						albedoMetalnessMaterial.needsUpdate = true; // TODO
+						albedoMetalnessMaterial.uniforms["metalness"] = renderable.material.metalness !== undefined ? renderable.material.metalness : 0.5;
+						albedoMetalnessMaterial.metalnessMap = renderable.material.metalnessMap;
 
 						return albedoMetalnessMaterial;
 					},
@@ -323,6 +245,66 @@
 
 			this._depthTexture.dispose();
 			this._texture2.dispose();
+
+			this._MRTMaterials.forEach(material => material.dispose());
+			this._normalGlossinessMaterials.forEach(material => material.dispose());
+			this._albedoMetalnessMaterials.forEach(material => material.dispose());
+
+			this._MRTMaterials.clear();
+			this._normalGlossinessMaterials.clear();
+			this._albedoMetalnessMaterials.clear();
+		},
+
+		// get materials from cache
+		// Avoid frequently updating materials
+
+		_getMrtMaterial: function(renderable) {
+			var useFlatShading = !renderable.geometry.attributes["a_Normal"];
+			var useDiffuseMap = renderable.material.diffuseMap;
+			var useRoughnessMap = !!renderable.material.roughnessMap;
+			var useMetalnessMap = !!renderable.material.metalnessMap;
+
+			var code = useFlatShading + "_" + useDiffuseMap + "_" + useRoughnessMap + "_" + useMetalnessMap;
+			if (!this._MRTMaterials.has(code)) {
+				var material = new zen3d.ShaderMaterial(zen3d.GBufferShader.MRT);
+				material.shading = useFlatShading ? zen3d.SHADING_TYPE.FLAT_SHADING : zen3d.SHADING_TYPE.SMOOTH_SHADING;
+				material.alphaTest = useDiffuseMap ? 0.999 : 0; // ignore if alpha < 0.99
+				this._MRTMaterials.set(code, material);
+			}
+
+			return this._MRTMaterials.get(code);
+		},
+
+		_getNormalGlossinessMaterial: function(renderable) {
+			var useFlatShading = !renderable.geometry.attributes["a_Normal"];
+			var useDiffuseMap = renderable.material.diffuseMap;
+			var useRoughnessMap = !!renderable.material.roughnessMap;
+
+			var code = useFlatShading + "_" + useDiffuseMap + "_" + useRoughnessMap;
+			if (!this._normalGlossinessMaterials.has(code)) {
+				var material = new zen3d.ShaderMaterial(zen3d.GBufferShader.normalGlossiness);
+				material.shading = useFlatShading ? zen3d.SHADING_TYPE.FLAT_SHADING : zen3d.SHADING_TYPE.SMOOTH_SHADING;
+				material.alphaTest = useDiffuseMap ? 0.999 : 0; // ignore if alpha < 0.99
+				this._normalGlossinessMaterials.set(code, material);
+			}
+
+			return this._normalGlossinessMaterials.get(code);
+		},
+
+		_getAlbedoMetalnessMaterial: function(renderable) {
+			var useFlatShading = !renderable.geometry.attributes["a_Normal"];
+			var useDiffuseMap = renderable.material.diffuseMap;
+			var useMetalnessMap = !!renderable.material.metalnessMap;
+
+			var code = useFlatShading + "_" + useDiffuseMap + "_" + useMetalnessMap;
+			if (!this._albedoMetalnessMaterials.has(code)) {
+				var material = new zen3d.ShaderMaterial(zen3d.GBufferShader.albedoMetalness);
+				material.shading = useFlatShading ? zen3d.SHADING_TYPE.FLAT_SHADING : zen3d.SHADING_TYPE.SMOOTH_SHADING;
+				material.alphaTest = useDiffuseMap ? 0.999 : 0; // ignore if alpha < 0.99
+				this._albedoMetalnessMaterials.set(code, material);
+			}
+
+			return this._albedoMetalnessMaterials.get(code);
 		}
 
 	});
