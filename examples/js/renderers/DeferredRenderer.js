@@ -28,6 +28,14 @@
 		directionalLightPass.material.depthTest = false;
 		this.directionalLightPass = directionalLightPass;
 
+		var directionalShadowLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader2.directionalLight);
+		directionalShadowLightPass.material.transparent = true;
+		directionalShadowLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
+		directionalShadowLightPass.material.depthWrite = false;
+		directionalShadowLightPass.material.depthTest = false;
+		directionalShadowLightPass.material.defines["SHADOW"] = 1;
+		this.directionalShadowLightPass = directionalShadowLightPass;
+
 		var pointLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader2.pointLight);
 		pointLightPass.material.transparent = true;
 		pointLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
@@ -35,12 +43,28 @@
 		pointLightPass.material.depthTest = false;
 		this.pointLightPass = pointLightPass;
 
+		var pointShadowLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader2.pointLight);
+		pointShadowLightPass.material.transparent = true;
+		pointShadowLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
+		pointShadowLightPass.material.depthWrite = false;
+		pointShadowLightPass.material.depthTest = false;
+		pointShadowLightPass.material.defines["SHADOW"] = 1;
+		this.pointShadowLightPass = pointShadowLightPass;
+
 		var spotLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader2.spotLight);
 		spotLightPass.material.transparent = true;
 		spotLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
 		spotLightPass.material.depthWrite = false;
 		spotLightPass.material.depthTest = false;
 		this.spotLightPass = spotLightPass;
+
+		var spotShadowLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader2.spotLight);
+		spotShadowLightPass.material.transparent = true;
+		spotShadowLightPass.material.blending = zen3d.BLEND_TYPE.ADD;
+		spotShadowLightPass.material.depthWrite = false;
+		spotShadowLightPass.material.depthTest = false;
+		spotShadowLightPass.material.defines["SHADOW"] = 1;
+		this.spotShadowLightPass = spotShadowLightPass;
 
 		var ambientCubemapLightPass = new zen3d.ShaderPostPass(zen3d.DeferredShader2.ambientCubemapLight);
 		ambientCubemapLightPass.material.transparent = true;
@@ -102,8 +126,6 @@
 			}
 
 			// directional
-			var pass = this.directionalLightPass;
-			uploadCommonUniforms(pass);
 
 			var lights = scene.lights.directional;
 			var count = scene.lights.directsNum;
@@ -111,11 +133,13 @@
 			for (var i = 0; i < count; i++) {
 				var light = lights[i];
 
+				var pass = light.shadow ? this.directionalShadowLightPass : this.directionalLightPass;
+				uploadCommonUniforms(pass);
+
 				pass.uniforms["lightColor"] = [light.color[0], light.color[1], light.color[2]];
 				pass.uniforms["lightDirection"] = [light.direction[0], light.direction[1], light.direction[2]];
 
 				if (light.shadow) {
-					pass.material.defines["SHADOW"] = 1;
 					pass.uniforms["shadowBias"] = light.shadowBias;
 					pass.uniforms["shadowRadius"] = light.shadowRadius;
 					pass.uniforms["shadowMapSize"][0] = light.shadowMapSize[0];
@@ -123,16 +147,12 @@
 
 					pass.uniforms["shadowMap"] = glCore.capabilities.version >= 2 ? scene.lights.directionalShadowDepthMap[i] : scene.lights.directionalShadowMap[i];
 					pass.uniforms["shadowMatrix"].set(scene.lights.directionalShadowMatrix, i * 16);
-				} else {
-					pass.material.defines["SHADOW"] = 0;
 				}
 
 				pass.render(glCore);
 			}
 
 			// point
-			var pass = this.pointLightPass;
-			uploadCommonUniforms(pass);
 
 			var lights = scene.lights.point;
 			var count = scene.lights.pointsNum;
@@ -140,13 +160,15 @@
 			for (var i = 0; i < count; i++) {
 				var light = lights[i];
 
+				var pass = light.shadow ? this.pointShadowLightPass : this.pointLightPass;
+				uploadCommonUniforms(pass);
+
 				pass.uniforms["lightColor"] = [light.color[0], light.color[1], light.color[2]];
 				pass.uniforms["lightPosition"] = [light.position[0], light.position[1], light.position[2]];
 				pass.uniforms["lightRange"] = light.distance;
 				// pass.uniforms["attenuationFactor"] = light.decay; 5.0?
 
 				if (light.shadow) {
-					pass.material.defines["SHADOW"] = 1;
 					pass.uniforms["shadowBias"] = light.shadowBias;
 					pass.uniforms["shadowRadius"] = light.shadowRadius;
 					pass.uniforms["shadowMapSize"][0] = light.shadowMapSize[0];
@@ -156,22 +178,21 @@
 
 					pass.uniforms["shadowCameraNear"] = light.shadowCameraNear;
 					pass.uniforms["shadowCameraFar"] = light.shadowCameraFar;
-				} else {
-					pass.material.defines["SHADOW"] = 0;
 				}
 
 				pass.render(glCore);
 			}
 
 			// spot
-			var pass = this.spotLightPass;
-			uploadCommonUniforms(pass);
 
 			var lights = scene.lights.spot;
 			var count = scene.lights.spotsNum;
 
 			for (var i = 0; i < count; i++) {
 				var light = lights[i];
+
+				var pass = light.shadow ? this.spotShadowLightPass : this.spotLightPass;
+				uploadCommonUniforms(pass);
 
 				pass.uniforms["lightColor"] = [light.color[0], light.color[1], light.color[2]];
 				pass.uniforms["lightPosition"] = [light.position[0], light.position[1], light.position[2]];
@@ -182,7 +203,6 @@
 				// pass.uniforms["attenuationFactor"] = light.decay; 5.0?
 
 				if (light.shadow) {
-					pass.material.defines["SHADOW"] = 1;
 					pass.uniforms["shadowBias"] = light.shadowBias;
 					pass.uniforms["shadowRadius"] = light.shadowRadius;
 					pass.uniforms["shadowMapSize"][0] = light.shadowMapSize[0];
@@ -190,8 +210,6 @@
 
 					pass.uniforms["shadowMap"] = glCore.capabilities.version >= 2 ? scene.lights.spotShadowDepthMap[i] : scene.lights.spotShadowMap[i];
 					pass.uniforms["shadowMatrix"].set(scene.lights.spotShadowMatrix, i * 16);
-				} else {
-					pass.material.defines["SHADOW"] = 0;
 				}
 
 				pass.render(glCore);

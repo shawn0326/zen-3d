@@ -197,6 +197,7 @@
 				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
 
 				renderer.resize(width, height);
+				tempRenderTarget.resize(width, height);
 
 				fxaaPass.uniforms["resolution"] = [1 / width, 1 / height];
 			}

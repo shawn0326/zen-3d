@@ -9049,6 +9049,8 @@ ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** 
 
 		this.vertexShader = source.vertexShader;
 		this.fragmentShader = source.fragmentShader;
+		this.defines = Object.assign({}, source.defines);
+		this.uniforms = cloneUniforms(source.uniforms);
 
 		return this;
 	}
@@ -12192,6 +12194,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				}
 				var oldProgram = materialProperties.program;
 				materialProperties.program = this.programs.getProgram(camera, material, object, scene);
+				if (oldProgram) {
+					this.programs.releaseProgram(oldProgram);
+				}
 				materialProperties.fog = scene.fog;
 
 				if (scene.lights) {

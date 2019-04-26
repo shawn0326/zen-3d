@@ -56,7 +56,7 @@
 					this.material.defines['PANORAMA'] = false;
 				} else {
 					this.material.diffuseMap = val;
-					this.material.defines['PANORAMA'] = true;
+					this.material.defines['PANORAMA'] = "";
 				}
 				val.addEventListener("onload", () => this.material.needsUpdate = true);
 				this.material.needsUpdate = true;

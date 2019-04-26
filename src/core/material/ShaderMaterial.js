@@ -61,6 +61,8 @@ ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** 
 
 		this.vertexShader = source.vertexShader;
 		this.fragmentShader = source.fragmentShader;
+		this.defines = Object.assign({}, source.defines);
+		this.uniforms = cloneUniforms(source.uniforms);
 
 		return this;
 	}

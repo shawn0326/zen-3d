@@ -210,8 +210,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				var oldProgram = materialProperties.program;
 				materialProperties.program = this.programs.getProgram(camera, material, object, scene);
 				if (oldProgram) {
-					// todo fix deferred renderer first: do not change defines everyframe
-					// this.programs.releaseProgram(oldProgram);
+					this.programs.releaseProgram(oldProgram);
 				}
 				materialProperties.fog = scene.fog;
 

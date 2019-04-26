@@ -69,17 +69,19 @@
 			scene.add(plane);
 
 			// sphere
-			var renderTarget = new zen3d.RenderTargetCube(512, 512);
-			var renderTexture = renderTarget.texture;
-			renderTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+			var environmentMapPass = new zen3d.EnvironmentMapPass();
+			environmentMapPass.camera.gammaInput = true;
+			environmentMapPass.camera.gammaOutput = true;
 
 			var sphere_geometry = new zen3d.SphereGeometry(10, 30, 30);
 			var phong = new zen3d.PhongMaterial();
 			phong.diffuse.setHex(0xffffff);
-			phong.envMap = renderTexture;
+			phong.envMap = environmentMapPass.renderTexture;
 			phong.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.ADD;
 			phong.envMapIntensity = .8;
 			phong.shininess = 40;
+			var phongWithoutEnv = phong.clone();
+			phongWithoutEnv.envMap = null;
 			var sphere = new zen3d.Mesh(sphere_geometry, phong);
 			scene.add(sphere);
 
@@ -108,8 +110,6 @@
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 	        scene.add(camera);
 
-			var environmentMapPass = new zen3d.EnvironmentMapPass();
-
 	        function loop(count) {
 
 	            requestAnimationFrame(loop);
@@ -128,13 +128,11 @@
 				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
 				// render env map on six faces
-				phong.envMap = null;
-				phong.needsUpdate = true;
+				sphere.material = phongWithoutEnv;
 				scene.updateMatrix(); // call update matrix
 				scene.updateLights(); // call update lights
 			    environmentMapPass.render(renderer.glCore, scene);
-				phong.envMap = environmentMapPass.renderTexture;
-				phong.needsUpdate = true;
+				sphere.material = phong;
 
 				renderer.matrixAutoUpdate = false; // close auto update
         		renderer.lightsAutoupdate = false; // close auto update
