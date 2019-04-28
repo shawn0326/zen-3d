@@ -63,6 +63,8 @@ PBRMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @le
 
 		this.roughness = source.roughness;
 		this.metalness = source.metalness;
+		this.roughnessMap = source.roughnessMap;
+		this.metalnessMap = source.metalnessMap;
 
 		return this;
 	}

@@ -97,6 +97,7 @@ function createProgram(gl, props, defines) {
 
 		props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
 		props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
+		props.useGlossinessMap ? '#define USE_GLOSSINESSMAP' : '',
 
 		(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 		(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
@@ -109,7 +110,7 @@ function createProgram(gl, props, defines) {
 		props.flatShading ? '#define FLAT_SHADED' : '',
 		props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
 		props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
-		props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
+		(props.materialType == MATERIAL_TYPE.PBR || props.materialType == MATERIAL_TYPE.PBR2) ? '#define USE_PBR' : '',
 		props.flipSided ? '#define FLIP_SIDED' : '',
 
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
@@ -155,6 +156,7 @@ function createProgram(gl, props, defines) {
 
 		props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
 		props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
+		props.useGlossinessMap ? '#define USE_GLOSSINESSMAP' : '',
 
 		(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 		(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
@@ -175,7 +177,8 @@ function createProgram(gl, props, defines) {
 		props.flatShading ? '#define FLAT_SHADED' : '',
 		props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
 		props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
-		props.materialType == MATERIAL_TYPE.PBR ? '#define USE_PBR' : '',
+		(props.materialType == MATERIAL_TYPE.PBR || props.materialType == MATERIAL_TYPE.PBR2) ? '#define USE_PBR' : '',
+		props.materialType == MATERIAL_TYPE.PBR2 ? '#define USE_PBR2' : '',
 		props.doubleSided ? '#define DOUBLE_SIDED' : '',
 		props.useShaderTextureLOD ? '#define TEXTURE_LOD_EXT' : '',
 
@@ -339,6 +342,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useEmissiveMap = !!material.emissiveMap;
 	props.useRoughnessMap = !!material.roughnessMap;
 	props.useMetalnessMap = !!material.metalnessMap;
+	props.useGlossinessMap = !!material.glossinessMap;
 	props.useAOMap = !!material.aoMap;
 	// lights
 	props.ambientLightNum = !!lights ? lights.ambientsNum : 0;

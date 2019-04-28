@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: PhongMaterial</title>
+    <title>JSDoc: Class: PBR2Material</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: PhongMaterial</h1>
+    <h1 class="page-title">Class: PBR2Material</h1>
 
     
 
@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>PhongMaterial<span class="signature">()</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>PBR2Material<span class="signature">()</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -42,7 +42,7 @@
     
 
     
-    <h4 class="name" id="PhongMaterial"><span class="type-signature"></span>new PhongMaterial<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="PBR2Material"><span class="type-signature"></span>new PBR2Material<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -50,7 +50,7 @@
 
 
 <div class="description">
-    A material for shiny surfaces with specular highlights.The material uses a non-physically based Blinn-Phong model for calculating reflectance.Unlike the Lambertian model used in the <a href="zen3d.LambertMaterial.html">zen3d.LambertMaterial</a> this can simulate shiny surfaces with specular highlights (such as varnished wood).
+    A standard physically based material, using Specular-Glossiness workflow.Physically based rendering (PBR) has recently become the standard in many 3D applications, such as Unity, Unreal and 3D Studio Max.This approach differs from older approaches in that instead of using approximations for the way in which light interacts with a surface, a physically correct model is used.The idea is that, instead of tweaking materials to look good under specific lighting, a material can	be created that will react 'correctly' under all lighting scenarios.
 </div>
 
 
@@ -94,7 +94,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_PhongMaterial.js.html">material/PhongMaterial.js</a>, <a href="material_PhongMaterial.js.html#line13">line 13</a>
+        <a href="material_PBR2Material.js.html">material/PBR2Material.js</a>, <a href="material_PBR2Material.js.html#line14">line 14</a>
     </li></ul></dd>
     
 
@@ -159,7 +159,7 @@
 
 
 <div class="description">
-    Phong material is affected by lights.
+    PBR2 material is affected by lights.
 </div>
 
 
@@ -217,7 +217,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_PhongMaterial.js.html">material/PhongMaterial.js</a>, <a href="material_PhongMaterial.js.html#line45">line 45</a>
+        <a href="material_PBR2Material.js.html">material/PBR2Material.js</a>, <a href="material_PBR2Material.js.html#line52">line 52</a>
     </li></ul></dd>
     
 
@@ -2203,6 +2203,160 @@
 
         
             
+<h4 class="name" id="glossiness"><span class="type-signature"></span>glossiness<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    Glossiness of the material.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>0.5</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="material_PBR2Material.js.html">material/PBR2Material.js</a>, <a href="material_PBR2Material.js.html#line31">line 31</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="glossinessMap"><span class="type-signature"></span>glossinessMap<span class="type-signature"> :<a href="zen3d.Texture2D.html">zen3d.Texture2D</a></span></h4>
+
+
+
+
+<div class="description">
+    The A channel of this texture is used to alter the glossiness of the material.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="zen3d.Texture2D.html">zen3d.Texture2D</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>null</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="material_PBR2Material.js.html">material/PBR2Material.js</a>, <a href="material_PBR2Material.js.html#line45">line 45</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="needsUpdate"><span class="type-signature"></span>needsUpdate<span class="type-signature"> :boolean</span></h4>
 
 
@@ -2859,83 +3013,6 @@
 
         
             
-<h4 class="name" id="shininess"><span class="type-signature"></span>shininess<span class="type-signature"> :number</span></h4>
-
-
-
-
-<div class="description">
-    How shiny the <a href="zen3d.PhongMaterial.html#specular">zen3d.PhongMaterial#specular</a> highlight is; a higher value gives a sharper highlight.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">number</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-default">Default Value:</dt>
-    <dd class="tag-default"><ul class="dummy">
-            <li>30</li>
-        </ul></dd>
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_PhongMaterial.js.html">material/PhongMaterial.js</a>, <a href="material_PhongMaterial.js.html#line23">line 23</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
 <h4 class="name" id="side"><span class="type-signature"></span>side<span class="type-signature"> :<a href="zen3d.html#.DRAW_SIDE">zen3d.DRAW_SIDE</a></span></h4>
 
 
@@ -3018,13 +3095,13 @@
 
         
             
-<h4 class="name" id="specular"><span class="type-signature"></span>specular<span class="type-signature"> :<a href="zen3d.Color3.html">zen3d.Color3</a></span></h4>
+<h4 class="name" id="specular"><span class="type-signature"></span>specular<span class="type-signature"> :number</span></h4>
 
 
 
 
 <div class="description">
-    Specular color of the material.This defines how shiny the material is and the color of its shine.
+    Specular color of the material.
 </div>
 
 
@@ -3033,7 +3110,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="zen3d.Color3.html">zen3d.Color3</a></span>
+<span class="param-type">number</span>
 
 
         </li>
@@ -3070,14 +3147,14 @@
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li>zen3d.Color(0x111111)</li>
+            <li>0.5</li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_PhongMaterial.js.html">material/PhongMaterial.js</a>, <a href="material_PhongMaterial.js.html#line31">line 31</a>
+        <a href="material_PBR2Material.js.html">material/PBR2Material.js</a>, <a href="material_PBR2Material.js.html#line24">line 24</a>
     </li></ul></dd>
     
 
@@ -3101,7 +3178,7 @@
 
 
 <div class="description">
-    The specular map value affects both how much the specular surface highlight contributes and how much of the environment map affects the surface.
+    The RGB channel of this texture is used to alter the specular of the material.
 </div>
 
 
@@ -3154,7 +3231,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_PhongMaterial.js.html">material/PhongMaterial.js</a>, <a href="material_PhongMaterial.js.html#line38">line 38</a>
+        <a href="material_PBR2Material.js.html">material/PBR2Material.js</a>, <a href="material_PBR2Material.js.html#line38">line 38</a>
     </li></ul></dd>
     
 

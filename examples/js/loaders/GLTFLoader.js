@@ -144,9 +144,7 @@
 			}
 
 			if (json.extensionsUsed.indexOf(EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS) >= 0) {
-				// TODO
-				console.warn('GLTFLoader:: KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS not currently supported.');
-				// extensions[EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS] = new GLTFMaterialsPbrSpecularGlossinessExtension();
+				extensions[EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS] = new GLTFMaterialsPbrSpecularGlossinessExtension();
 			}
 
 			if (json.extensionsUsed.indexOf(EXTENSIONS.KHR_DRACO_MESH_COMPRESSION) >= 0) {
@@ -492,32 +490,6 @@
 
 				node = mesh.clone();
 
-				// TODO isGLTFSpecularGlossinessMaterial support
-				// for Specular-Glossiness
-				// if ( mesh.type === zen3d.OBJECT_TYPE.GROUP ) {
-				//
-				// 	for ( var i = 0, il = mesh.children.length; i < il; i ++ ) {
-				//
-				// 		var child = mesh.children[ i ];
-				//
-				// 		if ( child.material && child.material.isGLTFSpecularGlossinessMaterial === true ) {
-				//
-				// 			node.children[ i ].onBeforeRender = child.onBeforeRender;
-				//
-				// 		}
-				//
-				// 	}
-				//
-				// } else {
-				//
-				// 	if ( mesh.material && mesh.material.isGLTFSpecularGlossinessMaterial === true ) {
-				//
-				// 		node.onBeforeRender = mesh.onBeforeRender;
-				//
-				// 	}
-				//
-				// }
-
 				if (meshReferences[nodeDef.mesh] > 1) {
 					node.name += '_instance_' + meshUses[nodeDef.mesh]++;
 				}
@@ -745,14 +717,7 @@
 					var useMorphTargets = false;
 
 					if (useVertexColors || useFlatShading || useSkinning || useMorphTargets) {
-						if (material.isGLTFSpecularGlossinessMaterial) {
-							// TODO isGLTFSpecularGlossinessMaterial support
-							console.warn("GLTFLoader: GLTFSpecularGlossinessMaterial not support");
-							// var specGlossExtension = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ];
-							// material = specGlossExtension.cloneMaterial( material );
-						} else {
-							material = material.clone();
-						}
+						material = material.clone();
 					}
 
 					if (useVertexColors) {
@@ -844,14 +809,6 @@
 
 					if (meshDef.extras !== undefined) mesh.userData = meshDef.extras;
 					if (primitive.extras !== undefined) mesh.geometry.userData = primitive.extras;
-
-					// TODO isGLTFSpecularGlossinessMaterial support
-					// for Specular-Glossiness.
-					// if ( material.isGLTFSpecularGlossinessMaterial === true ) {
-					//
-					// 	mesh.onBeforeRender = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ].refreshUniforms;
-					//
-					// }
 
 					if (primitives.length > 1) {
 						mesh.name += '_' + i;
@@ -1162,12 +1119,9 @@
 		var pending = [];
 
 		if (materialExtensions[EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS]) {
-
-			// TODO KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS
-			// var sgExtension = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ];
-			// materialType = sgExtension.getMaterialType( materialDef );
-			// pending.push( sgExtension.extendParams( materialParams, materialDef, parser ) );
-
+			var sgExtension = extensions[EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS];
+			materialType = sgExtension.getMaterialType(materialDef);
+			pending.push(sgExtension.extendParams(materialParams, materialDef, parser));
 		} else if (materialExtensions[EXTENSIONS.KHR_MATERIALS_UNLIT]) {
 			var kmuExtension = extensions[EXTENSIONS.KHR_MATERIALS_UNLIT];
 			materialType = kmuExtension.getMaterialType(materialDef);
@@ -1253,16 +1207,7 @@
 		}
 
 		return Promise.all(pending).then(function() {
-			var material;
-
-			if (materialType === zen3d.ShaderMaterial) {
-
-				// TODO support shaderMaterial
-				// material = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ].createMaterial( materialParams );
-
-			} else {
-				material = new materialType();
-			}
+			var material = new materialType();
 
 			for (var key in materialParams) {
 				material[key] = materialParams[key];
@@ -1418,6 +1363,54 @@
 			if (metallicRoughness.baseColorTexture !== undefined) {
 				pending.push(parser.assignTexture(materialParams, 'diffuseMap', metallicRoughness.baseColorTexture));
 			}
+		}
+
+		return Promise.all(pending);
+	};
+
+	/**
+	 * GLTFMaterialsPbrSpecularGlossinessExtension
+	 */
+	function GLTFMaterialsPbrSpecularGlossinessExtension() {
+		this.name = EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS;
+	}
+
+	GLTFMaterialsPbrSpecularGlossinessExtension.prototype.getMaterialType = function (material) {
+		return zen3d.PBR2Material;
+	};
+
+	GLTFMaterialsPbrSpecularGlossinessExtension.prototype.extendParams = function (materialParams, material, parser) {
+		var pending = [];
+
+		materialParams.diffuse = new zen3d.Color3(1.0, 1.0, 1.0);
+		materialParams.opacity = 1.0;
+
+		var pbrSpecularGlossiness = material.extensions[this.name];
+
+		if (pbrSpecularGlossiness) {
+			if (Array.isArray(pbrSpecularGlossiness.diffuseFactor)) {
+				var array = pbrSpecularGlossiness.diffuseFactor;
+
+				materialParams.diffuse.fromArray(array);
+				materialParams.opacity = array[3];
+			}
+
+			if (pbrSpecularGlossiness.diffuseTexture !== undefined) {
+				pending.push(parser.assignTexture(materialParams, 'diffuseMap', pbrSpecularGlossiness.diffuseTexture));
+			}
+		}
+
+		materialParams.glossiness = pbrSpecularGlossiness.glossinessFactor !== undefined ? pbrSpecularGlossiness.glossinessFactor : 1.0;
+		materialParams.specular = new zen3d.Color3(1.0, 1.0, 1.0);
+
+		if (Array.isArray(pbrSpecularGlossiness.specularFactor)) {
+			materialParams.specular.fromArray(pbrSpecularGlossiness.specularFactor);
+		}
+
+		if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
+			var specGlossMapDef = pbrSpecularGlossiness.specularGlossinessTexture;
+			pending.push(parser.assignTexture(materialParams, 'glossinessMap', specGlossMapDef));
+			pending.push(parser.assignTexture(materialParams, 'specularMap', specGlossMapDef));
 		}
 
 		return Promise.all(pending);

@@ -13,6 +13,7 @@ import linedashed_vert from './shaderLib/linedashed_vert.glsl';
 import normaldepth_frag from './shaderLib/normaldepth_frag.glsl';
 import normaldepth_vert from './shaderLib/normaldepth_vert.glsl';
 import pbr_frag from './shaderLib/pbr_frag.glsl';
+import pbr2_frag from './shaderLib/pbr2_frag.glsl';
 import pbr_vert from './shaderLib/pbr_vert.glsl';
 import phong_frag from './shaderLib/phong_frag.glsl';
 import phong_vert from './shaderLib/phong_vert.glsl';
@@ -36,6 +37,8 @@ export var ShaderLib = {
 	normaldepth_vert: normaldepth_vert,
 	pbr_frag: pbr_frag,
 	pbr_vert: pbr_vert,
+	pbr2_frag: pbr2_frag,
+	pbr2_vert: pbr_vert,
 	phong_frag: phong_frag,
 	phong_vert: phong_vert,
 	point_frag: point_frag,

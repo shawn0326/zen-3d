@@ -38,6 +38,7 @@ export var MATERIAL_TYPE = {
 	LAMBERT: "lambert",
 	PHONG: "phong",
 	PBR: "pbr",
+	PBR2: "pbr2",
 	POINT: "point",
 	LINE: "line",
 	LINE_DASHED: "linedashed",

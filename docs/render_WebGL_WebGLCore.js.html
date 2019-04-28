@@ -238,8 +238,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				var oldProgram = materialProperties.program;
 				materialProperties.program = this.programs.getProgram(camera, material, object, scene);
 				if (oldProgram) {
-					// todo fix deferred renderer first: do not change defines everyframe
-					// this.programs.releaseProgram(oldProgram);
+					this.programs.releaseProgram(oldProgram);
 				}
 				materialProperties.fog = scene.fog;
 
@@ -291,28 +290,13 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 			// update uniforms
 			var uniforms = program.uniforms;
-			var slot;
 			for (var n = 0, ll = uniforms.seq.length; n &lt; ll; n++) {
 				var uniform = uniforms.seq[n];
 				var key = uniform.id;
 
 				// upload custom uniforms
 				if (material.uniforms &amp;&amp; material.uniforms[key] !== undefined) {
-					if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture2D(material.uniforms[key], slot);
-						uniform.setValue(slot);
-					} else if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE || uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_CUBE_SHADOW) {
-						slot = this.allocTexUnit();
-						this.texture.setTextureCube(material.uniforms[key], slot);
-						uniform.setValue(slot);
-					} else if (uniform.type === WEBGL_UNIFORM_TYPE.SAMPLER_3D) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture3D(material.uniforms[key], slot);
-						uniform.setValue(slot);
-					} else {
-						uniform.set(material.uniforms[key]);
-					}
+					uniform.set(material.uniforms[key], this);
 					continue;
 				}
 
@@ -325,7 +309,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						var projectionMat = camera.projectionMatrix.elements;
 					}
 
-					uniform.setValue(projectionMat);
+					uniform.set(projectionMat);
 					break;
 				case "u_View":
 					if (object.type === OBJECT_TYPE.CANVAS2D &amp;&amp; object.isScreenCanvas) {
@@ -334,11 +318,11 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						var viewMatrix = camera.viewMatrix.elements;
 					}
 
-					uniform.setValue(viewMatrix);
+					uniform.set(viewMatrix);
 					break;
 				case "u_Model":
 					var modelMatrix = object.worldMatrix.elements;
-					uniform.setValue(modelMatrix);
+					uniform.set(modelMatrix);
 					break;
 
 				case "u_Color":
@@ -346,76 +330,67 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(color.r, color.g, color.b);
 					break;
 				case "u_Opacity":
-					uniform.setValue(material.opacity);
+					uniform.set(material.opacity);
 					break;
 
 				case "diffuseMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.diffuseMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.diffuseMap, this);
 					break;
 				case "normalMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.normalMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.normalMap, this);
 					break;
 				case "bumpMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.bumpMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.bumpMap, this);
 					break;
 				case "bumpScale":
-					uniform.setValue(material.bumpScale);
+					uniform.set(material.bumpScale);
 					break;
 				case "envMap":
-					slot = this.allocTexUnit();
-					this.texture.setTextureCube(material.envMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.envMap, this);
 					break;
 				case "cubeMap":
-					slot = this.allocTexUnit();
-					this.texture.setTextureCube(material.cubeMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.cubeMap, this);
 					break;
 
 				case "u_EnvMap_Intensity":
-					uniform.setValue(material.envMapIntensity);
+					uniform.set(material.envMapIntensity);
+					break;
+				case "maxMipLevel":
+					uniform.set(this.properties.get(material.envMap).__maxMipLevel || 0);
 					break;
 				case "u_Specular":
-					uniform.setValue(material.shininess);
+					uniform.set(material.shininess);
 					break;
 				case "u_SpecularColor":
 					var color = material.specular;
-					uniform.setValue(color.r, color.g, color.b, 1);
+					uniform.setValue(color.r, color.g, color.b);
 					break;
 				case "specularMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.specularMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.specularMap, this);
 					break;
 				case "aoMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.aoMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.aoMap, this);
 					break;
 				case "aoMapIntensity":
-					uniform.setValue(material.aoMapIntensity);
+					uniform.set(material.aoMapIntensity);
 					break;
 				case "u_Roughness":
-					uniform.setValue(material.roughness);
+					uniform.set(material.roughness);
 					break;
 				case "roughnessMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.roughnessMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.roughnessMap, this);
 					break;
 				case "u_Metalness":
-					uniform.setValue(material.metalness);
+					uniform.set(material.metalness);
 					break;
 				case "metalnessMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.metalnessMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.metalnessMap, this);
+					break;
+				case "glossiness":
+					uniform.set(material.glossiness);
+					break;
+				case "glossinessMap":
+					uniform.set(material.glossinessMap, this);
 					break;
 				case "emissive":
 					var color = material.emissive;
@@ -423,9 +398,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(color.r * intensity, color.g * intensity, color.b * intensity);
 					break;
 				case "emissiveMap":
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(material.emissiveMap, slot);
-					uniform.setValue(slot);
+					uniform.set(material.emissiveMap, this);
 					break;
 				case "u_CameraPosition":
 					helpVector3.setFromMatrixPosition(camera.worldMatrix);
@@ -436,29 +409,29 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.setValue(color.r, color.g, color.b);
 					break;
 				case "u_FogDensity":
-					uniform.setValue(scene.fog.density);
+					uniform.set(scene.fog.density);
 					break;
 				case "u_FogNear":
-					uniform.setValue(scene.fog.near);
+					uniform.set(scene.fog.near);
 					break;
 				case "u_FogFar":
-					uniform.setValue(scene.fog.far);
+					uniform.set(scene.fog.far);
 					break;
 				case "u_PointSize":
-					uniform.setValue(material.size);
+					uniform.set(material.size);
 					break;
 				case "u_PointScale":
 					var scale = currentRenderTarget.height * 0.5; // three.js do this
-					uniform.setValue(scale);
+					uniform.set(scale);
 					break;
 				case "dashSize":
-					uniform.setValue(material.dashSize);
+					uniform.set(material.dashSize);
 					break;
 				case "totalSize":
-					uniform.setValue(material.dashSize + material.gapSize);
+					uniform.set(material.dashSize + material.gapSize);
 					break;
 				case "scale":
-					uniform.setValue(material.scale);
+					uniform.set(material.scale);
 					break;
 				case "clippingPlanes":
 					var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
@@ -473,7 +446,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						if (uvScaleMap.matrixAutoUpdate) {
 							uvScaleMap.updateMatrix();
 						}
-						uniform.setValue(uvScaleMap.matrix.elements);
+						uniform.set(uvScaleMap.matrix.elements);
 					}
 					break;
 				default:
@@ -518,9 +491,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				for (var j = 0; j &lt; object.drawArray.length; j++) {
 					var drawData = object.drawArray[j];
 
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(drawData.texture, slot);
-					uniforms.set("spriteTexture", slot);
+					uniforms.set("spriteTexture", drawData.texture, this);
 
 					gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
 					_offset += drawData.count * 6;
@@ -674,10 +645,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					skeleton.boneTexture = boneTexture;
 				}
 
-				var slot = this.allocTexUnit();
-				this.texture.setTexture2D(skeleton.boneTexture, slot);
-
-				uniforms.set("boneTexture", slot);
+				uniforms.set("boneTexture", skeleton.boneTexture, this);
 				uniforms.set("boneTextureSize", skeleton.boneTexture.image.width);
 			} else {
 				uniforms.set("boneMatrices", skeleton.boneMatrices);
@@ -697,89 +665,42 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		if (lights.directsNum > 0) {
 			uniforms.set("u_Directional", lights.directional);
 
-			for (var k = 0; k &lt; lights.directsNum; k++) {
-				var light = lights.directional[k];
-				var shadow = light.shadow &amp;&amp; receiveShadow;
-				if (shadow) {
-					var slot = this.allocTexUnit();
-					this.texture.setTexture2D(lights.directionalShadowMap[k], slot);
-					directShadowMaps[k] = slot;
-
-					if (uniforms.has("directionalDepthMap")) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture2D(lights.directionalDepthMap[k], slot);
-						directDepthMaps[k] = slot;
-					}
+			if (uniforms.has("directionalShadowMap")) {
+				if (this.capabilities.version >= 2) {
+					uniforms.set("directionalShadowMap", lights.directionalShadowDepthMap, this);
+				} else {
+					uniforms.set("directionalShadowMap", lights.directionalShadowMap, this);
 				}
-			}
-
-			if (directShadowMaps.length > 0) {
-				uniforms.set("directionalShadowMap", directShadowMaps);
-
-				directShadowMaps.length = 0;
-
 				uniforms.set("directionalShadowMatrix", lights.directionalShadowMatrix);
 			}
 
-			if (directDepthMaps.length > 0) {
-				uniforms.set("directionalDepthMap", directDepthMaps);
-
-				directDepthMaps.length = 0;
+			if (uniforms.has("directionalDepthMap")) {
+				uniforms.set("directionalDepthMap", lights.directionalShadowMap, this);
 			}
 		}
 
 		if (lights.pointsNum > 0) {
 			uniforms.set("u_Point", lights.point);
 
-			for (var k = 0; k &lt; lights.pointsNum; k++) {
-				var light = lights.point[k];
-				var shadow = light.shadow &amp;&amp; receiveShadow;
-				if (shadow) {
-					slot = this.allocTexUnit();
-					this.texture.setTextureCube(lights.pointShadowMap[k], slot);
-					pointShadowMaps[k] = slot;
-				}
-			}
-
-			if (pointShadowMaps.length > 0) {
-				uniforms.set("pointShadowMap", pointShadowMaps);
-
-				pointShadowMaps.length = 0;
+			if (uniforms.has("pointShadowMap")) {
+				uniforms.set("pointShadowMap", lights.pointShadowMap, this);
 			}
 		}
 
 		if (lights.spotsNum > 0) {
 			uniforms.set("u_Spot", lights.spot);
 
-			for (var k = 0; k &lt; lights.spotsNum; k++) {
-				var light = lights.spot[k];
-				var shadow = light.shadow &amp;&amp; receiveShadow;
-
-				if (shadow) {
-					slot = this.allocTexUnit();
-					this.texture.setTexture2D(lights.spotShadowMap[k], slot);
-					spotShadowMaps[k] = slot;
-
-					if (uniforms.has("spotDepthMap")) {
-						slot = this.allocTexUnit();
-						this.texture.setTexture2D(lights.spotDepthMap[k], slot);
-						spotDepthMaps[k] = slot;
-					}
+			if (uniforms.has("spotShadowMap")) {
+				if (this.capabilities.version >= 2) {
+					uniforms.set("spotShadowMap", lights.spotShadowDepthMap, this);
+				} else {
+					uniforms.set("spotShadowMap", lights.spotShadowMap, this);
 				}
-			}
-
-			if (spotShadowMaps.length > 0) {
-				uniforms.set("spotShadowMap", spotShadowMaps);
-
-				spotShadowMaps.length = 0;
-
 				uniforms.set("spotShadowMatrix", lights.spotShadowMatrix);
 			}
 
-			if (spotDepthMaps.length > 0) {
-				uniforms.set("spotDepthMap", spotDepthMaps);
-
-				spotDepthMaps.length = 0;
+			if (uniforms.has("spotDepthMap")) {
+				uniforms.set("spotDepthMap", lights.spotShadowMap, this);
 			}
 		}
 	},
@@ -886,14 +807,14 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		material.removeEventListener('dispose', this.onMaterialDispose, this);
 
-		var program = materialProperties.get(material).program;
+		var program = materialProperties.program;
 
 		if (program !== undefined) {
 			// release program reference
 			this.programs.releaseProgram(program);
 		}
 
-		materialProperties.delete(material);
+		this.properties.delete(material);
 	}
 
 });
@@ -908,13 +829,13 @@ export { WebGLCore };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.RGBELoader.html">RGBELoader</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#load">load</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineDashedMaterial.html">LineDashedMaterial</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBR2Material.html">PBR2Material</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.RGBELoader.html">RGBELoader</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Global</h3><ul><li><a href="global.html#load">load</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Mar 20 2019 15:31:17 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 28 2019 19:04:53 GMT+0800 (中国标准时间)
 </footer>
 
 <script> prettyPrint(); </script>

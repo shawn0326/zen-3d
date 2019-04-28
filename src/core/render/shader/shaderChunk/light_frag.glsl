@@ -9,9 +9,15 @@
     vec3 indirectRadiance = vec3(0., 0., 0.); // for indirect specular
 
     #ifdef USE_PBR
-        vec4 diffuseColor = outColor.xyzw * (1.0 - metalnessFactor);
-        vec4 specularColor = mix(vec4(0.04), outColor.xyzw, metalnessFactor);
-        float roughness = clamp(roughnessFactor, 0.04, 1.0);
+        #ifdef USE_PBR2
+            vec4 diffuseColor = outColor.xyzw;
+            vec4 specularColor = vec4(specularFactor.rgb, 1.);
+			float roughness = clamp(1.0 - glossinessFactor, 0.04, 1.0);
+         #else
+            vec4 diffuseColor = outColor.xyzw * (1.0 - metalnessFactor);
+            vec4 specularColor = mix(vec4(0.04), outColor.xyzw, metalnessFactor);
+            float roughness = clamp(roughnessFactor, 0.04, 1.0);
+         #endif
     #else
         vec4 diffuseColor = outColor.xyzw;
         #ifdef USE_PHONG

@@ -358,6 +358,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				case "metalnessMap":
 					uniform.set(material.metalnessMap, this);
 					break;
+				case "glossiness":
+					uniform.set(material.glossiness);
+					break;
+				case "glossinessMap":
+					uniform.set(material.glossinessMap, this);
+					break;
 				case "emissive":
 					var color = material.emissive;
 					var intensity = material.emissiveIntensity;
