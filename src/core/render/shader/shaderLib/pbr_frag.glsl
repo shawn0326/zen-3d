@@ -35,7 +35,6 @@ void main() {
     #include <diffuseMap_frag>
     #include <alphaTest_frag>
     #include <normal_frag>
-    #include <specularMap_frag>
 
     float roughnessFactor = u_Roughness;
     #ifdef USE_ROUGHNESSMAP

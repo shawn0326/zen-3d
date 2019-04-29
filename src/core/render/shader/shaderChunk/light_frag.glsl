@@ -84,7 +84,7 @@
             #endif
 
             #ifdef USE_PBR
-                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
+                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness);
             #endif
 
             totalReflect += reflectLight;
@@ -121,7 +121,7 @@
             #endif
 
             #ifdef USE_PBR
-                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
+                reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness);
             #endif
 
             totalReflect += reflectLight;
@@ -169,7 +169,7 @@
                 #endif
 
                 #ifdef USE_PBR
-                    reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness) * specularStrength;
+                    reflectLight += irradiance * BRDF_Specular_GGX(specularColor, N, L, V, roughness);
                 #endif
 
                 totalReflect += reflectLight;
@@ -183,7 +183,7 @@
     vec3 indirectSpecular = vec3(0., 0., 0.);
 
     #if defined( USE_ENV_MAP ) && defined( USE_PBR )
-        indirectSpecular += indirectRadiance * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness).rgb * specularStrength;
+        indirectSpecular += indirectRadiance * BRDF_Specular_GGX_Environment(N, V, specularColor, roughness).rgb;
     #endif
 
     #ifdef USE_AOMAP

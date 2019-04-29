@@ -35,11 +35,10 @@ void main() {
     #include <diffuseMap_frag>
     #include <alphaTest_frag>
     #include <normal_frag>
-    #include <specularMap_frag>
 
     vec3 specularFactor = u_SpecularColor;
     #ifdef USE_SPECULARMAP
-        vec4 texelSpecular = texture2D(specularMap, vUv);
+        vec4 texelSpecular = texture2D(specularMap, v_Uv);
         texelSpecular = sRGBToLinear(texelSpecular);
         // reads channel RGB, compatible with a glTF Specular-Glossiness (RGBA) texture
         specularFactor *= texelSpecular.rgb;
@@ -47,7 +46,7 @@ void main() {
 
     float glossinessFactor = glossiness;
     #ifdef USE_GLOSSINESSMAP
-        vec4 texelGlossiness = texture2D(glossinessMap, vUv);
+        vec4 texelGlossiness = texture2D(glossinessMap, v_Uv);
         // reads channel A, compatible with a glTF Specular-Glossiness (RGBA) texture
         glossinessFactor *= texelGlossiness.a;
     #endif
