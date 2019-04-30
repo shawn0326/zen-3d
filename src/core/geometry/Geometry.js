@@ -34,6 +34,12 @@ function Geometry() {
 	this.attributes = {};
 
 	/**
+	 * Hashmap of Attributes Array for morph targets.
+	 * @type {Object}
+	 */
+	this.morphAttributes = {};
+
+	/**
      * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices.
      * This attribute therefore stores the index of each vertex for each triangular face.
      * If this attribute is not set, the renderer assumes that each three contiguous positions represent a single triangle.

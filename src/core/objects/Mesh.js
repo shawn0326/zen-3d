@@ -32,6 +32,13 @@ function Mesh(geometry, material) {
      */
 	this.material = material;
 
+	/**
+	 * An array of weights typically from 0-1 that specify how much of the morph is applied.
+	 * @type {Number[]|null}
+	 * @default null
+	 */
+	this.morphTargetInfluences = null;
+
 	this.type = OBJECT_TYPE.MESH;
 }
 

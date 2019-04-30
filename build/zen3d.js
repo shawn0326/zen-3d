@@ -7142,6 +7142,29 @@
 		setArray: function(array) {
 			this.count = array !== undefined ? array.length / this.size : 0;
 			this.array = array;
+			return this;
+		},
+
+		/**
+	     * Copy the parameters from the passed attribute.
+	     * @param {zen3d.BufferAttribute} source - The attribute to be copied.
+	     * @return {zen3d.BufferAttribute}
+	     */
+		copy: function(source) {
+			this.array = new source.array.constructor(source.array);
+			this.size = source.size;
+			this.count = source.count;
+			this.normalized = source.normalized;
+			this.dynamic = source.dynamic;
+			return this;
+		},
+
+		/**
+	     * Return a new attribute with the same parameters as this attribute.
+	     * @return {zen3d.BufferAttribute}
+	     */
+		clone: function () {
+			return new this.constructor(this.array, this.size).copy(this);
 		}
 
 	});
@@ -7174,6 +7197,12 @@
 	     * @type {Object}
 	     */
 		this.attributes = {};
+
+		/**
+		 * Hashmap of Attributes Array for morph targets.
+		 * @type {Object}
+		 */
+		this.morphAttributes = {};
 
 		/**
 	     * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices.
@@ -7758,7 +7787,13 @@
 	     * @type {boolean}
 	     * @default true
 	     */
-		isInstancedBufferAttribute: true
+		isInstancedBufferAttribute: true,
+
+		copy: function(source) {
+			BufferAttribute.prototype.copy.call(this, source);
+			this.meshPerAttribute = source.meshPerAttribute;
+			return this;
+		}
 
 	});
 
@@ -10392,6 +10427,14 @@
 				updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
 			}
 
+			for (var name in geometry.morphAttributes) {
+				var array = geometry.morphAttributes[name];
+
+				for (var i = 0, l = array.length; i < l; i++) {
+					updateAttribute(gl, properties, array[i], gl.ARRAY_BUFFER);
+				}
+			}
+
 			return geometryProperties;
 		},
 
@@ -10408,6 +10451,14 @@
 
 			for (var name in geometry.attributes) {
 				removeAttribute(gl, this.properties, geometry.attributes[name]);
+			}
+
+			for (var name in geometry.morphAttributes) {
+				var array = geometry.morphAttributes[name];
+
+				for (var i = 0, l = array.length; i < l; i++) {
+					removeAttribute(gl, this.properties, array[i]);
+				}
 			}
 
 			// dispose vaos
@@ -14045,6 +14096,13 @@
 	     * @type {zen3d.Material|zen3d.Material[]}
 	     */
 		this.material = material;
+
+		/**
+		 * An array of weights typically from 0-1 that specify how much of the morph is applied.
+		 * @type {Number[]|null}
+		 * @default null
+		 */
+		this.morphTargetInfluences = null;
 
 		this.type = OBJECT_TYPE.MESH;
 	}

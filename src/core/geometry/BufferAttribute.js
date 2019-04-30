@@ -80,6 +80,29 @@ Object.assign(BufferAttribute.prototype, /** @lends zen3d.BufferAttribute.protot
 	setArray: function(array) {
 		this.count = array !== undefined ? array.length / this.size : 0;
 		this.array = array;
+		return this;
+	},
+
+	/**
+     * Copy the parameters from the passed attribute.
+     * @param {zen3d.BufferAttribute} source - The attribute to be copied.
+     * @return {zen3d.BufferAttribute}
+     */
+	copy: function(source) {
+		this.array = new source.array.constructor(source.array);
+		this.size = source.size;
+		this.count = source.count;
+		this.normalized = source.normalized;
+		this.dynamic = source.dynamic;
+		return this;
+	},
+
+	/**
+     * Return a new attribute with the same parameters as this attribute.
+     * @return {zen3d.BufferAttribute}
+     */
+	clone: function () {
+		return new this.constructor(this.array, this.size).copy(this);
 	}
 
 });
