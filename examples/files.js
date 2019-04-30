@@ -35,6 +35,7 @@ var files = {
 		"material_cubetexture_skybox_tga",
 		"material_cubetexture_skybox_hdr",
 		"material_cubetexture_skybox_hdr_panorama",
+		"material_cubetexture_filter",
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",
 		"material_texture3d",
