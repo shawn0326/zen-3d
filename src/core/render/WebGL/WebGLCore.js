@@ -15,6 +15,9 @@ import { WebGLGeometry } from './WebGLGeometry.js';
 var helpVector3 = new Vector3();
 var helpVector4 = new Vector4();
 
+var influencesList = new WeakMap();
+var morphInfluences = new Float32Array(8);
+
 function defaultGetMaterial(renderable) {
 	return renderable.material;
 }
@@ -235,7 +238,15 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 			var geometryProperties = this.geometry.setGeometry(geometry);
 
-			if (this.capabilities.version >= 2) { // use VAO
+			// update morph targets
+			if (object.morphTargetInfluences) {
+				this.updateMorphtargets(object, geometry, program);
+			}
+
+			if (object.morphTargetInfluences) {
+				this.setupVertexAttributes(program, geometry);
+				this._currentGeometryProgram = "";
+			} else if (this.capabilities.version >= 2) { // use VAO
 				if (!geometryProperties._vaos[program.id]) {
 					geometryProperties._vaos[program.id] = gl.createVertexArray();
 					gl.bindVertexArray(geometryProperties._vaos[program.id]);
@@ -690,6 +701,61 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		return textureUnit;
 	},
 
+	updateMorphtargets: function(object, geometry, program) {
+		var objectInfluences = object.morphTargetInfluences;
+
+		if (!influencesList.has(geometry)) {
+			influencesList.set(geometry, objectInfluences.slice(0));
+		}
+
+		var morphTargets = geometry.morphAttributes.position;
+		var morphNormals = geometry.morphAttributes.normal;
+
+		// Remove current morphAttributes
+
+		var influences = influencesList.get(geometry);
+
+		for (var i = 0; i < influences.length; i++) {
+			var influence = influences[i];
+
+			if (influence !== 0) {
+				if (morphTargets) geometry.removeAttribute('morphTarget' + i);
+				if (morphNormals) geometry.removeAttribute('morphNormal' + i);
+			}
+		}
+
+		// Collect influences
+
+		for (var i = 0; i < objectInfluences.length; i++) {
+			influences[i] = objectInfluences[i];
+		}
+
+		influences.length = objectInfluences.length;
+
+		// Add morphAttributes
+
+		var count = 0;
+
+		for (var i = 0; i < 8; i++) {
+			var influence = influences[i];
+
+			if (influence > 0) {
+				if (morphTargets) geometry.addAttribute('morphTarget' + count, morphTargets[i]);
+				if (morphNormals) geometry.addAttribute('morphNormal' + count, morphNormals[i]);
+
+				morphInfluences[count] = influence;
+
+				count++;
+			}
+		}
+
+		for (;count < 8; count++) {
+			morphInfluences[count] = 0;
+		}
+
+		program.uniforms.set('morphTargetInfluences', morphInfluences);
+	},
+
 	setupVertexAttributes: function(program, geometry) {
 		var gl = this.gl;
 		var attributes = program.attributes;
@@ -762,7 +828,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, 0, 0);
 				}
 			} else {
-				console.warn("WebGLCore: geometry attribute " + key + " not found!");
+				// console.warn("WebGLCore: geometry attribute " + key + " not found!");
 			}
 		}
 

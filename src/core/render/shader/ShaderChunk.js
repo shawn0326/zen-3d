@@ -44,6 +44,9 @@ import shadowMap_frag from './shaderChunk/shadowMap_frag.glsl';
 import shadowMap_pars_frag from './shaderChunk/shadowMap_pars_frag.glsl';
 import shadowMap_pars_vert from './shaderChunk/shadowMap_pars_vert.glsl';
 import shadowMap_vert from './shaderChunk/shadowMap_vert.glsl';
+import morphnormal_vert from './shaderChunk/morphnormal_vert.glsl';
+import morphtarget_pars_vert from './shaderChunk/morphtarget_pars_vert.glsl';
+import morphtarget_vert from './shaderChunk/morphtarget_vert.glsl';
 import skinning_pars_vert from './shaderChunk/skinning_pars_vert.glsl';
 import skinning_vert from './shaderChunk/skinning_vert.glsl';
 import specularMap_frag from './shaderChunk/specularMap_frag.glsl';
@@ -106,6 +109,9 @@ export var ShaderChunk = {
 	shadowMap_pars_frag: shadowMap_pars_frag,
 	shadowMap_pars_vert: shadowMap_pars_vert,
 	shadowMap_vert: shadowMap_vert,
+	morphnormal_vert: morphnormal_vert,
+	morphtarget_pars_vert: morphtarget_pars_vert,
+	morphtarget_vert: morphtarget_vert,
 	skinning_pars_vert: skinning_pars_vert,
 	skinning_vert: skinning_vert,
 	specularMap_frag: specularMap_frag,

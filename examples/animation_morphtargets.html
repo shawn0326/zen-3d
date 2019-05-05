@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
 </head>
 <body>
 
@@ -79,9 +80,13 @@
 					var flag2 = (i % 4 > 1) === (y > 0);
 					var flag3 = (i % 2 > 0) === (z > 0);
 					if (flag1 && flag2 && flag3) {
-						morphPosition.array[j] = x * 2;
-						morphPosition.array[j + 1] = y * 2;
-						morphPosition.array[j + 2] = z * 2;
+						morphPosition.array[j] = x;
+						morphPosition.array[j + 1] = y;
+						morphPosition.array[j + 2] = z;
+					} else {
+						morphPosition.array[j] = 0;
+						morphPosition.array[j + 1] = 0;
+						morphPosition.array[j + 2] = 0;
 					}
 				}
 				
@@ -129,9 +134,14 @@
 				if(e.keyCode == 83) { // 's'
 					toggleShadow();
 				}
-
-				console.log(skeleton)
-	        }
+			}
+			
+			var gui = new dat.GUI();
+			var folder = gui.addFolder( 'Morph Targets' );
+			for (var i = 0; i < 8; i++) {
+				folder.add(cube.morphTargetInfluences, i, 0, 1).step(0.01).name('influence' + (i + 1));
+			}
+			folder.open();
 
 	        function loop(count) {
 

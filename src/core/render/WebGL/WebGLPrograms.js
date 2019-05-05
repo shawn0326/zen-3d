@@ -120,6 +120,9 @@ function createProgram(gl, props, defines) {
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
 
+		props.morphTargets ? '#define USE_MORPHTARGETS' : '',
+		props.morphNormals && props.flatShading === false ? '#define USE_MORPHNORMALS' : '',
+
 		props.useSkinning ? '#define USE_SKINNING' : '',
 		(props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
 		props.useVertexTexture ? '#define BONE_TEXTURE' : ''
@@ -378,6 +381,9 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.doubleSided = material.side === DRAW_SIDE.DOUBLE;
 	props.flipSided = material.side === DRAW_SIDE.BACK;
 	props.packDepthToRGBA = material.packToRGBA;
+	// morph targets
+	props.morphTargets = !!object.morphTargetInfluences;
+	props.morphNormals = !!object.morphTargetInfluences && object.geometry.morphAttributes.normal;
 	// skinned mesh
 	var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
 	var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
