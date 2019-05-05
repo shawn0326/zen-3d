@@ -6420,6 +6420,19 @@ function lerp(buffer, dstOffset, srcOffset, t, stride) {
 	}
 }
 
+// get array
+function getArray(target, source, stride, count) {
+	for (var i = 0; i < count; i++) {
+		target[i] = source[stride + i];
+	}
+}
+
+function setArray(target, source, stride, count) {
+	for (var i = 0; i < count; i++) {
+		target[stride + i] = source[i];
+	}
+}
+
 /**
  * This holds a reference to a real property in the scene graph; used internally.
  * Binding property and value, mixer for multiple values.
@@ -6495,7 +6508,11 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
 		// get value
 		if (this.valueSize > 1) {
-			this.target[this.property].toArray(buffer, originalValueOffset);
+			if (this.target[this.property].toArray) {
+				this.target[this.property].toArray(buffer, originalValueOffset);
+			} else {
+				setArray(buffer, this.target[this.property], originalValueOffset, this.valueSize);
+			}
 		} else {
 			this.target[this.property] = buffer[originalValueOffset];
 		}
@@ -6568,7 +6585,11 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
 		// set value
 		if (this.valueSize > 1) {
-			this.target[this.property].fromArray(buffer, stride);
+			if (this.target[this.property].fromArray) {
+				this.target[this.property].fromArray(buffer, stride);
+			} else {
+				getArray(this.target[this.property], buffer, stride, this.valueSize);
+			}
 		} else {
 			this.target[this.property] = buffer[stride];
 		}
@@ -12865,7 +12886,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		var count = 0;
 
-		for (var i = 0; i < 8; i++) {
+		for (var i = 0; i < influences.length; i++) {
 			var influence = influences[i];
 
 			if (influence > 0) {
@@ -14299,6 +14320,14 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 			}
 		}
 	}(),
+
+	copy: function(source) {
+		Object3D.prototype.copy.call(this, source);
+		if (source.morphTargetInfluences !== undefined) {
+			this.morphTargetInfluences = source.morphTargetInfluences.slice();
+		}
+		return this;
+	},
 
 	clone: function() {
 		return new this.constructor(this.geometry, this.material).copy(this);

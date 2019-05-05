@@ -736,7 +736,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		var count = 0;
 
-		for (var i = 0; i < 8; i++) {
+		for (var i = 0; i < influences.length; i++) {
 			var influence = influences[i];
 
 			if (influence > 0) {
