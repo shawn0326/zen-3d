@@ -164,7 +164,7 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 
 	copy: function(source) {
 		Object3D.prototype.copy.call(this, source);
-		if (source.morphTargetInfluences !== undefined) {
+		if (source.morphTargetInfluences) {
 			this.morphTargetInfluences = source.morphTargetInfluences.slice();
 		}
 		return this;

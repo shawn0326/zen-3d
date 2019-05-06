@@ -14329,7 +14329,7 @@
 
 		copy: function(source) {
 			Object3D.prototype.copy.call(this, source);
-			if (source.morphTargetInfluences !== undefined) {
+			if (source.morphTargetInfluences) {
 				this.morphTargetInfluences = source.morphTargetInfluences.slice();
 			}
 			return this;
