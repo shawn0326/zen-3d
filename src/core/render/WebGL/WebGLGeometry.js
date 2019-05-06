@@ -113,6 +113,14 @@ Object.assign(WebGLGeometry.prototype, {
 			updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
 		}
 
+		for (var name in geometry.morphAttributes) {
+			var array = geometry.morphAttributes[name];
+
+			for (var i = 0, l = array.length; i < l; i++) {
+				updateAttribute(gl, properties, array[i], gl.ARRAY_BUFFER);
+			}
+		}
+
 		return geometryProperties;
 	},
 
@@ -129,6 +137,14 @@ Object.assign(WebGLGeometry.prototype, {
 
 		for (var name in geometry.attributes) {
 			removeAttribute(gl, this.properties, geometry.attributes[name]);
+		}
+
+		for (var name in geometry.morphAttributes) {
+			var array = geometry.morphAttributes[name];
+
+			for (var i = 0, l = array.length; i < l; i++) {
+				removeAttribute(gl, this.properties, array[i]);
+			}
 		}
 
 		// dispose vaos

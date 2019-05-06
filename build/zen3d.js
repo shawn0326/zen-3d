@@ -6426,6 +6426,19 @@
 		}
 	}
 
+	// get array
+	function getArray(target, source, stride, count) {
+		for (var i = 0; i < count; i++) {
+			target[i] = source[stride + i];
+		}
+	}
+
+	function setArray(target, source, stride, count) {
+		for (var i = 0; i < count; i++) {
+			target[stride + i] = source[i];
+		}
+	}
+
 	/**
 	 * This holds a reference to a real property in the scene graph; used internally.
 	 * Binding property and value, mixer for multiple values.
@@ -6501,7 +6514,11 @@
 
 			// get value
 			if (this.valueSize > 1) {
-				this.target[this.property].toArray(buffer, originalValueOffset);
+				if (this.target[this.property].toArray) {
+					this.target[this.property].toArray(buffer, originalValueOffset);
+				} else {
+					setArray(buffer, this.target[this.property], originalValueOffset, this.valueSize);
+				}
 			} else {
 				this.target[this.property] = buffer[originalValueOffset];
 			}
@@ -6574,7 +6591,11 @@
 
 			// set value
 			if (this.valueSize > 1) {
-				this.target[this.property].fromArray(buffer, stride);
+				if (this.target[this.property].fromArray) {
+					this.target[this.property].fromArray(buffer, stride);
+				} else {
+					getArray(this.target[this.property], buffer, stride, this.valueSize);
+				}
 			} else {
 				this.target[this.property] = buffer[stride];
 			}
@@ -7142,6 +7163,29 @@
 		setArray: function(array) {
 			this.count = array !== undefined ? array.length / this.size : 0;
 			this.array = array;
+			return this;
+		},
+
+		/**
+	     * Copy the parameters from the passed attribute.
+	     * @param {zen3d.BufferAttribute} source - The attribute to be copied.
+	     * @return {zen3d.BufferAttribute}
+	     */
+		copy: function(source) {
+			this.array = new source.array.constructor(source.array);
+			this.size = source.size;
+			this.count = source.count;
+			this.normalized = source.normalized;
+			this.dynamic = source.dynamic;
+			return this;
+		},
+
+		/**
+	     * Return a new attribute with the same parameters as this attribute.
+	     * @return {zen3d.BufferAttribute}
+	     */
+		clone: function () {
+			return new this.constructor(this.array, this.size).copy(this);
 		}
 
 	});
@@ -7174,6 +7218,12 @@
 	     * @type {Object}
 	     */
 		this.attributes = {};
+
+		/**
+		 * Hashmap of Attributes Array for morph targets.
+		 * @type {Object}
+		 */
+		this.morphAttributes = {};
 
 		/**
 	     * Allows for vertices to be re-used across multiple triangles; this is called using "indexed triangles" and each triangle is associated with the indices of three vertices.
@@ -7758,7 +7808,13 @@
 	     * @type {boolean}
 	     * @default true
 	     */
-		isInstancedBufferAttribute: true
+		isInstancedBufferAttribute: true,
+
+		copy: function(source) {
+			BufferAttribute.prototype.copy.call(this, source);
+			this.meshPerAttribute = source.meshPerAttribute;
+			return this;
+		}
 
 	});
 
@@ -10392,6 +10448,14 @@
 				updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
 			}
 
+			for (var name in geometry.morphAttributes) {
+				var array = geometry.morphAttributes[name];
+
+				for (var i = 0, l = array.length; i < l; i++) {
+					updateAttribute(gl, properties, array[i], gl.ARRAY_BUFFER);
+				}
+			}
+
 			return geometryProperties;
 		},
 
@@ -10408,6 +10472,14 @@
 
 			for (var name in geometry.attributes) {
 				removeAttribute(gl, this.properties, geometry.attributes[name]);
+			}
+
+			for (var name in geometry.morphAttributes) {
+				var array = geometry.morphAttributes[name];
+
+				for (var i = 0, l = array.length; i < l; i++) {
+					removeAttribute(gl, this.properties, array[i]);
+				}
 			}
 
 			// dispose vaos
@@ -11061,7 +11133,7 @@
 
 	var common_frag = "uniform mat4 u_View;\r\n\r\nuniform float u_Opacity;\r\nuniform vec3 u_Color;\r\n\r\nuniform vec3 u_CameraPosition;";
 
-	var common_vert = "attribute vec3 a_Position;\r\nattribute vec3 a_Normal;\r\n\r\n#include <transpose>\r\n#include <inverse>\r\n\r\nuniform mat4 u_Projection;\r\nuniform mat4 u_View;\r\nuniform mat4 u_Model;\r\n\r\nuniform vec3 u_CameraPosition;";
+	var common_vert = "attribute vec3 a_Position;\r\nattribute vec3 a_Normal;\r\n\r\n#include <transpose>\r\n#include <inverse>\r\n\r\nuniform mat4 u_Projection;\r\nuniform mat4 u_View;\r\nuniform mat4 u_Model;\r\n\r\nuniform vec3 u_CameraPosition;\r\n\r\n#ifdef USE_MORPHTARGETS\r\n\r\n    attribute vec3 morphTarget0;\r\n    attribute vec3 morphTarget1;\r\n    attribute vec3 morphTarget2;\r\n    attribute vec3 morphTarget3;\r\n\r\n    #ifdef USE_MORPHNORMALS\r\n\r\n    \tattribute vec3 morphNormal0;\r\n    \tattribute vec3 morphNormal1;\r\n    \tattribute vec3 morphNormal2;\r\n    \tattribute vec3 morphNormal3;\r\n\r\n    #else\r\n\r\n    \tattribute vec3 morphTarget4;\r\n    \tattribute vec3 morphTarget5;\r\n    \tattribute vec3 morphTarget6;\r\n    \tattribute vec3 morphTarget7;\r\n\r\n    #endif\r\n\r\n#endif";
 
 	var diffuseMap_frag = "#ifdef USE_DIFFUSE_MAP\r\n    vec4 texelColor = texture2D( diffuseMap, v_Uv );\r\n    texelColor = mapTexelToLinear( texelColor );\r\n\r\n    outColor *= texelColor;\r\n#endif";
 
@@ -11124,6 +11196,12 @@
 	var shadowMap_pars_vert = "#ifdef USE_SHADOW\r\n\r\n    #if NUM_DIR_SHADOWS > 0\r\n\r\n        uniform mat4 directionalShadowMatrix[ NUM_DIR_LIGHTS ];\r\n        varying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHTS ];\r\n\r\n    #endif\r\n\r\n    #if NUM_POINT_SHADOWS > 0\r\n\r\n        // nothing\r\n\r\n    #endif\r\n\r\n    #if NUM_SPOT_SHADOWS > 0\r\n\r\n        uniform mat4 spotShadowMatrix[ NUM_SPOT_LIGHTS ];\r\n        varying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHTS ];\r\n\r\n    #endif\r\n\r\n#endif";
 
 	var shadowMap_vert = "#ifdef USE_SHADOW\r\n\r\n    vec4 worldPosition = u_Model * vec4(transformed, 1.0);\r\n\r\n    #if NUM_DIR_SHADOWS > 0\r\n\r\n        #pragma unroll_loop\r\n        for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {\r\n\r\n            vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * worldPosition;\r\n\r\n        }\r\n\r\n    #endif\r\n\r\n    #if NUM_POINT_SHADOWS > 0\r\n\r\n        // nothing\r\n\r\n    #endif\r\n\r\n    #if NUM_SPOT_SHADOWS > 0\r\n\r\n        #pragma unroll_loop\r\n        for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {\r\n\r\n            vSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * worldPosition;\r\n\r\n        }\r\n\r\n    #endif\r\n\r\n#endif";
+
+	var morphnormal_vert = "#ifdef USE_MORPHNORMALS\r\n\r\n\tobjectNormal += morphNormal0 * morphTargetInfluences[ 0 ];\r\n\tobjectNormal += morphNormal1 * morphTargetInfluences[ 1 ];\r\n\tobjectNormal += morphNormal2 * morphTargetInfluences[ 2 ];\r\n\tobjectNormal += morphNormal3 * morphTargetInfluences[ 3 ];\r\n\r\n#endif";
+
+	var morphtarget_pars_vert = "#ifdef USE_MORPHTARGETS\r\n\r\n\t#ifndef USE_MORPHNORMALS\r\n\r\n\tuniform float morphTargetInfluences[ 8 ];\r\n\r\n\t#else\r\n\r\n\tuniform float morphTargetInfluences[ 4 ];\r\n\r\n\t#endif\r\n\r\n#endif";
+
+	var morphtarget_vert = "#ifdef USE_MORPHTARGETS\r\n\r\n\ttransformed += morphTarget0 * morphTargetInfluences[ 0 ];\r\n\ttransformed += morphTarget1 * morphTargetInfluences[ 1 ];\r\n\ttransformed += morphTarget2 * morphTargetInfluences[ 2 ];\r\n\ttransformed += morphTarget3 * morphTargetInfluences[ 3 ];\r\n\r\n\t#ifndef USE_MORPHNORMALS\r\n\r\n        transformed += morphTarget4 * morphTargetInfluences[ 4 ];\r\n        transformed += morphTarget5 * morphTargetInfluences[ 5 ];\r\n        transformed += morphTarget6 * morphTargetInfluences[ 6 ];\r\n        transformed += morphTarget7 * morphTargetInfluences[ 7 ];\r\n\r\n\t#endif\r\n\r\n#endif";
 
 	var skinning_pars_vert = "#ifdef USE_SKINNING\r\n\r\n    attribute vec4 skinIndex;\r\n\tattribute vec4 skinWeight;\r\n\r\n    uniform mat4 bindMatrix;\r\n\tuniform mat4 bindMatrixInverse;\r\n\r\n    #ifdef BONE_TEXTURE\r\n        uniform sampler2D boneTexture;\r\n        uniform int boneTextureSize;\r\n\r\n        mat4 getBoneMatrix( const in float i ) {\r\n            float j = i * 4.0;\r\n            float x = mod( j, float( boneTextureSize ) );\r\n            float y = floor( j / float( boneTextureSize ) );\r\n\r\n            float dx = 1.0 / float( boneTextureSize );\r\n            float dy = 1.0 / float( boneTextureSize );\r\n\r\n            y = dy * ( y + 0.5 );\r\n\r\n            vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );\r\n            vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );\r\n            vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );\r\n            vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );\r\n\r\n            mat4 bone = mat4( v1, v2, v3, v4 );\r\n\r\n            return bone;\r\n        }\r\n    #else\r\n        uniform mat4 boneMatrices[MAX_BONES];\r\n\r\n        mat4 getBoneMatrix(const in float i) {\r\n            mat4 bone = boneMatrices[int(i)];\r\n            return bone;\r\n        }\r\n    #endif\r\n\r\n#endif";
 
@@ -11200,6 +11278,9 @@
 		shadowMap_pars_frag: shadowMap_pars_frag,
 		shadowMap_pars_vert: shadowMap_pars_vert,
 		shadowMap_vert: shadowMap_vert,
+		morphnormal_vert: morphnormal_vert,
+		morphtarget_pars_vert: morphtarget_pars_vert,
+		morphtarget_vert: morphtarget_vert,
 		skinning_pars_vert: skinning_pars_vert,
 		skinning_vert: skinning_vert,
 		specularMap_frag: specularMap_frag,
@@ -11218,7 +11299,7 @@
 
 	var basic_frag = "#include <common_frag>\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <envMap_pars_frag>\r\n#include <aoMap_pars_frag>\r\n#include <fog_pars_frag>\r\nvoid main() {\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <envMap_frag>\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
-	var basic_vert = "#include <common_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <envMap_vert>\r\n}";
+	var basic_vert = "#include <common_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <envMap_vert>\r\n}";
 
 	var canvas2d_frag = "#include <common_frag>\r\nvarying vec2 v_Uv;\r\nuniform sampler2D spriteTexture;\r\nvoid main() {\r\n    #include <begin_frag>\r\n    outColor *= texture2D(spriteTexture, v_Uv);\r\n    #include <end_frag>\r\n    #include <premultipliedAlpha_frag>\r\n}";
 
@@ -11226,15 +11307,15 @@
 
 	var depth_frag = "#include <common_frag>\r\n#include <diffuseMap_pars_frag>\r\n\r\n#include <uv_pars_frag>\r\n\r\n#include <packing>\r\n\r\nvoid main() {\r\n    #if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)\r\n        vec4 texelColor = texture2D( diffuseMap, v_Uv );\r\n\r\n        float alpha = texelColor.a * u_Opacity;\r\n        if(alpha < ALPHATEST) discard;\r\n    #endif\r\n    \r\n    #ifdef DEPTH_PACKING_RGBA\r\n        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\r\n    #else\r\n        gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), u_Opacity );\r\n    #endif\r\n}";
 
-	var depth_vert = "#include <common_vert>\r\n#include <skinning_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n}";
+	var depth_vert = "#include <common_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n}";
 
 	var distance_frag = "#include <common_frag>\r\nuniform float nearDistance;\r\nuniform float farDistance;\r\nvarying vec3 v_ModelPos;\r\n#include <packing>\r\nvoid main() {\r\n    float dist = length( v_ModelPos - u_CameraPosition );\r\n\tdist = ( dist - nearDistance ) / ( farDistance - nearDistance );\r\n\tdist = saturate( dist ); // clamp to [ 0, 1 ]\r\n\r\n    gl_FragColor = packDepthToRGBA(dist);\r\n}";
 
-	var distance_vert = "#include <common_vert>\r\nvarying vec3 v_ModelPos;\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\r\n}";
+	var distance_vert = "#include <common_vert>\r\nvarying vec3 v_ModelPos;\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    v_ModelPos = (u_Model * vec4(transformed, 1.0)).xyz;\r\n}";
 
 	var lambert_frag = "#include <common_frag>\r\n\r\nuniform vec3 emissive;\r\n\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <normalMap_pars_frag>\r\n#include <bumpMap_pars_frag>\r\n#include <light_pars_frag>\r\n#include <normal_pars_frag>\r\n#include <viewModelPos_pars_frag>\r\n#include <bsdfs>\r\n#include <envMap_pars_frag>\r\n#include <aoMap_pars_frag>\r\n#include <shadowMap_pars_frag>\r\n#include <fog_pars_frag>\r\n#include <emissiveMap_pars_frag>\r\n#include <clippingPlanes_pars_frag>\r\nvoid main() {\r\n    #include <clippingPlanes_frag>\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <normal_frag>\r\n    #include <light_frag>\r\n    #include <envMap_frag>\r\n    #include <shadowMap_frag>\r\n\r\n    vec3 totalEmissiveRadiance = emissive;\r\n    #include <emissiveMap_frag>\r\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\r\n\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
-	var lambert_vert = "#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
+	var lambert_vert = "#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
 
 	var linedashed_frag = "#include <common_frag>\r\n#include <fog_pars_frag>\r\n\r\nuniform float dashSize;\r\nuniform float totalSize;\r\n\r\nvarying float vLineDistance;\r\n\r\nvoid main() {\r\n\r\n    if ( mod( vLineDistance, totalSize ) > dashSize ) {\r\n\t\tdiscard;\r\n\t}\r\n\r\n    #include <begin_frag>\r\n    #include <end_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
@@ -11242,17 +11323,17 @@
 
 	var normaldepth_frag = "#include <common_frag>\r\n#include <diffuseMap_pars_frag>\r\n\r\n#include <uv_pars_frag>\r\n\r\n#define USE_NORMAL\r\n\r\n#include <packing>\r\n#include <normal_pars_frag>\r\n\r\nvoid main() {\r\n    #if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)\r\n        vec4 texelColor = texture2D( diffuseMap, v_Uv );\r\n\r\n        float alpha = texelColor.a * u_Opacity;\r\n        if(alpha < ALPHATEST) discard;\r\n    #endif\r\n    vec4 packedNormalDepth;\r\n    packedNormalDepth.xyz = normalize(v_Normal) * 0.5 + 0.5;\r\n    packedNormalDepth.w = gl_FragCoord.z;\r\n    gl_FragColor = packedNormalDepth;\r\n}";
 
-	var normaldepth_vert = "#include <common_vert>\r\n\r\n#define USE_NORMAL\r\n\r\n#include <skinning_pars_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <normal_vert>\r\n    #include <pvm_vert>\r\n}";
+	var normaldepth_vert = "#include <common_vert>\r\n\r\n#define USE_NORMAL\r\n\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <normal_vert>\r\n    #include <pvm_vert>\r\n}";
 
 	var pbr_frag = "#include <common_frag>\r\n\r\n// if no light> this will not active\r\nuniform float u_Metalness;\r\n#ifdef USE_METALNESSMAP\r\n\tuniform sampler2D metalnessMap;\r\n#endif\r\n\r\nuniform float u_Roughness;\r\n#ifdef USE_ROUGHNESSMAP\r\n\tuniform sampler2D roughnessMap;\r\n#endif\r\n\r\nuniform vec3 emissive;\r\n\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <normalMap_pars_frag>\r\n#include <bumpMap_pars_frag>\r\n#include <envMap_pars_frag>\r\n#include <aoMap_pars_frag>\r\n#include <light_pars_frag>\r\n#include <normal_pars_frag>\r\n#include <viewModelPos_pars_frag>\r\n#include <bsdfs>\r\n#include <shadowMap_pars_frag>\r\n#include <fog_pars_frag>\r\n#include <emissiveMap_pars_frag>\r\n#include <clippingPlanes_pars_frag>\r\nvoid main() {\r\n    #include <clippingPlanes_frag>\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <normal_frag>\r\n\r\n    float roughnessFactor = u_Roughness;\r\n    #ifdef USE_ROUGHNESSMAP\r\n    \tvec4 texelRoughness = texture2D( roughnessMap, v_Uv );\r\n    \t// reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture\r\n    \troughnessFactor *= texelRoughness.g;\r\n    #endif\r\n\r\n    float metalnessFactor = u_Metalness;\r\n    #ifdef USE_METALNESSMAP\r\n    \tvec4 texelMetalness = texture2D( metalnessMap, v_Uv );\r\n    \t// reads channel B, compatible with a combined OcclusionRoughnessMetallic (RGB) texture\r\n    \tmetalnessFactor *= texelMetalness.b;\r\n    #endif\r\n\r\n    #include <light_frag>\r\n    #include <shadowMap_frag>\r\n\r\n    vec3 totalEmissiveRadiance = emissive;\r\n    #include <emissiveMap_frag>\r\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\r\n\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
 	var pbr2_frag = "#include <common_frag>\r\n\r\n// if no light> this will not active\r\nuniform vec3 u_SpecularColor;\r\n#ifdef USE_SPECULARMAP\r\n\tuniform sampler2D specularMap;\r\n#endif\r\n\r\nuniform float glossiness;\r\n#ifdef USE_GLOSSINESSMAP\r\n\tuniform sampler2D glossinessMap;\r\n#endif\r\n\r\nuniform vec3 emissive;\r\n\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <normalMap_pars_frag>\r\n#include <bumpMap_pars_frag>\r\n#include <envMap_pars_frag>\r\n#include <aoMap_pars_frag>\r\n#include <light_pars_frag>\r\n#include <normal_pars_frag>\r\n#include <viewModelPos_pars_frag>\r\n#include <bsdfs>\r\n#include <shadowMap_pars_frag>\r\n#include <fog_pars_frag>\r\n#include <emissiveMap_pars_frag>\r\n#include <clippingPlanes_pars_frag>\r\nvoid main() {\r\n    #include <clippingPlanes_frag>\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <normal_frag>\r\n\r\n    vec3 specularFactor = u_SpecularColor;\r\n    #ifdef USE_SPECULARMAP\r\n        vec4 texelSpecular = texture2D(specularMap, v_Uv);\r\n        texelSpecular = sRGBToLinear(texelSpecular);\r\n        // reads channel RGB, compatible with a glTF Specular-Glossiness (RGBA) texture\r\n        specularFactor *= texelSpecular.rgb;\r\n    #endif\r\n\r\n    float glossinessFactor = glossiness;\r\n    #ifdef USE_GLOSSINESSMAP\r\n        vec4 texelGlossiness = texture2D(glossinessMap, v_Uv);\r\n        // reads channel A, compatible with a glTF Specular-Glossiness (RGBA) texture\r\n        glossinessFactor *= texelGlossiness.a;\r\n    #endif\r\n\r\n    #include <light_frag>\r\n    #include <shadowMap_frag>\r\n\r\n    vec3 totalEmissiveRadiance = emissive;\r\n    #include <emissiveMap_frag>\r\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\r\n\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
-	var pbr_vert = "#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
+	var pbr_vert = "#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
 
 	var phong_frag = "#include <common_frag>\r\n\r\n// if no light> this will not active\r\nuniform float u_Specular;\r\nuniform vec3 u_SpecularColor;\r\n#include <specularMap_pars_frag>\r\n\r\nuniform vec3 emissive;\r\n\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <normalMap_pars_frag>\r\n#include <bumpMap_pars_frag>\r\n#include <light_pars_frag>\r\n#include <normal_pars_frag>\r\n#include <viewModelPos_pars_frag>\r\n#include <bsdfs>\r\n#include <envMap_pars_frag>\r\n#include <aoMap_pars_frag>\r\n#include <shadowMap_pars_frag>\r\n#include <fog_pars_frag>\r\n#include <emissiveMap_pars_frag>\r\n#include <clippingPlanes_pars_frag>\r\nvoid main() {\r\n    #include <clippingPlanes_frag>\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <normal_frag>\r\n    #include <specularMap_frag>\r\n    #include <light_frag>\r\n    #include <envMap_frag>\r\n    #include <shadowMap_frag>\r\n\r\n    vec3 totalEmissiveRadiance = emissive;\r\n    #include <emissiveMap_frag>\r\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\r\n\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
-	var phong_vert = "#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
+	var phong_vert = "#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
 
 	var point_frag = "#include <common_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <fog_pars_frag>\r\nvoid main() {\r\n    #include <begin_frag>\r\n    #ifdef USE_DIFFUSE_MAP\r\n        outColor *= texture2D(diffuseMap, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));\r\n    #endif\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
 
@@ -11399,6 +11480,9 @@
 			props.useAOMap ? '#define USE_AOMAP' : '',
 			props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 			props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
+
+			props.morphTargets ? '#define USE_MORPHTARGETS' : '',
+			props.morphNormals && props.flatShading === false ? '#define USE_MORPHNORMALS' : '',
 
 			props.useSkinning ? '#define USE_SKINNING' : '',
 			(props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
@@ -11658,6 +11742,9 @@
 		props.doubleSided = material.side === DRAW_SIDE.DOUBLE;
 		props.flipSided = material.side === DRAW_SIDE.BACK;
 		props.packDepthToRGBA = material.packToRGBA;
+		// morph targets
+		props.morphTargets = !!object.morphTargetInfluences;
+		props.morphNormals = !!object.morphTargetInfluences && object.geometry.morphAttributes.normal;
 		// skinned mesh
 		var useSkinning = object.type === OBJECT_TYPE.SKINNED_MESH && object.skeleton;
 		var maxVertexUniformVectors = capabilities.maxVertexUniformVectors;
@@ -12090,6 +12177,9 @@
 	var helpVector3 = new Vector3();
 	var helpVector4 = new Vector4();
 
+	var influencesList = new WeakMap();
+	var morphInfluences = new Float32Array(8);
+
 	function defaultGetMaterial(renderable) {
 		return renderable.material;
 	}
@@ -12304,7 +12394,15 @@
 
 				var geometryProperties = this.geometry.setGeometry(geometry);
 
-				if (this.capabilities.version >= 2) { // use VAO
+				// update morph targets
+				if (object.morphTargetInfluences) {
+					this.updateMorphtargets(object, geometry, program);
+				}
+
+				if (object.morphTargetInfluences) {
+					this.setupVertexAttributes(program, geometry);
+					this._currentGeometryProgram = "";
+				} else if (this.capabilities.version >= 2) { // use VAO
 					if (!geometryProperties._vaos[program.id]) {
 						geometryProperties._vaos[program.id] = gl.createVertexArray();
 						gl.bindVertexArray(geometryProperties._vaos[program.id]);
@@ -12759,6 +12857,61 @@
 			return textureUnit;
 		},
 
+		updateMorphtargets: function(object, geometry, program) {
+			var objectInfluences = object.morphTargetInfluences;
+
+			if (!influencesList.has(geometry)) {
+				influencesList.set(geometry, objectInfluences.slice(0));
+			}
+
+			var morphTargets = geometry.morphAttributes.position;
+			var morphNormals = geometry.morphAttributes.normal;
+
+			// Remove current morphAttributes
+
+			var influences = influencesList.get(geometry);
+
+			for (var i = 0; i < influences.length; i++) {
+				var influence = influences[i];
+
+				if (influence !== 0) {
+					if (morphTargets) geometry.removeAttribute('morphTarget' + i);
+					if (morphNormals) geometry.removeAttribute('morphNormal' + i);
+				}
+			}
+
+			// Collect influences
+
+			for (var i = 0; i < objectInfluences.length; i++) {
+				influences[i] = objectInfluences[i];
+			}
+
+			influences.length = objectInfluences.length;
+
+			// Add morphAttributes
+
+			var count = 0;
+
+			for (var i = 0; i < influences.length; i++) {
+				var influence = influences[i];
+
+				if (influence > 0) {
+					if (morphTargets) geometry.addAttribute('morphTarget' + count, morphTargets[i]);
+					if (morphNormals) geometry.addAttribute('morphNormal' + count, morphNormals[i]);
+
+					morphInfluences[count] = influence;
+
+					count++;
+				}
+			}
+
+			for (;count < 8; count++) {
+				morphInfluences[count] = 0;
+			}
+
+			program.uniforms.set('morphTargetInfluences', morphInfluences);
+		},
+
 		setupVertexAttributes: function(program, geometry) {
 			var gl = this.gl;
 			var attributes = program.attributes;
@@ -12828,8 +12981,6 @@
 						gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 						gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, 0, 0);
 					}
-				} else {
-					console.warn("WebGLCore: geometry attribute " + key + " not found!");
 				}
 			}
 
@@ -14046,6 +14197,13 @@
 	     */
 		this.material = material;
 
+		/**
+		 * An array of weights typically from 0-1 that specify how much of the morph is applied.
+		 * @type {Number[]|null}
+		 * @default null
+		 */
+		this.morphTargetInfluences = null;
+
 		this.type = OBJECT_TYPE.MESH;
 	}
 
@@ -14168,6 +14326,14 @@
 				}
 			}
 		}(),
+
+		copy: function(source) {
+			Object3D.prototype.copy.call(this, source);
+			if (source.morphTargetInfluences) {
+				this.morphTargetInfluences = source.morphTargetInfluences.slice();
+			}
+			return this;
+		},
 
 		clone: function() {
 			return new this.constructor(this.geometry, this.material).copy(this);

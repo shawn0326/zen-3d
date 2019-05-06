@@ -32,6 +32,13 @@ function Mesh(geometry, material) {
      */
 	this.material = material;
 
+	/**
+	 * An array of weights typically from 0-1 that specify how much of the morph is applied.
+	 * @type {Number[]|null}
+	 * @default null
+	 */
+	this.morphTargetInfluences = null;
+
 	this.type = OBJECT_TYPE.MESH;
 }
 
@@ -154,6 +161,14 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 			}
 		}
 	}(),
+
+	copy: function(source) {
+		Object3D.prototype.copy.call(this, source);
+		if (source.morphTargetInfluences) {
+			this.morphTargetInfluences = source.morphTargetInfluences.slice();
+		}
+		return this;
+	},
 
 	clone: function() {
 		return new this.constructor(this.geometry, this.material).copy(this);

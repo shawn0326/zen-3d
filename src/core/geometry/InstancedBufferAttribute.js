@@ -28,7 +28,13 @@ InstancedBufferAttribute.prototype = Object.assign(Object.create(BufferAttribute
      * @type {boolean}
      * @default true
      */
-	isInstancedBufferAttribute: true
+	isInstancedBufferAttribute: true,
+
+	copy: function(source) {
+		BufferAttribute.prototype.copy.call(this, source);
+		this.meshPerAttribute = source.meshPerAttribute;
+		return this;
+	}
 
 });
 

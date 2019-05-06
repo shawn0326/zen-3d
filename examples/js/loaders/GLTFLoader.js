@@ -628,7 +628,7 @@
 							TypedKeyframeTrack = zen3d.QuaternionKeyframeTrack;
 							break;
 						case PATH_PROPERTIES.weights:
-							console.warn("GLTFLoader: PATH_PROPERTIES weights not supported yet.");
+							TypedKeyframeTrack = zen3d.NumberKeyframeTrack;
 							break;
 						case PATH_PROPERTIES.position:
 						case PATH_PROPERTIES.scale:
@@ -712,11 +712,7 @@
 					var useFlatShading = geometry.attributes.a_Normal === undefined;
 					var useSkinning = meshDef.isSkinnedMesh === true;
 
-					// TODO morph targets support
-					// var useMorphTargets = primitive.targets !== undefined;
-					var useMorphTargets = false;
-
-					if (useVertexColors || useFlatShading || useSkinning || useMorphTargets) {
+					if (useVertexColors || useFlatShading || useSkinning) {
 						material = material.clone();
 					}
 
@@ -800,15 +796,12 @@
 
 					mesh.name = meshDef.name || ('mesh_' + meshIndex);
 
-					// TODO morph targets support
-					// if ( useMorphTargets ) {
-					//
-					// 	addMorphTargets( mesh, meshDef, primitive, dependencies.accessors );
-					//
-					// }
-
 					if (meshDef.extras !== undefined) mesh.userData = meshDef.extras;
 					if (primitive.extras !== undefined) mesh.geometry.userData = primitive.extras;
+
+					if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
+						mesh.morphTargetInfluences = meshDef.weights.slice();
+					}
 
 					if (primitives.length > 1) {
 						mesh.name += '_' + i;
@@ -938,6 +931,8 @@
 	function addPrimitiveAttributes(geometry, primitiveDef, accessors) {
 		var attributes = primitiveDef.attributes;
 
+		// attributes
+
 		for (var gltfAttributeName in attributes) {
 			var threeAttributeName = ATTRIBUTES[gltfAttributeName];
 			var bufferAttribute = accessors[attributes[gltfAttributeName]];
@@ -949,12 +944,49 @@
 			geometry.addAttribute(threeAttributeName, bufferAttribute);
 		}
 
+		// index
+
 		if (primitiveDef.indices !== undefined && !geometry.index) {
 			geometry.setIndex(accessors[primitiveDef.indices]);
 		}
 
 		geometry.computeBoundingBox();
 		geometry.computeBoundingSphere();
+
+		// morphAttributes
+
+		if (primitiveDef.targets !== undefined) {
+			var targets = primitiveDef.targets;
+
+			var hasMorphPosition = false;
+			var hasMorphNormal = false;
+
+			for (var i = 0, il = targets.length; i < il; i++) {
+				var target = targets[i];
+
+				if (target.POSITION !== undefined) hasMorphPosition = true;
+				if (target.NORMAL !== undefined) hasMorphNormal = true;
+
+				if (hasMorphPosition && hasMorphNormal) break;
+			}
+
+			if (!hasMorphPosition && !hasMorphNormal) {
+				return;
+			}
+
+			if (hasMorphPosition) geometry.morphAttributes.position = [];
+			if (hasMorphNormal) geometry.morphAttributes.normal = [];
+
+			for (var i = 0, il = targets.length; i < il; i++) {
+				var target = targets[i];
+				if (hasMorphPosition) {
+					geometry.morphAttributes.position.push(accessors[target.POSITION]);
+				}
+				if (hasMorphNormal) {
+					geometry.morphAttributes.normal.push(accessors[target.NORMAL]);
+				}
+			}
+		}
 	}
 
 	/**
@@ -1720,6 +1752,7 @@
 	var PATH_PROPERTIES = {
 		scale: 'scale',
 		translation: 'position',
-		rotation: 'quaternion'
+		rotation: 'quaternion',
+		weights: 'morphTargetInfluences'
 	};
 })();

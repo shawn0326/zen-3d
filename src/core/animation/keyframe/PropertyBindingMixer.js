@@ -24,6 +24,19 @@ function lerp(buffer, dstOffset, srcOffset, t, stride) {
 	}
 }
 
+// get array
+function getArray(target, source, stride, count) {
+	for (var i = 0; i < count; i++) {
+		target[i] = source[stride + i];
+	}
+}
+
+function setArray(target, source, stride, count) {
+	for (var i = 0; i < count; i++) {
+		target[stride + i] = source[i];
+	}
+}
+
 /**
  * This holds a reference to a real property in the scene graph; used internally.
  * Binding property and value, mixer for multiple values.
@@ -99,7 +112,11 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
 		// get value
 		if (this.valueSize > 1) {
-			this.target[this.property].toArray(buffer, originalValueOffset);
+			if (this.target[this.property].toArray) {
+				this.target[this.property].toArray(buffer, originalValueOffset);
+			} else {
+				setArray(buffer, this.target[this.property], originalValueOffset, this.valueSize);
+			}
 		} else {
 			this.target[this.property] = buffer[originalValueOffset];
 		}
@@ -172,7 +189,11 @@ Object.assign(PropertyBindingMixer.prototype, /** @lends zen3d.PropertyBindingMi
 
 		// set value
 		if (this.valueSize > 1) {
-			this.target[this.property].fromArray(buffer, stride);
+			if (this.target[this.property].fromArray) {
+				this.target[this.property].fromArray(buffer, stride);
+			} else {
+				getArray(this.target[this.property], buffer, stride, this.valueSize);
+			}
 		} else {
 			this.target[this.property] = buffer[stride];
 		}
