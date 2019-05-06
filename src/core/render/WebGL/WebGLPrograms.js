@@ -114,6 +114,7 @@ function createProgram(gl, props, defines) {
 		props.flipSided ? '#define FLIP_SIDED' : '',
 
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
@@ -186,6 +187,7 @@ function createProgram(gl, props, defines) {
 		props.useShaderTextureLOD ? '#define TEXTURE_LOD_EXT' : '',
 
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
@@ -337,6 +339,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useShaderTextureLOD =  capabilities.version >= 2 || !!capabilities.getExtension('EXT_shader_texture_lod');
 	// maps
 	props.useDiffuseMap = !!material.diffuseMap;
+	props.useAlphaMap = !!material.alphaMap;
 	props.useNormalMap = !!material.normalMap;
 	props.useBumpMap = !!material.bumpMap;
 	props.useSpecularMap = !!material.specularMap;

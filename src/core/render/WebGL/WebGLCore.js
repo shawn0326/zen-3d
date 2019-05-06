@@ -319,6 +319,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				case "diffuseMap":
 					uniform.set(material.diffuseMap, this);
 					break;
+				case "alphaMap":
+					uniform.set(material.alphaMap, this);
+					break;
 				case "normalMap":
 					uniform.set(material.normalMap, this);
 					break;

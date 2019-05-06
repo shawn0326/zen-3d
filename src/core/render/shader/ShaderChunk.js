@@ -30,6 +30,8 @@ import fog_pars_frag from './shaderChunk/fog_pars_frag.glsl';
 import inverse from './shaderChunk/inverse.glsl';
 import light_frag from './shaderChunk/light_frag.glsl';
 import light_pars_frag from './shaderChunk/light_pars_frag.glsl';
+import alphamap_pars_frag from './shaderChunk/alphamap_pars_frag.glsl';
+import alphamap_frag from './shaderChunk/alphamap_frag.glsl';
 import normalMap_pars_frag from './shaderChunk/normalMap_pars_frag.glsl';
 import normal_frag from './shaderChunk/normal_frag.glsl';
 import normal_pars_frag from './shaderChunk/normal_pars_frag.glsl';
@@ -95,6 +97,8 @@ export var ShaderChunk = {
 	inverse: inverse,
 	light_frag: light_frag,
 	light_pars_frag: light_pars_frag,
+	alphamap_pars_frag: alphamap_pars_frag,
+	alphamap_frag: alphamap_frag,
 	normalMap_pars_frag: normalMap_pars_frag,
 	normal_frag: normal_frag,
 	normal_pars_frag: normal_pars_frag,
