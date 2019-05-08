@@ -115,6 +115,7 @@ function createProgram(gl, props, defines) {
 
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
 		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
@@ -188,6 +189,7 @@ function createProgram(gl, props, defines) {
 
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
 		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
@@ -340,6 +342,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	// maps
 	props.useDiffuseMap = !!material.diffuseMap;
 	props.useAlphaMap = !!material.alphaMap;
+	props.useAlphaMapUVTransform = !!material.alphaMap && material.alphaMap.useUVTransform;
 	props.useNormalMap = !!material.normalMap;
 	props.useBumpMap = !!material.bumpMap;
 	props.useSpecularMap = !!material.specularMap;

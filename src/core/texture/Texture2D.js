@@ -78,6 +78,15 @@ function Texture2D() {
      * @default true
      */
 	this.matrixAutoUpdate = true;
+
+	/**
+	 * Whether to use the texture's uv-transform {@link zen3d.Texture2D#matrix} from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center}.
+	 * This is only useful when the texture is an alphaMap for Now.
+	 * Other material map will use a same uv-transform by default.
+	 * @member {boolean}
+	 * @default true
+	 */
+	this.useUVTransform = true;
 }
 
 Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.Texture2D.prototype */{

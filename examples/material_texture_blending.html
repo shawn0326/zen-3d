@@ -40,39 +40,52 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
-	        var renderer = new zen3d.Renderer(canvas);
+			var renderer = new zen3d.Renderer(canvas);
+			renderer.glCore.state.colorBuffer.setClear(0.1, 0.8, 0.9, 1);
 
 	        var scene = new zen3d.Scene();
 
-			var texture = new zen3d.Texture2D.fromSrc("resources/UV_Grid_Sm.jpg");
-			texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			texture.wrapT = texture.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
-			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+			var texture1 = new zen3d.Texture2D.fromSrc("resources/grass.jpg");
+			texture1.wrapT = texture1.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+			texture1.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+			texture1.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+			texture1.repeat.set(40, 40);
 
-			var alphaTex = new zen3d.Texture2D.fromSrc("resources/water.jpg");
-			alphaTex.minFilter = alphaTex.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			var texture2 = new zen3d.Texture2D.fromSrc("resources/dirt.jpg");
+			texture2.wrapT = texture2.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+			texture2.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+			texture2.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+			texture2.repeat.set(20, 20);
 
-			var plane_geometry = new zen3d.PlaneGeometry(500, 500);
+			var alphaTex1 = new zen3d.Texture2D.fromSrc("resources/ground_alpha.jpg");
+			alphaTex1.minFilter = alphaTex1.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+
+			var alphaTex2 = new zen3d.Texture2D.fromSrc("resources/water.jpg");
+			alphaTex2.minFilter = alphaTex2.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+
+			var plane_geometry = new zen3d.PlaneGeometry(600, 600);
 			plane_geometry.groups = [
 				{start: 0, count: Infinity, materialIndex: 0},
-				{start: 0, count: Infinity, materialIndex: 1}
+				{start: 0, count: Infinity, materialIndex: 1},
+				{start: 0, count: Infinity, materialIndex: 2}
 			];
 
-			var lambert1 = new zen3d.LambertMaterial();
-			lambert1.diffuse.setHex(0xccffcc);
+			var mat1 = new zen3d.BasicMaterial();
+			mat1.diffuseMap = texture1;
 
-			var lambert2 = new zen3d.LambertMaterial();
-			lambert2.diffuseMap = texture;
-			lambert2.alphaMap = alphaTex;
-			lambert2.transparent = true;
+			var mat2 = new zen3d.BasicMaterial();
+			mat2.diffuseMap = texture2;
+			mat2.alphaMap = alphaTex1;
+			mat2.transparent = true;
 
-			var plane = new zen3d.Mesh(plane_geometry, [lambert1, lambert2]);
+			var mat3 = new zen3d.BasicMaterial();
+			mat3.diffuseMap = texture1;
+			mat3.alphaMap = alphaTex2;
+			mat3.transparent = true;
+
+			var plane = new zen3d.Mesh(plane_geometry, [mat1, mat2, mat3]);
 	        plane.position.y = -10;
 	        scene.add(plane);
-
-	        var ambientLight = new zen3d.AmbientLight(0xffffff, 3);
-	        scene.add(ambientLight);
 
 			var camera = new zen3d.Camera();
 			camera.gammaFactor = 1.5;

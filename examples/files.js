@@ -29,6 +29,7 @@ var files = {
 		"material_texture_mipmap",
 		"material_texture_uvtransform",
 		"material_texture_anisotropic",
+		"material_texture_blending",
 		"material_texture_hdr",
 		"material_depth_texture",
 		"material_cubetexture_skybox",

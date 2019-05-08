@@ -5,3 +5,7 @@
 #ifdef USE_AOMAP
     v_Uv2 = a_Uv2;
 #endif
+
+#ifdef USE_ALPHA_MAP_UV_TRANSFORM
+    vAlphaMapUV = (alphaMapUVTransform * vec3(a_Uv, 1.)).xy;
+#endif 

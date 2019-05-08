@@ -435,6 +435,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						uniform.set(uvScaleMap.matrix.elements);
 					}
 					break;
+				case "alphaMapUVTransform":
+					material.alphaMap.updateMatrix();
+					uniform.set(material.alphaMap.matrix.elements);
 				default:
 					break;
 				}

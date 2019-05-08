@@ -5673,6 +5673,15 @@ function Texture2D() {
      * @default true
      */
 	this.matrixAutoUpdate = true;
+
+	/**
+	 * Whether to use the texture's uv-transform {@link zen3d.Texture2D#matrix} from the texture properties {@link zen3d.Texture2D#offset}, {@link zen3d.Texture2D#repeat}, {@link zen3d.Texture2D#rotation}, and {@link zen3d.Texture2D#center}.
+	 * This is only useful when the texture is an alphaMap for Now.
+	 * Other material map will use a same uv-transform by default.
+	 * @member {boolean}
+	 * @default true
+	 */
+	this.useUVTransform = true;
 }
 
 Texture2D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @lends zen3d.Texture2D.prototype */{
@@ -11173,7 +11182,7 @@ var light_pars_frag = "#ifdef USE_AMBIENT_LIGHT\r\n    #include <ambientlight_pa
 
 var alphamap_pars_frag = "#ifdef USE_ALPHA_MAP\r\n\r\n\tuniform sampler2D alphaMap;\r\n\r\n#endif";
 
-var alphamap_frag = "#ifdef USE_ALPHA_MAP\r\n\r\n\toutColor.a *= texture2D(alphaMap, v_Uv).g;\r\n\r\n#endif";
+var alphamap_frag = "#ifdef USE_ALPHA_MAP\r\n\r\n\t#ifdef USE_ALPHA_MAP_UV_TRANSFORM\r\n\t\toutColor.a *= texture2D(alphaMap, vAlphaMapUV).g;\r\n\t#else\r\n\t\toutColor.a *= texture2D(alphaMap, v_Uv).g;\r\n\t#endif\r\n\r\n#endif";
 
 var normalMap_pars_frag = "#include <tbn>\r\n#include <tsn>\r\nuniform sampler2D normalMap;";
 
@@ -11225,11 +11234,11 @@ var transpose = "mat4 transposeMat4(mat4 inMatrix) {\r\n    vec4 i0 = inMatrix[0
 
 var tsn = "mat3 tsn(vec3 N, vec3 V, vec2 uv) {\r\n\r\n    vec3 q0 = dFdx( V.xyz );\r\n    vec3 q1 = dFdy( V.xyz );\r\n    vec2 st0 = dFdx( uv.st );\r\n    vec2 st1 = dFdy( uv.st );\r\n\r\n    vec3 S = normalize( q0 * st1.t - q1 * st0.t );\r\n    vec3 T = normalize( -q0 * st1.s + q1 * st0.s );\r\n    // vec3 N = normalize( N );\r\n\r\n    mat3 tsn = mat3( S, T, N );\r\n    return tsn;\r\n}";
 
-var uv_pars_frag = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP)\r\n    varying vec2 v_Uv;\r\n#endif\r\n\r\n#ifdef USE_AOMAP\r\n    varying vec2 v_Uv2;\r\n#endif";
+var uv_pars_frag = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP)\r\n    varying vec2 v_Uv;\r\n#endif\r\n\r\n#ifdef USE_AOMAP\r\n    varying vec2 v_Uv2;\r\n#endif\r\n\r\n#ifdef USE_ALPHA_MAP_UV_TRANSFORM\r\n    varying vec2 vAlphaMapUV;\r\n#endif ";
 
-var uv_pars_vert = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP)\r\n    attribute vec2 a_Uv;\r\n    varying vec2 v_Uv;\r\n    uniform mat3 uvTransform;\r\n#endif\r\n\r\n#ifdef USE_AOMAP\r\n    attribute vec2 a_Uv2;\r\n    varying vec2 v_Uv2;\r\n#endif\r\n";
+var uv_pars_vert = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP)\r\n    attribute vec2 a_Uv;\r\n    varying vec2 v_Uv;\r\n    uniform mat3 uvTransform;\r\n#endif\r\n\r\n#ifdef USE_AOMAP\r\n    attribute vec2 a_Uv2;\r\n    varying vec2 v_Uv2;\r\n#endif\r\n\r\n#ifdef USE_ALPHA_MAP_UV_TRANSFORM\r\n    varying vec2 vAlphaMapUV;\r\n    uniform mat3 alphaMapUVTransform;\r\n#endif \r\n";
 
-var uv_vert = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP)\r\n    v_Uv = (uvTransform * vec3(a_Uv, 1.)).xy;\r\n#endif\r\n\r\n#ifdef USE_AOMAP\r\n    v_Uv2 = a_Uv2;\r\n#endif";
+var uv_vert = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP)\r\n    v_Uv = (uvTransform * vec3(a_Uv, 1.)).xy;\r\n#endif\r\n\r\n#ifdef USE_AOMAP\r\n    v_Uv2 = a_Uv2;\r\n#endif\r\n\r\n#ifdef USE_ALPHA_MAP_UV_TRANSFORM\r\n    vAlphaMapUV = (alphaMapUVTransform * vec3(a_Uv, 1.)).xy;\r\n#endif ";
 
 var viewModelPos_pars_frag = "#if (NUM_POINT_LIGHTS > 0) || (NUM_SPOT_LIGHTS > 0) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || (NUM_CLIPPING_PLANES > 0) \r\n    varying vec3 v_modelPos;\r\n#endif";
 
@@ -11484,6 +11493,7 @@ function createProgram(gl, props, defines) {
 
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
 		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
@@ -11557,6 +11567,7 @@ function createProgram(gl, props, defines) {
 
 		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
 		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.useAOMap ? '#define USE_AOMAP' : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
@@ -11709,6 +11720,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	// maps
 	props.useDiffuseMap = !!material.diffuseMap;
 	props.useAlphaMap = !!material.alphaMap;
+	props.useAlphaMapUVTransform = !!material.alphaMap && material.alphaMap.useUVTransform;
 	props.useNormalMap = !!material.normalMap;
 	props.useBumpMap = !!material.bumpMap;
 	props.useSpecularMap = !!material.specularMap;
@@ -12602,6 +12614,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 						uniform.set(uvScaleMap.matrix.elements);
 					}
 					break;
+				case "alphaMapUVTransform":
+					material.alphaMap.updateMatrix();
+					uniform.set(material.alphaMap.matrix.elements);
 				default:
 					break;
 				}
