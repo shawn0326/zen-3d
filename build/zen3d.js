@@ -11513,7 +11513,7 @@
 			(props.bonesNum > 0) ? ('#define MAX_BONES ' + props.bonesNum) : '',
 			props.useVertexTexture ? '#define BONE_TEXTURE' : ''
 
-		].join("\n");
+		].filter(filterEmptyLine).join("\n");
 
 		var prefixFragment = [
 
@@ -11593,7 +11593,7 @@
 
 			props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '',
 
-		].join("\n");
+		].filter(filterEmptyLine).join("\n");
 
 		// vertexCode & fragmentCode
 		var vertex = ShaderLib[props.materialType + "_vert"] || props.vertexShader || ShaderLib.basic_vert;
@@ -11681,6 +11681,10 @@
 
 		return string.replace(pattern, replace);
 	};
+
+	function filterEmptyLine(string) {
+		return string !== '';
+	}
 
 	function replaceLightNums(string, parameters) {
 		return string
