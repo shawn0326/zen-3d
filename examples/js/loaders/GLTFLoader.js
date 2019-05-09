@@ -1649,6 +1649,8 @@
 			console.warn('THREE.GLTFLoader: Custom UV sets in "' + this.name + '" extension not yet supported.');
 		}
 
+		texture.useUVTransform = true;
+
 		return texture;
 	}
 
