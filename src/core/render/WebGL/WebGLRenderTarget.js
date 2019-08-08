@@ -241,7 +241,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 	},
 
 	// Blit framebuffers.
-	blitRenderTarget: function(read, draw) {
+	blitRenderTarget: function(read, draw, color, depth, stencil) {
 		var gl = this.gl;
 		var properties = this.properties;
 		var capabilities = this.capabilities;
@@ -255,11 +255,18 @@ Object.assign(WebGLRenderTarget.prototype, {
 		var drawBuffer = properties.get(draw).__webglFramebuffer;
 		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, readBuffer);
 		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, drawBuffer);
-		gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+
+		var mask = 0;
+		if (color === undefined || !!color) mask |= gl.COLOR_BUFFER_BIT;
+		if (depth === undefined || !!depth) mask |= gl.DEPTH_BUFFER_BIT;
+		if (stencil === undefined || !!stencil) mask |= gl.STENCIL_BUFFER_BIT;
+
+		// gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+
 		gl.blitFramebuffer(
 			0, 0, read.width, read.height,
 			0, 0, draw.width, draw.height,
-			gl.COLOR_BUFFER_BIT, gl.NEAREST
+			mask, gl.NEAREST
 		);
 	},
 
