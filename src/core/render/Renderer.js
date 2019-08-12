@@ -1,10 +1,9 @@
 import { RenderTargetBack } from './RenderTargetBack.js';
 import { WebGLCore } from './WebGL/WebGLCore.js';
-import { Performance } from '../Performance.js';
 import { ShadowMapPass } from './prePass/ShadowMapPass.js';
 
 /**
- * A simple foward renderer.
+ * A simple forward renderer.
  * @constructor
  * @memberof zen3d
  * @param {HTMLCanvasElement} view - The canvas elements.
@@ -25,8 +24,6 @@ function Renderer(view, options) {
 	console.info("ForwardRenderer use WebGL Version: " + this.glCore.capabilities.version);
 
 	this.backRenderTarget = new RenderTargetBack(view);
-
-	this.performance = new Performance();
 
 	this.shadowMapPass = new ShadowMapPass();
 
@@ -75,24 +72,14 @@ function Renderer(view, options) {
  * @param {boolean} [forceClear=false] - If set true, the depth, stencil and color buffers will be cleared before rendering even if the renderer's autoClear property is false.
  */
 Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
-	var performance = this.performance;
-
-	performance.updateFps();
-
-	performance.startCounter("render", 60);
-
 	this.matrixAutoUpdate && scene.updateMatrix();
 	this.lightsAutoupdate && scene.updateLights();
-
-	performance.startCounter("renderShadow", 60);
 
 	if (this.shadowAutoUpdate || this.shadowNeedsUpdate) {
 		this.shadowMapPass.render(this.glCore, scene);
 
 		this.shadowNeedsUpdate = false;
 	}
-
-	performance.endCounter("renderShadow");
 
 	if (renderTarget === undefined) {
 		renderTarget = this.backRenderTarget;
@@ -103,15 +90,11 @@ Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
 		this.glCore.clear(true, true, true);
 	}
 
-	performance.startCounter("renderList", 60);
 	this.glCore.render(scene, camera);
-	performance.endCounter("renderList");
 
 	if (!!renderTarget.texture) {
 		this.glCore.renderTarget.updateRenderTargetMipmap(renderTarget);
 	}
-
-	this.performance.endCounter("render");
 }
 
 export { Renderer };

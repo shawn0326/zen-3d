@@ -7,7 +7,6 @@ export * from './base.js';
 export * from './const.js';
 
 export { EventDispatcher } from './EventDispatcher.js';
-// export {Performance} from './Performance.js';
 export { Raycaster } from './Raycaster.js';
 
 export { Euler } from './math/Euler.js';

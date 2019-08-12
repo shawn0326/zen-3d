@@ -89,9 +89,6 @@ var files = {
 		"physics_ammo",
 		"physics_ammo_softbody_volume"
 	],
-	"help": [
-		"help_performance"
-	],
 	"particle": [
 		"particle_particle"
 	],
