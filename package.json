@@ -3,6 +3,19 @@
   "version": "0.0.0",
   "description": "JavaScript 3D library",
   "main": "build/zen3d.js",
+  "repository": "shawn0326/zen-3d",
+  "jsnext:main": "build/zen3d.module.js",
+  "module": "build/zen3d.module.js",
+  "files": [
+    "build/zen3d.js",
+    "build/zen3d.min.js",
+    "build/zen3d.module.js",
+    "examples/js",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "src"
+  ],
   "directories": {
     "doc": "docs",
     "example": "examples",
@@ -20,7 +33,6 @@
     "url": "https://github.com/shawn0326/zen-3d/issues"
   },
   "dependencies": {},
-  "repository": {},
   "devDependencies": {
     "eslint": "^5.16.0",
     "jsdoc": "^3.6.2",
