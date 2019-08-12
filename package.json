@@ -35,9 +35,9 @@
   "dependencies": {},
   "devDependencies": {
     "eslint": "^5.16.0",
-    "jsdoc": "^3.6.2",
+    "jsdoc": "^3.6.3",
     "live-server": "^1.2.1",
-    "rollup": "^1.15.6",
+    "rollup": "^1.19.4",
     "uglify-js": "^3.6.0"
   },
   "scripts": {
