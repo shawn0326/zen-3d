@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - custom pass blur</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./files/dat.gui.min.js"></script>
+	<script src="./js/loaders/AssimpJsonLoader.js"></script>
+	<script src="./js/shaders/CopyShader.js"></script>
+	<script src="./js/shaders/FastGaussianBlurShader.js"></script>
+	<script src="./js/shaders/FXAAShader.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass blur
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var scene = new zen3d.Scene();
+
+			var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
+			var interior = "resources/models/assimp/interior/interior.assimp.json";
+
+			var loader1 = new zen3d.AssimpJsonLoader();
+			loader1.load(jeep, function(object) {
+				object.scale.set(0.4, 0.4, 0.4);
+				object.traverse(function(obj) {
+					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+						obj.castShadow = true;
+					}
+				});
+				scene.add(object);
+			});
+
+			var loader2 = new zen3d.AssimpJsonLoader();
+			loader2.load(interior, function(object) {
+				object.traverse(function(obj) {
+					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+						obj.receiveShadow = true;
+					}
+				});
+				scene.add(object);
+			});
+
+			var ambientLight = new zen3d.AmbientLight(0xffffff);
+	        scene.add(ambientLight);
+
+	        var spotLight = new zen3d.SpotLight(0xffffff, 1.5, 30, Math.PI / 5, 0.3);
+	        spotLight.euler.set(Math.PI / 2, 0, 0);
+	        spotLight.position.set(0, 10, 0);
+			spotLight.castShadow = true;
+	        scene.add(spotLight);
+
+			var camera = new zen3d.Camera();
+			camera.gammaInput = true;
+			camera.gammaOutput = true;
+	        camera.position.set(0, 4, 10);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+	        scene.add(camera);
+
+			// custom pass
+			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+			var tempRenderTarget1 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        	tempRenderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        	tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+        
+			var gl = canvas.getContext("webgl", {
+				antialias: true, // antialias
+				alpha: false, // effect performance, default false
+				// premultipliedAlpha: false, // effect performance, default false
+				stencil: true
+			});
+			var glCore = new zen3d.WebGLCore(gl);
+
+			var shadowMapPass = new zen3d.ShadowMapPass();
+			var blurPass = new zen3d.ShaderPostPass(zen3d.FastGaussianBlurShader);
+			blurPass.uniforms["resolution"] = [1 / width, 1 / height];
+
+			// gui
+			var params = { radius: 5 };
+			var gui = new dat.GUI();
+			gui.add(params, "radius", 0, 10, 0.01);
+			gui.add(blurPass.material.defines, "SAMPLERS", [5, 9, 13]).onChange(val => {
+				blurPass.material.needsUpdate = true;
+			});
+
+	        function loop(count) {
+				requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 10 * Math.sin(count / 1000 * .5);
+				camera.position.z = 10 * Math.cos(count / 1000 * .5);
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				// do render pass
+				scene.updateMatrix();
+				scene.updateLights();
+
+				shadowMapPass.render(glCore, scene);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+            	glCore.clear(true, true, true);
+
+				glCore.render(scene, camera);
+
+				var iterations = Math.floor(params.radius / 2) * 2 + 2;
+				let read = tempRenderTarget1, write = tempRenderTarget2, temp;
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				for (var i = 0; i < iterations; i++) {
+					var radius = params.radius * (1 + i) / iterations;
+					glCore.renderTarget.setRenderTarget(i === (iterations - 1) ? backRenderTarget : write);
+					glCore.clear(true, true, true);
+					blurPass.uniforms.tDiffuse = read.texture;
+					blurPass.uniforms.direction[0] = i % 2 === 0 ? radius : 0;
+					blurPass.uniforms.direction[1] = i % 2 === 1 ? radius : 0;
+					blurPass.render(glCore);
+
+					temp = read;
+					read = write;
+					write = temp;
+				}
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				backRenderTarget.resize(width, height);
+				tempRenderTarget1.resize(width, height);
+				tempRenderTarget2.resize(width, height);
+
+				blurPass.uniforms["resolution"] = [1 / width, 1 / height];
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

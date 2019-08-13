@@ -105,6 +105,7 @@ var files = {
 		"custompass_ssao",
 		"custompass_taa",
 		"custompass_bloom",
+		"custompass_blur",
 		"custompass_msaa"
 	],
 	"deferred": [
