@@ -1,4 +1,3 @@
-import { generateUUID } from '../../base.js';
 import { WebGLUniforms } from './WebGLUniforms.js';
 import { WebGLAttribute } from './WebGLAttribute.js';
 
@@ -68,8 +67,6 @@ var programIdCount = 0;
 // WebGL Program Class
 function WebGLProgram(gl, vshader, fshader) {
 	this.id = programIdCount++;
-
-	this.uuid = generateUUID();
 
 	this.usedTimes = 1;
 

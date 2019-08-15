@@ -1,5 +1,3 @@
-import { generateUUID } from '../base.js';
-
 /**
  * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
  * An introduction into interleaved arrays can be found here: {@link https://blog.tojicode.com/2011/05/interleaved-array-basics.html Interleaved array basics}.
@@ -9,13 +7,6 @@ import { generateUUID } from '../base.js';
  * @param {Integer} stride -- The number of typed-array elements per vertex.
  */
 function InterleavedBuffer(array, stride) {
-	/**
-     * UUID of this InterleavedBuffer instance.
-     * This gets automatically assigned, so this shouldn't be edited.
-     * @type {string}
-     */
-	this.uuid = generateUUID();
-
 	/**
      * A typed array with a shared buffer.
      * Stores the geometry data.

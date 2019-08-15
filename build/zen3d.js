@@ -7103,13 +7103,6 @@
 	 */
 	function BufferAttribute(array, size, normalized) {
 		/**
-	     * UUID of this buffer attribute instance.
-	     * This gets automatically assigned, so this shouldn't be edited.
-	     * @type {string}
-	     */
-		this.uuid = generateUUID();
-
-		/**
 	     * The array holding data stored in the buffer.
 	     * @type {TypedArray}
 	     */
@@ -7865,13 +7858,6 @@
 	 */
 	function InterleavedBuffer(array, stride) {
 		/**
-	     * UUID of this InterleavedBuffer instance.
-	     * This gets automatically assigned, so this shouldn't be edited.
-	     * @type {string}
-	     */
-		this.uuid = generateUUID();
-
-		/**
 	     * A typed array with a shared buffer.
 	     * Stores the geometry data.
 	     * @type {TypedArray}
@@ -7963,8 +7949,6 @@
 	 * @param {boolean} [normalized=false]
 	 */
 	function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized) {
-		this.uuid = generateUUID();
-
 		/**
 	     * The InterleavedBuffer instance passed in the constructor.
 	     * @type {zen3d.InterleavedBuffer}
@@ -11084,8 +11068,6 @@
 	function WebGLProgram(gl, vshader, fshader) {
 		this.id = programIdCount++;
 
-		this.uuid = generateUUID();
-
 		this.usedTimes = 1;
 
 		this.code = "";
@@ -13227,13 +13209,6 @@
 	 */
 	function RenderTargetBase(width, height) {
 		EventDispatcher.call(this);
-
-		/**
-	     * UUID of this render target instance.
-	     * This gets automatically assigned, so this shouldn't be edited.
-	     * @type {string}
-	     */
-		this.uuid = generateUUID();
 
 		/**
 	     * The width of the render target.

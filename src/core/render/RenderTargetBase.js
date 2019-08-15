@@ -1,4 +1,3 @@
-import { generateUUID } from '../base.js';
 import { EventDispatcher } from '../EventDispatcher.js';
 
 /**
@@ -12,13 +11,6 @@ import { EventDispatcher } from '../EventDispatcher.js';
  */
 function RenderTargetBase(width, height) {
 	EventDispatcher.call(this);
-
-	/**
-     * UUID of this render target instance.
-     * This gets automatically assigned, so this shouldn't be edited.
-     * @type {string}
-     */
-	this.uuid = generateUUID();
 
 	/**
      * The width of the render target.

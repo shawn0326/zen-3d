@@ -1,5 +1,3 @@
-import { generateUUID } from '../base.js';
-
 /**
  * @constructor
  * @memberof zen3d
@@ -9,8 +7,6 @@ import { generateUUID } from '../base.js';
  * @param {boolean} [normalized=false]
  */
 function InterleavedBufferAttribute(interleavedBuffer, size, offset, normalized) {
-	this.uuid = generateUUID();
-
 	/**
      * The InterleavedBuffer instance passed in the constructor.
      * @type {zen3d.InterleavedBuffer}

@@ -1,5 +1,3 @@
-import { generateUUID } from '../base.js';
-
 /**
  * This class stores data for an attribute (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes ) associated with a Geometry, which allows for more efficient passing of data to the GPU.
  * Data is stored as vectors of any length (defined by itemSize).
@@ -10,13 +8,6 @@ import { generateUUID } from '../base.js';
  * @param {boolean} [normalized=false] - Indicates how the underlying data in the buffer maps to the values in the GLSL code. For instance, if array is an instance of UInt16Array, and normalized is true, the values 0 - +65535 in the array data will be mapped to 0.0f - +1.0f in the GLSL attribute. An Int16Array (signed) would map from -32767 - +32767 to -1.0f - +1.0f. If normalized is false, the values will be converted to floats which contain the exact value, i.e. 32767 becomes 32767.0f.
  */
 function BufferAttribute(array, size, normalized) {
-	/**
-     * UUID of this buffer attribute instance.
-     * This gets automatically assigned, so this shouldn't be edited.
-     * @type {string}
-     */
-	this.uuid = generateUUID();
-
 	/**
      * The array holding data stored in the buffer.
      * @type {TypedArray}
