@@ -3,7 +3,19 @@
 		this._samplingSize = samplingSize || 30;
 
 		var haltonSequence = [[0.5, 0.5]]; // first center
-		var halton = zen3d.halton;
+
+		// https://en.wikipedia.org/wiki/Halton_sequence halton sequence.
+		function halton(index, base) {
+			var result = 0;
+			var f = 1 / base;
+			var i = index;
+			while (i > 0) {
+				result = result + f * (i % base);
+				i = Math.floor(i / base);
+				f = f / base;
+			}
+			return result;
+		}
 
 		for (var i = 0; i < this._samplingSize - 1; i++) {
 			haltonSequence.push([

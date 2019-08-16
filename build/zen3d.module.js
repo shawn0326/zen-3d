@@ -30,71 +30,6 @@ var generateUUID = (function () {
 })();
 
 /**
- * Is mobile.
- * @name zen3d.isMobile
- * @type {boolean}
- */
-var isMobile = (function () {
-	if (!window.navigator) {
-		return true;
-	}
-	var ua = navigator.userAgent.toLowerCase();
-	return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
-})();
-
-/**
- * Is web.
- * @name zen3d.isWeb
- * @type {boolean}
- */
-var isWeb = (function () {
-	return !!document;
-})();
-
-/**
- * Create an Checker Board Pixels Data.
- * @method
- * @name zen3d.createCheckerBoardPixels
- * @param {number} width - The width of the pixels.
- * @param {number} height - The height of the pixels.
- * @param {number} [blockSize=5] - The block size of the Checker Board.
- * @return {Uint8Array} - The Board Pixels Data.
- */
-function createCheckerBoardPixels(width, height, blockSize) {
-	var pixelArray = new Uint8Array(width * height * 4);
-
-	// white and blasck
-	var colors = [[255, 255, 255, 255], [0, 0, 0, 255]];
-
-	blockSize = blockSize || 5;
-
-	var colorIndex = 0;
-
-	for (var y = 0; y < height; y++) {
-		for (var x = 0; x < width; x++) {
-			if (x == 0) {
-				colorIndex = 1;
-			} else if ((x % blockSize) == 0) {
-				colorIndex = (colorIndex + 1) % 2;
-			}
-
-			if ((y % blockSize) == 0 && x == 0) {
-				var tmp = colors[0];
-				colors[0] = colors[1];
-				colors[1] = tmp;
-			}
-
-			pixelArray[(y * (width * 4) + x * 4) + 0] = colors[colorIndex][0];
-			pixelArray[(y * (width * 4) + x * 4) + 1] = colors[colorIndex][1];
-			pixelArray[(y * (width * 4) + x * 4) + 2] = colors[colorIndex][2];
-			pixelArray[(y * (width * 4) + x * 4) + 3] = colors[colorIndex][3];
-		}
-	}
-
-	return pixelArray;
-}
-
-/**
  * Is this number a power of two.
  * @method
  * @name zen3d.isPowerOfTwo
@@ -156,26 +91,6 @@ function cloneUniforms(uniforms_src) {
 	}
 
 	return uniforms_dst;
-}
-
-/**
- * Generate {@link https://en.wikipedia.org/wiki/Halton_sequence halton sequence}.
- * @method
- * @name zen3d.halton
- * @param {number} index
- * @param {number} base
- * @return {number} - The result halton number.
- */
-function halton(index, base) {
-	var result = 0;
-	var f = 1 / base;
-	var i = index;
-	while (i > 0) {
-		result = result + f * (i % base);
-		i = Math.floor(i / base);
-		f = f / base;
-	}
-	return result;
 }
 
 /**
@@ -9873,7 +9788,7 @@ function _isPowerOfTwo(image) {
 }
 
 function makePowerOf2(image) {
-	if (isWeb && (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement)) {
+	if (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement) {
 		var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
 		canvas.width = nearestPowerOfTwo(image.width);
 		canvas.height = nearestPowerOfTwo(image.height);
@@ -9891,10 +9806,9 @@ function makePowerOf2(image) {
 
 function clampToMaxSize(image, maxSize) {
 	if (image.width > maxSize || image.height > maxSize) {
-		if (!isWeb) {
-			console.warn('image is too big (' + image.width + 'x' + image.height + '). max size is ' + maxSize + 'x' + maxSize, image);
-			return image;
-		}
+		// console.warn('image is too big (' + image.width + 'x' + image.height + '). max size is ' + maxSize + 'x' + maxSize, image);
+		// return image;
+
 		// Warning: Scaling through the canvas will only work with images that use
 		// premultiplied alpha.
 
@@ -15382,4 +15296,4 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
 
 });
 
-export { ATTACHMENT, AmbientLight, AnimationMixer, BLEND_EQUATION, BLEND_FACTOR, BLEND_TYPE, BasicMaterial, Bone, BooleanKeyframeTrack, Box2, Box3, BufferAttribute, CULL_FACE_TYPE, Camera, Color3, ColorKeyframeTrack, CubeGeometry, Curve, CylinderGeometry, DRAW_BUFFER, DRAW_MODE, DRAW_SIDE, DefaultLoadingManager, DepthMaterial, DirectionalLight, DirectionalLightShadow, DistanceMaterial, ENVMAP_COMBINE_TYPE, EnvironmentMapPass, Euler, EventDispatcher, FOG_TYPE, FileLoader, Fog, FogExp2, Frustum, Geometry, Group, ImageLoader, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, KeyframeClip, KeyframeTrack, LIGHT_TYPE, LambertMaterial, Light, LightCache, LightShadow, LineDashedMaterial, LineMaterial, LoadingManager, MATERIAL_TYPE, Material, Matrix3, Matrix4, Mesh, NumberKeyframeTrack, OBJECT_TYPE, Object3D, PBR2Material, PBRMaterial, PhongMaterial, Plane, PlaneGeometry, PointLight, PointLightShadow, PointsMaterial, PropertyBindingMixer, Quaternion, QuaternionKeyframeTrack, RGBELoader, Ray, Raycaster, RenderList, RenderTarget2D, RenderTargetBack, RenderTargetBase, RenderTargetCube, Renderer, SHADING_TYPE, SHADOW_TYPE, Scene, ShaderChunk, ShaderLib, ShaderMaterial, ShaderPostPass, ShadowMapPass, Skeleton, SkinnedMesh, Sphere, SphereGeometry, Spherical, SpotLight, SpotLightShadow, StringKeyframeTrack, TEXEL_ENCODING_TYPE, TGALoader, Texture2D, Texture3D, TextureBase, TextureCube, TorusKnotGeometry, Triangle, VERTEX_COLOR, Vector2, Vector3, Vector4, VectorKeyframeTrack, WEBGL_ATTRIBUTE_TYPE, WEBGL_COMPARE_FUNC, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_TYPE, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, WebGLAttribute, WebGLCapabilities, WebGLCore, WebGLGeometry, WebGLProgram, WebGLPrograms, WebGLProperties, WebGLState, WebGLTexture, WebGLUniforms, cloneUniforms, createCheckerBoardPixels, generateUUID, halton, isMobile, isPowerOfTwo, isWeb, nearestPowerOfTwo, nextPowerOfTwo };
+export { ATTACHMENT, AmbientLight, AnimationMixer, BLEND_EQUATION, BLEND_FACTOR, BLEND_TYPE, BasicMaterial, Bone, BooleanKeyframeTrack, Box2, Box3, BufferAttribute, CULL_FACE_TYPE, Camera, Color3, ColorKeyframeTrack, CubeGeometry, Curve, CylinderGeometry, DRAW_BUFFER, DRAW_MODE, DRAW_SIDE, DefaultLoadingManager, DepthMaterial, DirectionalLight, DirectionalLightShadow, DistanceMaterial, ENVMAP_COMBINE_TYPE, EnvironmentMapPass, Euler, EventDispatcher, FOG_TYPE, FileLoader, Fog, FogExp2, Frustum, Geometry, Group, ImageLoader, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, KeyframeClip, KeyframeTrack, LIGHT_TYPE, LambertMaterial, Light, LightCache, LightShadow, LineDashedMaterial, LineMaterial, LoadingManager, MATERIAL_TYPE, Material, Matrix3, Matrix4, Mesh, NumberKeyframeTrack, OBJECT_TYPE, Object3D, PBR2Material, PBRMaterial, PhongMaterial, Plane, PlaneGeometry, PointLight, PointLightShadow, PointsMaterial, PropertyBindingMixer, Quaternion, QuaternionKeyframeTrack, RGBELoader, Ray, Raycaster, RenderList, RenderTarget2D, RenderTargetBack, RenderTargetBase, RenderTargetCube, Renderer, SHADING_TYPE, SHADOW_TYPE, Scene, ShaderChunk, ShaderLib, ShaderMaterial, ShaderPostPass, ShadowMapPass, Skeleton, SkinnedMesh, Sphere, SphereGeometry, Spherical, SpotLight, SpotLightShadow, StringKeyframeTrack, TEXEL_ENCODING_TYPE, TGALoader, Texture2D, Texture3D, TextureBase, TextureCube, TorusKnotGeometry, Triangle, VERTEX_COLOR, Vector2, Vector3, Vector4, VectorKeyframeTrack, WEBGL_ATTRIBUTE_TYPE, WEBGL_COMPARE_FUNC, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_TYPE, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, WebGLAttribute, WebGLCapabilities, WebGLCore, WebGLGeometry, WebGLProgram, WebGLPrograms, WebGLProperties, WebGLState, WebGLTexture, WebGLUniforms, cloneUniforms, generateUUID, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo };

@@ -1,5 +1,5 @@
 import { WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_WRAP, WEBGL_PIXEL_TYPE, WEBGL_PIXEL_FORMAT } from '../../const.js';
-import { isWeb, isPowerOfTwo, nearestPowerOfTwo } from '../../base.js';
+import { isPowerOfTwo, nearestPowerOfTwo } from '../../base.js';
 
 function textureNeedsPowerOfTwo(texture) {
 	if (texture.wrapS !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE || texture.wrapT !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE) return true;
@@ -21,7 +21,7 @@ function _isPowerOfTwo(image) {
 }
 
 function makePowerOf2(image) {
-	if (isWeb && (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement)) {
+	if (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement) {
 		var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
 		canvas.width = nearestPowerOfTwo(image.width);
 		canvas.height = nearestPowerOfTwo(image.height);
@@ -39,10 +39,9 @@ function makePowerOf2(image) {
 
 function clampToMaxSize(image, maxSize) {
 	if (image.width > maxSize || image.height > maxSize) {
-		if (!isWeb) {
-			console.warn('image is too big (' + image.width + 'x' + image.height + '). max size is ' + maxSize + 'x' + maxSize, image);
-			return image;
-		}
+		// console.warn('image is too big (' + image.width + 'x' + image.height + '). max size is ' + maxSize + 'x' + maxSize, image);
+		// return image;
+
 		// Warning: Scaling through the canvas will only work with images that use
 		// premultiplied alpha.
 

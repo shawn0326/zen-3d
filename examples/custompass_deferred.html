@@ -41,6 +41,14 @@
 
 		(function() {
 
+			var isMobile = (function () {
+				if (!window.navigator) {
+					return true;
+				}
+				var ua = navigator.userAgent.toLowerCase();
+				return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
+			})();
+
 			// todo avoid frequently updating materials
 			// but it's ok for this demo
 
