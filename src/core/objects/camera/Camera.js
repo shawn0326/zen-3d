@@ -162,6 +162,13 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 		this.viewMatrix.copy(source.viewMatrix);
 		this.projectionMatrix.copy(source.projectionMatrix);
 
+		this.frustum.copy(source.frustum);
+		this.gammaFactor = source.gammaFactor;
+		this.gammaInput = source.gammaInput;
+		this.gammaOutput = source.gammaOutput;
+		this.rect.copy(source.rect);
+		this.frustumCulled = source.frustumCulled;
+
 		return this;
 	}
 

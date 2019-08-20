@@ -112,7 +112,21 @@ Object.assign(Frustum.prototype, /** @lends zen3d.Frustum.prototype */{
 
 			return true;
 		}
-	}()
+	}(),
+
+	clone: function () {
+		return new this.constructor().copy(this);
+	},
+
+	copy: function (frustum) {
+		var planes = this.planes;
+
+		for (var i = 0; i < 6; i++) {
+			planes[i].copy(frustum.planes[i]);
+		}
+
+		return this;
+	}
 
 });
 

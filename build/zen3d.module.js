@@ -3772,7 +3772,21 @@ Object.assign(Frustum.prototype, /** @lends zen3d.Frustum.prototype */{
 
 			return true;
 		}
-	}()
+	}(),
+
+	clone: function () {
+		return new this.constructor().copy(this);
+	},
+
+	copy: function (frustum) {
+		var planes = this.planes;
+
+		for (var i = 0; i < 6; i++) {
+			planes[i].copy(frustum.planes[i]);
+		}
+
+		return this;
+	}
 
 });
 
@@ -13100,6 +13114,13 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 		this.viewMatrix.copy(source.viewMatrix);
 		this.projectionMatrix.copy(source.projectionMatrix);
+
+		this.frustum.copy(source.frustum);
+		this.gammaFactor = source.gammaFactor;
+		this.gammaInput = source.gammaInput;
+		this.gammaOutput = source.gammaOutput;
+		this.rect.copy(source.rect);
+		this.frustumCulled = source.frustumCulled;
 
 		return this;
 	}
