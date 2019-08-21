@@ -8508,6 +8508,13 @@ function Material() {
 	this.emissiveIntensity = 1;
 
 	/**
+      * Which depth function to use. See the {@link zen3d.WEBGL_COMPARE_FUNC} constants for all possible values.
+      * @type {zen3d.WEBGL_COMPARE_FUNC}
+      * @default zen3d.WEBGL_COMPARE_FUNC.LEQUAL
+      */
+	this.depthFunc = WEBGL_COMPARE_FUNC.LEQUAL;
+
+	/**
      * Whether to have depth test enabled when rendering this material.
      * @type {boolean}
      * @default true
@@ -12624,6 +12631,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		}
 
 		// set buffers
+		state.depthBuffer.setFunc(material.depthFunc);
 		state.depthBuffer.setTest(material.depthTest);
 		state.depthBuffer.setMask(material.depthWrite);
 		state.colorBuffer.setMask(material.colorWrite);

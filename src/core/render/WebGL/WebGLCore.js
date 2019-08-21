@@ -524,6 +524,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		}
 
 		// set buffers
+		state.depthBuffer.setFunc(material.depthFunc);
 		state.depthBuffer.setTest(material.depthTest);
 		state.depthBuffer.setMask(material.depthWrite);
 		state.colorBuffer.setMask(material.colorWrite);

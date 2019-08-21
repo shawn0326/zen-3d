@@ -1,5 +1,5 @@
 import { EventDispatcher } from '../EventDispatcher.js';
-import { BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE } from '../const.js';
+import { BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE, WEBGL_COMPARE_FUNC } from '../const.js';
 import { Color3 } from '../math/Color3.js';
 import { generateUUID } from '../base.js';
 
@@ -219,6 +219,13 @@ function Material() {
      * @default 1
      */
 	this.emissiveIntensity = 1;
+
+	/**
+      * Which depth function to use. See the {@link zen3d.WEBGL_COMPARE_FUNC} constants for all possible values.
+      * @type {zen3d.WEBGL_COMPARE_FUNC}
+      * @default zen3d.WEBGL_COMPARE_FUNC.LEQUAL
+      */
+	this.depthFunc = WEBGL_COMPARE_FUNC.LEQUAL;
 
 	/**
      * Whether to have depth test enabled when rendering this material.
