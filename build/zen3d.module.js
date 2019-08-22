@@ -8317,6 +8317,14 @@ function Material() {
 	this.uuid = generateUUID();
 
 	/**
+      * Override the renderer's default precision for this material.
+      * Can be "highp", "mediump" or "lowp".
+      * @type {string}
+      * @default null
+      */
+	this.precision = null;
+
+	/**
      * Float in the range of 0.0 - 1.0 indicating how transparent the material is.
      * A value of 0.0 indicates fully transparent, 1.0 is fully opaque.
      * @type {number}
@@ -11635,7 +11643,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	// capabilities
 	var capabilities = capabilities;
 	props.version = capabilities.version;
-	props.precision = capabilities.maxPrecision;
+	props.precision = material.precision || capabilities.maxPrecision;
 	props.useStandardDerivatives = capabilities.version >= 2 || !!capabilities.getExtension('OES_standard_derivatives') || !!capabilities.getExtension('GL_OES_standard_derivatives');
 	props.useShaderTextureLOD =  capabilities.version >= 2 || !!capabilities.getExtension('EXT_shader_texture_lod');
 	// maps
