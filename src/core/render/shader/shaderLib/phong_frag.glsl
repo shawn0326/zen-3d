@@ -1,4 +1,5 @@
 #include <common_frag>
+#include <dithering_pars_frag>
 
 // if no light> this will not active
 uniform float u_Specular;
@@ -44,4 +45,5 @@ void main() {
     #include <encodings_frag>
     #include <premultipliedAlpha_frag>
     #include <fog_frag>
+    #include <dithering_frag>
 }

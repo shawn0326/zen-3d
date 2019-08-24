@@ -50,7 +50,8 @@
 
 
 <div class="description">
-    A material rendered with custom shaders.A shader is a small program written in GLSL that runs on the GPU.
+    A material rendered with custom shaders.
+A shader is a small program written in GLSL that runs on the GPU.
 </div>
 
 
@@ -388,7 +389,8 @@
 
 
 <div class="description">
-    Whether the material is affected by lights.If set true, renderer will try to upload light uniforms.
+    Whether the material is affected by lights.
+If set true, renderer will try to upload light uniforms.
 </div>
 
 
@@ -446,7 +448,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line311">line 311</a>
+        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line318">line 318</a>
     </li></ul></dd>
     
 
@@ -552,7 +554,8 @@
 
 
 <div class="description">
-    Sets the alpha value to be used when running an alpha test.The material will not be renderered if the opacity is lower than this value.
+    Sets the alpha value to be used when running an alpha test.
+The material will not be renderered if the opacity is lower than this value.
 </div>
 
 
@@ -798,7 +801,8 @@
 
 
 <div class="description">
-    Blending destination.The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+    Blending destination.
+The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
 </div>
 
 
@@ -880,7 +884,8 @@
 
 
 <div class="description">
-    The transparency of the <a href="zen3d.Material.html#blendDst">zen3d.Material#blendDst</a>.The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+    The transparency of the <a href="zen3d.Material.html#blendDst">zen3d.Material#blendDst</a>.
+The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
 </div>
 
 
@@ -962,7 +967,8 @@
 
 
 <div class="description">
-    Blending equation to use when applying blending.The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+    Blending equation to use when applying blending.
+The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
 </div>
 
 
@@ -1044,7 +1050,8 @@
 
 
 <div class="description">
-    The tranparency of the <a href="zen3d.Material.html#blendEquation">zen3d.Material#blendEquation</a>.The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+    The tranparency of the <a href="zen3d.Material.html#blendEquation">zen3d.Material#blendEquation</a>.
+The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
 </div>
 
 
@@ -1126,7 +1133,8 @@
 
 
 <div class="description">
-    Which blending to use when displaying objects with this material.This must be set to zen3d.BLEND_TYPE.CUSTOM to use custom blendSrc, blendDst or blendEquation.
+    Which blending to use when displaying objects with this material.
+This must be set to zen3d.BLEND_TYPE.CUSTOM to use custom blendSrc, blendDst or blendEquation.
 </div>
 
 
@@ -1208,7 +1216,8 @@
 
 
 <div class="description">
-    Blending source.The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+    Blending source.
+The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
 </div>
 
 
@@ -1290,7 +1299,8 @@
 
 
 <div class="description">
-    The transparency of the <a href="zen3d.Material.html#blendSrc">zen3d.Material#blendSrc</a>.The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
+    The transparency of the <a href="zen3d.Material.html#blendSrc">zen3d.Material#blendSrc</a>.
+The <a href="zen3d.Material.html#blending">zen3d.Material#blending</a> must be set to zen3d.BLEND_TYPE.CUSTOM for this to have any effect.
 </div>
 
 
@@ -1372,7 +1382,8 @@
 
 
 <div class="description">
-    The texture to create a bump map.The black and white values map to the perceived depth in relation to the lights. Bump doesn't actually affect the geometry of the object, only the lighting.
+    The texture to create a bump map.
+The black and white values map to the perceived depth in relation to the lights. Bump doesn't actually affect the geometry of the object, only the lighting.
 </div>
 
 
@@ -1454,7 +1465,8 @@
 
 
 <div class="description">
-    How much the bump map affects the material.Typical ranges are 0-1.
+    How much the bump map affects the material.
+Typical ranges are 0-1.
 </div>
 
 
@@ -1536,7 +1548,8 @@
 
 
 <div class="description">
-    Whether to render the material's color.This can be used in conjunction with a mesh's renderOrder property to create invisible objects that occlude other objects.
+    Whether to render the material's color.
+This can be used in conjunction with a mesh's renderOrder property to create invisible objects that occlude other objects.
 </div>
 
 
@@ -1859,7 +1872,8 @@
 
 
 <div class="description">
-    Whether rendering this material has any effect on the depth buffer.When drawing 2D overlays it can be useful to disable the depth writing in order to layer several things together without creating z-index artifacts.
+    Whether rendering this material has any effect on the depth buffer.
+When drawing 2D overlays it can be useful to disable the depth writing in order to layer several things together without creating z-index artifacts.
 </div>
 
 
@@ -2099,6 +2113,88 @@
 
         
             
+<h4 class="name" id="dithering"><span class="type-signature"></span>dithering<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    Whether to apply dithering to the color to remove the appearance of banding.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="zen3d.Material.html#dithering">zen3d.Material#dithering</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line310">line 310</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="drawMode"><span class="type-signature"></span>drawMode<span class="type-signature"> :<a href="zen3d.html#.DRAW_MODE">zen3d.DRAW_MODE</a></span></h4>
 
 
@@ -2163,7 +2259,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line318">line 318</a>
+        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line325">line 325</a>
     </li></ul></dd>
     
 
@@ -2269,7 +2365,8 @@
 
 
 <div class="description">
-    Intensity of the emissive light.Modulates the emissive color.
+    Intensity of the emissive light.
+Modulates the emissive color.
 </div>
 
 
@@ -2351,7 +2448,9 @@
 
 
 <div class="description">
-    Set emissive (glow) map.The emissive map color is modulated by the emissive color and the emissive intensity.If you have an emissive map, be sure to set the emissive color to something other than black.
+    Set emissive (glow) map.
+The emissive map color is modulated by the emissive color and the emissive intensity.
+If you have an emissive map, be sure to set the emissive color to something other than black.
 </div>
 
 
@@ -2515,7 +2614,8 @@
 
 
 <div class="description">
-    How to combine the result of the surface's color with the environment map, if any.This has no effect in a <a href="zen3d.PBRMaterial.html">zen3d.PBRMaterial</a>.
+    How to combine the result of the surface's color with the environment map, if any.
+This has no effect in a <a href="zen3d.PBRMaterial.html">zen3d.PBRMaterial</a>.
 </div>
 
 
@@ -2756,7 +2856,8 @@
 
 
 <div class="description">
-    Specifies that the material needs to be recompiled.This property is automatically set to true when instancing a new material.
+    Specifies that the material needs to be recompiled.
+This property is automatically set to true when instancing a new material.
 </div>
 
 
@@ -2814,7 +2915,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line326">line 326</a>
+        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line333">line 333</a>
     </li></ul></dd>
     
 
@@ -2920,7 +3021,8 @@
 
 
 <div class="description">
-    Float in the range of 0.0 - 1.0 indicating how transparent the material is.A value of 0.0 indicates fully transparent, 1.0 is fully opaque.
+    Float in the range of 0.0 - 1.0 indicating how transparent the material is.
+A value of 0.0 indicates fully transparent, 1.0 is fully opaque.
 </div>
 
 
@@ -3002,7 +3104,8 @@
 
 
 <div class="description">
-    Whether to use polygon offset.This corresponds to the GL_POLYGON_OFFSET_FILL WebGL feature.
+    Whether to use polygon offset.
+This corresponds to the GL_POLYGON_OFFSET_FILL WebGL feature.
 </div>
 
 
@@ -3248,7 +3351,8 @@
 
 
 <div class="description">
-    Override the renderer's default precision for this material.Can be "highp", "mediump" or "lowp".
+    Override the renderer's default precision for this material.
+Can be "highp", "mediump" or "lowp".
 </div>
 
 
@@ -3576,7 +3680,9 @@
 
 
 <div class="description">
-    Defines whether this material is transparent.This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects.When set to true, the extent to which the material is transparent is controlled by setting it's blending property.
+    Defines whether this material is transparent.
+This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects.
+When set to true, the extent to which the material is transparent is controlled by setting it's blending property.
 </div>
 
 
@@ -3658,7 +3764,8 @@
 
 
 <div class="description">
-    Uniforms of the shader.Uniforms should match with fragment shader
+    Uniforms of the shader.
+Uniforms should match with fragment shader
 </div>
 
 
@@ -3735,7 +3842,8 @@
 
 
 <div class="description">
-    UUID of this material instance.This gets automatically assigned, so this shouldn't be edited.
+    UUID of this material instance.
+This gets automatically assigned, so this shouldn't be edited.
 </div>
 
 
@@ -4032,7 +4140,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line372">line 372</a>
+        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line388">line 388</a>
     </li></ul></dd>
     
 
@@ -4192,7 +4300,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line338">line 338</a>
+        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line345">line 345</a>
     </li></ul></dd>
     
 
@@ -4254,7 +4362,8 @@
 
 
 <div class="description">
-    This disposes the material.Textures of a material don't get disposed. These needs to be disposed by Texture.
+    This disposes the material.
+Textures of a material don't get disposed. These needs to be disposed by Texture.
 </div>
 
 
@@ -4303,7 +4412,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line380">line 380</a>
+        <a href="material_Material.js.html">material/Material.js</a>, <a href="material_Material.js.html#line396">line 396</a>
     </li></ul></dd>
     
 
@@ -4355,7 +4464,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Aug 22 2019 14:07:09 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Aug 24 2019 15:30:20 GMT+0800 (GMT+08:00)
 </footer>
 
 <script> prettyPrint(); </script>

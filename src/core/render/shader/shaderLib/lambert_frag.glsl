@@ -1,4 +1,5 @@
 #include <common_frag>
+#include <dithering_pars_frag>
 
 uniform vec3 emissive;
 
@@ -38,4 +39,5 @@ void main() {
     #include <encodings_frag>
     #include <premultipliedAlpha_frag>
     #include <fog_frag>
+    #include <dithering_frag>
 }

@@ -55,7 +55,8 @@
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
+			lambert.diffuse.setHex(0xffffff);
+			lambert.dithering = true;
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 			plane.position.y = -10;
 			plane.shadowType = renderer.glCore.capabilities.version >= 2 ? zen3d.SHADOW_TYPE.PCSS32_SOFT : zen3d.SHADOW_TYPE.POISSON_SOFT;

@@ -1,4 +1,5 @@
 #include <common_frag>
+#include <dithering_pars_frag>
 
 // if no light> this will not active
 uniform vec3 u_SpecularColor;
@@ -64,4 +65,5 @@ void main() {
     #include <encodings_frag>
     #include <premultipliedAlpha_frag>
     #include <fog_frag>
+    #include <dithering_frag>
 }

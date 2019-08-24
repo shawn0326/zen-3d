@@ -154,6 +154,14 @@ function createProgram(gl, props, defines) {
 		'#define saturate(a) clamp( a, 0.0, 1.0 )',
 		'#define whiteCompliment(a) ( 1.0 - saturate( a ) )',
 
+		// expects values in the range of [0,1]x[0,1], returns values in the [0,1] range.
+		// do not collapse into a single function per: http://byteblacksmith.com/improvements-to-the-canonical-one-liner-glsl-rand-for-opengl-es-2-0/
+		'highp float rand( const in vec2 uv ) {',
+		'const highp float a = 12.9898, b = 78.233, c = 43758.5453;',
+		'highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );',
+		'return fract(sin(sn) * c);',
+		'}',
+
 		defines,
 
 		(props.version >= 2) ? '#define WEBGL2' : '',
@@ -200,6 +208,8 @@ function createProgram(gl, props, defines) {
 		props.alphaTest ? ('#define ALPHATEST ' + props.alphaTest) : '',
 		props.useEnvMap ? '#define ' + props.envMapCombine : '',
 		'#define GAMMA_FACTOR ' + props.gammaFactor,
+
+		props.dithering ? '#define DITHERING' : '',
 
 		(props.diffuseMapEncoding || props.envMapEncoding || props.emissiveMapEncoding || props.outputEncoding) ? ShaderChunk["encodings_pars_frag"] : '',
 		props.diffuseMapEncoding ? getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding) : '',
@@ -372,6 +382,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	} else {
 		props.shadowType = object.shadowType;
 	}
+	props.dithering = material.dithering;
 	// encoding
 	var currentRenderTarget = state.currentRenderTarget;
 	props.gammaFactor = camera.gammaFactor;

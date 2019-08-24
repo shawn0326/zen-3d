@@ -303,6 +303,13 @@ function Material() {
 	this.shading = SHADING_TYPE.SMOOTH_SHADING;
 
 	/**
+      * Whether to apply dithering to the color to remove the appearance of banding.
+      * @type {boolean}
+      * @default false
+      */
+	this.dithering = false;
+
+	/**
      * Whether the material is affected by lights.
      * If set true, renderer will try to upload light uniforms.
      * @type {boolean}
@@ -337,6 +344,7 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      */
 	copy: function(source) {
 		this.type = source.type;
+		this.precision = source.precision;
 		this.opacity = source.opacity;
 		this.transparent = source.transparent;
 		this.premultipliedAlpha = source.premultipliedAlpha;
@@ -345,6 +353,8 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
 		this.diffuseMap = source.diffuseMap;
 		this.alphaMap = source.alphaMap;
 		this.normalMap = source.normalMap;
+		this.aoMap = source.aoMap;
+		this.aoMapIntensity = source.aoMapIntensity;
 		this.bumpMap = source.bumpMap;
 		this.bumpScale = source.bumpScale;
 		this.envMap = source.envMap;
@@ -354,10 +364,16 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
 		this.emissiveMap = source.emissiveMap;
 		this.emissiveIntensity = source.emissiveIntensity;
 		this.blending = source.blending;
+		this.depthFunc = source.depthFunc;
 		this.depthTest = source.depthTest;
 		this.depthWrite = source.depthWrite;
+		this.colorWrite = source.colorWrite;
 		this.alphaTest = source.alphaTest;
 		this.side = source.side;
+		this.polygonOffset = source.polygonOffset;
+		this.polygonOffsetFactor = source.polygonOffsetFactor;
+		this.polygonOffsetUnits = source.polygonOffsetUnits;
+		this.dithering = source.dithering;
 		this.shading = source.shading;
 		this.acceptLight = source.acceptLight;
 		this.drawMode = source.drawMode;

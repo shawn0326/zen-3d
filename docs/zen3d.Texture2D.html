@@ -161,7 +161,9 @@
 
 
 <div class="description">
-    The number of samples taken along the axis through the pixel that has the highest density of texels.A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used.Use WebGLcapabilities#maxAnisotropy to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
+    The number of samples taken along the axis through the pixel that has the highest density of texels.
+A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used.
+Use WebGLcapabilities#maxAnisotropy to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2.
 </div>
 
 
@@ -243,7 +245,9 @@
 
 
 <div class="description">
-    WebGLTexture border.See <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D">WebGLTexture texImage2D()</a>.Must be zero.
+    WebGLTexture border.
+See <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D">WebGLTexture texImage2D()</a>.
+Must be zero.
 </div>
 
 
@@ -320,7 +324,9 @@
 
 
 <div class="description">
-    The point around which rotation occurs.A value of (0.5, 0.5) corresponds to the center of the texture.Default is (0, 0), the lower left.
+    The point around which rotation occurs.
+A value of (0.5, 0.5) corresponds to the center of the texture.
+Default is (0, 0), the lower left.
 </div>
 
 
@@ -728,7 +734,8 @@
 
 
 <div class="description">
-    Whether to generate mipmaps (if possible) for a texture.Set this to false if you are creating mipmaps manually.
+    Whether to generate mipmaps (if possible) for a texture.
+Set this to false if you are creating mipmaps manually.
 </div>
 
 
@@ -893,7 +900,9 @@
 
 
 <div class="description">
-    WebGLTexture texel data internal format.If null, internalformat is set to be same as format.This must be null in WebGL 1.0.
+    WebGLTexture texel data internal format.
+If null, internalformat is set to be same as format.
+This must be null in WebGL 1.0.
 </div>
 
 
@@ -1060,7 +1069,9 @@
 
 
 <div class="description">
-    The uv-transform matrix for the texture. Updated by the renderer from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a> when the texture's <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a> property is true.When <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a>  property is false, this matrix may be set manually.Default is the identity matrix.
+    The uv-transform matrix for the texture. Updated by the renderer from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a> when the texture's <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a> property is true.
+When <a href="zen3d.Texture2D.html#matrixAutoUpdate">zen3d.Texture2D#matrixAutoUpdate</a>  property is false, this matrix may be set manually.
+Default is the identity matrix.
 </div>
 
 
@@ -1137,7 +1148,8 @@
 
 
 <div class="description">
-    Whether to update the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.Set this to false if you are specifying the uv-transform matrix directly.
+    Whether to update the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.
+Set this to false if you are specifying the uv-transform matrix directly.
 </div>
 
 
@@ -1381,7 +1393,10 @@
 
 
 <div class="description">
-    How much a single repetition of the texture is offset from the beginning, in each direction U and V.Typical range is 0.0 to 1.0._Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model.If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired offset..
+    How much a single repetition of the texture is offset from the beginning, in each direction U and V.
+Typical range is 0.0 to 1.0.
+_Note:_ The offset property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model.
+If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired offset..
 </div>
 
 
@@ -1458,7 +1473,10 @@
 
 
 <div class="description">
-    How many times the texture is repeated across the surface, in each direction U and V.If repeat is set greater than 1 in either direction, the corresponding Wrap parameter should also be set to zen3d.WEBGL_TEXTURE_WRAP.REPEAT or zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT to achieve the desired tiling effect._Note:_ The repeat property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model.If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired repetiton.
+    How many times the texture is repeated across the surface, in each direction U and V.
+If repeat is set greater than 1 in either direction, the corresponding Wrap parameter should also be set to zen3d.WEBGL_TEXTURE_WRAP.REPEAT or zen3d.WEBGL_TEXTURE_WRAP.MIRRORED_REPEAT to achieve the desired tiling effect.
+_Note:_ The repeat property is a convenience modifier and only affects the Texture's application to the first set of UVs on a model.
+If the Texture is used as a map requiring additional UV sets (e.g. the aoMap or lightMap of most stock materials), those UVs must be manually assigned to achieve the desired repetiton.
 </div>
 
 
@@ -1535,7 +1553,8 @@
 
 
 <div class="description">
-    How much the texture is rotated around the center point, in radians.Postive values are counter-clockwise.
+    How much the texture is rotated around the center point, in radians.
+Postive values are counter-clockwise.
 </div>
 
 
@@ -1694,7 +1713,9 @@
 
 
 <div class="description">
-    Whether to use the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.This is only useful when the texture is an alphaMap for Now.Other material map will use a same uv-transform by default.
+    Whether to use the texture's uv-transform <a href="zen3d.Texture2D.html#matrix">zen3d.Texture2D#matrix</a> from the texture properties <a href="zen3d.Texture2D.html#offset">zen3d.Texture2D#offset</a>, <a href="zen3d.Texture2D.html#repeat">zen3d.Texture2D#repeat</a>, <a href="zen3d.Texture2D.html#rotation">zen3d.Texture2D#rotation</a>, and <a href="zen3d.Texture2D.html#center">zen3d.Texture2D#center</a>.
+This is only useful when the texture is an alphaMap for Now.
+Other material map will use a same uv-transform by default.
 </div>
 
 
@@ -1771,7 +1792,8 @@
 
 
 <div class="description">
-    UUID of this texture instance.This gets automatically assigned, so this shouldn't be edited.
+    UUID of this texture instance.
+This gets automatically assigned, so this shouldn't be edited.
 </div>
 
 
@@ -1848,7 +1870,8 @@
 
 
 <div class="description">
-    version code increse if texture changed.if version is still 0, this texture will be skiped.
+    version code increse if texture changed.
+if version is still 0, this texture will be skiped.
 </div>
 
 
@@ -3490,7 +3513,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Aug 22 2019 14:07:09 GMT+0800 (中国标准时间)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Aug 24 2019 15:30:21 GMT+0800 (GMT+08:00)
 </footer>
 
 <script> prettyPrint(); </script>
