@@ -21,8 +21,9 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="../build/zen3d.vox.js"></script>
+	<script src="./js/VoxMeshBuilder.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./libs/vox.js"></script>
 </head>
 <body>
 
@@ -44,11 +45,11 @@
 	        var renderer = new zen3d.Renderer(canvas);
 			renderer.shadowAutoUpdate = false;
 
-	        var scene = new zen3d.Scene();
-
-			var loader = new zen3d.VOXLoader();
-			loader.load("resources/models/vox/p1.vox", function(voxData) {
-				var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxData, {
+			var scene = new zen3d.Scene();
+			
+			var parser = new vox.Parser();
+			parser.parse("resources/models/vox/p1.vox").then(function(voxelData) {
+				var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxelData, {
 					optimizeFaces: true,
 					voxelSize: 2,
 					originToBottom: true,
@@ -60,6 +61,21 @@
 
 				renderer.shadowNeedsUpdate = true;
 			});
+
+			// var loader = new zen3d.VOXLoader();
+			// loader.load("resources/models/vox/p1.vox", function(voxData) {
+			// 	var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxData, {
+			// 		optimizeFaces: true,
+			// 		voxelSize: 2,
+			// 		originToBottom: true,
+			// 		vertexColor: true
+			// 	});
+			// 	var mesh = voxMeshBuilder.createMesh();
+			// 	mesh.castShadow = true;
+			// 	scene.add(mesh);
+
+			// 	renderer.shadowNeedsUpdate = true;
+			// });
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
