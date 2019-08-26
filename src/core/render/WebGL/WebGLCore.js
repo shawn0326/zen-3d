@@ -84,12 +84,6 @@ function WebGLCore(gl) {
 	this._currentGeometryProgram = "";
 }
 
-var directShadowMaps = [];
-var directDepthMaps = [];
-var pointShadowMaps = [];
-var spotShadowMaps = [];
-var spotDepthMaps = [];
-
 Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 	/**
