@@ -8,8 +8,6 @@ import distance_frag from './shaderLib/distance_frag.glsl';
 import distance_vert from './shaderLib/distance_vert.glsl';
 import lambert_frag from './shaderLib/lambert_frag.glsl';
 import lambert_vert from './shaderLib/lambert_vert.glsl';
-import linedashed_frag from './shaderLib/linedashed_frag.glsl';
-import linedashed_vert from './shaderLib/linedashed_vert.glsl';
 import normaldepth_frag from './shaderLib/normaldepth_frag.glsl';
 import normaldepth_vert from './shaderLib/normaldepth_vert.glsl';
 import pbr_frag from './shaderLib/pbr_frag.glsl';
@@ -31,8 +29,6 @@ export var ShaderLib = {
 	distance_vert: distance_vert,
 	lambert_frag: lambert_frag,
 	lambert_vert: lambert_vert,
-	linedashed_frag: linedashed_frag,
-	linedashed_vert: linedashed_vert,
 	normaldepth_frag: normaldepth_frag,
 	normaldepth_vert: normaldepth_vert,
 	pbr_frag: pbr_frag,

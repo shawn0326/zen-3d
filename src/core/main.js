@@ -67,7 +67,6 @@ export { PBRMaterial } from './material/PBRMaterial.js';
 export { PBR2Material } from './material/PBR2Material.js';
 export { PointsMaterial } from './material/PointsMaterial.js';
 export { LineMaterial } from './material/LineMaterial.js';
-export { LineDashedMaterial } from './material/LineDashedMaterial.js';
 export { ShaderMaterial } from './material/ShaderMaterial.js';
 export { DepthMaterial } from './material/DepthMaterial.js';
 export { DistanceMaterial } from './material/DistanceMaterial.js';

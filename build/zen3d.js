@@ -142,7 +142,6 @@
 		PBR2: "pbr2",
 		POINT: "point",
 		LINE: "line",
-		LINE_DASHED: "linedashed",
 		CANVAS2D: "canvas2d",
 		SHADER: "shader",
 		DEPTH: "depth",
@@ -9018,72 +9017,6 @@
 	});
 
 	/**
-	 * A material for drawing dashed lines.
-	 * @constructor
-	 * @extends zen3d.Material
-	 * @memberof zen3d
-	 */
-	function LineDashedMaterial() {
-		Material.call(this);
-
-		this.type = MATERIAL_TYPE.LINE_DASHED;
-
-		/**
-	     * Controls line thickness.
-	     * Due to limitations of the OpenGL Core Profile with the WebGL renderer on most platforms linewidth will always be 1 regardless of the set value.
-	     * @type {number}
-	     * @default 1
-	     */
-		this.lineWidth = 1;
-
-		/**
-	     * The scale of the dashed part of a line.
-	     * @type {number}
-	     * @default 1
-	     */
-		this.scale = 1;
-
-		/**
-	     * The size of the dash.
-	     * This is both the gap with the stroke.
-	     * @type {number}
-	     * @default 3
-	     */
-		this.dashSize = 3;
-
-		/**
-	     * The size of the gap.
-	     * @type {number}
-	     * @default 1
-	     */
-		this.gapSize = 1;
-
-		/**
-	     * Set draw mode to LINES / LINE_LOOP / LINE_STRIP
-	     * @type {zen3d.DRAW_MODE}
-	     * @default zen3d.DRAW_MODE.LINE_STRIP
-	     */
-		this.drawMode = DRAW_MODE.LINE_STRIP;
-	}
-
-	LineDashedMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.LineDashedMaterial.prototype */{
-
-		constructor: LineDashedMaterial,
-
-		copy: function(source) {
-			Material.prototype.copy.call(this, source);
-
-			this.lineWidth = source.lineWidth;
-			this.scale = source.scale;
-			this.dashSize = source.dashSize;
-			this.gapSize = source.gapSize;
-
-			return this;
-		}
-
-	});
-
-	/**
 	 * A material rendered with custom shaders.
 	 * A shader is a small program written in GLSL that runs on the GPU.
 	 * @constructor
@@ -11287,10 +11220,6 @@
 
 	var lambert_vert = "#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
 
-	var linedashed_frag = "#include <common_frag>\r\n#include <fog_pars_frag>\r\n\r\nuniform float dashSize;\r\nuniform float totalSize;\r\n\r\nvarying float vLineDistance;\r\n\r\nvoid main() {\r\n\r\n    if ( mod( vLineDistance, totalSize ) > dashSize ) {\r\n\t\tdiscard;\r\n\t}\r\n\r\n    #include <begin_frag>\r\n    #include <end_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n}";
-
-	var linedashed_vert = "#include <common_vert>\r\n\r\nuniform float scale;\r\nattribute float lineDistance;\r\n\r\nvarying float vLineDistance;\r\n\r\nvoid main() {\r\n    vLineDistance = scale * lineDistance;\r\n\r\n    vec3 transformed = vec3(a_Position);\r\n\r\n    #include <pvm_vert>\r\n}";
-
 	var normaldepth_frag = "#include <common_frag>\r\n#include <diffuseMap_pars_frag>\r\n\r\n#include <uv_pars_frag>\r\n\r\n#define USE_NORMAL\r\n\r\n#include <packing>\r\n#include <normal_pars_frag>\r\n\r\nvoid main() {\r\n    #if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)\r\n        vec4 texelColor = texture2D( diffuseMap, v_Uv );\r\n\r\n        float alpha = texelColor.a * u_Opacity;\r\n        if(alpha < ALPHATEST) discard;\r\n    #endif\r\n    vec4 packedNormalDepth;\r\n    packedNormalDepth.xyz = normalize(v_Normal) * 0.5 + 0.5;\r\n    packedNormalDepth.w = gl_FragCoord.z;\r\n    gl_FragColor = packedNormalDepth;\r\n}";
 
 	var normaldepth_vert = "#include <common_vert>\r\n\r\n#define USE_NORMAL\r\n\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <normal_vert>\r\n    #include <pvm_vert>\r\n}";
@@ -11320,8 +11249,6 @@
 		distance_vert: distance_vert,
 		lambert_frag: lambert_frag,
 		lambert_vert: lambert_vert,
-		linedashed_frag: linedashed_frag,
-		linedashed_vert: linedashed_vert,
 		normaldepth_frag: normaldepth_frag,
 		normaldepth_vert: normaldepth_vert,
 		pbr_frag: pbr_frag,
@@ -15423,7 +15350,6 @@
 	exports.Light = Light;
 	exports.LightCache = LightCache;
 	exports.LightShadow = LightShadow;
-	exports.LineDashedMaterial = LineDashedMaterial;
 	exports.LineMaterial = LineMaterial;
 	exports.LoadingManager = LoadingManager;
 	exports.MATERIAL_TYPE = MATERIAL_TYPE;

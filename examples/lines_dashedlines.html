@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/shaders/LineDashedShader.js"></script>
 </head>
 <body>
 
@@ -64,12 +65,10 @@
 			lineGeometry.computeBoundingBox();
 			lineGeometry.computeBoundingSphere();
 
-			var linesMaterial = new zen3d.LineDashedMaterial();
+			var linesMaterial = new zen3d.ShaderMaterial(zen3d.LineDashedShader);
 			linesMaterial.diffuse.setHex(0xffff00);
 			linesMaterial.lineWidth = 25;
-			// linesMaterial.dashSize = 1;
-			// linesMaterial.gapSize = 1;
-			// linesMaterial.scale = 1;
+			linesMaterial.drawMode = zen3d.DRAW_MODE.LINE_STRIP;
 
 			var lines = new zen3d.Mesh(lineGeometry, linesMaterial);
 			scene.add(lines);
