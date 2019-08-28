@@ -1,5 +1,5 @@
 import { TextureBase } from './TextureBase.js';
-import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, WEBGL_TEXTURE_FILTER, TEXEL_ENCODING_TYPE } from '../const.js';
+import { WEBGL_TEXTURE_TYPE, WEBGL_PIXEL_FORMAT, TEXEL_ENCODING_TYPE } from '../const.js';
 import { ImageLoader } from '../loader/ImageLoader.js';
 import { TGALoader } from '../loader/TGALoader.js';
 import { RGBELoader } from '../loader/RGBELoader.js';

@@ -1856,17 +1856,19 @@ Object.assign(Raycaster.prototype, /** @lends zen3d.Raycaster.prototype */{
      * Updates the ray with a new origin and direction.
      * @param {zen3d.Vector2} coords — 2D coordinates of the mouse, in normalized device coordinates (NDC)---X and Y components should be between -1 and 1.
      * @param {zen3d.Camera} camera — camera from which the ray should originate.
+	 * @param {string} type - camera type: 'perspective' or 'orthographic'
      */
-	setFromCamera: function(coords, camera) {
-		// if ((camera && camera.isPerspectiveCamera)) {
-		this.ray.origin.setFromMatrixPosition(camera.worldMatrix);
-		this.ray.direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(this.ray.origin).normalize();
-		// } else if ((camera && camera.isOrthographicCamera)) { // TODO
-		//     this.ray.origin.set(coords.x, coords.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera); // set origin in plane of camera
-		//     this.ray.direction.set(0, 0, -1).transformDirection(camera.worldMatrix);
-		// } else {
-		//     console.error('Raycaster: Unsupported camera type.');
-		// }
+	setFromCamera: function(coords, camera, type) {
+		type = type || 'perspective';
+		if (type == 'orthographic') {
+			// set origin in plane of camera
+			// projectionMatrix.elements[14] = (near + far) / (near - far)
+			this.ray.origin.set(coords.x, coords.y, camera.projectionMatrix.elements[14]).unproject(camera);
+			this.ray.direction.set(0, 0, -1).transformDirection(camera.worldMatrix);
+		} else {
+			this.ray.origin.setFromMatrixPosition(camera.worldMatrix);
+			this.ray.direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(this.ray.origin).normalize();
+		}
 	},
 
 	/**
