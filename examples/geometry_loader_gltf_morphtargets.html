@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - gltf4</title>
+	<title>zen3d - gltf morphtargets</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -28,7 +28,7 @@
 <body>
 
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf3
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf morphtargets
     </div>
 
 	<script>
@@ -55,13 +55,14 @@
 
 			var loader = new zen3d.GLTFLoader();
 			loader.load(file, function(result) {
+				console.log(result)
 				// add mesh to scene
-				// var object = result.scene.children[0];
-				// object.children[1].castShadow = true;
+				var object = result.scene.children[0];
+				object.castShadow = true;
 				result.scene.scale.set( 0.4, 0.4, 0.4 );
-				result.scene.position.set( 0, 20, 0 );
+				result.scene.position.set( 0, 35, 0 );
 
-				// object.children[1].frustumCulled = false;
+				object.frustumCulled = false;
 
 				animation = new zen3d.AnimationMixer();
 				result.animations.forEach(function (clip) {
@@ -74,9 +75,9 @@
 				scene.add(result.scene);
 			});
 
-			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+			var plane_geometry = new zen3d.PlaneGeometry(200, 200);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0x888888);
+	        lambert.diffuse.setHex(0x558855);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 			plane.receiveShadow = true;
 	        scene.add(plane);
@@ -85,9 +86,10 @@
 	        scene.add(ambientLight);
 
 			var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(25, 25, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 0, 0));
-			directionalLight.shadow.windowSize = 25;
+			directionalLight.position.set(30, 100, 30);
+			directionalLight.lookAt(new zen3d.Vector3( 0, 35, 0 ), new zen3d.Vector3(0, 0, 0));
+			directionalLight.shadow.windowSize = 200;
+			directionalLight.shadow.mapSize.set(1024, 1024);
 			directionalLight.shadow.bias = -0.0001;
 			directionalLight.castShadow = true;
 			scene.add(directionalLight);
@@ -95,13 +97,13 @@
 			var camera = new zen3d.Camera();
 			camera.gammaInput = true;
 			camera.gammaOutput = true;
-	        camera.position.set(100, 40, 50);
-	        camera.lookAt(new zen3d.Vector3(0, 20, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.position.set(120, 80, 80);
+	        camera.lookAt(new zen3d.Vector3(0, 35, 0), new zen3d.Vector3(0, 1, 0));
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 	        scene.add(camera);
 
 			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.target.set(0, 1, 0);
+			controller.target.set(0, 20, 0);
 
 			var clock = new zen3d.Clock();
 

@@ -13,6 +13,7 @@ var files = {
 		"geometry_loader_gltf",
 		"geometry_loader_gltf2",
 		"geometry_loader_gltf3",
+		"geometry_loader_gltf_morphtargets",
 		"geometry_loader_gltf_materials_unlit",
 		"geometry_loader_gltf_uvtransform",
 		"geometry_loader_gltf_draco",
@@ -93,10 +94,11 @@ var files = {
 		"particle_particle"
 	],
 	"animation": [
+		"animation_morphtargets",
 		"animation_skinned_mesh",
-		"animation_snake",
 		"animation_keyframe_animation",
-		"animation_monster",
+		"animation_snake",
+		"animation_monster"
 	],
 	"custompass": [
 		"custompass_car",
