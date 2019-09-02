@@ -43,8 +43,8 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 			var mimeType = dataUriRegexResult[1];
 			var isBase64 = !!dataUriRegexResult[2];
 			var data = dataUriRegexResult[3];
-			data = window.decodeURIComponent(data);
-			if (isBase64) data = window.atob(data); // decode base64
+			data = decodeURIComponent(data);
+			if (isBase64) data = atob(data); // decode base64
 			try {
 				var response;
 				var responseType = (this.responseType || '').toLowerCase();
@@ -75,13 +75,13 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 				}
 
 				// Wait for next browser tick
-				window.setTimeout(function() {
+				setTimeout(function() {
 					if (onLoad) onLoad(response);
 					scope.manager.itemEnd(url);
 				}, 0);
 			} catch (error) {
 				// Wait for next browser tick
-				window.setTimeout(function() {
+				setTimeout(function() {
 					onError && onError(error);
 					scope.manager.itemError(url);
 					scope.manager.itemEnd(url);

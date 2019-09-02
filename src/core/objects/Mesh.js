@@ -1,4 +1,4 @@
-import { OBJECT_TYPE } from '../const.js';
+import { OBJECT_TYPE, DRAW_SIDE } from '../const.js';
 import { Object3D } from './Object3D.js';
 import { Sphere } from '../math/Sphere.js';
 import { Box3 } from '../math/Box3.js';
@@ -82,14 +82,13 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 
 		function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
 			var intersect;
-			// var material = object.material;
+			var material = object.material;
 
-			// if (material.side === BackSide) {
-			//     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
-			// } else {
-			// intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
-			// }
-			intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+			if (material.side === DRAW_SIDE.BACK) {
+				intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+			} else {
+				intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DRAW_SIDE.DOUBLE, point);
+			}
 
 			if (intersect === null) return null;
 

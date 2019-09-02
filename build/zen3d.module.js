@@ -4622,8 +4622,8 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 			var mimeType = dataUriRegexResult[1];
 			var isBase64 = !!dataUriRegexResult[2];
 			var data = dataUriRegexResult[3];
-			data = window.decodeURIComponent(data);
-			if (isBase64) data = window.atob(data); // decode base64
+			data = decodeURIComponent(data);
+			if (isBase64) data = atob(data); // decode base64
 			try {
 				var response;
 				var responseType = (this.responseType || '').toLowerCase();
@@ -4654,13 +4654,13 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 				}
 
 				// Wait for next browser tick
-				window.setTimeout(function() {
+				setTimeout(function() {
 					if (onLoad) onLoad(response);
 					scope.manager.itemEnd(url);
 				}, 0);
 			} catch (error) {
 				// Wait for next browser tick
-				window.setTimeout(function() {
+				setTimeout(function() {
 					onError && onError(error);
 					scope.manager.itemError(url);
 					scope.manager.itemEnd(url);
@@ -14175,14 +14175,13 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 
 		function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
 			var intersect;
-			// var material = object.material;
+			var material = object.material;
 
-			// if (material.side === BackSide) {
-			//     intersect = ray.intersectTriangle(pC, pB, pA, true, point);
-			// } else {
-			// intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DoubleSide, point);
-			// }
-			intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+			if (material.side === DRAW_SIDE.BACK) {
+				intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+			} else {
+				intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DRAW_SIDE.DOUBLE, point);
+			}
 
 			if (intersect === null) return null;
 
