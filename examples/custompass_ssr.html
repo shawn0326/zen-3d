@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - custom pass ssr</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
+
+	<script src="./js/loaders/AssimpJsonLoader.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+
+	<script src="./js/shaders/GBufferShader.js"></script>
+	<script src="./js/GBuffer.js"></script>
+
+	<script src="js/shaders/SSRShader.js"></script>
+	<script src="js/shaders/BlurShader.js"></script>
+	<script src="js/shaders/BlendShader.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass ssr
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+			var scene = new zen3d.Scene();
+
+			var monkey = "resources/models/assimp/monkey/monkey.json";
+
+			var loader = new zen3d.AssimpJsonLoader();
+			loader.load(monkey, function(object) {
+				var monkey = object.getObjectByName("Suzanne").children[0];
+				monkey.castShadow = true;
+				monkey.receiveShadow = true;
+				// monkey.material.diffuse.setRGB(1, 0, 0);
+				// object.scale.set(10, 10, 10);
+				object.position.y = 1;
+				scene.add(object);
+			});
+
+			var plane_geometry = new zen3d.PlaneGeometry(50, 50);
+	        var material = new zen3d.PBRMaterial();
+			material.diffuse.setHex(0xffffff);
+			material.roughness = 0.1;
+			material.metalness = 0.8;
+			material.dithering = true;
+	        var plane = new zen3d.Mesh(plane_geometry, material);
+	        plane.position.y = 0;
+	        scene.add(plane);
+
+	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 2);
+			directionalLight.position.set(-3, 3, 0);
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			directionalLight.shadow.windowSize = 10;
+			directionalLight.shadow.bias = -0.04;
+			directionalLight.shadow.radius = 1;
+			directionalLight.shadow.cameraFar = 20;
+			scene.add(directionalLight);
+
+			plane.receiveShadow = true;
+			directionalLight.castShadow = true;
+			directionalLight.shadow.mapSize.set(1024, 1024);
+
+			var camera = new zen3d.Camera();
+			camera.gammaInput = false;
+			camera.gammaOutput = true;
+	        camera.position.set(3, 5, 10);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+	        scene.add(camera);
+			
+			// TODO set camera near by distance
+
+			var controller = new zen3d.OrbitControls(camera, canvas);
+
+			// custom pass
+			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+			var contextParams = {
+				antialias: true, // antialias
+				alpha: false, // effect performance, default false
+				// premultipliedAlpha: false, // effect performance, default false
+				stencil: true
+			};
+
+			// todo webgl 1.0 has bug on android here?
+			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+			var glCore = new zen3d.WebGLCore(gl);
+
+			var gBuffer = new zen3d.GBuffer(width, height);
+			gBuffer.enableAlbedoMetalness = false;
+
+			var shadowMapPass = new zen3d.ShadowMapPass();
+
+			var ssrPass = new zen3d.ShaderPostPass(zen3d.SSRShader);
+			ssrPass.uniforms.maxRayDistance = 10;
+			ssrPass.uniforms.pixelStrideZCutoff = 50;
+
+			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.generateMipmaps = false;
+
+			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget2.texture.generateMipmaps = false;
+
+			var tempRenderTarget3 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget3.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget3.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget3.texture.generateMipmaps = false;
+
+			var projection = new zen3d.Matrix4();
+			var projectionInv = new zen3d.Matrix4();
+			var viewInverseTranspose = new zen3d.Matrix4();
+
+			ssrPass.uniforms["projection"] = projection.elements;
+			ssrPass.uniforms["projectionInv"] = projectionInv.elements;
+			ssrPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+
+			ssrPass.uniforms["colorTex"] = tempRenderTarget.texture;
+			ssrPass.uniforms["gBufferTexture1"] = gBuffer.getNormalGlossinessTexture();
+			ssrPass.uniforms["gBufferTexture2"] = gBuffer.getDepthTexture();
+			ssrPass.uniforms["viewportSize"][0] = width;
+			ssrPass.uniforms["viewportSize"][1] = height;
+
+			var blurPass = new zen3d.ShaderPostPass(zen3d.BlurShader);
+			blurPass.uniforms["projection"] = projection.elements;
+			blurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+
+			blurPass.uniforms["normalTex"] = gBuffer.getNormalGlossinessTexture();
+			blurPass.uniforms["depthTex"] = gBuffer.getDepthTexture();
+			blurPass.uniforms["textureSize"][0] = width;
+			blurPass.uniforms["textureSize"][1] = height;
+
+			blurPass.uniforms["blurSize"] = 2;
+			blurPass.uniforms["depthRange"] = 1;
+
+			blurPass.material.defines["NORMALTEX_ENABLED"] = 1;
+			blurPass.material.defines["DEPTHTEX_ENABLED"] = 1;
+			blurPass.material.defines["DEPTH_PACKING"] = 0;
+
+			var blendShader = new zen3d.ShaderPostPass(zen3d.BlendShader);
+			blendShader.uniforms["tDiffuse1"] = tempRenderTarget.texture;
+			blendShader.uniforms["tDiffuse2"] = tempRenderTarget3.texture;
+			blendShader.uniforms["opacity2"] = 1;
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+
+				controller.update();
+
+				// do render pass
+				scene.updateMatrix();
+				scene.updateLights();
+
+				scene.updateRenderList(camera);
+
+				shadowMapPass.render(glCore, scene);
+
+				gBuffer.update(glCore, scene, camera);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+
+				glCore.render(scene, camera);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
+
+				// glCore.renderTarget.setRenderTarget(backRenderTarget);
+				// glCore.state.colorBuffer.setClear(0, 0, 0, 1);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+
+				projection.copy(camera.projectionMatrix);
+				projectionInv.copy(camera.projectionMatrix).inverse();
+				// viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
+				viewInverseTranspose.copy(camera.worldMatrix).transpose();
+
+				ssrPass.render(glCore);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget3);
+				// glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+            	glCore.clear(true, true, true);
+
+				blurPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+				blurPass.uniforms["direction"] = 0;
+				blurPass.render(glCore);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				glCore.clear(true, true, true);
+
+				blurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
+				blurPass.uniforms["direction"] = 1;
+				blurPass.render(glCore);
+
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 1);
+				glCore.clear(true, true, true);
+
+				blendShader.render(glCore);
+
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+
+				backRenderTarget.resize(width, height);
+				gBuffer.resize(width, height);
+
+				tempRenderTarget2.resize(width, height);
+				tempRenderTarget3.resize(width, height);
+
+				ssrPass.uniforms["viewportSize"][0] = width;
+				ssrPass.uniforms["viewportSize"][1] = height;
+
+				blurPass.uniforms["textureSize"][0] = width;
+				blurPass.uniforms["textureSize"][1] = height;
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
