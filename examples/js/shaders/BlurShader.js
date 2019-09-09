@@ -100,7 +100,7 @@ zen3d.BlurShader = {
 				"off[1] = blurSize / textureSize.y;",
 			"}",
 
-			"float sum = 0.0;",
+			"vec4 sum = vec4(0.0);",
 			"float weightAll = 0.0;",
 
 			"#if NORMALTEX_ENABLED == 1",
@@ -126,10 +126,10 @@ zen3d.BlurShader = {
 				"#endif",
 
 				"weightAll += w;",
-				"sum += w * texture2D(tDiffuse, coord).r;",
+				"sum += w * texture2D(tDiffuse, coord);",
 			"}",
 
-			"gl_FragColor = vec4(vec3(sum / weightAll), 1.0);",
+			"gl_FragColor = sum / weightAll, 1.0;",
 
 		"}"
 

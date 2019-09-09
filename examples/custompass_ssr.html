@@ -56,13 +56,19 @@
 
 			var loader = new zen3d.AssimpJsonLoader();
 			loader.load(monkey, function(object) {
-				var monkey = object.getObjectByName("Suzanne").children[0];
-				monkey.castShadow = true;
-				monkey.receiveShadow = true;
-				// monkey.material.diffuse.setRGB(1, 0, 0);
-				// object.scale.set(10, 10, 10);
-				object.position.y = 1;
-				scene.add(object);
+				for (var i = 0; i < 10; i++) {
+					for (var j = 0; j < 10; j++) {
+						var clone = object.clone();
+						clone.position.set((i - 5) * 4, 1, (j - 5) * 4);
+						var monkey = clone.getObjectByName("Suzanne").children[0];
+						monkey.material = monkey.material.clone();
+						monkey.material.diffuse.setHSL( Math.random(), 1.0, 0.3 );
+						monkey.castShadow = true;
+						monkey.receiveShadow = true;
+						scene.add(clone);
+					}
+				}
+				
 			});
 
 			var plane_geometry = new zen3d.PlaneGeometry(50, 50);
@@ -76,12 +82,13 @@
 	        scene.add(plane);
 
 	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 2);
-			directionalLight.position.set(-3, 3, 0);
+			directionalLight.position.set(-40, 40, 0);
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			directionalLight.shadow.windowSize = 10;
-			directionalLight.shadow.bias = -0.04;
+			directionalLight.shadow.windowSize = 50;
+			directionalLight.shadow.bias = -0.004;
 			directionalLight.shadow.radius = 1;
-			directionalLight.shadow.cameraFar = 20;
+			directionalLight.shadow.cameraNear = 40;
+			directionalLight.shadow.cameraFar = 100;
 			scene.add(directionalLight);
 
 			plane.receiveShadow = true;
@@ -91,7 +98,7 @@
 			var camera = new zen3d.Camera();
 			camera.gammaInput = false;
 			camera.gammaOutput = true;
-	        camera.position.set(3, 5, 10);
+	        camera.position.set(-8, 7, 20);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
 	        scene.add(camera);
