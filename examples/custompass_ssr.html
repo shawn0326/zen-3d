@@ -32,6 +32,8 @@
 	<script src="js/shaders/SSRShader.js"></script>
 	<script src="js/shaders/BlurShader.js"></script>
 	<script src="js/shaders/BlendShader.js"></script>
+
+	<script src="./js/Clock.js"></script>
 </head>
 <body>
 
@@ -52,12 +54,14 @@
 
 			var scene = new zen3d.Scene();
 
+			var objects = [];
+
 			var monkey = "resources/models/assimp/monkey/monkey.json";
 
 			var loader = new zen3d.AssimpJsonLoader();
 			loader.load(monkey, function(object) {
-				for (var i = 0; i < 10; i++) {
-					for (var j = 0; j < 10; j++) {
+				for (var i = 0; i < 11; i++) {
+					for (var j = 0; j < 11; j++) {
 						var clone = object.clone();
 						clone.position.set((i - 5) * 4, 1, (j - 5) * 4);
 						var monkey = clone.getObjectByName("Suzanne").children[0];
@@ -66,6 +70,7 @@
 						monkey.castShadow = true;
 						monkey.receiveShadow = true;
 						scene.add(clone);
+						objects.push(clone);
 					}
 				}
 				
@@ -75,11 +80,14 @@
 	        var material = new zen3d.PBRMaterial();
 			material.diffuse.setHex(0xffffff);
 			material.roughness = 0.1;
-			material.metalness = 0.8;
+			material.metalness = 0.9;
 			material.dithering = true;
 	        var plane = new zen3d.Mesh(plane_geometry, material);
 	        plane.position.y = 0;
-	        scene.add(plane);
+			scene.add(plane);
+			
+			var ambientLight = new zen3d.AmbientLight(0xffffff, 0.4);
+	        scene.add(ambientLight);
 
 	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 2);
 			directionalLight.position.set(-40, 40, 0);
@@ -100,7 +108,7 @@
 			camera.gammaOutput = true;
 	        camera.position.set(-8, 7, 20);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+	        camera.setPerspective(50 / 180 * Math.PI, width / height, 1, 500);
 	        scene.add(camera);
 			
 			// TODO set camera near by distance
@@ -180,9 +188,20 @@
 			blendShader.uniforms["tDiffuse2"] = tempRenderTarget3.texture;
 			blendShader.uniforms["opacity2"] = 1;
 
+			var gui = new dat.GUI();
+			gui.add(material, 'roughness', 0, 1, 0.01);
+			gui.add(material, 'metalness', 0, 1, 0.01);
+
+			var clock = new zen3d.Clock();
+
 	        function loop(count) {
 
 				requestAnimationFrame(loop);
+
+				var elpasedTime = clock.getElapsedTime();
+				objects.forEach(function(object, idx) {
+					object.position.y = 1 + 0.5 * (Math.sin(elpasedTime * 3 + idx) + 1);
+				});
 
 				controller.update();
 
@@ -205,21 +224,16 @@
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
 
-				// glCore.renderTarget.setRenderTarget(backRenderTarget);
-				// glCore.state.colorBuffer.setClear(0, 0, 0, 1);
-
 				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 
 				projection.copy(camera.projectionMatrix);
 				projectionInv.copy(camera.projectionMatrix).inverse();
-				// viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
 				viewInverseTranspose.copy(camera.worldMatrix).transpose();
 
 				ssrPass.render(glCore);
 
 				glCore.renderTarget.setRenderTarget(tempRenderTarget3);
-				// glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
             	glCore.clear(true, true, true);
@@ -252,7 +266,7 @@
 				width = window.innerWidth || 2;
 		        height = window.innerHeight || 2;
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
+				camera.setPerspective(50 / 180 * Math.PI, width / height, 1, 500);
 
 				backRenderTarget.resize(width, height);
 				gBuffer.resize(width, height);
