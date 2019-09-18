@@ -129,7 +129,7 @@ zen3d.BlurShader = {
 				"sum += w * texture2D(tDiffuse, coord);",
 			"}",
 
-			"gl_FragColor = sum / weightAll, 1.0;",
+			"gl_FragColor = sum / weightAll;",
 
 		"}"
 
