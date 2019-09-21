@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - uv coord</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - uv coord
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var texture = new zen3d.Texture2D.fromSrc("resources/UV_Grid_Sm.jpg");
+			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+			texture.wrapS = texture.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+
+			var geometry = new zen3d.PlaneGeometry(30, 30);
+			geometry.addAttribute('a_Uv2', new zen3d.BufferAttribute(new Float32Array([0.5, 1, 1, 1, 0.5, 0, 1, 0]), 2));
+			console.log(geometry)
+			var material = new zen3d.BasicMaterial();
+			material.defines = { 'USE_UV2': '' };
+			material.diffuseMap = texture;
+			material.diffuseMapCoord = 0;
+			var cube = new zen3d.Mesh(geometry, material);
+			scene.add(cube);
+
+			var camera = new zen3d.Camera();
+	        camera.position.set(0, 10, 30);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+			scene.add(camera);
+			
+			function updateUvCoord(val) {
+				material.diffuseMapCoord = parseInt(val);
+				material.needsUpdate = true;
+			}
+
+			// gui
+			var API = {
+				coord: 0
+			};
+			var gui = new dat.GUI();
+			gui.add(API, "coord", [0, 1]).onChange(updateUvCoord);
+			// gui.close();
+
+			// updateUvCoord();
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 30 * Math.sin(count / 1000 * .5);
+				camera.position.z = 30 * Math.cos(count / 1000 * .5);
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

@@ -139,6 +139,13 @@ function Material() {
 	this.diffuseMap = null;
 
 	/**
+     * Define the UV chanel for the diffuse map to use starting from 0 and defaulting to 0.
+     * @type {number}
+     * @default 0
+     */
+	this.diffuseMapCoord = 0;
+
+	/**
      * The normal map.
      * @type {zen3d.Texture2D}
      * @default null
@@ -165,6 +172,13 @@ function Material() {
      * @default 1
      */
 	this.aoMapIntensity = 1.0;
+
+	/**
+     * Define the UV chanel for the ao map to use starting from 0 and defaulting to 0.
+     * @type {number}
+     * @default 0
+     */
+	this.aoMapCoord = 0;
 
 	/**
      * The texture to create a bump map.

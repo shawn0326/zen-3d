@@ -188,9 +188,15 @@
 
     #ifdef USE_AOMAP
 
-    	// reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
-    	float ambientOcclusion = ( texture2D( aoMap, v_Uv2 ).r - 1.0 ) * aoMapIntensity + 1.0;
-
+        // reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
+        #if (USE_AOMAP == 1)
+    	    float ambientOcclusion = ( texture2D( aoMap, v_Uv ).r - 1.0 ) * aoMapIntensity + 1.0;
+        #elif (USE_AOMAP == 2)
+            float ambientOcclusion = ( texture2D( aoMap, v_Uv2 ).r - 1.0 ) * aoMapIntensity + 1.0;
+        #else
+            float ambientOcclusion = ( texture2D( aoMap, v_Uv ).r - 1.0 ) * aoMapIntensity + 1.0;
+        #endif
+    	
     	indirectDiffuse *= ambientOcclusion;
 
     	#if defined( USE_ENV_MAP ) && defined( USE_PBR )

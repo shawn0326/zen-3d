@@ -700,11 +700,17 @@
 						dependencies.materials[primitive.material];
 
 					// add a_Uv2 for aoMap
-					if (material.aoMap
-                    		&& geometry.attributes.a_Uv2 === undefined
-                    		&& geometry.attributes.a_Uv !== undefined) {
-                    	console.log('GLTFLoader: Duplicating UVs to support aoMap.');
-                    	geometry.addAttribute('a_Uv2', new zen3d.BufferAttribute(geometry.attributes.a_Uv.array, 2));
+					// if (material.aoMap
+					// 		&& geometry.attributes.a_Uv2 === undefined
+					// 		&& geometry.attributes.a_Uv !== undefined) {
+					// 	console.log('GLTFLoader: Duplicating UVs to support aoMap.');
+					// 	geometry.addAttribute('a_Uv2', new zen3d.BufferAttribute(geometry.attributes.a_Uv.array, 2));
+					// }
+
+					// mark uv2
+					if (geometry.attributes.a_Uv2 !== undefined) {
+						material.defines = material.defines || {};
+						material.defines['USE_UV2'] = '';
 					}
 
 					// If the material will be modified later on, clone it now.
@@ -1178,6 +1184,7 @@
 
 			if (metallicRoughness.baseColorTexture !== undefined) {
 				pending.push(parser.assignTexture(materialParams, 'diffuseMap', metallicRoughness.baseColorTexture));
+				materialParams.diffuseMapCoord = metallicRoughness.baseColorTexture.texCoord || 0;
 			}
 
 			materialParams.metalness = metallicRoughness.metallicFactor !== undefined ? metallicRoughness.metallicFactor : 1.0;
@@ -1225,6 +1232,8 @@
 		if (materialDef.occlusionTexture !== undefined) {
 			pending.push(parser.assignTexture(materialParams, 'aoMap', materialDef.occlusionTexture));
 
+			materialParams.aoMapCoord = materialDef.occlusionTexture.texCoord || 0;
+
 			if (materialDef.occlusionTexture.strength !== undefined) {
 				materialParams.aoMapIntensity = materialDef.occlusionTexture.strength;
 			}
@@ -1256,8 +1265,13 @@
 			//
 			// }
 
+			// if (material.aoMap) {
+			// 	material.defines = material.defines || {};
+			// 	material.defines['USE_UV2'] = '';
+			// }
+
 			// emissiveTexture and baseColorTexture use sRGB encoding.
-			if (material.diffuseMap) material.diffuseMap.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+			{ if (material.diffuseMap) material.diffuseMap.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB; }
 			if (material.emissiveMap) material.emissiveMap.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
 
 			if (materialDef.extras) material.userData = materialDef.extras;
@@ -1394,6 +1408,7 @@
 
 			if (metallicRoughness.baseColorTexture !== undefined) {
 				pending.push(parser.assignTexture(materialParams, 'diffuseMap', metallicRoughness.baseColorTexture));
+				materialParams.diffuseMapCoord = metallicRoughness.baseColorTexture.texCoord || 0;
 			}
 		}
 

@@ -113,12 +113,12 @@ function createProgram(gl, props, defines) {
 		(props.materialType == MATERIAL_TYPE.PBR || props.materialType == MATERIAL_TYPE.PBR2) ? '#define USE_PBR' : '',
 		props.flipSided ? '#define FLIP_SIDED' : '',
 
-		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+		props.useDiffuseMap ? ('#define USE_DIFFUSE_MAP ' +  props.useDiffuseMap) : '',
 		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
 		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
-		props.useAOMap ? '#define USE_AOMAP' : '',
+		props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
 
@@ -195,11 +195,11 @@ function createProgram(gl, props, defines) {
 		props.doubleSided ? '#define DOUBLE_SIDED' : '',
 		props.useShaderTextureLOD ? '#define TEXTURE_LOD_EXT' : '',
 
-		props.useDiffuseMap ? '#define USE_DIFFUSE_MAP' : '',
+		props.useDiffuseMap ? ('#define USE_DIFFUSE_MAP ' + props.useDiffuseMap) : '',
 		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
 		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
-		props.useAOMap ? '#define USE_AOMAP' : '',
+		props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
 		props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
@@ -354,7 +354,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useStandardDerivatives = capabilities.version >= 2 || !!capabilities.getExtension('OES_standard_derivatives') || !!capabilities.getExtension('GL_OES_standard_derivatives');
 	props.useShaderTextureLOD =  capabilities.version >= 2 || !!capabilities.getExtension('EXT_shader_texture_lod');
 	// maps
-	props.useDiffuseMap = !!material.diffuseMap;
+	props.useDiffuseMap = !!material.diffuseMap ? (material.diffuseMapCoord + 1) : 0;
 	props.useAlphaMap = !!material.alphaMap;
 	props.useAlphaMapUVTransform = !!material.alphaMap && material.alphaMap.useUVTransform;
 	props.useNormalMap = !!material.normalMap;
@@ -366,7 +366,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useRoughnessMap = !!material.roughnessMap;
 	props.useMetalnessMap = !!material.metalnessMap;
 	props.useGlossinessMap = !!material.glossinessMap;
-	props.useAOMap = !!material.aoMap;
+	props.useAOMap = !!material.aoMap ? (material.aoMapCoord + 1) : 0;
 	// lights
 	props.ambientLightNum = !!lights ? lights.ambientsNum : 0;
 	props.directLightNum = !!lights ? lights.directsNum : 0;
