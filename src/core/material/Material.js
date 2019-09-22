@@ -160,6 +160,13 @@ function Material() {
 	this.alphaMap = null;
 
 	/**
+     * Define the UV chanel for the alpha map to use starting from 0 and defaulting to 0.
+     * @type {number}
+     * @default 0
+     */
+	this.alphaMapCoord = 0;
+
+	/**
      * The red channel of this texture is used as the ambient occlusion map.
      * @type {zen3d.Texture2D}
      * @default null
@@ -365,10 +372,13 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
 		this.vertexColors = source.vertexColors;
 		this.diffuse.copy(source.diffuse);
 		this.diffuseMap = source.diffuseMap;
+		this.diffuseMapCoord = source.diffuseMapCoord;
 		this.alphaMap = source.alphaMap;
+		this.alphaMapCoord = source.alphaMapCoord;
 		this.normalMap = source.normalMap;
 		this.aoMap = source.aoMap;
 		this.aoMapIntensity = source.aoMapIntensity;
+		this.aoMapCoord = source.aoMapCoord;
 		this.bumpMap = source.bumpMap;
 		this.bumpScale = source.bumpScale;
 		this.envMap = source.envMap;

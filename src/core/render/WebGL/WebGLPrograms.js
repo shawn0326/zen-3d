@@ -114,7 +114,7 @@ function createProgram(gl, props, defines) {
 		props.flipSided ? '#define FLIP_SIDED' : '',
 
 		props.useDiffuseMap ? ('#define USE_DIFFUSE_MAP ' +  props.useDiffuseMap) : '',
-		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+		props.useAlphaMap ? ('#define USE_ALPHA_MAP ' + props.useAlphaMap) : '',
 		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
@@ -196,7 +196,7 @@ function createProgram(gl, props, defines) {
 		props.useShaderTextureLOD ? '#define TEXTURE_LOD_EXT' : '',
 
 		props.useDiffuseMap ? ('#define USE_DIFFUSE_MAP ' + props.useDiffuseMap) : '',
-		props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+		props.useAlphaMap ? ('#define USE_ALPHA_MAP ' + props.useAlphaMap) : '',
 		props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 		props.useEnvMap ? '#define USE_ENV_MAP' : '',
 		props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
@@ -355,7 +355,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useShaderTextureLOD =  capabilities.version >= 2 || !!capabilities.getExtension('EXT_shader_texture_lod');
 	// maps
 	props.useDiffuseMap = !!material.diffuseMap ? (material.diffuseMapCoord + 1) : 0;
-	props.useAlphaMap = !!material.alphaMap;
+	props.useAlphaMap = !!material.alphaMap ? (material.alphaMapCoord + 1) : 0;
 	props.useAlphaMapUVTransform = !!material.alphaMap && material.alphaMap.useUVTransform;
 	props.useNormalMap = !!material.normalMap;
 	props.useBumpMap = !!material.bumpMap;

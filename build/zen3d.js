@@ -8454,6 +8454,13 @@
 		this.alphaMap = null;
 
 		/**
+	     * Define the UV chanel for the alpha map to use starting from 0 and defaulting to 0.
+	     * @type {number}
+	     * @default 0
+	     */
+		this.alphaMapCoord = 0;
+
+		/**
 	     * The red channel of this texture is used as the ambient occlusion map.
 	     * @type {zen3d.Texture2D}
 	     * @default null
@@ -8659,10 +8666,13 @@
 			this.vertexColors = source.vertexColors;
 			this.diffuse.copy(source.diffuse);
 			this.diffuseMap = source.diffuseMap;
+			this.diffuseMapCoord = source.diffuseMapCoord;
 			this.alphaMap = source.alphaMap;
+			this.alphaMapCoord = source.alphaMapCoord;
 			this.normalMap = source.normalMap;
 			this.aoMap = source.aoMap;
 			this.aoMapIntensity = source.aoMapIntensity;
+			this.aoMapCoord = source.aoMapCoord;
 			this.bumpMap = source.bumpMap;
 			this.bumpScale = source.bumpScale;
 			this.envMap = source.envMap;
@@ -11078,7 +11088,7 @@
 
 	var alphamap_pars_frag = "#ifdef USE_ALPHA_MAP\n\tuniform sampler2D alphaMap;\n#endif";
 
-	var alphamap_frag = "#ifdef USE_ALPHA_MAP\n\t#ifdef USE_ALPHA_MAP_UV_TRANSFORM\n\t\toutColor.a *= texture2D(alphaMap, vAlphaMapUV).g;\n\t#else\n\t\toutColor.a *= texture2D(alphaMap, v_Uv).g;\n\t#endif\n#endif";
+	var alphamap_frag = "#ifdef USE_ALPHA_MAP\n\t#ifdef USE_ALPHA_MAP_UV_TRANSFORM\n\t\toutColor.a *= texture2D(alphaMap, vAlphaMapUV).g;\n\t#else\n\t\t#if (USE_ALPHA_MAP == 1)\n\t\t\toutColor.a *= texture2D(alphaMap, v_Uv).g;\n\t\t#elif (USE_ALPHA_MAP == 2)\n            outColor.a *= texture2D(alphaMap, v_Uv2).g;\n\t\t#else\n            outColor.a *= texture2D(alphaMap, v_Uv).g;\n        #endif\n\t#endif\n#endif";
 
 	var normalMap_pars_frag = "#include <tbn>\n#include <tsn>\nuniform sampler2D normalMap;";
 
@@ -11138,7 +11148,7 @@
 
 	var uv_pars_vert = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP) || defined(USE_AOMAP)\n    attribute vec2 a_Uv;\n    varying vec2 v_Uv;\n    uniform mat3 uvTransform;\n#endif\n#ifdef USE_UV2\n    attribute vec2 a_Uv2;\n    varying vec2 v_Uv2;\n#endif\n#ifdef USE_ALPHA_MAP_UV_TRANSFORM\n    varying vec2 vAlphaMapUV;\n    uniform mat3 alphaMapUVTransform;\n#endif \n";
 
-	var uv_vert = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP) || defined(USE_AOMAP)\n    v_Uv = (uvTransform * vec3(a_Uv, 1.)).xy;\n#endif\n#ifdef USE_UV2\n    v_Uv2 = a_Uv2;\n#endif\n#ifdef USE_ALPHA_MAP_UV_TRANSFORM\n    vAlphaMapUV = (alphaMapUVTransform * vec3(a_Uv, 1.)).xy;\n#endif ";
+	var uv_vert = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP) || defined(USE_AOMAP)\n    v_Uv = (uvTransform * vec3(a_Uv, 1.)).xy;\n#endif\n#ifdef USE_UV2\n    v_Uv2 = a_Uv2;\n#endif\n#ifdef USE_ALPHA_MAP_UV_TRANSFORM\n    #if (USE_ALPHA_MAP == 1)\n        vAlphaMapUV = (alphaMapUVTransform * vec3(a_Uv, 1.)).xy;\n    #elif (USE_ALPHA_MAP == 2)\n        vAlphaMapUV = (alphaMapUVTransform * vec3(a_Uv2, 1.)).xy;\n    #else\n        vAlphaMapUV = (alphaMapUVTransform * vec3(a_Uv, 1.)).xy;\n    #endif\n#endif ";
 
 	var viewModelPos_pars_frag = "#if (NUM_POINT_LIGHTS > 0) || (NUM_SPOT_LIGHTS > 0) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(FLAT_SHADED) || defined(USE_PHONG) || defined(USE_PBR) || (NUM_CLIPPING_PLANES > 0) \n    varying vec3 v_modelPos;\n#endif";
 
@@ -11388,7 +11398,7 @@
 			props.flipSided ? '#define FLIP_SIDED' : '',
 
 			props.useDiffuseMap ? ('#define USE_DIFFUSE_MAP ' +  props.useDiffuseMap) : '',
-			props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+			props.useAlphaMap ? ('#define USE_ALPHA_MAP ' + props.useAlphaMap) : '',
 			props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 			props.useEnvMap ? '#define USE_ENV_MAP' : '',
 			props.sizeAttenuation ? '#define USE_SIZEATTENUATION' : '',
@@ -11470,7 +11480,7 @@
 			props.useShaderTextureLOD ? '#define TEXTURE_LOD_EXT' : '',
 
 			props.useDiffuseMap ? ('#define USE_DIFFUSE_MAP ' + props.useDiffuseMap) : '',
-			props.useAlphaMap ? '#define USE_ALPHA_MAP' : '',
+			props.useAlphaMap ? ('#define USE_ALPHA_MAP ' + props.useAlphaMap) : '',
 			props.useAlphaMapUVTransform ? '#define USE_ALPHA_MAP_UV_TRANSFORM' : '',
 			props.useEnvMap ? '#define USE_ENV_MAP' : '',
 			props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
@@ -11629,7 +11639,7 @@
 		props.useShaderTextureLOD =  capabilities.version >= 2 || !!capabilities.getExtension('EXT_shader_texture_lod');
 		// maps
 		props.useDiffuseMap = !!material.diffuseMap ? (material.diffuseMapCoord + 1) : 0;
-		props.useAlphaMap = !!material.alphaMap;
+		props.useAlphaMap = !!material.alphaMap ? (material.alphaMapCoord + 1) : 0;
 		props.useAlphaMapUVTransform = !!material.alphaMap && material.alphaMap.useUVTransform;
 		props.useNormalMap = !!material.normalMap;
 		props.useBumpMap = !!material.bumpMap;
