@@ -239,7 +239,14 @@ function Material() {
      * @type {zen3d.Texture2D}
      * @default null
      */
-	this.emissiveMap = null;
+     this.emissiveMap = null;
+     
+     /**
+     * Define the UV chanel for the emissive map to use starting from 0 and defaulting to 0.
+     * @type {number}
+     * @default 0
+     */
+	this.emissiveMapCoord = 0;
 
 	/**
      * Intensity of the emissive light.
@@ -385,7 +392,8 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
 		this.envMapIntensity = source.envMapIntensity;
 		this.envMapCombine = source.envMapCombine;
 		this.emissive.copy(source.emissive);
-		this.emissiveMap = source.emissiveMap;
+          this.emissiveMap = source.emissiveMap;
+          this.emissiveMapCoord = source.emissiveMapCoord;
 		this.emissiveIntensity = source.emissiveIntensity;
 		this.blending = source.blending;
 		this.depthFunc = source.depthFunc;
