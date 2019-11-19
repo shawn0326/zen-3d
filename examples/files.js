@@ -110,7 +110,8 @@ var files = {
 		"custompass_taa",
 		"custompass_bloom",
 		"custompass_blur",
-		"custompass_msaa"
+		"custompass_msaa",
+		"custompass_depth_share"
 	],
 	"deferred": [
 		"deferred_renderer",
