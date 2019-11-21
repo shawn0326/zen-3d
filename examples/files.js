@@ -111,7 +111,8 @@ var files = {
 		"custompass_bloom",
 		"custompass_blur",
 		"custompass_msaa",
-		"custompass_depth_share"
+		"custompass_depth_texture_share",
+		"custompass_depth_buffer_share"
 	],
 	"deferred": [
 		"deferred_renderer",

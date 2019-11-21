@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - custom depth share</title>
+	<title>zen3d - custom depth texture share</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -29,7 +29,7 @@
 <body>
 
     <div id="info">
-		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - Share Depth Buffer
+		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - Share Depth Texture
 		<br/> Two FBO attach the same depth texture
 		<br/> Available only for WebGL 2.0
     </div>
@@ -132,10 +132,6 @@
 			gui.add( { version: "WebGL " + glCore.capabilities.version }, "version" );
 			gui.add(cube0.position, "z", -10, 10, 1);
 
-			if (glCore.capabilities.version < 2) {
-
-			}
-
 	        function loop(count) {
 
 				requestAnimationFrame(loop);
@@ -183,11 +179,7 @@
 
 				backRenderTarget.resize(width, height);
 				tempRenderTarget.resize(width, height);
-
-				for (var key in renderTargets) {
-					var renderTarget = renderTargets[key];
-					renderTarget && renderTarget.resize(width, height);
-				}
+				tempRenderTarget2.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();
