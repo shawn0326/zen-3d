@@ -268,8 +268,10 @@
 		LUMINANCE_ALPHA: 0x190A,
 		// only for internal formats
 		R8: 0x8229, // webgl2
+		RGBA8: 0x8058,
 		RGBA16F: 0x881A,
 		RGBA32F: 0x8814,
+		DEPTH_COMPONENT16: 0x81A5,
 		DEPTH_COMPONENT24: 0x81A6,
 		DEPTH_COMPONENT32F: 0x8CAC,
 		DEPTH24_STENCIL8: 0x88F0,
@@ -4376,7 +4378,9 @@
 
 	TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.TextureBase.prototype */{
 
-		constructor: TextureBase,
+	     constructor: TextureBase,
+	     
+	     isTexture: true,
 
 		/**
 	     * Returns a clone of this texture.
@@ -11784,16 +11788,71 @@
 		this.programs = programs;
 	}
 
+	function WebGLRenderBuffer(gl, properties, capabilities) {
+		this.gl = gl;
+
+		this.properties = properties;
+
+		this.capabilities = capabilities;
+	}
+
+	Object.assign(WebGLRenderBuffer.prototype, {
+
+	    setRenderBuffer: function(renderBuffer) {
+	        var gl = this.gl;
+	        var capabilities = this.capabilities;
+
+	        var renderBufferProperties = this.properties.get(renderBuffer);
+
+	        if (renderBufferProperties.__webglRenderbuffer === undefined) {
+	            renderBuffer.addEventListener('dispose', this.onRenderBufferDispose, this);
+
+	            renderBufferProperties.__webglRenderbuffer = gl.createRenderbuffer();
+
+	            gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+
+	            if (renderBuffer.multipleSampling > 0) {
+	                if (capabilities.version < 2) {
+	                    console.error("render buffer multipleSampling is not support in webgl 1.0.");
+	                }
+	                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderBuffer.multipleSampling, capabilities.maxSamples), renderBuffer.format, renderBuffer.width, renderBuffer.height);
+	            } else {
+	                gl.renderbufferStorage(gl.RENDERBUFFER, renderBuffer.format, renderBuffer.width, renderBuffer.height);
+	            }
+	        } else {
+	            gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+	        }
+
+	        return renderBufferProperties;
+	    },
+
+	    onRenderBufferDispose: function(event) {
+	        var gl = this.gl;
+	        var renderBuffer = event.target;
+
+	        var renderBufferProperties = this.properties.get(renderBuffer);
+
+	        if (renderBufferProperties.__webglRenderbuffer) {
+				gl.deleteRenderbuffer(renderBufferProperties.__webglRenderbuffer);
+			}
+
+			this.properties.delete(renderBuffer);
+	    }
+
+	});
+
 	function _isPowerOfTwo$1(image) {
 		return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
 	}
 
-	function WebGLRenderTarget(gl, state, texture, properties, capabilities) {
+	function WebGLRenderTarget(gl, state, texture, renderBuffer, properties, capabilities) {
 		this.gl = gl;
 
 		this.state = state;
 
 		this.texture = texture;
+
+		this.renderBuffer = renderBuffer;
 
 		this.properties = properties;
 
@@ -11806,6 +11865,7 @@
 			var gl = this.gl;
 			var state = this.state;
 			var texture = this.texture;
+			var renderBuffer = this.renderBuffer;
 			var capabilities = this.capabilities;
 
 			var renderTargetProperties = this.properties.get(renderTarget);
@@ -11818,9 +11878,7 @@
 				gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
 				var buffers = [];
-				for (var attachment in renderTarget._textures) {
-					var textureProperties = texture.setTexture2D(renderTarget._textures[attachment]);
-
+				for (var attachment in renderTarget._attachments) {
 					attachment = Number(attachment);
 
 					if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
@@ -11829,11 +11887,18 @@
 						}
 					}
 
-					gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
-					state.bindTexture(gl.TEXTURE_2D, null);
-
 					if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
 						buffers.push(attachment);
+					}
+
+					if (renderTarget._attachments[attachment].isTexture) {
+						var textureProperties = texture.setTexture2D(renderTarget._attachments[attachment]);
+						gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
+						state.bindTexture(gl.TEXTURE_2D, null);
+					} else {
+						var renderBufferProperties = renderBuffer.setRenderBuffer(renderTarget._attachments[attachment]);
+						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+						gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 					}
 				}
 
@@ -11842,47 +11907,6 @@
 						gl.drawBuffers(buffers);
 					} else if (capabilities.getExtension('WEBGL_draw_buffers')) {
 						capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
-					}
-				}
-
-				if (capabilities.version >= 2) {
-					if (renderTarget.multipleSampling > 0) {
-						var renderbuffer = gl.createRenderbuffer();
-						gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-						gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
-						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
-
-						renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
-					}
-				}
-
-				if (renderTarget.depthBuffer) {
-					if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
-						renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-
-						var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-
-						gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-
-						if (renderTarget.stencilBuffer) {
-							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
-							} else {
-								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-							}
-
-							gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-						} else {
-							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-							} else {
-								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-							}
-
-							gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-						}
-
-						gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 					}
 				}
 
@@ -11913,6 +11937,7 @@
 			var gl = this.gl;
 			var state = this.state;
 			var texture = this.texture;
+			var renderBuffer = this.renderBuffer;
 			var capabilities = this.capabilities;
 
 			var renderTargetProperties = this.properties.get(renderTarget);
@@ -11926,9 +11951,7 @@
 				gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
 				var buffers = [];
-				for (var attachment in renderTarget._textures) {
-					var textureProperties = texture.setTextureCube(renderTarget._textures[attachment]);
-
+				for (var attachment in renderTarget._attachments) {
 					attachment = Number(attachment);
 
 					if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
@@ -11937,11 +11960,18 @@
 						}
 					}
 
-					gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
-					state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-
 					if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
 						buffers.push(attachment);
+					}
+
+					if (renderTarget._attachments[attachment].isTexture) {
+						var textureProperties = texture.setTextureCube(renderTarget._attachments[attachment]);
+						gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+						state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+					} else {
+						var renderBufferProperties = renderBuffer.setRenderBuffer(renderTarget._attachments[attachment]);
+						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+						gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 					}
 				}
 
@@ -11950,47 +11980,6 @@
 						gl.drawBuffers(buffers);
 					} else if (capabilities.getExtension('WEBGL_draw_buffers')) {
 						capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
-					}
-				}
-
-				if (capabilities.version >= 2) {
-					if (renderTarget.multipleSampling > 0) {
-						var renderbuffer = gl.createRenderbuffer();
-						gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-						gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
-						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
-
-						renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
-					}
-				}
-
-				if (renderTarget.depthBuffer) {
-					if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
-						renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-
-						var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-
-						gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-
-						if (renderTarget.stencilBuffer) {
-							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
-							} else {
-								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-							}
-
-							gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-						} else {
-							if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-								gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-							} else {
-								gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-							}
-
-							gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-						}
-
-						gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 					}
 				}
 
@@ -12016,9 +12005,11 @@
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
-			for (var attachment in renderTarget._textures) {
-				var textureProperties = this.properties.get(renderTarget._textures[attachment]);
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+			for (var attachment in renderTarget._attachments) {
+				if (renderTarget._attachments[attachment].isTexture) {
+					var textureProperties = this.properties.get(renderTarget._attachments[attachment]);
+					gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+				}
 			}
 			renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
 		},
@@ -12082,8 +12073,8 @@
 				gl.deleteFramebuffer(renderTargetProperties.__webglFramebuffer);
 			}
 
-			if (renderTargetProperties.__webglDepthbuffer) {
-				gl.deleteRenderbuffer(renderTargetProperties.__webglDepthbuffer);
+			for (var attachment in renderTarget._attachments) {
+				renderTarget._attachments[attachment].dispose();
 			}
 
 			this.properties.delete(renderTarget);
@@ -12121,8 +12112,8 @@
 				if (isCube) {
 					var renderTargetProperties = this.properties.get(target);
 					if (renderTargetProperties.__currentActiveCubeFace !== target.activeCubeFace) {
-						for (var attachment in target._textures) {
-							var textureProperties = this.properties.get(target._textures[attachment]);
+						for (var attachment in target._attachments) {
+							var textureProperties = this.properties.get(target._attachments[attachment]);
 							gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
 						}
 						renderTargetProperties.__currentActiveCubeFace = target.activeCubeFace;
@@ -12194,7 +12185,9 @@
 		var texture = new WebGLTexture(gl, state, properties, capabilities);
 		this.texture = texture;
 
-		this.renderTarget = new WebGLRenderTarget(gl, state, texture, properties, capabilities);
+		var renderBuffer = new WebGLRenderBuffer(gl, properties, capabilities);
+
+		this.renderTarget = new WebGLRenderTarget(gl, state, texture, renderBuffer, properties, capabilities);
 
 		this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
 
@@ -13166,29 +13159,6 @@
 	     * @type {number}
 	     */
 		this.height = height;
-
-		/**
-	     * If set true, attach a depth render buffer to the redner target.
-	     * @type {boolean}
-	     * @default true
-	     */
-		this.depthBuffer = true;
-
-		/**
-	     * If set true, attach a stencil render buffer to the redner target.
-	     * @type {boolean}
-	     * @default true
-	     */
-		this.stencilBuffer = true;
-
-		/**
-	     * If bigger than zero, this render target will attach renderBuffer for multipleSampling. (Only usable in WebGL 2.0)
-	     * Texture witch attached to ATTACHMENT0 will be detached.
-	     * Max support 8.
-	     * @type {number}
-	     * @default 0
-	     */
-		this.multipleSampling = 0;
 	}
 
 	RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderTargetBase.prototype */{
@@ -13223,6 +13193,103 @@
 	});
 
 	/**
+	 * Render Buffer can be attached to RenderTarget
+	 * @constructor
+	 * @memberof zen3d
+	 * @extends zen3d.EventDispatcher
+	 */
+	function RenderBuffer(width, height, format, multipleSampling) {
+	    EventDispatcher.call(this);
+
+	    /**
+	     * The width of the render buffer.
+	     * @type {number}
+	     */
+		this.width = width;
+
+		/**
+	     * The height of the render buffer.
+	     * @type {number}
+	     */
+		this.height = height;
+
+	    /**
+	     * Render buffer texel storage data format.
+	     * DEPTH_COMPONENT16: for depth attachments.
+	     * DEPTH_STENCIL: for depth stencil attachments.
+	     * RGBA8：for multiple sampled color attachments.
+	     * DEPTH_COMPONENT16: for multiple sampled depth attachments.
+	     * DEPTH24_STENCIL8: for multiple sampled depth stencil attachments.
+	     * @type {zen3d.WEBGL_PIXEL_FORMAT}
+	     * @default zen3d.WEBGL_PIXEL_FORMAT.RGBA8
+	     */
+	    this.format = format !== undefined ? format : WEBGL_PIXEL_FORMAT.RGBA8;
+
+	    /**
+	     * If bigger than zero, this renderBuffer will support multipleSampling. (Only usable in WebGL 2.0)
+	     * A Render Target's attachments must have the same multipleSampling value.
+	     * Texture can't be attached to the same render target with a multiple sampled render buffer.
+	     * Max support 8.
+	     * @type {number}
+	     * @default 0
+	     */
+	    this.multipleSampling = multipleSampling !== undefined ? multipleSampling : 0;
+	}
+
+	RenderBuffer.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderBuffer.prototype */{
+
+	    constructor: RenderBuffer,
+
+	    isRenderBuffer: true,
+
+	    /**
+	     * Resize the render buffer.
+	     * @param {number} width - The width of the render buffer.
+	     * @param {number} height - The height of the render buffer.
+	     * @return {boolean} - If size changed.
+	     */
+		resize: function(width, height) {
+			if (this.width !== width || this.height !== height) {
+				this.dispose();
+				this.width = width;
+				this.height = height;
+
+				return true;
+			}
+
+			return false;
+		},
+
+	    /**
+	     * Returns a clone of this render buffer.
+	     * @return {zen3d.RenderBuffer}
+	     */
+		clone: function() {
+			return new this.constructor().copy(this);
+		},
+
+		/**
+	     * Copy the given render buffer into this render buffer.
+	     * @param {zen3d.RenderBuffer} source - The render buffer to be copied.
+	     * @return {zen3d.RenderBuffer}
+	     */
+		copy: function(source) {
+	        this.format = source.format;
+	        this.multipleSampling = source.multipleSampling;
+
+			return this;
+		},
+
+		/**
+	     * Dispatches a dispose event.
+	     */
+		dispose: function() {
+			this.dispatchEvent({ type: 'dispose' });
+		}
+
+	});
+
+	/**
 	 * Render Target that render to cube texture.
 	 * @constructor
 	 * @memberof zen3d
@@ -13233,14 +13300,10 @@
 	function RenderTargetCube(width, height) {
 		RenderTargetBase.call(this, width, height);
 
-		this._textures = {};
+		this._attachments = {};
 
-		/**
-	     * The cube texture attached to COLOR_ATTACHMENT0.
-	     * @type {zen3d.TextureCube}
-	     * @default zen3d.TextureCube()
-	     */
-		this.texture = new TextureCube();
+		this.attach(new TextureCube(), ATTACHMENT.COLOR_ATTACHMENT0);
+		this.attach(new RenderBuffer(width, height, WEBGL_PIXEL_FORMAT.DEPTH_STENCIL), ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
 
 		/**
 	     * The activeCubeFace property corresponds to a cube side (PX 0, NX 1, PY 2, NY 3, PZ 4, NZ 5).
@@ -13258,40 +13321,44 @@
 		constructor: RenderTargetCube,
 
 		/**
-	     * Attach a texture(RTT) to the framebuffer.
+	     * Attach a texture(RTT) or renderbuffer to the framebuffer.
 	     * Notice: For now, dynamic Attachment during rendering is not supported.
-	     * @param  {zen3d.TextureCube} texture
+	     * @param  {zen3d.TextureCube|zen3d.RenderBuffer} target
 	     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
 	     */
-		attach: function(texture, attachment) {
-			var changed = false;
+		attach: function(target, attachment) {
+			if (target.isTexture) {
+				var changed = false;
 
-			for (var i = 0; i < 6; i++) {
-				if (texture.images[i] && texture.images[i].rtt) {
-					if (texture.images[i].width !== this.width || texture.images[i].height !== this.height) {
-						texture.images[i].width = this.width;
-						texture.images[i].height = this.height;
+				for (var i = 0; i < 6; i++) {
+					if (target.images[i] && target.images[i].rtt) {
+						if (target.images[i].width !== this.width || target.images[i].height !== this.height) {
+							target.images[i].width = this.width;
+							target.images[i].height = this.height;
+							changed = true;
+						}
+					} else {
+						target.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
 						changed = true;
 					}
-				} else {
-					texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
-					changed = true;
 				}
+		
+				if (changed) {
+					target.version++;
+				}
+			} else {
+				target.resize(this.width, this.height);
 			}
 
-			if (changed) {
-				texture.version++;
-			}
-
-			this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
+			this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = target;
 		},
 
 		/**
-	     * Detach a texture.
+	     * Detach a or renderbuffer.
 	     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
 	     */
 		detach: function(attachment) {
-			delete this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
+			delete this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
 		},
 
 		/**
@@ -13301,14 +13368,16 @@
 			var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
 			if (changed) {
-				for (var attachment in this._textures) {
-					var texture = this._textures[attachment];
+				for (var attachment in this._attachments) {
+					var target = this._attachments[attachment];
 
-					if (texture) {
+					if (target.isTexture) {
 						for (var i = 0; i < 6; i++) {
-							texture.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
+							target.images[i] = { rtt: true, data: null, width: this.width, height: this.height };
 						}
-						texture.version++;
+						target.version++;
+					} else {
+						target.resize(width, height);
 					}
 				}
 			}
@@ -13322,14 +13391,17 @@
 
 			set: function(texture) {
 				if (texture) {
-					this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+					if (texture.isTexture) {
+						this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+					}
 				} else {
 					this.detach(ATTACHMENT.COLOR_ATTACHMENT0);
 				}
 			},
 
 			get: function() {
-				return this._textures[ATTACHMENT.COLOR_ATTACHMENT0];
+				var target = this._attachments[ATTACHMENT.COLOR_ATTACHMENT0];
+				return target.isTexture ? target : null;
 			}
 
 		}
@@ -14489,14 +14561,10 @@
 	function RenderTarget2D(width, height) {
 		RenderTargetBase.call(this, width, height);
 
-		this._textures = {};
+		this._attachments = {};
 
-		/**
-	     * The texture attached to COLOR_ATTACHMENT0.
-	     * @type {zen3d.Texture2D}
-	     * @default Texture2D()
-	     */
-		this.texture = new Texture2D();
+		this.attach(new Texture2D(), ATTACHMENT.COLOR_ATTACHMENT0);
+		this.attach(new RenderBuffer(width, height, WEBGL_PIXEL_FORMAT.DEPTH_STENCIL), ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
 	}
 
 	RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototype), /** @lends zen3d.RenderTarget2D.prototype */{
@@ -14504,31 +14572,36 @@
 		constructor: RenderTarget2D,
 
 		/**
-	     * Attach a texture(RTT) to the framebuffer.
+	     * Attach a texture(RTT) or renderbuffer to the framebuffer.
 	     * Notice: For now, dynamic Attachment during rendering is not supported.
-	     * @param  {zen3d.Texture2D} texture
+	     * @param  {zen3d.Texture2D|zen3d.RenderBuffer} target
 	     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
 	     */
-		attach: function(texture, attachment) {
-			if (texture.image && texture.image.rtt) {
-				if (texture.image.width !== this.width || texture.image.height !== this.height) {
-					texture.version++;
-					texture.image.width = this.width;
-					texture.image.height = this.height;
+		attach: function(target, attachment) {
+			if (target.isTexture) {
+				if (target.image && target.image.rtt) {
+					if (target.image.width !== this.width || target.image.height !== this.height) {
+						target.version++;
+						target.image.width = this.width;
+						target.image.height = this.height;
+					}
+				} else {
+					target.version++;
+					target.image = { rtt: true, data: null, width: this.width, height: this.height };
 				}
 			} else {
-				texture.version++;
-				texture.image = { rtt: true, data: null, width: this.width, height: this.height };
+				target.resize(this.width, this.height);
 			}
-			this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
+			
+			this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = target;
 		},
 
 		/**
-	     * Detach a texture.
+	     * Detach a texture or renderbuffer.
 	     * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
 	     */
 		detach: function(attachment) {
-			delete this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
+			delete this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
 		},
 
 		/**
@@ -14538,12 +14611,14 @@
 			var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
 			if (changed) {
-				for (var attachment in this._textures) {
-					var texture = this._textures[attachment];
+				for (var attachment in this._attachments) {
+					var target = this._attachments[attachment];
 
-					if (texture) {
-						texture.image = { rtt: true, data: null, width: this.width, height: this.height };
-						texture.version++;
+					if (target.isTexture) {
+						target.image = { rtt: true, data: null, width: this.width, height: this.height };
+						target.version++;
+					} else {
+						target.resize(width, height);
 					}
 				}
 			}
@@ -14559,14 +14634,17 @@
 
 			set: function(texture) {
 				if (texture) {
-					this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+					if (texture.isTexture) {
+						this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+					}
 				} else {
 					this.detach(ATTACHMENT.COLOR_ATTACHMENT0);
 				}
 			},
 
 			get: function() {
-				return this._textures[ATTACHMENT.COLOR_ATTACHMENT0];
+				var target = this._attachments[ATTACHMENT.COLOR_ATTACHMENT0];
+				return target.isTexture ? target : null;
 			}
 
 		}
@@ -15407,6 +15485,7 @@
 	exports.RGBELoader = RGBELoader;
 	exports.Ray = Ray;
 	exports.Raycaster = Raycaster;
+	exports.RenderBuffer = RenderBuffer;
 	exports.RenderList = RenderList;
 	exports.RenderTarget2D = RenderTarget2D;
 	exports.RenderTargetBack = RenderTargetBack;

@@ -137,7 +137,9 @@ function TextureBase() {
 
 TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.TextureBase.prototype */{
 
-	constructor: TextureBase,
+     constructor: TextureBase,
+     
+     isTexture: true,
 
 	/**
      * Returns a clone of this texture.

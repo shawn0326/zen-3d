@@ -1,6 +1,7 @@
 import { RenderTargetBase } from './RenderTargetBase.js';
 import { Texture2D } from '../texture/Texture2D.js';
-import { ATTACHMENT } from '../const.js';
+import { RenderBuffer } from './RenderBuffer.js';
+import { ATTACHMENT, WEBGL_PIXEL_FORMAT } from '../const.js';
 
 /**
  * Render Target that render to 2d texture.
@@ -13,14 +14,10 @@ import { ATTACHMENT } from '../const.js';
 function RenderTarget2D(width, height) {
 	RenderTargetBase.call(this, width, height);
 
-	this._textures = {};
+	this._attachments = {};
 
-	/**
-     * The texture attached to COLOR_ATTACHMENT0.
-     * @type {zen3d.Texture2D}
-     * @default Texture2D()
-     */
-	this.texture = new Texture2D();
+	this.attach(new Texture2D(), ATTACHMENT.COLOR_ATTACHMENT0);
+	this.attach(new RenderBuffer(width, height, WEBGL_PIXEL_FORMAT.DEPTH_STENCIL), ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
 }
 
 RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototype), /** @lends zen3d.RenderTarget2D.prototype */{
@@ -28,31 +25,36 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
 	constructor: RenderTarget2D,
 
 	/**
-     * Attach a texture(RTT) to the framebuffer.
+     * Attach a texture(RTT) or renderbuffer to the framebuffer.
      * Notice: For now, dynamic Attachment during rendering is not supported.
-     * @param  {zen3d.Texture2D} texture
+     * @param  {zen3d.Texture2D|zen3d.RenderBuffer} target
      * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
      */
-	attach: function(texture, attachment) {
-		if (texture.image && texture.image.rtt) {
-			if (texture.image.width !== this.width || texture.image.height !== this.height) {
-				texture.version++;
-				texture.image.width = this.width;
-				texture.image.height = this.height;
+	attach: function(target, attachment) {
+		if (target.isTexture) {
+			if (target.image && target.image.rtt) {
+				if (target.image.width !== this.width || target.image.height !== this.height) {
+					target.version++;
+					target.image.width = this.width;
+					target.image.height = this.height;
+				}
+			} else {
+				target.version++;
+				target.image = { rtt: true, data: null, width: this.width, height: this.height };
 			}
 		} else {
-			texture.version++;
-			texture.image = { rtt: true, data: null, width: this.width, height: this.height };
+			target.resize(this.width, this.height);
 		}
-		this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = texture;
+		
+		this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = target;
 	},
 
 	/**
-     * Detach a texture.
+     * Detach a texture or renderbuffer.
      * @param  {zen3d.ATTACHMENT} [attachment=zen3d.ATTACHMENT.COLOR_ATTACHMENT0]
      */
 	detach: function(attachment) {
-		delete this._textures[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
+		delete this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0];
 	},
 
 	/**
@@ -62,12 +64,14 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
 		var changed = RenderTargetBase.prototype.resize.call(this, width, height);
 
 		if (changed) {
-			for (var attachment in this._textures) {
-				var texture = this._textures[attachment];
+			for (var attachment in this._attachments) {
+				var target = this._attachments[attachment];
 
-				if (texture) {
-					texture.image = { rtt: true, data: null, width: this.width, height: this.height };
-					texture.version++;
+				if (target.isTexture) {
+					target.image = { rtt: true, data: null, width: this.width, height: this.height };
+					target.version++;
+				} else {
+					target.resize(width, height);
 				}
 			}
 		}
@@ -83,14 +87,17 @@ Object.defineProperties(RenderTarget2D.prototype, {
 
 		set: function(texture) {
 			if (texture) {
-				this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+				if (texture.isTexture) {
+					this.attach(texture, ATTACHMENT.COLOR_ATTACHMENT0);
+				}
 			} else {
 				this.detach(ATTACHMENT.COLOR_ATTACHMENT0);
 			}
 		},
 
 		get: function() {
-			return this._textures[ATTACHMENT.COLOR_ATTACHMENT0];
+			var target = this._attachments[ATTACHMENT.COLOR_ATTACHMENT0];
+			return target.isTexture ? target : null;
 		}
 
 	}
