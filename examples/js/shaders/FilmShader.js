@@ -36,11 +36,11 @@ zen3d.FilmShader = {
         "#define PI 3.14159265359",
 
         // "#include <common>",
-        "highp float rand( const in vec2 uv ) {",
-            "const highp float a = 12.9898, b = 78.233, c = 43758.5453;",
-            "highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );",
-            "return fract(sin(sn) * c);",
-        "}",
+        // "highp float rand( const in vec2 uv ) {",
+        //     "const highp float a = 12.9898, b = 78.233, c = 43758.5453;",
+        //     "highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );",
+        //     "return fract(sin(sn) * c);",
+        // "}",
 
         // control parameter
         "uniform float time;",

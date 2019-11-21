@@ -8660,7 +8660,10 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      */
 	copy: function(source) {
 		this.type = source.type;
-		this.precision = source.precision;
+          this.precision = source.precision;
+          if (source.defines) {
+               this.defines = Object.assign({}, source.defines);
+          }
 		this.opacity = source.opacity;
 		this.transparent = source.transparent;
 		this.premultipliedAlpha = source.premultipliedAlpha;
@@ -9103,7 +9106,7 @@ ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** 
 
 		this.vertexShader = source.vertexShader;
 		this.fragmentShader = source.fragmentShader;
-		this.defines = Object.assign({}, source.defines);
+		// this.defines = Object.assign({}, source.defines);
 		this.uniforms = cloneUniforms(source.uniforms);
 
 		return this;
