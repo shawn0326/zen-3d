@@ -5,12 +5,14 @@ function _isPowerOfTwo(image) {
 	return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
 }
 
-function WebGLRenderTarget(gl, state, texture, properties, capabilities) {
+function WebGLRenderTarget(gl, state, texture, renderBuffer, properties, capabilities) {
 	this.gl = gl;
 
 	this.state = state;
 
 	this.texture = texture;
+
+	this.renderBuffer = renderBuffer;
 
 	this.properties = properties;
 
@@ -23,6 +25,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 		var gl = this.gl;
 		var state = this.state;
 		var texture = this.texture;
+		var renderBuffer = this.renderBuffer;
 		var capabilities = this.capabilities;
 
 		var renderTargetProperties = this.properties.get(renderTarget);
@@ -35,9 +38,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
 			var buffers = [];
-			for (var attachment in renderTarget._textures) {
-				var textureProperties = texture.setTexture2D(renderTarget._textures[attachment]);
-
+			for (var attachment in renderTarget._attachments) {
 				attachment = Number(attachment);
 
 				if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
@@ -46,11 +47,18 @@ Object.assign(WebGLRenderTarget.prototype, {
 					}
 				}
 
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
-				state.bindTexture(gl.TEXTURE_2D, null);
-
 				if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
 					buffers.push(attachment);
+				}
+
+				if (renderTarget._attachments[attachment].isTexture) {
+					var textureProperties = texture.setTexture2D(renderTarget._attachments[attachment]);
+					gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, textureProperties.__webglTexture, 0);
+					state.bindTexture(gl.TEXTURE_2D, null);
+				} else {
+					var renderBufferProperties = renderBuffer.setRenderBuffer(renderTarget._attachments[attachment]);
+					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+					gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 				}
 			}
 
@@ -59,47 +67,6 @@ Object.assign(WebGLRenderTarget.prototype, {
 					gl.drawBuffers(buffers);
 				} else if (capabilities.getExtension('WEBGL_draw_buffers')) {
 					capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
-				}
-			}
-
-			if (capabilities.version >= 2) {
-				if (renderTarget.multipleSampling > 0) {
-					var renderbuffer = gl.createRenderbuffer();
-					gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
-					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
-
-					renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
-				}
-			}
-
-			if (renderTarget.depthBuffer) {
-				if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
-					renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-
-					var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-
-					gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-
-					if (renderTarget.stencilBuffer) {
-						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
-						} else {
-							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-						}
-
-						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-					} else {
-						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-						} else {
-							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-						}
-
-						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-					}
-
-					gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 				}
 			}
 
@@ -130,6 +97,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 		var gl = this.gl;
 		var state = this.state;
 		var texture = this.texture;
+		var renderBuffer = this.renderBuffer;
 		var capabilities = this.capabilities;
 
 		var renderTargetProperties = this.properties.get(renderTarget);
@@ -143,9 +111,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
 			var buffers = [];
-			for (var attachment in renderTarget._textures) {
-				var textureProperties = texture.setTextureCube(renderTarget._textures[attachment]);
-
+			for (var attachment in renderTarget._attachments) {
 				attachment = Number(attachment);
 
 				if (attachment === ATTACHMENT.DEPTH_ATTACHMENT || attachment === ATTACHMENT.DEPTH_STENCIL_ATTACHMENT) {
@@ -154,11 +120,18 @@ Object.assign(WebGLRenderTarget.prototype, {
 					}
 				}
 
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
-				state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-
 				if ((attachment <= 0x8CE9 && attachment >= 0x8CE0) || (attachment <= 0x8CE15 && attachment >= 0x8CE10)) {
 					buffers.push(attachment);
+				}
+
+				if (renderTarget._attachments[attachment].isTexture) {
+					var textureProperties = texture.setTextureCube(renderTarget._attachments[attachment]);
+					gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+					state.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+				} else {
+					var renderBufferProperties = renderBuffer.setRenderBuffer(renderTarget._attachments[attachment]);
+					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+					gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 				}
 			}
 
@@ -167,47 +140,6 @@ Object.assign(WebGLRenderTarget.prototype, {
 					gl.drawBuffers(buffers);
 				} else if (capabilities.getExtension('WEBGL_draw_buffers')) {
 					capabilities.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL(buffers);
-				}
-			}
-
-			if (capabilities.version >= 2) {
-				if (renderTarget.multipleSampling > 0) {
-					var renderbuffer = gl.createRenderbuffer();
-					gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.RGBA8, renderTarget.width, renderTarget.height);
-					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
-
-					renderTargetProperties.__multipleSamplingbuffer = renderbuffer;
-				}
-			}
-
-			if (renderTarget.depthBuffer) {
-				if (!renderTarget._textures[ATTACHMENT.DEPTH_STENCIL_ATTACHMENT] && !renderTarget._textures[ATTACHMENT.DEPTH_ATTACHMENT]) {
-					renderTargetProperties.__webglDepthbuffer = gl.createRenderbuffer();
-
-					var renderbuffer = renderTargetProperties.__webglDepthbuffer;
-
-					gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-
-					if (renderTarget.stencilBuffer) {
-						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH24_STENCIL8, renderTarget.width, renderTarget.height);
-						} else {
-							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, renderTarget.width, renderTarget.height);
-						}
-
-						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-					} else {
-						if (capabilities.version >= 2 && renderTarget.multipleSampling > 0) {
-							gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderTarget.multipleSampling, capabilities.maxSamples), gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-						} else {
-							gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
-						}
-
-						gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-					}
-
-					gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 				}
 			}
 
@@ -233,9 +165,11 @@ Object.assign(WebGLRenderTarget.prototype, {
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
 
-		for (var attachment in renderTarget._textures) {
-			var textureProperties = this.properties.get(renderTarget._textures[attachment]);
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+		for (var attachment in renderTarget._attachments) {
+			if (renderTarget._attachments[attachment].isTexture) {
+				var textureProperties = this.properties.get(renderTarget._attachments[attachment]);
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, 0);
+			}
 		}
 		renderTargetProperties.__currentActiveCubeFace = renderTarget.activeCubeFace;
 	},
@@ -299,8 +233,8 @@ Object.assign(WebGLRenderTarget.prototype, {
 			gl.deleteFramebuffer(renderTargetProperties.__webglFramebuffer)
 		}
 
-		if (renderTargetProperties.__webglDepthbuffer) {
-			gl.deleteRenderbuffer(renderTargetProperties.__webglDepthbuffer)
+		for (var attachment in renderTarget._attachments) {
+			renderTarget._attachments[attachment].dispose();
 		}
 
 		this.properties.delete(renderTarget);
@@ -340,8 +274,8 @@ Object.assign(WebGLRenderTarget.prototype, {
 			if (isCube) {
 				var renderTargetProperties = this.properties.get(target);
 				if (renderTargetProperties.__currentActiveCubeFace !== target.activeCubeFace) {
-					for (var attachment in target._textures) {
-						var textureProperties = this.properties.get(target._textures[attachment]);
+					for (var attachment in target._attachments) {
+						var textureProperties = this.properties.get(target._attachments[attachment]);
 						gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.activeCubeFace, textureProperties.__webglTexture, 0);
 					}
 					renderTargetProperties.__currentActiveCubeFace = target.activeCubeFace;

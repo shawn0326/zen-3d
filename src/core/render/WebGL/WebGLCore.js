@@ -9,6 +9,7 @@ import { WebGLProperties } from './WebGLProperties.js';
 import { WebGLCapabilities } from './WebGLCapabilities.js';
 import { WebGLState } from './WebGLState.js';
 import { WebGLTexture } from './WebGLTexture.js';
+import { WebGLRenderBuffer } from './WebGLRenderBuffer.js';
 import { WebGLRenderTarget } from './WebGLRenderTarget.js';
 import { WebGLGeometry } from './WebGLGeometry.js';
 
@@ -73,7 +74,9 @@ function WebGLCore(gl) {
 	var texture = new WebGLTexture(gl, state, properties, capabilities);
 	this.texture = texture;
 
-	this.renderTarget = new WebGLRenderTarget(gl, state, texture, properties, capabilities);
+	var renderBuffer = new WebGLRenderBuffer(gl, properties, capabilities);
+
+	this.renderTarget = new WebGLRenderTarget(gl, state, texture, renderBuffer, properties, capabilities);
 
 	this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
 

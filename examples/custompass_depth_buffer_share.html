@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - custom pass msaa</title>
+	<title>zen3d - custom depth buffer share</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -29,7 +29,8 @@
 <body>
 
     <div id="info">
-		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - MSAA by Multisampled Renderbuffers
+		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - Share Depth Buffer
+		<br/> Two FBO attach the same depth buffer
 		<br/> Available only for WebGL 2.0
     </div>
 
@@ -54,6 +55,21 @@
 			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
 			var glCore = new zen3d.WebGLCore(gl);
 
+			// Create an geometry object.
+
+			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
+
+			// Create depth scene.
+
+			var material0 = new zen3d.BasicMaterial();
+			// material0.colorWrite = false;
+			var cube0 = new zen3d.Mesh(cube_geometry, material0);
+			cube0.position.z = 10;
+			var depthScene = new zen3d.Scene();
+			depthScene.add(cube0);
+
+			// Create scene.
+
 	        var scene = new zen3d.Scene();
 
 			var grid = new zen3d.GridHelper(50, 20, 0xffffff, 0xffffff);
@@ -63,11 +79,12 @@
 			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
 			texture.anisotropy = glCore.capabilities.maxAnisotropy;
 
-			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
 			var material = new zen3d.BasicMaterial();
 			material.diffuseMap = texture;
 			var cube = new zen3d.Mesh(cube_geometry, material);
 			scene.add(cube);
+
+			// Use the same camera.
 
 			var camera = new zen3d.Camera();
 			camera.gammaFactor = 1.5;
@@ -76,6 +93,7 @@
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 			scene.add(camera);
+			depthScene.add(camera);
 
 			var controller = new zen3d.OrbitControls(camera, canvas);
 			
@@ -83,37 +101,35 @@
 
 			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
 
+			var depthRenderBuffer = new zen3d.RenderBuffer(width, height, zen3d.WEBGL_PIXEL_FORMAT.DEPTH24_STENCIL8, 4);
+
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.attach(
+				new zen3d.RenderBuffer(width, height, zen3d.WEBGL_PIXEL_FORMAT.RGBA8, 4),
+				zen3d.ATTACHMENT.COLOR_ATTACHMENT0
+			);
+			tempRenderTarget.attach(
+				depthRenderBuffer,
+				zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+			);
 
-			var renderTargets = {};
-			function getMultipleSamplingRenderTarget(value) {
-				if (!renderTargets[value]) {
-					var renderTarget = new zen3d.RenderTarget2D(width, height);
-					renderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-					renderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-					renderTarget.attach(
-						new zen3d.RenderBuffer(width, height, zen3d.WEBGL_PIXEL_FORMAT.RGBA8, value), 
-						zen3d.ATTACHMENT.COLOR_ATTACHMENT0
-					);
-					renderTarget.attach(
-						new zen3d.RenderBuffer(width, height, zen3d.WEBGL_PIXEL_FORMAT.DEPTH24_STENCIL8, value), 
-						zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
-					);
+			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget2.attach(
+				new zen3d.RenderBuffer(width, height, zen3d.WEBGL_PIXEL_FORMAT.RGBA8, 4),
+				zen3d.ATTACHMENT.COLOR_ATTACHMENT0
+			);
+			tempRenderTarget2.attach(
+				depthRenderBuffer,
+				zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+			);
 
-					renderTargets[value] = renderTarget;
-				}
+			var tempRenderTarget3 = new zen3d.RenderTarget2D(width, height);
+			tempRenderTarget3.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget3.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 
-				return renderTargets[value];
-			}
-
-			var params = {"msaa": true, "samplers": Math.min(5, glCore.capabilities.maxSamples)};
 			var gui = new dat.GUI();
 			gui.add( { version: "WebGL " + glCore.capabilities.version }, "version" );
-			gui.add( { MaxSamples: glCore.capabilities.maxSamples }, "MaxSamples" );
-			gui.add(params, "msaa");
-			gui.add(params, "samplers", 1, glCore.capabilities.maxSamples, 1);
+			gui.add(cube0.position, "z", -10, 10, 1);
 
 	        function loop(count) {
 
@@ -121,42 +137,42 @@
 
 				controller.update();
 
-				// do render pass
 				scene.updateMatrix();
 				scene.updateLights();
+				depthScene.updateMatrix();
 
-				if (params.msaa) {
-					glCore.renderTarget.setRenderTarget(getMultipleSamplingRenderTarget(params.samplers));
+				glCore.renderTarget.setRenderTarget(tempRenderTarget);
 
-					glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-					glCore.clear(true, true, true);
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				glCore.clear(true, true, true);
 
-					glCore.render(scene, camera);
+				glCore.render(depthScene, camera);
 
-					glCore.renderTarget.setRenderTarget(tempRenderTarget);
+				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
 
-					if (glCore.capabilities.version < 2) {
-						console.warn("blitFramebuffer not support by WebGL" + glCore.capabilities.version);
-					} else {
-						glCore.renderTarget.blitRenderTarget(getMultipleSamplingRenderTarget(params.samplers), tempRenderTarget);
-					}
-				}
+				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				glCore.clear(true, false, true);
+				
+				glCore.render(scene, camera);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget3);
+
+				glCore.renderTarget.blitRenderTarget(tempRenderTarget2, tempRenderTarget3);
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
 				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-            	glCore.clear(true, true, true);
-
-				if (params.msaa) {
-					copyPass.uniforms.tDiffuse = tempRenderTarget.texture;
-					copyPass.render(glCore);
-				} else {
-					glCore.render(scene, camera);
-				}
+				glCore.clear(true, true, true);
 				
-	        }
-
-	        loop(0);
+				copyPass.uniforms.tDiffuse = tempRenderTarget3.texture;
+				copyPass.render(glCore);
+			}
+			
+			if (glCore.capabilities.version < 2) {
+				console.warn("This demo do not support by WebGL" + glCore.capabilities.version);
+			} else {
+				loop(0);
+			}
 
 			function onWindowResize() {
 				width = window.innerWidth || 2;
@@ -166,11 +182,8 @@
 
 				backRenderTarget.resize(width, height);
 				tempRenderTarget.resize(width, height);
-
-				for (var key in renderTargets) {
-					var renderTarget = renderTargets[key];
-					renderTarget && renderTarget.resize(width, height);
-				}
+				tempRenderTarget2.resize(width, height);
+				tempRenderTarget3.resize(width, height);
 			}
 			window.addEventListener("resize", onWindowResize, false);
 		})();

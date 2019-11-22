@@ -109,6 +109,7 @@
 			depthTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			depthTexture.generateMipmaps = false;
 			depthTexture.flipY = false;
+			tempRenderTarget.detach(zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
 			tempRenderTarget.attach(
 				depthTexture,
 				zen3d.ATTACHMENT.DEPTH_ATTACHMENT
