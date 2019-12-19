@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - custom pass motion blur</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
+
+	<script src="./js/controls/OrbitControls.js"></script>
+
+	<script src="./js/objects/GridHelper.js"></script>
+
+	<script src="js/shaders/MotionBlurShader.js"></script>
+
+	<script src="./js/shaders/SkyBoxShader.js"></script>
+	<script src="./js/objects/SkyBox.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom motion blur
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+			var contextParams = {
+				antialias: false, // antialias
+				alpha: false, // effect performance, default false
+				// premultipliedAlpha: false, // effect performance, default false
+				stencil: true
+			};
+
+			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+			var glCore = new zen3d.WebGLCore(gl);
+
+			var scene = new zen3d.Scene();
+			
+			var cube_texture = zen3d.TextureCube.fromSrc([
+			    "resources/Park2/posx.jpg",
+			    "resources/Park2/negx.jpg",
+			    "resources/Park2/posy.jpg",
+			    "resources/Park2/negy.jpg",
+			    "resources/Park2/posz.jpg",
+			    "resources/Park2/negz.jpg"
+			]);
+			var sky_box = new zen3d.SkyBox(cube_texture);
+
+			var grid = new zen3d.GridHelper(50, 20, 0xffffff, 0xffffff);
+			scene.add(grid);
+
+			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+			texture.anisotropy = glCore.capabilities.maxAnisotropy;
+
+			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
+			var material = new zen3d.BasicMaterial();
+			material.diffuseMap = texture;
+			var cube = new zen3d.Mesh(cube_geometry, material);
+			scene.add(cube);
+
+			var camera = new zen3d.Camera();
+			camera.gammaFactor = 1.5;
+			camera.gammaOutput = true;
+	        camera.position.set(10, 10, 30);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+			camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
+			camera.add(sky_box);
+			scene.add(camera);
+
+			var controller = new zen3d.OrbitControls(camera, canvas);
+
+			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+			function createRenderTarget() {
+				var renderTarget = new zen3d.RenderTarget2D(width, height);
+				renderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+				renderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+				renderTarget.texture.generateMipmaps = false;
+				var depthTexture = new zen3d.Texture2D();
+				depthTexture.image = { data: null, width: 4, height: 4 };
+				depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8; // higher precision for depth
+				depthTexture.format = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_STENCIL;
+				depthTexture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+				depthTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+				depthTexture.generateMipmaps = false;
+				depthTexture.flipY = false;
+				renderTarget.attach(
+					depthTexture,
+					zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
+				);
+				if (glCore.capabilities.version >= 2) {
+					depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH24_STENCIL8;
+					depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_INT_24_8;
+				}
+				renderTarget.depthTexture = depthTexture;
+				return renderTarget;
+			}
+
+			var tempRenderTarget1 = createRenderTarget();
+
+			var motionBlurPass = new zen3d.ShaderPostPass(zen3d.MotionBlurShader);
+			motionBlurPass.uniforms.tColor = tempRenderTarget1.texture;
+			motionBlurPass.uniforms.tDepth = tempRenderTarget1.depthTexture;
+			motionBlurPass.uniforms.velocityFactor = 0.7;
+
+			var viewProjectionMatrix = new zen3d.Matrix4();
+			var viewProjectionMatrixInverse = new zen3d.Matrix4();
+			var previousViewProjectionMatrix = new zen3d.Matrix4();
+			var cameraMove = new zen3d.Vector3();
+			var previousCameraPosition = new zen3d.Vector3();
+			camera.updateMatrix();
+			previousViewProjectionMatrix.copy(camera.viewMatrix).premultiply(camera.projectionMatrix);
+			previousCameraPosition.copy(camera.position);
+
+			var params = { "fps": 60 };
+			var gui = new dat.GUI();
+			gui.add({ version: "WebGL " + glCore.capabilities.version }, "version");
+			gui.add(motionBlurPass.uniforms, "velocityFactor", 0, 2, 0.01);
+			gui.add(params, 'fps', 1, 60 );
+
+			var lastTime = Date.now();
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+
+				var t = Date.now();
+			    if( t - lastTime < ( 1000 / params.fps ) ) {
+					return;
+				}
+				lastTime = t;
+
+				controller.update();
+
+				// do render pass
+				scene.updateMatrix();
+				scene.updateLights();
+
+				scene.updateRenderList(camera);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget1);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 1);
+				glCore.clear(true, true, true);
+
+				viewProjectionMatrix.copy(camera.viewMatrix).premultiply(camera.projectionMatrix);
+				viewProjectionMatrixInverse.copy(viewProjectionMatrix).inverse();
+				motionBlurPass.uniforms.worldToClipMatrix.set(viewProjectionMatrix.elements);
+				motionBlurPass.uniforms.clipToWorldMatrix.set(viewProjectionMatrixInverse.elements);
+				motionBlurPass.uniforms.previousWorldToClipMatrix.set(previousViewProjectionMatrix.elements);
+				cameraMove.copy(camera.position).sub(previousCameraPosition);
+				cameraMove.toArray(motionBlurPass.uniforms.cameraMove);
+				previousViewProjectionMatrix.copy(viewProjectionMatrix);	
+				previousCameraPosition.copy(camera.position);	
+
+				glCore.render(scene, camera);
+
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+				glCore.state.colorBuffer.setClear(0, 0, 0, 1);
+				glCore.clear(true, true, true);
+
+				motionBlurPass.render(glCore);
+
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
+
+				backRenderTarget.resize(width, height);
+
+				tempRenderTarget1.resize(width, height);
+				tempRenderTarget2.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
