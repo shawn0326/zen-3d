@@ -106,6 +106,7 @@ var files = {
 		"custompass_deferred",
 		"custompass_gbuffer",
 		"custompass_ssao",
+		"custompass_sketch",
 		"custompass_ssr",
 		"custompass_taa",
 		"custompass_bloom",
