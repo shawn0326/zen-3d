@@ -105,7 +105,7 @@ function createProgram(gl, props, defines) {
 		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
 		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
 		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
-		props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
+		props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 		props.useShadow ? '#define USE_SHADOW' : '',
 		props.flatShading ? '#define FLAT_SHADED' : '',
 		props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
@@ -177,7 +177,7 @@ function createProgram(gl, props, defines) {
 		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
 		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
 		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
-		props.useEmissiveMap ? '#define USE_EMISSIVEMAP' : '',
+		props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 		props.useShadow ? '#define USE_SHADOW' : '',
 		props.shadowType === SHADOW_TYPE.HARD ? '#define USE_HARD_SHADOW' : '',
 		props.shadowType === SHADOW_TYPE.POISSON_SOFT ? '#define USE_POISSON_SOFT_SHADOW' : '',
@@ -362,7 +362,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useSpecularMap = !!material.specularMap;
 	props.useEnvMap = !!material.envMap;
 	props.envMapCombine = material.envMapCombine;
-	props.useEmissiveMap = !!material.emissiveMap;
+	props.useEmissiveMap = !!material.emissiveMap ? (material.emissiveMapCoord + 1) : 0;
 	props.useRoughnessMap = !!material.roughnessMap;
 	props.useMetalnessMap = !!material.metalnessMap;
 	props.useGlossinessMap = !!material.glossinessMap;

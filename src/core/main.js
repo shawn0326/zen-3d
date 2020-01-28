@@ -89,6 +89,7 @@ export { ShaderPostPass } from './render/postPass/ShaderPostPass.js';
 export { Renderer } from './render/Renderer.js';
 export { LightCache } from './render/LightCache.js';
 export { RenderList } from './render/RenderList.js';
+export { RenderBuffer } from './render/RenderBuffer.js';
 export { RenderTargetBase } from './render/RenderTargetBase.js';
 export { RenderTargetBack } from './render/RenderTargetBack.js';
 export { RenderTarget2D } from './render/RenderTarget2D.js';

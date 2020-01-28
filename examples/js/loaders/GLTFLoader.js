@@ -1245,6 +1245,7 @@
 
 		if (materialDef.emissiveTexture !== undefined) {
 			pending.push(parser.assignTexture(materialParams, 'emissiveMap', materialDef.emissiveTexture));
+			materialParams.emissiveMapCoord = materialDef.emissiveTexture.texCoord || 0;
 		}
 
 		return Promise.all(pending).then(function() {
