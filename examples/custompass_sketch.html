@@ -128,7 +128,7 @@
 			var sketch = true;
 
 			// gui
-			var params = {type: "BEAUTY + SKETCH"};
+			var params = { type: "BEAUTY + SKETCH", uColor: [0, 0, 0] };
 			var gui = new dat.GUI();
 			gui.add(params, "type", ["BEAUTY + SKETCH", "BEAUTY", "SKETCH"]).onChange(function(val) {
 				switch(val) {
@@ -146,6 +146,13 @@
 						break;
 				}
 			});
+			gui.add(sketchPass.uniforms, "uThreshold", 0, 1, 0.01);
+			gui.add(sketchPass.uniforms, "uContrast", 0, 1, 0.01);
+			gui.addColor(params, "uColor").onChange(function(value) {
+				sketchPass.uniforms.uColor[0] = value[0] / 255;
+				sketchPass.uniforms.uColor[1] = value[1] / 255;
+				sketchPass.uniforms.uColor[2] = value[2] / 255;
+			});;
 
 	        function loop(count) {
 
@@ -172,7 +179,7 @@
 
 				glCore.renderTarget.setRenderTarget(backRenderTarget);
 
-				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				glCore.state.colorBuffer.setClear(1, 1, 1, 0);
 				glCore.clear(true, true, true);
 
 				if(beauty) {

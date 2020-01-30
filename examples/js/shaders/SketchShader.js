@@ -8,10 +8,10 @@ zen3d.SketchShader = {
 		normalTexture: null,
 		depthTexture: null,
 		invResolution: new Float32Array([1 / 512, 1 / 512]),
-		uThreshold: 0.35,
-		uContrast: 0.8,
+		uThreshold: 0.55,
+		uContrast: 0.5,
 		matProjViewInverse: new Float32Array(16),
-		uColor: new Float32Array([0.3176, 0.7255, 1])
+		uColor: new Float32Array([0, 0, 0])
 	},
 
 	vertexShader: [
