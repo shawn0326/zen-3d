@@ -43,6 +43,7 @@ var files = {
 		"material_cubetexture_envmap",
 		"material_cubetexture_realtimeenvmap",
 		"material_texture3d",
+		"material_volume",
 		"material_transparent",
 		"material_shadermaterial",
 		"material_shader_sky",

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - volume</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #000000;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
+	<script src="./libs/simplex-noise.js"></script>
+
+	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./js/Clock.js"></script>
+
+	<script src="./js/shaders/VolumeShader.js"></script>
+</head>
+<body>
+
+    <div id="info">
+		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - volume
+	</div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+			var scene = new zen3d.Scene();
+			
+			var SIZE = 128;
+			var simplex = new SimplexNoise(Math.random);
+			var scale = 0.02;
+
+			var src = new Uint8Array(SIZE * SIZE * SIZE);
+			for (var k = 0; k < SIZE; k += 1) {
+				for (var j = 0; j < SIZE; j += 1) {
+					for (var i = 0; i < SIZE; i += 1) {
+						if (k > 0.2 * SIZE && i < 0.8 * SIZE && i > 0.2 * SIZE && k < 0.8 * SIZE) {
+							src[i + j * SIZE + k * SIZE * SIZE] = 0;
+						} else {
+							src[i + j * SIZE + k * SIZE * SIZE] = Math.abs(simplex.noise3D(i * scale, j * scale, k * scale)) * 255;
+						}
+					}
+				}
+			}
+
+			var texture3d = new zen3d.Texture3D();
+			texture3d.image = {
+				data: src,
+				width: SIZE,
+				height: SIZE,
+				depth: SIZE
+			};
+
+			var geometry = new zen3d.CubeGeometry(1, 1, 1);
+
+			var invTransform = new zen3d.Matrix4();
+
+			var shaderMaterial = new zen3d.ShaderMaterial(zen3d.VolumeShader);
+			shaderMaterial.transparent = true;
+			shaderMaterial.premultipliedAlpha = true;
+			shaderMaterial.uniforms.densityTexture = texture3d;
+			shaderMaterial.uniforms.platteTexture = zen3d.Texture2D.fromSrc("resources/platte.png");
+			shaderMaterial.uniforms.uInvTransform = invTransform.elements;
+			shaderMaterial.uniforms.uAlphaCorrection = 0.09;
+
+			var box = new zen3d.Mesh(geometry, shaderMaterial);
+			box.scale.set(2, 2, 2);
+			scene.add(box);
+
+			var camera = new zen3d.Camera();
+	        camera.position.set(3, 5.5, 3.5);
+	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 100);
+			scene.add(camera);
+			
+			var controller = new zen3d.OrbitControls(camera, canvas);
+			controller.target.set(0, 0, 0);
+			controller.enablePan = false;
+			controller.rotateSpeed = 0.1;
+
+			// gui
+			var params = {};
+			var gui = new dat.GUI();
+			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
+			gui.add(shaderMaterial.uniforms, 'uAlphaCorrection', 0, 0.1, 0.001);
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+				
+				controller.update();
+
+				invTransform.copy(box.matrix).inverse();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 100);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
