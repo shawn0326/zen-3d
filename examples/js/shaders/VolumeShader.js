@@ -1,4 +1,5 @@
 // volume shader
+// https://github.com/modelo/API_samples/tree/master/samples/volume-rendering
 
 zen3d.VolumeShader = {
 
