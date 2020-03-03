@@ -1,5 +1,5 @@
 import { EventDispatcher } from '../EventDispatcher.js';
-import { BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE, WEBGL_COMPARE_FUNC } from '../const.js';
+import { BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE, WEBGL_COMPARE_FUNC, VERTEX_COLOR } from '../const.js';
 import { Color3 } from '../math/Color3.js';
 import { generateUUID } from '../base.js';
 
@@ -122,7 +122,7 @@ function Material() {
      * @type {zen3d.VERTEX_COLOR}
      * @default zen3d.VERTEX_COLOR.NONE
      */
-	this.vertexColors = zen3d.VERTEX_COLOR.NONE;
+	this.vertexColors = VERTEX_COLOR.NONE;
 
 	/**
      * The diffuse color.
