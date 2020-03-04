@@ -45,7 +45,7 @@ RenderTarget2D.prototype = Object.assign(Object.create(RenderTargetBase.prototyp
 		} else {
 			target.resize(this.width, this.height);
 		}
-		
+
 		this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = target;
 	},
 

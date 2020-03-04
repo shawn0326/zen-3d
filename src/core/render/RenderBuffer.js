@@ -8,9 +8,9 @@ import { EventDispatcher } from '../EventDispatcher.js';
  * @extends zen3d.EventDispatcher
  */
 function RenderBuffer(width, height, format, multipleSampling) {
-    EventDispatcher.call(this);
+	EventDispatcher.call(this);
 
-    /**
+	/**
      * The width of the render buffer.
      * @type {number}
      */
@@ -22,7 +22,7 @@ function RenderBuffer(width, height, format, multipleSampling) {
      */
 	this.height = height;
 
-    /**
+	/**
      * Render buffer texel storage data format.
      * DEPTH_COMPONENT16: for depth attachments.
      * DEPTH_STENCIL: for depth stencil attachments.
@@ -32,9 +32,9 @@ function RenderBuffer(width, height, format, multipleSampling) {
      * @type {zen3d.WEBGL_PIXEL_FORMAT}
      * @default zen3d.WEBGL_PIXEL_FORMAT.RGBA8
      */
-    this.format = format !== undefined ? format : WEBGL_PIXEL_FORMAT.RGBA8;
+	this.format = format !== undefined ? format : WEBGL_PIXEL_FORMAT.RGBA8;
 
-    /**
+	/**
      * If bigger than zero, this renderBuffer will support multipleSampling. (Only usable in WebGL 2.0)
      * A Render Target's attachments must have the same multipleSampling value.
      * Texture can't be attached to the same render target with a multiple sampled render buffer.
@@ -42,16 +42,16 @@ function RenderBuffer(width, height, format, multipleSampling) {
      * @type {number}
      * @default 0
      */
-    this.multipleSampling = multipleSampling !== undefined ? multipleSampling : 0;
+	this.multipleSampling = multipleSampling !== undefined ? multipleSampling : 0;
 }
 
 RenderBuffer.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderBuffer.prototype */{
 
-    constructor: RenderBuffer,
+	constructor: RenderBuffer,
 
-    isRenderBuffer: true,
+	isRenderBuffer: true,
 
-    /**
+	/**
      * Resize the render buffer.
      * @param {number} width - The width of the render buffer.
      * @param {number} height - The height of the render buffer.
@@ -69,7 +69,7 @@ RenderBuffer.prototype = Object.assign(Object.create(EventDispatcher.prototype),
 		return false;
 	},
 
-    /**
+	/**
      * Returns a clone of this render buffer.
      * @return {zen3d.RenderBuffer}
      */
@@ -83,8 +83,8 @@ RenderBuffer.prototype = Object.assign(Object.create(EventDispatcher.prototype),
      * @return {zen3d.RenderBuffer}
      */
 	copy: function(source) {
-        this.format = source.format;
-        this.multipleSampling = source.multipleSampling;
+		this.format = source.format;
+		this.multipleSampling = source.multipleSampling;
 
 		return this;
 	},

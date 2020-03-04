@@ -56,7 +56,7 @@ RenderTargetCube.prototype = Object.assign(Object.create(RenderTargetBase.protot
 					changed = true;
 				}
 			}
-	
+
 			if (changed) {
 				target.version++;
 			}
