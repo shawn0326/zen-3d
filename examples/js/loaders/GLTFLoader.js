@@ -1220,7 +1220,7 @@
 			pending.push(parser.assignTexture(materialParams, 'normalMap', materialDef.normalTexture));
 
 			// TODO normalScale support
-			// materialParams.normalScale = new THREE.Vector2( 1, 1 );
+			// materialParams.normalScale = new zen3d.Vector2( 1, 1 );
 			//
 			// if ( materialDef.normalTexture.scale !== undefined ) {
 			//
@@ -1337,7 +1337,7 @@
 			// Load Texture resource.
 
 			// TODO different kinds of URI support
-			// var loader = THREE.Loader.Handlers.get( sourceURI ) || textureLoader;
+			// var loader = zen3d.Loader.Handlers.get( sourceURI ) || textureLoader;
 
 			var loader = textureLoader;
 
@@ -1662,7 +1662,7 @@
 		}
 
 		if (transform.texCoord !== undefined) {
-			console.warn('THREE.GLTFLoader: Custom UV sets in "' + this.name + '" extension not yet supported.');
+			console.warn('zen3d.GLTFLoader: Custom UV sets in "' + this.name + '" extension not yet supported.');
 		}
 
 		texture.useUVTransform = true;

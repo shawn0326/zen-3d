@@ -246,7 +246,7 @@
 			//
 			// 	} else {
 			//
-			// 		console.warn( 'THREE.DirectGeometry.fromGeometry(): Undefined vertexUv2 ', i );
+			// 		console.warn( 'zen3d.DirectGeometry.fromGeometry(): Undefined vertexUv2 ', i );
 			//
 			// 		geometry.verticesArray.push( new Vector2(), new Vector2(), new Vector2() );
 			//

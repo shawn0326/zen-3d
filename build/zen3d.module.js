@@ -4682,7 +4682,7 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 				} else if (this.status === 0) {
 					// Some browsers return HTTP Status 0 when using non-http protocol
 					// e.g. 'file://' or 'data://'. Handle as success.
-					console.warn('THREE.FileLoader: HTTP Status 0 received.');
+					console.warn('zen3d.FileLoader: HTTP Status 0 received.');
 					if (onLoad) onLoad(response);
 					scope.manager.itemEnd(url);
 				} else {
