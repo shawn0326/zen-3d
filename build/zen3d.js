@@ -4378,9 +4378,9 @@
 
 	TextureBase.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.TextureBase.prototype */{
 
-	     constructor: TextureBase,
-	     
-	     isTexture: true,
+		constructor: TextureBase,
+
+		isTexture: true,
 
 		/**
 	     * Returns a clone of this texture.
@@ -11801,46 +11801,46 @@
 
 	Object.assign(WebGLRenderBuffer.prototype, {
 
-	    setRenderBuffer: function(renderBuffer) {
-	        var gl = this.gl;
-	        var capabilities = this.capabilities;
+		setRenderBuffer: function(renderBuffer) {
+			var gl = this.gl;
+			var capabilities = this.capabilities;
 
-	        var renderBufferProperties = this.properties.get(renderBuffer);
+			var renderBufferProperties = this.properties.get(renderBuffer);
 
-	        if (renderBufferProperties.__webglRenderbuffer === undefined) {
-	            renderBuffer.addEventListener('dispose', this.onRenderBufferDispose, this);
+			if (renderBufferProperties.__webglRenderbuffer === undefined) {
+				renderBuffer.addEventListener('dispose', this.onRenderBufferDispose, this);
 
-	            renderBufferProperties.__webglRenderbuffer = gl.createRenderbuffer();
+				renderBufferProperties.__webglRenderbuffer = gl.createRenderbuffer();
 
-	            gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+				gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
 
-	            if (renderBuffer.multipleSampling > 0) {
-	                if (capabilities.version < 2) {
-	                    console.error("render buffer multipleSampling is not support in webgl 1.0.");
-	                }
-	                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderBuffer.multipleSampling, capabilities.maxSamples), renderBuffer.format, renderBuffer.width, renderBuffer.height);
-	            } else {
-	                gl.renderbufferStorage(gl.RENDERBUFFER, renderBuffer.format, renderBuffer.width, renderBuffer.height);
-	            }
-	        } else {
-	            gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
-	        }
+				if (renderBuffer.multipleSampling > 0) {
+					if (capabilities.version < 2) {
+						console.error("render buffer multipleSampling is not support in webgl 1.0.");
+					}
+					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, Math.min(renderBuffer.multipleSampling, capabilities.maxSamples), renderBuffer.format, renderBuffer.width, renderBuffer.height);
+				} else {
+					gl.renderbufferStorage(gl.RENDERBUFFER, renderBuffer.format, renderBuffer.width, renderBuffer.height);
+				}
+			} else {
+				gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferProperties.__webglRenderbuffer);
+			}
 
-	        return renderBufferProperties;
-	    },
+			return renderBufferProperties;
+		},
 
-	    onRenderBufferDispose: function(event) {
-	        var gl = this.gl;
-	        var renderBuffer = event.target;
+		onRenderBufferDispose: function(event) {
+			var gl = this.gl;
+			var renderBuffer = event.target;
 
-	        var renderBufferProperties = this.properties.get(renderBuffer);
+			var renderBufferProperties = this.properties.get(renderBuffer);
 
-	        if (renderBufferProperties.__webglRenderbuffer) {
+			if (renderBufferProperties.__webglRenderbuffer) {
 				gl.deleteRenderbuffer(renderBufferProperties.__webglRenderbuffer);
 			}
 
 			this.properties.delete(renderBuffer);
-	    }
+		}
 
 	});
 
@@ -13202,9 +13202,9 @@
 	 * @extends zen3d.EventDispatcher
 	 */
 	function RenderBuffer(width, height, format, multipleSampling) {
-	    EventDispatcher.call(this);
+		EventDispatcher.call(this);
 
-	    /**
+		/**
 	     * The width of the render buffer.
 	     * @type {number}
 	     */
@@ -13216,7 +13216,7 @@
 	     */
 		this.height = height;
 
-	    /**
+		/**
 	     * Render buffer texel storage data format.
 	     * DEPTH_COMPONENT16: for depth attachments.
 	     * DEPTH_STENCIL: for depth stencil attachments.
@@ -13226,9 +13226,9 @@
 	     * @type {zen3d.WEBGL_PIXEL_FORMAT}
 	     * @default zen3d.WEBGL_PIXEL_FORMAT.RGBA8
 	     */
-	    this.format = format !== undefined ? format : WEBGL_PIXEL_FORMAT.RGBA8;
+		this.format = format !== undefined ? format : WEBGL_PIXEL_FORMAT.RGBA8;
 
-	    /**
+		/**
 	     * If bigger than zero, this renderBuffer will support multipleSampling. (Only usable in WebGL 2.0)
 	     * A Render Target's attachments must have the same multipleSampling value.
 	     * Texture can't be attached to the same render target with a multiple sampled render buffer.
@@ -13236,16 +13236,16 @@
 	     * @type {number}
 	     * @default 0
 	     */
-	    this.multipleSampling = multipleSampling !== undefined ? multipleSampling : 0;
+		this.multipleSampling = multipleSampling !== undefined ? multipleSampling : 0;
 	}
 
 	RenderBuffer.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.RenderBuffer.prototype */{
 
-	    constructor: RenderBuffer,
+		constructor: RenderBuffer,
 
-	    isRenderBuffer: true,
+		isRenderBuffer: true,
 
-	    /**
+		/**
 	     * Resize the render buffer.
 	     * @param {number} width - The width of the render buffer.
 	     * @param {number} height - The height of the render buffer.
@@ -13263,7 +13263,7 @@
 			return false;
 		},
 
-	    /**
+		/**
 	     * Returns a clone of this render buffer.
 	     * @return {zen3d.RenderBuffer}
 	     */
@@ -13277,8 +13277,8 @@
 	     * @return {zen3d.RenderBuffer}
 	     */
 		copy: function(source) {
-	        this.format = source.format;
-	        this.multipleSampling = source.multipleSampling;
+			this.format = source.format;
+			this.multipleSampling = source.multipleSampling;
 
 			return this;
 		},
@@ -13345,7 +13345,7 @@
 						changed = true;
 					}
 				}
-		
+
 				if (changed) {
 					target.version++;
 				}
@@ -14595,7 +14595,7 @@
 			} else {
 				target.resize(this.width, this.height);
 			}
-			
+
 			this._attachments[attachment || ATTACHMENT.COLOR_ATTACHMENT0] = target;
 		},
 
