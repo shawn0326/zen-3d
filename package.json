@@ -1,6 +1,6 @@
 {
   "name": "zen-3d",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "JavaScript 3D library",
   "main": "build/zen3d.js",
   "repository": "shawn0326/zen-3d",
@@ -11,6 +11,7 @@
     "build/zen3d.min.js",
     "build/zen3d.module.js",
     "examples/js",
+    "examples/jsm",
     "LICENSE",
     "package.json",
     "README.md",
