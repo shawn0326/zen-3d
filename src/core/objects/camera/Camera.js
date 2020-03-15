@@ -30,6 +30,12 @@ function Camera() {
 	this.projectionMatrix = new Matrix4();
 
 	/**
+     * This is the matrix which contains the projection.
+     * @type {zen3d.Matrix4}
+     */
+	this.projectionMatrixInverse = new Matrix4();
+
+	/**
      * The frustum of the camera.
      * @type {zen3d.Frustum}
      */
@@ -108,6 +114,7 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 			0, 0, -2 / (far - near), -(far + near) / (far - near),
 			0, 0, 0, 1
 		);
+		this.projectionMatrixInverse.getInverse(this.projectionMatrix);
 	},
 
 	/**
@@ -124,6 +131,7 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 			0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
 			0, 0, -1, 0
 		);
+		this.projectionMatrixInverse.getInverse(this.projectionMatrix);
 	},
 
 	getWorldDirection: function() {
@@ -161,6 +169,7 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 		this.viewMatrix.copy(source.viewMatrix);
 		this.projectionMatrix.copy(source.projectionMatrix);
+		this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
 
 		this.frustum.copy(source.frustum);
 		this.gammaFactor = source.gammaFactor;

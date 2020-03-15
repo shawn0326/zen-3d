@@ -338,10 +338,10 @@
                 project.copy(scope.object.projectionMatrix);
                 projectInv.getInverse(project);
 
-                var depth = p.set(0, 0, targetDistance).applyProjection(project).z;
+                var depth = p.set(0, 0, targetDistance).applyMatrix4(project).z;
 
                 // full-screen to world distance
-                var distance = p.set(0, -0.5, depth).applyProjection(projectInv).y;
+                var distance = p.set(0, -0.5, depth).applyMatrix4(projectInv).y;
                 distance *= 2;
 
                 // we use only clientHeight here so aspect ratio does not distort speed

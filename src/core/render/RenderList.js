@@ -85,7 +85,7 @@ function RenderList() {
 
 		// calculate z
 		helpVector3.setFromMatrixPosition(object.worldMatrix);
-		helpVector3.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+		helpVector3.project(camera);
 
 		if (Array.isArray(object.material)) {
 			var groups = object.geometry.groups;

@@ -593,6 +593,752 @@ Object.assign(EventDispatcher.prototype, /** @lends zen3d.EventDispatcher.protot
 });
 
 /**
+ * a vector 3 class
+ * @constructor
+ * @memberof zen3d
+ * @param {number} [x=0]
+ * @param {number} [y=0]
+ * @param {number} [z=0]
+ */
+function Vector3(x, y, z) {
+	this.x = x || 0;
+	this.y = y || 0;
+	this.z = z || 0;
+}
+
+Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
+
+	/**
+     *
+     */
+	lerpVectors: function(v1, v2, ratio) {
+		return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
+	},
+
+	/**
+     *
+     */
+	set: function(x, y, z) {
+		this.x = x || 0;
+		this.y = y || 0;
+		this.z = z || 0;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	min: function(v) {
+		this.x = Math.min(this.x, v.x);
+		this.y = Math.min(this.y, v.y);
+		this.z = Math.min(this.z, v.z);
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	max: function(v) {
+		this.x = Math.max(this.x, v.x);
+		this.y = Math.max(this.y, v.y);
+		this.z = Math.max(this.z, v.z);
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	getLength: function() {
+		return Math.sqrt(this.getLengthSquared());
+	},
+
+	/**
+     *
+     */
+	getLengthSquared: function() {
+		return this.x * this.x + this.y * this.y + this.z * this.z;
+	},
+
+	/**
+     *
+     */
+	normalize: function(thickness) {
+		thickness = thickness || 1;
+		var length = this.getLength();
+		if (length != 0) {
+			var invLength = thickness / length;
+			this.x *= invLength;
+			this.y *= invLength;
+			this.z *= invLength;
+			return this;
+		}
+	},
+
+	/**
+     *
+     */
+	subtract: function(a, target) {
+		if (!target) {
+			target = new Vector3();
+		}
+		target.set(this.x - a.x, this.y - a.y, this.z - a.z);
+		return target;
+	},
+
+	/**
+     *
+     */
+	multiply: function (v) {
+		this.x *= v.x;
+		this.y *= v.y;
+		this.z *= v.z;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	crossVectors: function(a, b) {
+		var ax = a.x,
+			ay = a.y,
+			az = a.z;
+		var bx = b.x,
+			by = b.y,
+			bz = b.z;
+
+		this.x = ay * bz - az * by;
+		this.y = az * bx - ax * bz;
+		this.z = ax * by - ay * bx;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	cross: function(v) {
+		var x = this.x,
+			y = this.y,
+			z = this.z;
+
+		this.x = y * v.z - z * v.y;
+		this.y = z * v.x - x * v.z;
+		this.z = x * v.y - y * v.x;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	dot: function(a) {
+		return this.x * a.x + this.y * a.y + this.z * a.z;
+	},
+
+	/**
+     *
+     */
+	applyQuaternion: function(q) {
+		var x = this.x,
+			y = this.y,
+			z = this.z;
+		var qx = q._x,
+			qy = q._y,
+			qz = q._z,
+			qw = q._w;
+
+		// calculate quat * vector
+
+		var ix = qw * x + qy * z - qz * y;
+		var iy = qw * y + qz * x - qx * z;
+		var iz = qw * z + qx * y - qy * x;
+		var iw = -qx * x - qy * y - qz * z;
+
+		// calculate result * inverse quat
+
+		this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+		this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+		this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	applyMatrix4: function(m) {
+		var x = this.x,
+			y = this.y,
+			z = this.z;
+		var e = m.elements;
+
+		var w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+
+		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	applyMatrix3: function (m) {
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[0] * x + e[3] * y + e[6] * z;
+		this.y = e[1] * x + e[4] * y + e[7] * z;
+		this.z = e[2] * x + e[5] * y + e[8] * z;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	transformDirection: function(m) {
+		// input: Matrix4 affine matrix
+		// vector interpreted as a direction
+
+		var x = this.x,
+			y = this.y,
+			z = this.z;
+		var e = m.elements;
+
+		this.x = e[0] * x + e[4] * y + e[8] * z;
+		this.y = e[1] * x + e[5] * y + e[9] * z;
+		this.z = e[2] * x + e[6] * y + e[10] * z;
+
+		return this.normalize();
+	},
+
+	/**
+     *
+     */
+	setFromMatrixPosition: function(m) {
+		return this.setFromMatrixColumn(m, 3);
+	},
+
+	/**
+     *
+     */
+	setFromMatrixColumn: function(m, index) {
+		return this.fromArray(m.elements, index * 4);
+	},
+
+	/**
+     *
+     */
+	fromArray: function(array, offset) {
+		if (offset === undefined) offset = 0;
+
+		this.x = array[offset];
+		this.y = array[offset + 1];
+		this.z = array[offset + 2];
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	toArray: function (array, offset) {
+		if (array === undefined) array = [];
+		if (offset === undefined) offset = 0;
+
+		array[offset] = this.x;
+		array[offset + 1] = this.y;
+		array[offset + 2] = this.z;
+
+		return array;
+	},
+
+	/**
+     *
+     */
+	copy: function(v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	addVectors: function(a, b) {
+		this.x = a.x + b.x;
+		this.y = a.y + b.y;
+		this.z = a.z + b.z;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	addScalar: function(s) {
+		this.x += s;
+		this.y += s;
+		this.z += s;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	add: function(v) {
+		this.x += v.x;
+		this.y += v.y;
+		this.z += v.z;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	subVectors: function(a, b) {
+		this.x = a.x - b.x;
+		this.y = a.y - b.y;
+		this.z = a.z - b.z;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	sub: function(v) {
+		this.x -= v.x;
+		this.y -= v.y;
+		this.z -= v.z;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	multiplyScalar: function(scalar) {
+		this.x *= scalar;
+		this.y *= scalar;
+		this.z *= scalar;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	distanceToSquared: function(v) {
+		var dx = this.x - v.x,
+			dy = this.y - v.y,
+			dz = this.z - v.z;
+
+		return dx * dx + dy * dy + dz * dz;
+	},
+
+	/**
+     *
+     */
+	distanceTo: function(v) {
+		return Math.sqrt(this.distanceToSquared(v));
+	},
+
+	/**
+     *
+     */
+	setFromSpherical: function (s) {
+		var sinPhiRadius = Math.sin(s.phi) * s.radius;
+
+		this.x = sinPhiRadius * Math.sin(s.theta);
+		this.y = Math.cos(s.phi) * s.radius;
+		this.z = sinPhiRadius * Math.cos(s.theta);
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	project: function(camera) {
+		return this.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+	},
+
+	/**
+     *
+     */
+	unproject: function() {
+		return this.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.worldMatrix);
+	},
+
+	/**
+     *
+     */
+	equals: function(v) {
+		return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
+	},
+
+	/**
+     *
+     */
+	clone: function() {
+		return new Vector3(this.x, this.y, this.z);
+	},
+
+	applyProjection: function(m) {
+		console.error("zen3d.Vector3: .applyProjection has been removed. Use .applyMatrix4 instead.");
+	}
+
+});
+
+/**
+ * @constructor
+ * @memberof zen3d
+ * @param {zen3d.Vector3} [origin=]
+ * @param {zen3d.Vector3} [direction=]
+ */
+function Ray(origin, direction) {
+	this.origin = (origin !== undefined) ? origin : new Vector3();
+	this.direction = (direction !== undefined) ? direction : new Vector3();
+}
+
+Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
+
+	/**
+     *
+     */
+	set: function(origin, direction) {
+		this.origin.copy(origin);
+		this.direction.copy(direction);
+	},
+
+	/**
+     *
+     */
+	at: function(t, optionalTarget) {
+		var result = optionalTarget || new Vector3();
+
+		return result.copy(this.direction).multiplyScalar(t).add(this.origin);
+	},
+
+	/**
+     * @method
+     */
+	intersectsSphere: function() {
+		var v1 = new Vector3();
+
+		return function intersectSphere(sphere, optionalTarget) {
+			v1.subVectors(sphere.center, this.origin);
+			var tca = v1.dot(this.direction);
+			var d2 = v1.dot(v1) - tca * tca;
+			var radius2 = sphere.radius * sphere.radius;
+			if (d2 > radius2) {
+				return null;
+			}
+
+			var thc = Math.sqrt(radius2 - d2);
+
+			// t0 = first intersect point - entrance on front of sphere
+			var t0 = tca - thc;
+
+			// t1 = second intersect point - exit point on back of sphere
+			var t1 = tca + thc;
+			// console.log(t0, t1);
+			// test to see if both t0 and t1 are behind the ray - if so, return null
+			if (t0 < 0 && t1 < 0) {
+				return null;
+			}
+			// test to see if t0 is behind the ray:
+			// if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
+			// in order to always return an intersect point that is in front of the ray.
+			if (t0 < 0) {
+				return this.at(t1, optionalTarget);
+			}
+
+			// else t0 is in front of the ray, so return the first collision point scaled by t0
+			return this.at(t0, optionalTarget);
+		};
+	}(),
+
+	/**
+     *
+     */
+	intersectsBox: function(box, optionalTarget) {
+		var tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+		var invdirx = 1 / this.direction.x,
+			invdiry = 1 / this.direction.y,
+			invdirz = 1 / this.direction.z;
+
+		var origin = this.origin;
+
+		if (invdirx >= 0) {
+			tmin = (box.min.x - origin.x) * invdirx;
+			tmax = (box.max.x - origin.x) * invdirx;
+		} else {
+			tmin = (box.max.x - origin.x) * invdirx;
+			tmax = (box.min.x - origin.x) * invdirx;
+		}
+
+		if (invdiry >= 0) {
+			tymin = (box.min.y - origin.y) * invdiry;
+			tymax = (box.max.y - origin.y) * invdiry;
+		} else {
+			tymin = (box.max.y - origin.y) * invdiry;
+			tymax = (box.min.y - origin.y) * invdiry;
+		}
+
+		if ((tmin > tymax) || (tymin > tmax)) return null;
+
+		// These lines also handle the case where tmin or tmax is NaN
+		// (result of 0 * Infinity). x !== x returns true if x is NaN
+
+		if (tymin > tmin || tmin !== tmin) tmin = tymin;
+
+		if (tymax < tmax || tmax !== tmax) tmax = tymax;
+
+		if (invdirz >= 0) {
+			tzmin = (box.min.z - origin.z) * invdirz;
+			tzmax = (box.max.z - origin.z) * invdirz;
+		} else {
+			tzmin = (box.max.z - origin.z) * invdirz;
+			tzmax = (box.min.z - origin.z) * invdirz;
+		}
+
+		if ((tmin > tzmax) || (tzmin > tmax)) return null;
+
+		if (tzmin > tmin || tmin !== tmin) tmin = tzmin;
+
+		if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
+
+		// return point closest to the ray (positive side)
+
+		if (tmax < 0) return null;
+
+		return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
+	},
+
+	/**
+     * @method
+     */
+	intersectTriangle: function() {
+		// Compute the offset origin, edges, and normal.
+		var diff = new Vector3();
+		var edge1 = new Vector3();
+		var edge2 = new Vector3();
+		var normal = new Vector3();
+
+		return function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
+			// from http://www.geometrictools.com/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
+
+			edge1.subVectors(b, a);
+			edge2.subVectors(c, a);
+			normal.crossVectors(edge1, edge2);
+
+			// Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
+			// E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
+			//   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
+			//   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
+			//   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
+			var DdN = this.direction.dot(normal);
+			var sign;
+			if (DdN > 0) {
+				if (backfaceCulling) return null;
+				sign = 1;
+			} else if (DdN < 0) {
+				sign = -1;
+				DdN = -DdN;
+			} else {
+				return null;
+			}
+
+			diff.subVectors(this.origin, a);
+			var DdQxE2 = sign * this.direction.dot(edge2.crossVectors(diff, edge2));
+
+			// b1 < 0, no intersection
+			if (DdQxE2 < 0) {
+				return null;
+			}
+
+			var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
+
+			// b2 < 0, no intersection
+			if (DdE1xQ < 0) {
+				return null;
+			}
+
+			// b1+b2 > 1, no intersection
+			if (DdQxE2 + DdE1xQ > DdN) {
+				return null;
+			}
+
+			// Line intersects triangle, check if ray does.
+			var QdN = -sign * diff.dot(normal);
+
+			// t < 0, no intersection
+			if (QdN < 0) {
+				return null;
+			}
+
+			// Ray intersects triangle.
+			return this.at(QdN / DdN, optionalTarget);
+		}
+	}(),
+
+	/**
+     *
+     */
+	copy: function(ray) {
+		this.origin.copy(ray.origin);
+		this.direction.copy(ray.direction);
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	applyMatrix4: function(matrix4) {
+		this.direction.add(this.origin).applyMatrix4(matrix4);
+		this.origin.applyMatrix4(matrix4);
+		this.direction.sub(this.origin);
+		this.direction.normalize();
+
+		return this;
+	}
+
+});
+
+/**
+ * This creates a new raycaster object.
+ * @memberof zen3d
+ * @constructor
+ * @param {zen3d.Vector3} origin — The origin vector where the ray casts from.
+ * @param {zen3d.Vector3} direction — The direction vector that gives direction to the ray. Should be normalized.
+ * @param {number} [near=0] — All results returned are further away than near. Near can't be negative.
+ * @param {number} [far=Infinity] All results returned are closer than far. Far can't be lower than near.
+ */
+function Raycaster(origin, direction, near, far) {
+	/**
+     * The Ray used for the raycasting.
+     * @member {zen3d.Ray}
+     */
+	this.ray = new Ray(origin, direction);
+
+	/**
+     * The near factor of the raycaster. This value indicates which objects can be discarded based on the distance. This value shouldn't be negative and should be smaller than the far property.
+     * @member {number}
+     */
+	this.near = near || 0;
+
+	/**
+     * The far factor of the raycaster. This value indicates which objects can be discarded based on the distance. This value shouldn't be negative and should be larger than the near property.
+     * @member {number}
+     */
+	this.far = far || Infinity;
+}
+
+function ascSort(a, b) {
+	return a.distance - b.distance;
+}
+
+function intersectObject(object, raycaster, intersects, recursive) {
+	object.raycast(raycaster, intersects);
+
+	if (recursive === true) {
+		var children = object.children;
+
+		for (var i = 0, l = children.length; i < l; i++) {
+			intersectObject(children[i], raycaster, intersects, true);
+		}
+	}
+}
+
+
+Object.assign(Raycaster.prototype, /** @lends zen3d.Raycaster.prototype */{
+
+	/**
+     * Updates the ray with a new origin and direction.
+     * @param {zen3d.Vector3} origin — The origin vector where the ray casts from.
+     * @param {zen3d.Vector3} direction — The normalized direction vector that gives direction to the ray.
+     */
+	set: function(origin, direction) {
+		this.ray.set(origin, direction);
+	},
+
+	/**
+     * Updates the ray with a new origin and direction.
+     * @param {zen3d.Vector2} coords — 2D coordinates of the mouse, in normalized device coordinates (NDC)---X and Y components should be between -1 and 1.
+     * @param {zen3d.Camera} camera — camera from which the ray should originate.
+	 * @param {string} type - camera type: 'perspective' or 'orthographic'
+     */
+	setFromCamera: function(coords, camera, type) {
+		type = type || 'perspective';
+		if (type == 'orthographic') {
+			// set origin in plane of camera
+			// projectionMatrix.elements[14] = (near + far) / (near - far)
+			this.ray.origin.set(coords.x, coords.y, camera.projectionMatrix.elements[14]).unproject(camera);
+			this.ray.direction.set(0, 0, -1).transformDirection(camera.worldMatrix);
+		} else {
+			this.ray.origin.setFromMatrixPosition(camera.worldMatrix);
+			this.ray.direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(this.ray.origin).normalize();
+		}
+	},
+
+	/**
+     * Checks all intersection between the ray and the object with or without the descendants. Intersections are returned sorted by distance, closest first. An array of intersections is returned:
+     * [ { distance, point, face, faceIndex, object }, ... ]
+     * @param {zen3d.Object3D} object — The object to check for intersection with the ray.
+     * @param {boolean} [recursive=] — If true, it also checks all descendants. Otherwise it only checks intersecton with the object.
+     * @return {Object[]} An array of intersections
+     */
+	intersectObject: function(object, recursive) {
+		var intersects = [];
+
+		intersectObject(object, this, intersects, recursive);
+
+		intersects.sort(ascSort);
+
+		return intersects;
+	},
+
+	/**
+     * Checks all intersection between the ray and the objects with or without the descendants. Intersections are returned sorted by distance, closest first. An array of intersections is returned:
+     * [ { distance, point, face, faceIndex, object }, ... ]
+     * @param {zen3d.Object3D[]} objects — The objects to check for intersection with the ray.
+     * @param {boolean} [recursive=] — If true, it also checks all descendants. Otherwise it only checks intersecton with the object.
+     * @return {Object[]} An array of intersections
+     */
+	intersectObjects: function(objects, recursive) {
+		var intersects = [];
+
+		if (Array.isArray(objects) === false) {
+			console.warn('Raycaster.intersectObjects: objects is not an Array.');
+			return intersects;
+		}
+
+		for (var i = 0, l = objects.length; i < l; i++) {
+			intersectObject(objects[i], this, intersects, recursive);
+		}
+
+		intersects.sort(ascSort);
+
+		return intersects;
+	}
+
+});
+
+/**
  * a 4x4 matrix class
  * @constructor
  * @memberof zen3d
@@ -1152,766 +1898,6 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 		array[offset + 15] = te[15];
 
 		return array;
-	}
-
-});
-
-/**
- * a vector 3 class
- * @constructor
- * @memberof zen3d
- * @param {number} [x=0]
- * @param {number} [y=0]
- * @param {number} [z=0]
- */
-function Vector3(x, y, z) {
-	this.x = x || 0;
-	this.y = y || 0;
-	this.z = z || 0;
-}
-
-Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
-
-	/**
-     *
-     */
-	lerpVectors: function(v1, v2, ratio) {
-		return this.subVectors(v2, v1).multiplyScalar(ratio).add(v1);
-	},
-
-	/**
-     *
-     */
-	set: function(x, y, z) {
-		this.x = x || 0;
-		this.y = y || 0;
-		this.z = z || 0;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	min: function(v) {
-		this.x = Math.min(this.x, v.x);
-		this.y = Math.min(this.y, v.y);
-		this.z = Math.min(this.z, v.z);
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	max: function(v) {
-		this.x = Math.max(this.x, v.x);
-		this.y = Math.max(this.y, v.y);
-		this.z = Math.max(this.z, v.z);
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	getLength: function() {
-		return Math.sqrt(this.getLengthSquared());
-	},
-
-	/**
-     *
-     */
-	getLengthSquared: function() {
-		return this.x * this.x + this.y * this.y + this.z * this.z;
-	},
-
-	/**
-     *
-     */
-	normalize: function(thickness) {
-		thickness = thickness || 1;
-		var length = this.getLength();
-		if (length != 0) {
-			var invLength = thickness / length;
-			this.x *= invLength;
-			this.y *= invLength;
-			this.z *= invLength;
-			return this;
-		}
-	},
-
-	/**
-     *
-     */
-	subtract: function(a, target) {
-		if (!target) {
-			target = new Vector3();
-		}
-		target.set(this.x - a.x, this.y - a.y, this.z - a.z);
-		return target;
-	},
-
-	/**
-     *
-     */
-	multiply: function (v) {
-		this.x *= v.x;
-		this.y *= v.y;
-		this.z *= v.z;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	crossVectors: function(a, b) {
-		var ax = a.x,
-			ay = a.y,
-			az = a.z;
-		var bx = b.x,
-			by = b.y,
-			bz = b.z;
-
-		this.x = ay * bz - az * by;
-		this.y = az * bx - ax * bz;
-		this.z = ax * by - ay * bx;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	cross: function(v) {
-		var x = this.x,
-			y = this.y,
-			z = this.z;
-
-		this.x = y * v.z - z * v.y;
-		this.y = z * v.x - x * v.z;
-		this.z = x * v.y - y * v.x;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	dot: function(a) {
-		return this.x * a.x + this.y * a.y + this.z * a.z;
-	},
-
-	/**
-     *
-     */
-	applyQuaternion: function(q) {
-		var x = this.x,
-			y = this.y,
-			z = this.z;
-		var qx = q._x,
-			qy = q._y,
-			qz = q._z,
-			qw = q._w;
-
-		// calculate quat * vector
-
-		var ix = qw * x + qy * z - qz * y;
-		var iy = qw * y + qz * x - qx * z;
-		var iz = qw * z + qx * y - qy * x;
-		var iw = -qx * x - qy * y - qz * z;
-
-		// calculate result * inverse quat
-
-		this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-		this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-		this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	applyMatrix4: function(m) {
-		// input: Matrix4 affine matrix
-
-		var x = this.x,
-			y = this.y,
-			z = this.z;
-		var e = m.elements;
-
-		this.x = e[0] * x + e[4] * y + e[8] * z + e[12];
-		this.y = e[1] * x + e[5] * y + e[9] * z + e[13];
-		this.z = e[2] * x + e[6] * y + e[10] * z + e[14];
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	applyMatrix3: function (m) {
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
-
-		this.x = e[0] * x + e[3] * y + e[6] * z;
-		this.y = e[1] * x + e[4] * y + e[7] * z;
-		this.z = e[2] * x + e[5] * y + e[8] * z;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	transformDirection: function(m) {
-		// input: Matrix4 affine matrix
-		// vector interpreted as a direction
-
-		var x = this.x,
-			y = this.y,
-			z = this.z;
-		var e = m.elements;
-
-		this.x = e[0] * x + e[4] * y + e[8] * z;
-		this.y = e[1] * x + e[5] * y + e[9] * z;
-		this.z = e[2] * x + e[6] * y + e[10] * z;
-
-		return this.normalize();
-	},
-
-	/**
-     *
-     */
-	setFromMatrixPosition: function(m) {
-		return this.setFromMatrixColumn(m, 3);
-	},
-
-	/**
-     *
-     */
-	setFromMatrixColumn: function(m, index) {
-		return this.fromArray(m.elements, index * 4);
-	},
-
-	/**
-     *
-     */
-	fromArray: function(array, offset) {
-		if (offset === undefined) offset = 0;
-
-		this.x = array[offset];
-		this.y = array[offset + 1];
-		this.z = array[offset + 2];
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	toArray: function (array, offset) {
-		if (array === undefined) array = [];
-		if (offset === undefined) offset = 0;
-
-		array[offset] = this.x;
-		array[offset + 1] = this.y;
-		array[offset + 2] = this.z;
-
-		return array;
-	},
-
-	/**
-     *
-     */
-	copy: function(v) {
-		this.x = v.x;
-		this.y = v.y;
-		this.z = v.z;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	addVectors: function(a, b) {
-		this.x = a.x + b.x;
-		this.y = a.y + b.y;
-		this.z = a.z + b.z;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	addScalar: function(s) {
-		this.x += s;
-		this.y += s;
-		this.z += s;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	add: function(v) {
-		this.x += v.x;
-		this.y += v.y;
-		this.z += v.z;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	subVectors: function(a, b) {
-		this.x = a.x - b.x;
-		this.y = a.y - b.y;
-		this.z = a.z - b.z;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	sub: function(v) {
-		this.x -= v.x;
-		this.y -= v.y;
-		this.z -= v.z;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	multiplyScalar: function(scalar) {
-		this.x *= scalar;
-		this.y *= scalar;
-		this.z *= scalar;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	distanceToSquared: function(v) {
-		var dx = this.x - v.x,
-			dy = this.y - v.y,
-			dz = this.z - v.z;
-
-		return dx * dx + dy * dy + dz * dz;
-	},
-
-	/**
-     *
-     */
-	distanceTo: function(v) {
-		return Math.sqrt(this.distanceToSquared(v));
-	},
-
-	/**
-     *
-     */
-	setFromSpherical: function (s) {
-		var sinPhiRadius = Math.sin(s.phi) * s.radius;
-
-		this.x = sinPhiRadius * Math.sin(s.theta);
-		this.y = Math.cos(s.phi) * s.radius;
-		this.z = sinPhiRadius * Math.cos(s.theta);
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	unproject: function() {
-		var matrix;
-
-		return function unproject(camera) {
-			if (matrix === undefined) matrix = new Matrix4();
-
-			matrix.multiplyMatrices(camera.worldMatrix, matrix.getInverse(camera.projectionMatrix));
-			return this.applyProjection(matrix);
-		};
-	}(),
-
-	/**
-     *
-     */
-	applyProjection: function(m) {
-		// input: Matrix4 projection matrix
-		var x = this.x,
-			y = this.y,
-			z = this.z;
-		var e = m.elements;
-		var d = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]); // perspective divide
-
-		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * d;
-		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * d;
-		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	equals: function(v) {
-		return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
-	},
-
-	/**
-     *
-     */
-	clone: function() {
-		return new Vector3(this.x, this.y, this.z);
-	}
-
-});
-
-/**
- * @constructor
- * @memberof zen3d
- * @param {zen3d.Vector3} [origin=]
- * @param {zen3d.Vector3} [direction=]
- */
-function Ray(origin, direction) {
-	this.origin = (origin !== undefined) ? origin : new Vector3();
-	this.direction = (direction !== undefined) ? direction : new Vector3();
-}
-
-Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
-
-	/**
-     *
-     */
-	set: function(origin, direction) {
-		this.origin.copy(origin);
-		this.direction.copy(direction);
-	},
-
-	/**
-     *
-     */
-	at: function(t, optionalTarget) {
-		var result = optionalTarget || new Vector3();
-
-		return result.copy(this.direction).multiplyScalar(t).add(this.origin);
-	},
-
-	/**
-     * @method
-     */
-	intersectsSphere: function() {
-		var v1 = new Vector3();
-
-		return function intersectSphere(sphere, optionalTarget) {
-			v1.subVectors(sphere.center, this.origin);
-			var tca = v1.dot(this.direction);
-			var d2 = v1.dot(v1) - tca * tca;
-			var radius2 = sphere.radius * sphere.radius;
-			if (d2 > radius2) {
-				return null;
-			}
-
-			var thc = Math.sqrt(radius2 - d2);
-
-			// t0 = first intersect point - entrance on front of sphere
-			var t0 = tca - thc;
-
-			// t1 = second intersect point - exit point on back of sphere
-			var t1 = tca + thc;
-			// console.log(t0, t1);
-			// test to see if both t0 and t1 are behind the ray - if so, return null
-			if (t0 < 0 && t1 < 0) {
-				return null;
-			}
-			// test to see if t0 is behind the ray:
-			// if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
-			// in order to always return an intersect point that is in front of the ray.
-			if (t0 < 0) {
-				return this.at(t1, optionalTarget);
-			}
-
-			// else t0 is in front of the ray, so return the first collision point scaled by t0
-			return this.at(t0, optionalTarget);
-		};
-	}(),
-
-	/**
-     *
-     */
-	intersectsBox: function(box, optionalTarget) {
-		var tmin, tmax, tymin, tymax, tzmin, tzmax;
-
-		var invdirx = 1 / this.direction.x,
-			invdiry = 1 / this.direction.y,
-			invdirz = 1 / this.direction.z;
-
-		var origin = this.origin;
-
-		if (invdirx >= 0) {
-			tmin = (box.min.x - origin.x) * invdirx;
-			tmax = (box.max.x - origin.x) * invdirx;
-		} else {
-			tmin = (box.max.x - origin.x) * invdirx;
-			tmax = (box.min.x - origin.x) * invdirx;
-		}
-
-		if (invdiry >= 0) {
-			tymin = (box.min.y - origin.y) * invdiry;
-			tymax = (box.max.y - origin.y) * invdiry;
-		} else {
-			tymin = (box.max.y - origin.y) * invdiry;
-			tymax = (box.min.y - origin.y) * invdiry;
-		}
-
-		if ((tmin > tymax) || (tymin > tmax)) return null;
-
-		// These lines also handle the case where tmin or tmax is NaN
-		// (result of 0 * Infinity). x !== x returns true if x is NaN
-
-		if (tymin > tmin || tmin !== tmin) tmin = tymin;
-
-		if (tymax < tmax || tmax !== tmax) tmax = tymax;
-
-		if (invdirz >= 0) {
-			tzmin = (box.min.z - origin.z) * invdirz;
-			tzmax = (box.max.z - origin.z) * invdirz;
-		} else {
-			tzmin = (box.max.z - origin.z) * invdirz;
-			tzmax = (box.min.z - origin.z) * invdirz;
-		}
-
-		if ((tmin > tzmax) || (tzmin > tmax)) return null;
-
-		if (tzmin > tmin || tmin !== tmin) tmin = tzmin;
-
-		if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
-
-		// return point closest to the ray (positive side)
-
-		if (tmax < 0) return null;
-
-		return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
-	},
-
-	/**
-     * @method
-     */
-	intersectTriangle: function() {
-		// Compute the offset origin, edges, and normal.
-		var diff = new Vector3();
-		var edge1 = new Vector3();
-		var edge2 = new Vector3();
-		var normal = new Vector3();
-
-		return function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
-			// from http://www.geometrictools.com/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
-
-			edge1.subVectors(b, a);
-			edge2.subVectors(c, a);
-			normal.crossVectors(edge1, edge2);
-
-			// Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
-			// E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
-			//   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
-			//   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
-			//   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
-			var DdN = this.direction.dot(normal);
-			var sign;
-			if (DdN > 0) {
-				if (backfaceCulling) return null;
-				sign = 1;
-			} else if (DdN < 0) {
-				sign = -1;
-				DdN = -DdN;
-			} else {
-				return null;
-			}
-
-			diff.subVectors(this.origin, a);
-			var DdQxE2 = sign * this.direction.dot(edge2.crossVectors(diff, edge2));
-
-			// b1 < 0, no intersection
-			if (DdQxE2 < 0) {
-				return null;
-			}
-
-			var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
-
-			// b2 < 0, no intersection
-			if (DdE1xQ < 0) {
-				return null;
-			}
-
-			// b1+b2 > 1, no intersection
-			if (DdQxE2 + DdE1xQ > DdN) {
-				return null;
-			}
-
-			// Line intersects triangle, check if ray does.
-			var QdN = -sign * diff.dot(normal);
-
-			// t < 0, no intersection
-			if (QdN < 0) {
-				return null;
-			}
-
-			// Ray intersects triangle.
-			return this.at(QdN / DdN, optionalTarget);
-		}
-	}(),
-
-	/**
-     *
-     */
-	copy: function(ray) {
-		this.origin.copy(ray.origin);
-		this.direction.copy(ray.direction);
-
-		return this;
-	},
-
-	/**
-     *
-     */
-	applyMatrix4: function(matrix4) {
-		this.direction.add(this.origin).applyMatrix4(matrix4);
-		this.origin.applyMatrix4(matrix4);
-		this.direction.sub(this.origin);
-		this.direction.normalize();
-
-		return this;
-	}
-
-});
-
-/**
- * This creates a new raycaster object.
- * @memberof zen3d
- * @constructor
- * @param {zen3d.Vector3} origin — The origin vector where the ray casts from.
- * @param {zen3d.Vector3} direction — The direction vector that gives direction to the ray. Should be normalized.
- * @param {number} [near=0] — All results returned are further away than near. Near can't be negative.
- * @param {number} [far=Infinity] All results returned are closer than far. Far can't be lower than near.
- */
-function Raycaster(origin, direction, near, far) {
-	/**
-     * The Ray used for the raycasting.
-     * @member {zen3d.Ray}
-     */
-	this.ray = new Ray(origin, direction);
-
-	/**
-     * The near factor of the raycaster. This value indicates which objects can be discarded based on the distance. This value shouldn't be negative and should be smaller than the far property.
-     * @member {number}
-     */
-	this.near = near || 0;
-
-	/**
-     * The far factor of the raycaster. This value indicates which objects can be discarded based on the distance. This value shouldn't be negative and should be larger than the near property.
-     * @member {number}
-     */
-	this.far = far || Infinity;
-}
-
-function ascSort(a, b) {
-	return a.distance - b.distance;
-}
-
-function intersectObject(object, raycaster, intersects, recursive) {
-	object.raycast(raycaster, intersects);
-
-	if (recursive === true) {
-		var children = object.children;
-
-		for (var i = 0, l = children.length; i < l; i++) {
-			intersectObject(children[i], raycaster, intersects, true);
-		}
-	}
-}
-
-
-Object.assign(Raycaster.prototype, /** @lends zen3d.Raycaster.prototype */{
-
-	/**
-     * Updates the ray with a new origin and direction.
-     * @param {zen3d.Vector3} origin — The origin vector where the ray casts from.
-     * @param {zen3d.Vector3} direction — The normalized direction vector that gives direction to the ray.
-     */
-	set: function(origin, direction) {
-		this.ray.set(origin, direction);
-	},
-
-	/**
-     * Updates the ray with a new origin and direction.
-     * @param {zen3d.Vector2} coords — 2D coordinates of the mouse, in normalized device coordinates (NDC)---X and Y components should be between -1 and 1.
-     * @param {zen3d.Camera} camera — camera from which the ray should originate.
-	 * @param {string} type - camera type: 'perspective' or 'orthographic'
-     */
-	setFromCamera: function(coords, camera, type) {
-		type = type || 'perspective';
-		if (type == 'orthographic') {
-			// set origin in plane of camera
-			// projectionMatrix.elements[14] = (near + far) / (near - far)
-			this.ray.origin.set(coords.x, coords.y, camera.projectionMatrix.elements[14]).unproject(camera);
-			this.ray.direction.set(0, 0, -1).transformDirection(camera.worldMatrix);
-		} else {
-			this.ray.origin.setFromMatrixPosition(camera.worldMatrix);
-			this.ray.direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(this.ray.origin).normalize();
-		}
-	},
-
-	/**
-     * Checks all intersection between the ray and the object with or without the descendants. Intersections are returned sorted by distance, closest first. An array of intersections is returned:
-     * [ { distance, point, face, faceIndex, object }, ... ]
-     * @param {zen3d.Object3D} object — The object to check for intersection with the ray.
-     * @param {boolean} [recursive=] — If true, it also checks all descendants. Otherwise it only checks intersecton with the object.
-     * @return {Object[]} An array of intersections
-     */
-	intersectObject: function(object, recursive) {
-		var intersects = [];
-
-		intersectObject(object, this, intersects, recursive);
-
-		intersects.sort(ascSort);
-
-		return intersects;
-	},
-
-	/**
-     * Checks all intersection between the ray and the objects with or without the descendants. Intersections are returned sorted by distance, closest first. An array of intersections is returned:
-     * [ { distance, point, face, faceIndex, object }, ... ]
-     * @param {zen3d.Object3D[]} objects — The objects to check for intersection with the ray.
-     * @param {boolean} [recursive=] — If true, it also checks all descendants. Otherwise it only checks intersecton with the object.
-     * @return {Object[]} An array of intersections
-     */
-	intersectObjects: function(objects, recursive) {
-		var intersects = [];
-
-		if (Array.isArray(objects) === false) {
-			console.warn('Raycaster.intersectObjects: objects is not an Array.');
-			return intersects;
-		}
-
-		for (var i = 0, l = objects.length; i < l; i++) {
-			intersectObject(objects[i], this, intersects, recursive);
-		}
-
-		intersects.sort(ascSort);
-
-		return intersects;
 	}
 
 });
@@ -12989,6 +12975,12 @@ function Camera() {
 	this.projectionMatrix = new Matrix4();
 
 	/**
+     * This is the matrix which contains the projection.
+     * @type {zen3d.Matrix4}
+     */
+	this.projectionMatrixInverse = new Matrix4();
+
+	/**
      * The frustum of the camera.
      * @type {zen3d.Frustum}
      */
@@ -13067,6 +13059,7 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 			0, 0, -2 / (far - near), -(far + near) / (far - near),
 			0, 0, 0, 1
 		);
+		this.projectionMatrixInverse.getInverse(this.projectionMatrix);
 	},
 
 	/**
@@ -13083,6 +13076,7 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 			0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
 			0, 0, -1, 0
 		);
+		this.projectionMatrixInverse.getInverse(this.projectionMatrix);
 	},
 
 	getWorldDirection: function() {
@@ -13120,6 +13114,7 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 		this.viewMatrix.copy(source.viewMatrix);
 		this.projectionMatrix.copy(source.projectionMatrix);
+		this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
 
 		this.frustum.copy(source.frustum);
 		this.gammaFactor = source.gammaFactor;
@@ -13988,7 +13983,7 @@ function RenderList() {
 
 		// calculate z
 		helpVector3$2.setFromMatrixPosition(object.worldMatrix);
-		helpVector3$2.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+		helpVector3$2.project(camera);
 
 		if (Array.isArray(object.material)) {
 			var groups = object.geometry.groups;

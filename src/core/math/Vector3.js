@@ -1,5 +1,3 @@
-import { Matrix4 } from './Matrix4.js';
-
 /**
  * a vector 3 class
  * @constructor
@@ -179,16 +177,16 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
      *
      */
 	applyMatrix4: function(m) {
-		// input: Matrix4 affine matrix
-
 		var x = this.x,
 			y = this.y,
 			z = this.z;
 		var e = m.elements;
 
-		this.x = e[0] * x + e[4] * y + e[8] * z + e[12];
-		this.y = e[1] * x + e[5] * y + e[9] * z + e[13];
-		this.z = e[2] * x + e[6] * y + e[10] * z + e[14];
+		var w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+
+		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
 
 		return this;
 	},
@@ -378,33 +376,15 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 	/**
      *
      */
-	unproject: function() {
-		var matrix;
-
-		return function unproject(camera) {
-			if (matrix === undefined) matrix = new Matrix4();
-
-			matrix.multiplyMatrices(camera.worldMatrix, matrix.getInverse(camera.projectionMatrix));
-			return this.applyProjection(matrix);
-		};
-	}(),
+	project: function(camera) {
+		return this.applyMatrix4(camera.viewMatrix).applyMatrix4(camera.projectionMatrix);
+	},
 
 	/**
      *
      */
-	applyProjection: function(m) {
-		// input: Matrix4 projection matrix
-		var x = this.x,
-			y = this.y,
-			z = this.z;
-		var e = m.elements;
-		var d = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]); // perspective divide
-
-		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * d;
-		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * d;
-		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
-
-		return this;
+	unproject: function() {
+		return this.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.worldMatrix);
 	},
 
 	/**
@@ -419,6 +399,10 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
      */
 	clone: function() {
 		return new Vector3(this.x, this.y, this.z);
+	},
+
+	applyProjection: function(m) {
+		console.error("zen3d.Vector3: .applyProjection has been removed. Use .applyMatrix4 instead.");
 	}
 
 });
