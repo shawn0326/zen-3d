@@ -383,7 +383,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 	/**
      *
      */
-	unproject: function() {
+	unproject: function(camera) {
 		return this.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.worldMatrix);
 	},
 

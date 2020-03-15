@@ -983,7 +983,7 @@
 		/**
 	     *
 	     */
-		unproject: function() {
+		unproject: function(camera) {
 			return this.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.worldMatrix);
 		},
 
