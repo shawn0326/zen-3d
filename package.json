@@ -52,6 +52,8 @@
     "doc": "jsdoc ./src/core -r -d ./docs",
     "eslint": "eslint src/core",
     "eslint-fix": "eslint src/core --fix",
+    "eslint-examples": "eslint examples/jsm",
+    "eslint-examples-fix": "eslint examples/jsm --fix",
     "example": "live-server --port=8080 --open=examples --watch=examples,build"
   }
 }

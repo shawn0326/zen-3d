@@ -36,14 +36,12 @@ import {
 	SpotLight,
 	TEXEL_ENCODING_TYPE,
 	Texture2D,
-	TextureBase,
 	VERTEX_COLOR,
 	VectorKeyframeTrack,
 	WEBGL_PIXEL_FORMAT,
 	WEBGL_PIXEL_TYPE,
 	WEBGL_TEXTURE_FILTER,
 	WEBGL_TEXTURE_WRAP,
-	WebGLAttribute
 } from "../../../build/zen3d.module.js";
 
 function decodeText(array) {
@@ -516,10 +514,10 @@ GLTFParser.prototype.loadNode = function(nodeIndex) {
 	var json = this.json;
 	var extensions = this.extensions;
 
-	var meshReferences = this.json.meshReferences;
-	var meshUses = this.json.meshUses;
+	var meshReferences = json.meshReferences;
+	var meshUses = json.meshUses;
 
-	var nodeDef = this.json.nodes[nodeIndex];
+	var nodeDef = json.nodes[nodeIndex];
 
 	return this.getMultiDependencies([
 
@@ -723,7 +721,6 @@ GLTFParser.prototype.loadAnimation = function(animationIndex) {
 GLTFParser.prototype.loadMesh = function(meshIndex) {
 	var scope = this;
 	var json = this.json;
-	var extensions = this.extensions;
 
 	var meshDef = json.meshes[meshIndex];
 
@@ -1197,7 +1194,7 @@ GLTFParser.prototype.loadMaterial = function(materialIndex) {
 	var extensions = this.extensions;
 	var materialDef = json.materials[materialIndex];
 
-	var materialType;
+	var MaterialType;
 	var materialParams = {};
 	var materialExtensions = materialDef.extensions || {};
 
@@ -1205,17 +1202,17 @@ GLTFParser.prototype.loadMaterial = function(materialIndex) {
 
 	if (materialExtensions[EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS]) {
 		var sgExtension = extensions[EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS];
-		materialType = sgExtension.getMaterialType(materialDef);
+		MaterialType = sgExtension.getMaterialType(materialDef);
 		pending.push(sgExtension.extendParams(materialParams, materialDef, parser));
 	} else if (materialExtensions[EXTENSIONS.KHR_MATERIALS_UNLIT]) {
 		var kmuExtension = extensions[EXTENSIONS.KHR_MATERIALS_UNLIT];
-		materialType = kmuExtension.getMaterialType(materialDef);
+		MaterialType = kmuExtension.getMaterialType(materialDef);
 		pending.push(kmuExtension.extendParams(materialParams, materialDef, parser));
 	} else if (materialDef.pbrMetallicRoughness !== undefined) {
 		// Specification:
 		// https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#metallic-roughness-material
 
-		materialType = PBRMaterial;
+		MaterialType = PBRMaterial;
 
 		var metallicRoughness = materialDef.pbrMetallicRoughness;
 
@@ -1243,7 +1240,7 @@ GLTFParser.prototype.loadMaterial = function(materialIndex) {
 			pending.push(parser.assignTexture(materialParams, 'roughnessMap', metallicRoughness.metallicRoughnessTexture));
 		}
 	} else {
-		materialType = PhongMaterial;
+		MaterialType = PhongMaterial;
 	}
 
 
@@ -1296,7 +1293,7 @@ GLTFParser.prototype.loadMaterial = function(materialIndex) {
 	}
 
 	return Promise.all(pending).then(function() {
-		var material = new materialType();
+		var material = new MaterialType();
 
 		for (var key in materialParams) {
 			material[key] = materialParams[key];
@@ -1596,7 +1593,7 @@ function GLTFLightsExtension(json) {
 
 /* BINARY EXTENSION */
 
-var BINARY_EXTENSION_BUFFER_NAME = 'binary_glTF';
+// var BINARY_EXTENSION_BUFFER_NAME = 'binary_glTF';
 var BINARY_EXTENSION_HEADER_MAGIC = 'glTF';
 var BINARY_EXTENSION_HEADER_LENGTH = 12;
 var BINARY_EXTENSION_CHUNK_TYPES = {
