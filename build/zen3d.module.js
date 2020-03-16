@@ -7273,30 +7273,24 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
 
 });
 
-/**
- * CubeGeometry is the quadrilateral primitive geometry class.
- * It is typically used for creating a cube or irregular quadrilateral of the dimensions provided with the 'width', 'height', and 'depth' constructor arguments.
- * @constructor
- * @memberof zen3d
- * @extends zen3d.Geometry
- * @param {number} [width=1] - Width of the sides on the X axis.
- * @param {number} [height=1] - Height of the sides on the Y axis.
- * @param {number} [depth=1] - Depth of the sides on the Z axis.
- * @param {Integer} [widthSegments=1] - Number of segmented faces along the width of the sides.
- * @param {Integer} [heightSegments=1] - Number of segmented faces along the height of the sides.
- * @param {Integer} [depthSegments=1] - Number of segmented faces along the depth of the sides.
- */
-function CubeGeometry(width, height, depth, widthSegments, heightSegments, depthSegments) {
-	Geometry.call(this);
+class CubeGeometry extends Geometry {
 
-	this.buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
-}
+	/**
+	 * CubeGeometry is the quadrilateral primitive geometry class.
+	 * It is typically used for creating a cube or irregular quadrilateral of the dimensions provided with the 'width', 'height', and 'depth' constructor arguments.
+	 * @param {number} [width=1] - Width of the sides on the X axis.
+	 * @param {number} [height=1] - Height of the sides on the Y axis.
+	 * @param {number} [depth=1] - Depth of the sides on the Z axis.
+	 * @param {Integer} [widthSegments=1] - Number of segmented faces along the width of the sides.
+	 * @param {Integer} [heightSegments=1] - Number of segmented faces along the height of the sides.
+	 * @param {Integer} [depthSegments=1] - Number of segmented faces along the depth of the sides.
+	 */
+	constructor(width, height, depth, widthSegments, heightSegments, depthSegments) {
+		super();
+		this.buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
+	}
 
-CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
-
-	constructor: CubeGeometry,
-
-	buildGeometry: function(width, height, depth, widthSegments, heightSegments, depthSegments) {
+	buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments) {
 		var scope = this;
 
 		width = width || 1;
@@ -7435,7 +7429,7 @@ CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
 		this.computeBoundingSphere();
 	}
 
-});
+}
 
 /**
  * A class for generating cylinder geometries.

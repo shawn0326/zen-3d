@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: RenderTargetBase</title>
+    <title>JSDoc: Class: RenderBuffer</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: RenderTargetBase</h1>
+    <h1 class="page-title">Class: RenderBuffer</h1>
 
     
 
@@ -28,8 +28,8 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature">(abstract) </span></span>
-            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>RenderTargetBase<span class="signature">(width, height)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="zen3d.html">zen3d</a>.</span>RenderBuffer<span class="signature">()</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -42,7 +42,7 @@
     
 
     
-    <h4 class="name" id="RenderTargetBase"><span class="type-signature">(abstract) </span>new RenderTargetBase<span class="signature">(width, height)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="RenderBuffer"><span class="type-signature"></span>new RenderBuffer<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -50,7 +50,7 @@
 
 
 <div class="description">
-    Render Target is the wrapping class of gl.framebuffer.
+    Render Buffer can be attached to RenderTarget
 </div>
 
 
@@ -59,78 +59,6 @@
 
 
 
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>width</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The width of the render target.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>height</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The height of the render target.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 
@@ -166,7 +94,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="render_RenderTargetBase.js.html">render/RenderTargetBase.js</a>, <a href="render_RenderTargetBase.js.html#line12">line 12</a>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line10">line 10</a>
     </li></ul></dd>
     
 
@@ -227,13 +155,90 @@
 
         
             
+<h4 class="name" id="format"><span class="type-signature"></span>format<span class="type-signature"> :<a href="zen3d.html#.WEBGL_PIXEL_FORMAT">zen3d.WEBGL_PIXEL_FORMAT</a></span></h4>
+
+
+
+
+<div class="description">
+    Render buffer texel storage data format.DEPTH_COMPONENT16: for depth attachments.DEPTH_STENCIL: for depth stencil attachments.RGBA8：for multiple sampled color attachments.DEPTH_COMPONENT16: for multiple sampled depth attachments.DEPTH24_STENCIL8: for multiple sampled depth stencil attachments.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="zen3d.html#.WEBGL_PIXEL_FORMAT">zen3d.WEBGL_PIXEL_FORMAT</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>zen3d.WEBGL_PIXEL_FORMAT.RGBA8</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line35">line 35</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="height"><span class="type-signature"></span>height<span class="type-signature"> :number</span></h4>
 
 
 
 
 <div class="description">
-    The height of the render target.
+    The height of the render buffer.
 </div>
 
 
@@ -281,7 +286,84 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="render_RenderTargetBase.js.html">render/RenderTargetBase.js</a>, <a href="render_RenderTargetBase.js.html#line25">line 25</a>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line23">line 23</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="multipleSampling"><span class="type-signature"></span>multipleSampling<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    If bigger than zero, this renderBuffer will support multipleSampling. (Only usable in WebGL 2.0)A Render Target's attachments must have the same multipleSampling value.Texture can't be attached to the same render target with a multiple sampled render buffer.Max support 8.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>0</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line45">line 45</a>
     </li></ul></dd>
     
 
@@ -305,7 +387,7 @@
 
 
 <div class="description">
-    The width of the render target.
+    The width of the render buffer.
 </div>
 
 
@@ -353,7 +435,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="render_RenderTargetBase.js.html">render/RenderTargetBase.js</a>, <a href="render_RenderTargetBase.js.html#line19">line 19</a>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line17">line 17</a>
     </li></ul></dd>
     
 
@@ -613,6 +695,267 @@
     
 
     
+    <h4 class="name" id="clone"><span class="type-signature"></span>clone<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="zen3d.RenderBuffer.html">zen3d.RenderBuffer</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Returns a clone of this render buffer.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line76">line 76</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="zen3d.RenderBuffer.html">zen3d.RenderBuffer</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">(source)</span><span class="type-signature"> &rarr; {<a href="zen3d.RenderBuffer.html">zen3d.RenderBuffer</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Copy the given render buffer into this render buffer.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>source</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="zen3d.RenderBuffer.html">zen3d.RenderBuffer</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The render buffer to be copied.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line85">line 85</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="zen3d.RenderBuffer.html">zen3d.RenderBuffer</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id="dispatchEvent"><span class="type-signature"></span>dispatchEvent<span class="signature">(event)</span><span class="type-signature"></span></h4>
     
 
@@ -807,7 +1150,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="render_RenderTargetBase.js.html">render/RenderTargetBase.js</a>, <a href="render_RenderTargetBase.js.html#line53">line 53</a>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line95">line 95</a>
     </li></ul></dd>
     
 
@@ -1083,7 +1426,7 @@
 
 
 <div class="description">
-    Resize the render target.
+    Resize the render buffer.
 </div>
 
 
@@ -1135,7 +1478,7 @@
 
             
 
-            <td class="description last">The width of the render target.</td>
+            <td class="description last">The width of the render buffer.</td>
         </tr>
 
     
@@ -1158,7 +1501,7 @@
 
             
 
-            <td class="description last">The height of the render target.</td>
+            <td class="description last">The height of the render buffer.</td>
         </tr>
 
     
@@ -1199,7 +1542,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="render_RenderTargetBase.js.html">render/RenderTargetBase.js</a>, <a href="render_RenderTargetBase.js.html#line38">line 38</a>
+        <a href="render_RenderBuffer.js.html">render/RenderBuffer.js</a>, <a href="render_RenderBuffer.js.html#line60">line 60</a>
     </li></ul></dd>
     
 

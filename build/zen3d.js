@@ -24,7 +24,7 @@
 				} else if (i === 14) {
 					uuid[i] = '4';
 				} else {
-					if (rnd <= 0x02) rnd = 0x2000000 + (Math.random() * 0x1000000) | 0;
+					if (rnd <= 0x02) { rnd = 0x2000000 + (Math.random() * 0x1000000) | 0; }
 					r = rnd & 0xf;
 					rnd = rnd >> 4;
 					uuid[i] = chars[(i === 19) ? (r & 0x3) | 0x8 : r];
@@ -842,7 +842,7 @@
 	     *
 	     */
 		fromArray: function(array, offset) {
-			if (offset === undefined) offset = 0;
+			if (offset === undefined) { offset = 0; }
 
 			this.x = array[offset];
 			this.y = array[offset + 1];
@@ -855,8 +855,8 @@
 	     *
 	     */
 		toArray: function (array, offset) {
-			if (array === undefined) array = [];
-			if (offset === undefined) offset = 0;
+			if (array === undefined) { array = []; }
+			if (offset === undefined) { offset = 0; }
 
 			array[offset] = this.x;
 			array[offset + 1] = this.y;
@@ -1104,14 +1104,14 @@
 				tymax = (box.min.y - origin.y) * invdiry;
 			}
 
-			if ((tmin > tymax) || (tymin > tmax)) return null;
+			if ((tmin > tymax) || (tymin > tmax)) { return null; }
 
 			// These lines also handle the case where tmin or tmax is NaN
 			// (result of 0 * Infinity). x !== x returns true if x is NaN
 
-			if (tymin > tmin || tmin !== tmin) tmin = tymin;
+			if (tymin > tmin || tmin !== tmin) { tmin = tymin; }
 
-			if (tymax < tmax || tmax !== tmax) tmax = tymax;
+			if (tymax < tmax || tmax !== tmax) { tmax = tymax; }
 
 			if (invdirz >= 0) {
 				tzmin = (box.min.z - origin.z) * invdirz;
@@ -1121,15 +1121,15 @@
 				tzmax = (box.min.z - origin.z) * invdirz;
 			}
 
-			if ((tmin > tzmax) || (tzmin > tmax)) return null;
+			if ((tmin > tzmax) || (tzmin > tmax)) { return null; }
 
-			if (tzmin > tmin || tmin !== tmin) tmin = tzmin;
+			if (tzmin > tmin || tmin !== tmin) { tmin = tzmin; }
 
-			if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
+			if (tzmax < tmax || tmax !== tmax) { tmax = tzmax; }
 
 			// return point closest to the ray (positive side)
 
-			if (tmax < 0) return null;
+			if (tmax < 0) { return null; }
 
 			return this.at(tmin >= 0 ? tmin : tmax, optionalTarget);
 		},
@@ -1159,7 +1159,7 @@
 				var DdN = this.direction.dot(normal);
 				var sign;
 				if (DdN > 0) {
-					if (backfaceCulling) return null;
+					if (backfaceCulling) { return null; }
 					sign = 1;
 				} else if (DdN < 0) {
 					sign = -1;
@@ -1852,7 +1852,7 @@
 	     *
 	     */
 		fromArray: function(array, offset) {
-			if (offset === undefined) offset = 0;
+			if (offset === undefined) { offset = 0; }
 
 			for (var i = 0; i < 16; i++) {
 				this.elements[i] = array[i + offset];
@@ -1878,8 +1878,8 @@
 	     *
 	     */
 		toArray: function(array, offset) {
-			if (array === undefined) array = [];
-			if (offset === undefined) offset = 0;
+			if (array === undefined) { array = []; }
+			if (offset === undefined) { offset = 0; }
 
 			var te = this.elements;
 
@@ -2076,7 +2076,7 @@
 
 			this._order = order;
 
-			if (update !== false) this.onChangeCallback();
+			if (update !== false) { this.onChangeCallback(); }
 
 			return this;
 		},
@@ -2265,7 +2265,7 @@
 	     *
 	     */
 		fromArray: function(array, offset) {
-			if (offset === undefined) offset = 0;
+			if (offset === undefined) { offset = 0; }
 
 			this.x = array[offset];
 			this.y = array[offset + 1];
@@ -2291,7 +2291,7 @@
 
 			var angle = Math.atan2(this.y, this.x);
 
-			if (angle < 0) angle += 2 * Math.PI;
+			if (angle < 0) { angle += 2 * Math.PI; }
 
 			return angle;
 		},
@@ -2449,7 +2449,7 @@
 	     *
 	     */
 		fromArray: function (array, offset) {
-			if (offset === undefined) offset = 0;
+			if (offset === undefined) { offset = 0; }
 
 			this.x = array[offset];
 			this.y = array[offset + 1];
@@ -2463,8 +2463,8 @@
 	     *
 	     */
 		toArray: function (array, offset) {
-			if (array === undefined) array = [];
-			if (offset === undefined) offset = 0;
+			if (array === undefined) { array = []; }
+			if (offset === undefined) { offset = 0; }
 
 			array[offset] = this.x;
 			array[offset + 1] = this.y;
@@ -2968,7 +2968,7 @@
 				this._w = c1 * c2 * c3 + s1 * s2 * s3;
 			}
 
-			if (update !== false) this.onChangeCallback();
+			if (update !== false) { this.onChangeCallback(); }
 
 			return this;
 		},
@@ -3035,7 +3035,7 @@
 			var EPS = 0.000001;
 
 			return function setFromUnitVectors(vFrom, vTo) {
-				if (v1 === undefined) v1 = new Vector3();
+				if (v1 === undefined) { v1 = new Vector3(); }
 
 				r = vFrom.dot(vTo) + 1;
 
@@ -3157,7 +3157,7 @@
 	     *
 	     */
 		fromArray: function (array, offset) {
-			if (offset === undefined) offset = 0;
+			if (offset === undefined) { offset = 0; }
 
 			this._x = array[offset];
 			this._y = array[offset + 1];
@@ -3170,8 +3170,8 @@
 		},
 
 		toArray: function (array, offset) {
-			if (array === undefined) array = [];
-			if (offset === undefined) offset = 0;
+			if (array === undefined) { array = []; }
+			if (offset === undefined) { offset = 0; }
 
 			array[offset] = this._x;
 			array[offset + 1] = this._y;
@@ -3382,13 +3382,13 @@
 				var y = array[i + 1];
 				var z = array[i + 2];
 
-				if (x < minX) minX = x;
-				if (y < minY) minY = y;
-				if (z < minZ) minZ = z;
+				if (x < minX) { minX = x; }
+				if (y < minY) { minY = y; }
+				if (z < minZ) { minZ = z; }
 
-				if (x > maxX) maxX = x;
-				if (y > maxY) maxY = y;
-				if (z > maxZ) maxZ = z;
+				if (x > maxX) { maxX = x; }
+				if (y > maxY) { maxY = y; }
+				if (z > maxZ) { maxZ = z; }
 			}
 
 			this.min.set(minX, minY, minZ);
@@ -3437,7 +3437,7 @@
 
 			return function applyMatrix4(matrix) {
 				// transform of empty box is an empty box.
-				if (this.isEmpty()) return this;
+				if (this.isEmpty()) { return this; }
 
 				// NOTE: I am using a binary pattern to specify all 2^3 combinations below
 				points[0].set(this.min.x, this.min.y, this.min.z).applyMatrix4(matrix); // 000
@@ -3866,11 +3866,11 @@
 			}
 
 			function hue2rgb(p, q, t) {
-				if (t < 0) t += 1;
-				if (t > 1) t -= 1;
-				if (t < 1 / 6) return p + (q - p) * 6 * t;
-				if (t < 1 / 2) return q;
-				if (t < 2 / 3) return p + (q - p) * 6 * (2 / 3 - t);
+				if (t < 0) { t += 1; }
+				if (t > 1) { t -= 1; }
+				if (t < 1 / 6) { return p + (q - p) * 6 * t; }
+				if (t < 1 / 2) { return q; }
+				if (t < 2 / 3) { return p + (q - p) * 6 * (2 / 3 - t); }
 				return p;
 			}
 
@@ -3898,7 +3898,7 @@
 	     *
 	     */
 		fromArray: function(array, offset) {
-			if (offset === undefined) offset = 0;
+			if (offset === undefined) { offset = 0; }
 
 			this.r = array[offset];
 			this.g = array[offset + 1];
@@ -3911,8 +3911,8 @@
 	     *
 	     */
 		toArray: function (array, offset) {
-			if (array === undefined) array = [];
-			if (offset === undefined) offset = 0;
+			if (array === undefined) { array = []; }
+			if (offset === undefined) { offset = 0; }
 
 			array[offset] = this.r;
 			array[offset + 1] = this.g;
@@ -4509,8 +4509,8 @@
 	     * @param {Function} [onError=] — Will be called if an error occurs.
 	     */
 		load: function(url, onLoad, onProgress, onError) {
-			if (url === undefined) url = '';
-			if (this.path !== undefined) url = this.path + url;
+			if (url === undefined) { url = ''; }
+			if (this.path !== undefined) { url = this.path + url; }
 
 			url = this.manager.resolveURL(url);
 
@@ -4522,7 +4522,7 @@
 				image.removeEventListener('load', onImageLoad, false);
 				image.removeEventListener('error', onImageError, false);
 
-				if (onLoad) onLoad(this);
+				if (onLoad) { onLoad(this); }
 
 				scope.manager.itemEnd(url);
 			}
@@ -4531,7 +4531,7 @@
 				image.removeEventListener('load', onImageLoad, false);
 				image.removeEventListener('error', onImageError, false);
 
-				if (onError) onError(event);
+				if (onError) { onError(event); }
 
 				scope.manager.itemError(url);
 				scope.manager.itemEnd(url);
@@ -4541,7 +4541,7 @@
 			image.addEventListener('error', onImageError, false);
 
 			if (url.substr(0, 5) !== 'data:') {
-				if (this.crossOrigin !== undefined) image.crossOrigin = this.crossOrigin;
+				if (this.crossOrigin !== undefined) { image.crossOrigin = this.crossOrigin; }
 			}
 
 			scope.manager.itemStart(url);
@@ -4601,8 +4601,8 @@
 	     * @param {Function} [onError=] — Will be called if an error occurs.
 	     */
 		load: function(url, onLoad, onProgress, onError) {
-			if (url === undefined) url = '';
-			if (this.path != undefined) url = this.path + url;
+			if (url === undefined) { url = ''; }
+			if (this.path != undefined) { url = this.path + url; }
 
 			url = this.manager.resolveURL(url);
 
@@ -4619,7 +4619,7 @@
 				var isBase64 = !!dataUriRegexResult[2];
 				var data = dataUriRegexResult[3];
 				data = decodeURIComponent(data);
-				if (isBase64) data = atob(data); // decode base64
+				if (isBase64) { data = atob(data); } // decode base64
 				try {
 					var response;
 					var responseType = (this.responseType || '').toLowerCase();
@@ -4651,7 +4651,7 @@
 
 					// Wait for next browser tick
 					setTimeout(function() {
-						if (onLoad) onLoad(response);
+						if (onLoad) { onLoad(response); }
 						scope.manager.itemEnd(url);
 					}, 0);
 				} catch (error) {
@@ -4669,16 +4669,16 @@
 				request.addEventListener('load', function(event) {
 					var response = event.target.response;
 					if (this.status === 200) {
-						if (onLoad) onLoad(response);
+						if (onLoad) { onLoad(response); }
 						scope.manager.itemEnd(url);
 					} else if (this.status === 0) {
 						// Some browsers return HTTP Status 0 when using non-http protocol
 						// e.g. 'file://' or 'data://'. Handle as success.
 						console.warn('zen3d.FileLoader: HTTP Status 0 received.');
-						if (onLoad) onLoad(response);
+						if (onLoad) { onLoad(response); }
 						scope.manager.itemEnd(url);
 					} else {
-						if (onError) onError(event);
+						if (onError) { onError(event); }
 						scope.manager.itemError(url);
 						scope.manager.itemEnd(url);
 					}
@@ -4698,9 +4698,9 @@
 					}, false);
 				}
 
-				if (this.responseType !== undefined) request.responseType = this.responseType;
-				if (this.withCredentials !== undefined) request.withCredentials = this.withCredentials;
-				if (request.overrideMimeType) request.overrideMimeType(this.mimeType !== undefined ? this.mimeType : 'text/plain');
+				if (this.responseType !== undefined) { request.responseType = this.responseType; }
+				if (this.withCredentials !== undefined) { request.withCredentials = this.withCredentials; }
+				if (request.overrideMimeType) { request.overrideMimeType(this.mimeType !== undefined ? this.mimeType : 'text/plain'); }
 				for (var header in this.requestHeader) {
 					request.setRequestHeader(header, this.requestHeader[header]);
 				}
@@ -5294,7 +5294,7 @@
 						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
 						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
 					} */
-						if (false !== consume) buffer.pos += len + i + 1;
+						if (false !== consume) { buffer.pos += len + i + 1; }
 						return s + chunk.slice(0, i);
 					}
 					return false;
@@ -5345,7 +5345,7 @@
 
 					while (true) {
 						line = fgets(buffer);
-						if (false === line) break;
+						if (false === line) { break; }
 						header.string += line + "\n";
 
 						if ('#' === line.charAt(0)) {
@@ -5369,7 +5369,7 @@
 							header.width = parseInt(match[2], 10);
 						}
 
-						if ((header.valid & RGBE_VALID_FORMAT) && (header.valid & RGBE_VALID_DIMENSIONS)) break;
+						if ((header.valid & RGBE_VALID_FORMAT) && (header.valid & RGBE_VALID_DIMENSIONS)) { break; }
 					}
 
 					if (!(header.valid & RGBE_VALID_FORMAT)) {
@@ -5431,7 +5431,7 @@
 						while ((ptr < ptr_end) && (pos < buffer.byteLength)) {
 							count = buffer[pos++];
 							isEncodedRun = count > 128;
-							if (isEncodedRun) count -= 128;
+							if (isEncodedRun) { count -= 128; }
 
 							if ((0 === count) || (ptr + count > ptr_end)) {
 								return rgbe_error(rgbe_format_error, "bad scanline data");
@@ -6066,7 +6066,7 @@
 	     * @return {zen3d.Object3D}
 	     */
 		getObjectByProperty: function(name, value) {
-			if (this[name] === value) return this;
+			if (this[name] === value) { return this; }
 
 			for (var i = 0, l = this.children.length; i < l; i++) {
 				var child = this.children[i];
@@ -6176,7 +6176,7 @@
 	     * @return {zen3d.Object3D}
 	     */
 		copy: function(source, recursive) {
-			if (recursive === undefined) recursive = true;
+			if (recursive === undefined) { recursive = true; }
 
 			this.name = source.name;
 
@@ -7279,30 +7279,17 @@
 
 	});
 
-	/**
-	 * CubeGeometry is the quadrilateral primitive geometry class.
-	 * It is typically used for creating a cube or irregular quadrilateral of the dimensions provided with the 'width', 'height', and 'depth' constructor arguments.
-	 * @constructor
-	 * @memberof zen3d
-	 * @extends zen3d.Geometry
-	 * @param {number} [width=1] - Width of the sides on the X axis.
-	 * @param {number} [height=1] - Height of the sides on the Y axis.
-	 * @param {number} [depth=1] - Depth of the sides on the Z axis.
-	 * @param {Integer} [widthSegments=1] - Number of segmented faces along the width of the sides.
-	 * @param {Integer} [heightSegments=1] - Number of segmented faces along the height of the sides.
-	 * @param {Integer} [depthSegments=1] - Number of segmented faces along the depth of the sides.
-	 */
-	function CubeGeometry(width, height, depth, widthSegments, heightSegments, depthSegments) {
-		Geometry.call(this);
+	var CubeGeometry = /*@__PURE__*/(function (Geometry) {
+		function CubeGeometry(width, height, depth, widthSegments, heightSegments, depthSegments) {
+			Geometry.call(this);
+			this.buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
+		}
 
-		this.buildGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
-	}
+		if ( Geometry ) CubeGeometry.__proto__ = Geometry;
+		CubeGeometry.prototype = Object.create( Geometry && Geometry.prototype );
+		CubeGeometry.prototype.constructor = CubeGeometry;
 
-	CubeGeometry.prototype = Object.assign(Object.create(Geometry.prototype), {
-
-		constructor: CubeGeometry,
-
-		buildGeometry: function(width, height, depth, widthSegments, heightSegments, depthSegments) {
+		CubeGeometry.prototype.buildGeometry = function buildGeometry (width, height, depth, widthSegments, heightSegments, depthSegments) {
 			var scope = this;
 
 			width = width || 1;
@@ -7439,9 +7426,10 @@
 
 			this.computeBoundingBox();
 			this.computeBoundingSphere();
-		}
+		};
 
-	});
+		return CubeGeometry;
+	}(Geometry));
 
 	/**
 	 * A class for generating cylinder geometries.
@@ -7500,8 +7488,8 @@
 			generateTorso();
 
 			if (openEnded === false) {
-				if (radiusTop > 0) generateCap(true);
-				if (radiusBottom > 0) generateCap(false);
+				if (radiusTop > 0) { generateCap(true); }
+				if (radiusBottom > 0) { generateCap(false); }
 			}
 
 			// build geometry
@@ -8117,8 +8105,8 @@
 					var c = grid[iy + 1][ix];
 					var d = grid[iy + 1][ix + 1];
 
-					if (iy !== 0 || thetaStart > 0) indices.push(a, b, d);
-					if (iy !== heightSegments - 1 || thetaEnd < Math.PI) indices.push(b, c, d);
+					if (iy !== 0 || thetaStart > 0) { indices.push(a, b, d); }
+					if (iy !== heightSegments - 1 || thetaEnd < Math.PI) { indices.push(b, c, d); }
 				}
 			}
 
@@ -9780,8 +9768,8 @@
 	});
 
 	function textureNeedsPowerOfTwo(texture) {
-		if (texture.wrapS !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE || texture.wrapT !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE) return true;
-		if (texture.minFilter !== WEBGL_TEXTURE_FILTER.NEAREST && texture.minFilter !== WEBGL_TEXTURE_FILTER.LINEAR) return true;
+		if (texture.wrapS !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE || texture.wrapT !== WEBGL_TEXTURE_WRAP.CLAMP_TO_EDGE) { return true; }
+		if (texture.minFilter !== WEBGL_TEXTURE_FILTER.NEAREST && texture.minFilter !== WEBGL_TEXTURE_FILTER.LINEAR) { return true; }
 
 		return false;
 	}
@@ -10312,7 +10300,7 @@
 	function updateAttribute(gl, properties, attribute, bufferType) {
 		// if isInterleavedBufferAttribute, get InterleavedBuffer as data.
 		// else get BufferAttribute as data
-		if (attribute.isInterleavedBufferAttribute) attribute = attribute.data;
+		if (attribute.isInterleavedBufferAttribute) { attribute = attribute.data; }
 
 		var data = properties.get(attribute);
 
@@ -10325,7 +10313,7 @@
 	}
 
 	function removeAttribute(gl, properties, attribute) {
-		if (attribute.isInterleavedBufferAttribute) attribute = attribute.data;
+		if (attribute.isInterleavedBufferAttribute) { attribute = attribute.data; }
 
 		var data = properties.get(attribute);
 
@@ -10450,10 +10438,10 @@
 	}
 
 	function arraysEqual(a, b) {
-		if (a.length !== b.length) return false;
+		if (a.length !== b.length) { return false; }
 
 		for (var i = 0, l = a.length; i < l; i++) {
-			if (a[i] !== b[i]) return false;
+			if (a[i] !== b[i]) { return false; }
 		}
 
 		return true;
@@ -10493,13 +10481,13 @@
 		switch (type) {
 		case WEBGL_UNIFORM_TYPE.FLOAT:
 			uniform.setValue = function(value) {
-				if (cache[0] === value) return;
+				if (cache[0] === value) { return; }
 				gl.uniform1f(location, value);
 				cache[0] = value;
 			};
 			if (pureArray) {
 				uniform.set = function(value) {
-					if (arraysEqual(cache, value)) return;
+					if (arraysEqual(cache, value)) { return; }
 					gl.uniform1fv(location, value);
 					copyArray(cache, value);
 				};
@@ -10512,7 +10500,7 @@
 			uniform.setValue = function(value, glCore) {
 				var unit = glCore.allocTexUnit();
 				glCore.texture.setTexture2D(value || (type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW ? emptyShadowTexture : emptyTexture), unit);
-				if (cache[0] === unit) return;
+				if (cache[0] === unit) { return; }
 				gl.uniform1i(location, unit);
 				cache[0] = unit;
 			};
@@ -10523,7 +10511,7 @@
 					for (var i = 0; i !== n; ++i) {
 						glCore.texture.setTexture2D(value[i] || (type === WEBGL_UNIFORM_TYPE.SAMPLER_2D_SHADOW ? emptyShadowTexture : emptyTexture), units[i]);
 					}
-					if (arraysEqual(cache, units)) return;
+					if (arraysEqual(cache, units)) { return; }
 					gl.uniform1iv(location, units);
 					copyArray(cache, units);
 				};
@@ -10536,7 +10524,7 @@
 			uniform.setValue = function(value, glCore) {
 				var unit = glCore.allocTexUnit();
 				glCore.texture.setTextureCube(value || emptyCubeTexture, unit);
-				if (cache[0] === unit) return;
+				if (cache[0] === unit) { return; }
 				gl.uniform1i(location, unit);
 				cache[0] = unit;
 			};
@@ -10547,7 +10535,7 @@
 					for (var i = 0; i !== n; ++i) {
 						glCore.texture.setTextureCube(value[i] || emptyCubeTexture, units[i]);
 					}
-					if (arraysEqual(cache, units)) return;
+					if (arraysEqual(cache, units)) { return; }
 					gl.uniform1iv(location, units);
 					copyArray(cache, units);
 				};
@@ -10559,7 +10547,7 @@
 			uniform.setValue = function(value, glCore) {
 				var unit = glCore.allocTexUnit();
 				glCore.texture.setTexture3D(value || emptyTexture3d, unit);
-				if (cache[0] === unit) return;
+				if (cache[0] === unit) { return; }
 				gl.uniform1i(location, unit);
 				cache[0] = unit;
 			};
@@ -10570,7 +10558,7 @@
 					for (var i = 0; i !== n; ++i) {
 						glCore.texture.setTexture3D(value[i] || emptyTexture3d, units[i]);
 					}
-					if (arraysEqual(cache, units)) return;
+					if (arraysEqual(cache, units)) { return; }
 					gl.uniform1iv(location, units);
 					copyArray(cache, units);
 				};
@@ -10581,13 +10569,13 @@
 		case WEBGL_UNIFORM_TYPE.BOOL:
 		case WEBGL_UNIFORM_TYPE.INT:
 			uniform.setValue = function(value) {
-				if (cache[0] === value) return;
+				if (cache[0] === value) { return; }
 				gl.uniform1i(location, value);
 				cache[0] = value;
 			};
 			if (pureArray) {
 				uniform.set = function(value) {
-					if (arraysEqual(cache, value)) return;
+					if (arraysEqual(cache, value)) { return; }
 					gl.uniform1iv(location, value);
 					copyArray(cache, value);
 				};
@@ -10604,7 +10592,7 @@
 				}
 			};
 			uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniform2fv(location, value);
 				copyArray(cache, value);
 			};
@@ -10619,7 +10607,7 @@
 				}
 			};
 			uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniform2iv(location, value);
 				copyArray(cache, value);
 			};
@@ -10634,7 +10622,7 @@
 				}
 			};
 			uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniform3fv(location, value);
 				copyArray(cache, value);
 			};
@@ -10650,7 +10638,7 @@
 				}
 			};
 			uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniform3iv(location, value);
 				copyArray(cache, value);
 			};
@@ -10666,7 +10654,7 @@
 				}
 			};
 			uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniform4fv(location, value);
 				copyArray(cache, value);
 			};
@@ -10683,7 +10671,7 @@
 				}
 			};
 			uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniform4iv(location, value);
 				copyArray(cache, value);
 			};
@@ -10691,21 +10679,21 @@
 
 		case WEBGL_UNIFORM_TYPE.FLOAT_MAT2:
 			uniform.setValue = uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniformMatrix2fv(location, false, value);
 				copyArray(cache, value);
 			};
 			break;
 		case WEBGL_UNIFORM_TYPE.FLOAT_MAT3:
 			uniform.setValue = uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniformMatrix3fv(location, false, value);
 				copyArray(cache, value);
 			};
 			break;
 		case WEBGL_UNIFORM_TYPE.FLOAT_MAT4:
 			uniform.setValue = uniform.set = function(value) {
-				if (arraysEqual(cache, value)) return;
+				if (arraysEqual(cache, value)) { return; }
 				gl.uniformMatrix4fv(location, false, value);
 				copyArray(cache, value);
 			};
@@ -10804,7 +10792,7 @@
 				idIsIndex = match[2] === ']',
 				subscript = match[3];
 
-			if (idIsIndex) id = id | 0; // convert to integer
+			if (idIsIndex) { id = id | 0; } // convert to integer
 
 			if (subscript === undefined || subscript === '[' && matchEnd + 2 === pathLength) {
 				// bare name or "pure" bottom-level array "[0]" suffix
@@ -10846,7 +10834,7 @@
 
 	WebGLUniforms.prototype.set = function(name, value, glCore) {
 		var u = this.map[name];
-		if (u !== undefined) u.set(value, glCore);
+		if (u !== undefined) { u.set(value, glCore); }
 	};
 
 	WebGLUniforms.prototype.has = function(name) {
@@ -11356,7 +11344,7 @@
 		for (var name in defines) {
 			var value = defines[name];
 
-			if (value === false) continue;
+			if (value === false) { continue; }
 
 			chunks.push('#define ' + name + ' ' + value);
 		}
@@ -11502,9 +11490,7 @@
 			props.emissiveMapEncoding ? getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding) : '',
 			props.outputEncoding ? getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding) : '',
 
-			props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '',
-
-		].filter(filterEmptyLine).join("\n");
+			props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '' ].filter(filterEmptyLine).join("\n");
 
 		// vertexCode & fragmentCode
 		var vertex = ShaderLib[props.materialType + "_vert"] || props.vertexShader || ShaderLib.basic_vert;
@@ -12020,9 +12006,9 @@
 			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, drawBuffer);
 
 			var mask = 0;
-			if (color === undefined || !!color) mask |= gl.COLOR_BUFFER_BIT;
-			if (depth === undefined || !!depth) mask |= gl.DEPTH_BUFFER_BIT;
-			if (stencil === undefined || !!stencil) mask |= gl.STENCIL_BUFFER_BIT;
+			if (color === undefined || !!color) { mask |= gl.COLOR_BUFFER_BIT; }
+			if (depth === undefined || !!depth) { mask |= gl.DEPTH_BUFFER_BIT; }
+			if (stencil === undefined || !!stencil) { mask |= gl.STENCIL_BUFFER_BIT; }
 
 			// gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 
@@ -12200,9 +12186,9 @@
 
 			var bits = 0;
 
-			if (color === undefined || color) bits |= gl.COLOR_BUFFER_BIT;
-			if (depth === undefined || depth) bits |= gl.DEPTH_BUFFER_BIT;
-			if (stencil === undefined || stencil) bits |= gl.STENCIL_BUFFER_BIT;
+			if (color === undefined || color) { bits |= gl.COLOR_BUFFER_BIT; }
+			if (depth === undefined || depth) { bits |= gl.DEPTH_BUFFER_BIT; }
+			if (stencil === undefined || stencil) { bits |= gl.STENCIL_BUFFER_BIT; }
 
 			gl.clear(bits);
 		},
@@ -12632,7 +12618,7 @@
 			);
 
 			var flipSided = (material.side === DRAW_SIDE.BACK);
-			if (frontFaceCW) flipSided = !flipSided;
+			if (frontFaceCW) { flipSided = !flipSided; }
 
 			state.setFlipSided(flipSided);
 
@@ -12823,8 +12809,8 @@
 				var influence = influences[i];
 
 				if (influence !== 0) {
-					if (morphTargets) geometry.removeAttribute('morphTarget' + i);
-					if (morphNormals) geometry.removeAttribute('morphNormal' + i);
+					if (morphTargets) { geometry.removeAttribute('morphTarget' + i); }
+					if (morphNormals) { geometry.removeAttribute('morphNormal' + i); }
 				}
 			}
 
@@ -12844,8 +12830,8 @@
 				var influence = influences[i];
 
 				if (influence > 0) {
-					if (morphTargets) geometry.addAttribute('morphTarget' + count, morphTargets[i]);
-					if (morphNormals) geometry.addAttribute('morphNormal' + count, morphNormals[i]);
+					if (morphTargets) { geometry.addAttribute('morphTarget' + count, morphTargets[i]); }
+					if (morphNormals) { geometry.addAttribute('morphNormal' + count, morphNormals[i]); }
 
 					morphInfluences[count] = influence;
 
@@ -14291,14 +14277,14 @@
 					intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DRAW_SIDE.DOUBLE, point);
 				}
 
-				if (intersect === null) return null;
+				if (intersect === null) { return null; }
 
 				intersectionPointWorld.copy(point);
 				intersectionPointWorld.applyMatrix4(object.worldMatrix);
 
 				var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
 
-				if (distance < raycaster.near || distance > raycaster.far) return null;
+				if (distance < raycaster.near || distance > raycaster.far) { return null; }
 
 				return {
 					distance: distance,
