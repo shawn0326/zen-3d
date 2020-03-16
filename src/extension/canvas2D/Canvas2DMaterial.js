@@ -2,17 +2,17 @@
  * Canvas2DMaterial
  * @class
  */
-function Canvas2DMaterial() {
-    zen3d.Material.call(this);
+class Canvas2DMaterial extends zen3d.Material {
 
-    this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
+	constructor() {
+		super();
+		this.type = zen3d.MATERIAL_TYPE.CANVAS2D;
 
-    this.depthWrite = false;
+		this.depthWrite = false;
 
-    this.transparent = true;
+		this.transparent = true;
+	}
+
 }
 
-Canvas2DMaterial.prototype = Object.create(zen3d.Material.prototype);
-Canvas2DMaterial.prototype.constructor = Canvas2DMaterial;
-
-export {Canvas2DMaterial};
+export { Canvas2DMaterial };

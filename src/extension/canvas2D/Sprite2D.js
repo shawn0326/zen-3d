@@ -1,12 +1,12 @@
-import {Object2D} from './Object2D.js';
+import { Object2D } from './Object2D.js';
 
-function Sprite2D() {
-    Object2D.call(this);
+class Sprite2D extends Object2D {
 
-    this.texture = null;
+	constructor() {
+		super();
+		this.texture = null;
+	}
+
 }
 
-Sprite2D.prototype = Object.create(Object2D.prototype);
-Sprite2D.prototype.constructor = Sprite2D;
-
-export {Sprite2D};
+export { Sprite2D };
