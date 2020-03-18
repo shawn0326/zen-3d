@@ -47,8 +47,6 @@ var files = [
 	{ path: 'shaders/MotionBlurShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/ShadowShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/SketchShader.js', dependencies: [], ignoreList: [] },
-	{ path: 'shaders/SkyBoxShader.js', dependencies: [], ignoreList: [] },
-	{ path: 'shaders/SkyShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/SSAOShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/SSRShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/VolumeShader.js', dependencies: [], ignoreList: [] },
