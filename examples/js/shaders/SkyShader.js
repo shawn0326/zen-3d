@@ -10,26 +10,26 @@
  * http://blenderartists.org/forum/showthread.php?245954-preethams-sky-impementation-HDR
  *
  * Three.js integration by zz85 http://twitter.com/blurspline
-*/
+ */
 
 zen3d.SkyShader = {
 
-    uniforms: {
-        luminance: 1,
+	uniforms: {
+		luminance: 1,
 		turbidity: 2,
 		rayleigh: 1,
 		mieCoefficient: 0.005,
 		mieDirectionalG: 0.8,
 		sunPosition: [0, 0, 0]
-    },
+	},
 
-    vertexShader: [
-        "attribute vec3 a_Position;",
-        "uniform mat4 u_Projection;",
-        "uniform mat4 u_View;",
-        "uniform mat4 u_Model;",
+	vertexShader: [
+		"attribute vec3 a_Position;",
+		"uniform mat4 u_Projection;",
+		"uniform mat4 u_View;",
+		"uniform mat4 u_Model;",
 
-        'uniform vec3 sunPosition;',
+		'uniform vec3 sunPosition;',
 		'uniform float rayleigh;',
 		'uniform float turbidity;',
 		'uniform float mieCoefficient;',
@@ -100,10 +100,10 @@ zen3d.SkyShader = {
 		'	vBetaM = totalMie( turbidity ) * mieCoefficient;',
 
 		'}'
-    ].join( "\n" ),
+	].join("\n"),
 
-    fragmentShader: [
-        'varying vec3 vWorldPosition;',
+	fragmentShader: [
+		'varying vec3 vWorldPosition;',
 		'varying vec3 vSunDirection;',
 		'varying float vSunfade;',
 		'varying vec3 vBetaR;',
@@ -120,7 +120,7 @@ zen3d.SkyShader = {
 
 		'const float n = 1.0003;', // refractive index of air
 		'const float N = 2.545E25;', // number of molecules per unit volume for air at
-									// 288.15K and 1013mb (sea level -45 celsius)
+		// 288.15K and 1013mb (sea level -45 celsius)
 
 		// optical length at zenith for molecules
 		'const float rayleighZenithLength = 8.4E3;',
@@ -200,9 +200,9 @@ zen3d.SkyShader = {
 
 		'	vec3 retColor = pow( color, vec3( 1.0 / ( 1.2 + ( 1.2 * vSunfade ) ) ) );',
 
-        '	gl_FragColor = vec4( retColor, 1.0 );',
+		'	gl_FragColor = vec4( retColor, 1.0 );',
 
 		'}'
-    ].join( "\n" )
+	].join("\n")
 
 };

@@ -1,189 +1,171 @@
-(function() {
-    function FreeControls(object, domElement) {
-        this.object = object;
-        this.object.euler.order = 'YXZ'; // the right order?
+/**
+ * @author shawn0326 / http://halflab.me
+ */
 
-        this.domElement = ( domElement !== undefined ) ? domElement : document;
-        if ( domElement ) this.domElement.setAttribute( 'tabindex', - 1 );
+zen3d.FreeControls = function(object, domElement) {
+	this.object = object;
+	this.object.euler.order = 'YXZ'; // the right order?
 
-        this.movementSpeed = 1.0;
-        this.rotateSpeed = 0.25;
+	this.domElement = (domElement !== undefined) ? domElement : document;
+	if (domElement) this.domElement.setAttribute('tabindex', -1);
 
-        this.enableMovementDamping = true;
-        this.movementDampingFactor = 0.25;
+	this.movementSpeed = 1.0;
+	this.rotateSpeed = 0.25;
 
-        this.enableRotateDamping = true;
-        this.rotateDampingFactor = 0.25;
+	this.enableMovementDamping = true;
+	this.movementDampingFactor = 0.25;
 
-        this.update = function(delta) {
-            delta = delta || 0.0166;
+	this.enableRotateDamping = true;
+	this.rotateDampingFactor = 0.25;
 
-            var moveMult = delta * this.movementSpeed / 0.0166;
+	this.update = function(delta) {
+		delta = delta || 0.0166;
 
-            moveVector.add(moveDelta);
-            rotateVector.add(rotateDelta);
+		var moveMult = delta * this.movementSpeed / 0.0166;
 
-            tempVector.set(1, 0, 0).applyQuaternion(this.object.quaternion).multiplyScalar(moveVector.x * moveMult);
-            this.object.position.add(tempVector);
-            tempVector.set(0, 1, 0).applyQuaternion(this.object.quaternion).multiplyScalar(moveVector.y * moveMult);
-            this.object.position.add(tempVector);
-            tempVector.set(0, 0, 1).applyQuaternion(this.object.quaternion).multiplyScalar(moveVector.z * moveMult);
-            this.object.position.add(tempVector);
-            
-            this.object.euler.x += delta * rotateVector.x / 0.0166;
-            this.object.euler.y += delta * rotateVector.y / 0.0166;
+		moveVector.add(moveDelta);
+		rotateVector.add(rotateDelta);
 
-            if ( this.enableMovementDamping ) {
+		tempVector.set(1, 0, 0).applyQuaternion(this.object.quaternion).multiplyScalar(moveVector.x * moveMult);
+		this.object.position.add(tempVector);
+		tempVector.set(0, 1, 0).applyQuaternion(this.object.quaternion).multiplyScalar(moveVector.y * moveMult);
+		this.object.position.add(tempVector);
+		tempVector.set(0, 0, 1).applyQuaternion(this.object.quaternion).multiplyScalar(moveVector.z * moveMult);
+		this.object.position.add(tempVector);
 
-                moveVector.multiplyScalar( 1 - this.movementDampingFactor );
+		this.object.euler.x += delta * rotateVector.x / 0.0166;
+		this.object.euler.y += delta * rotateVector.y / 0.0166;
 
-            } else {
+		if (this.enableMovementDamping) {
+			moveVector.multiplyScalar(1 - this.movementDampingFactor);
+		} else {
+			moveVector.set(0, 0, 0);
+		}
 
-                moveVector.set( 0, 0, 0 );
+		if (this.enableRotateDamping) {
+			rotateVector.multiplyScalar(1 - this.rotateDampingFactor);
+		} else {
+			rotateVector.set(0, 0);
+		}
 
-            }
+		rotateDelta.set(0, 0);
 
-            if( this.enableRotateDamping ) {
+		// update condition is:
+		// min(camera displacement, camera rotation in radians)^2 > EPS
+		// using small-angle approximation cos(x/2) = 1 - x^2 / 8
 
-                rotateVector.multiplyScalar( 1 - this.rotateDampingFactor );
+		if (lastPosition.distanceToSquared(this.object.position) > EPS ||
+            8 * (1 - lastQuaternion.dot(this.object.quaternion)) > EPS) {
+			lastPosition.copy(this.object.position);
+			lastQuaternion.copy(this.object.quaternion);
 
-            } else {
+			return true;
+		}
 
-                rotateVector.set( 0, 0 );
-                
-            }
+		return false;
+	}
 
-            rotateDelta.set(0, 0);
+	var tempVector = new zen3d.Vector3();
 
-            // update condition is:
-            // min(camera displacement, camera rotation in radians)^2 > EPS
-            // using small-angle approximation cos(x/2) = 1 - x^2 / 8
+	var lastPosition = new zen3d.Vector3();
+	var lastQuaternion = new zen3d.Quaternion();
+	var EPS = 0.000001;
 
-            if ( lastPosition.distanceToSquared( this.object.position ) > EPS ||
-                8 * ( 1 - lastQuaternion.dot( this.object.quaternion ) ) > EPS ) {
+	var rotateStart = new zen3d.Vector2();
+	var rotateEnd = new zen3d.Vector2();
+	var rotateDelta = new zen3d.Vector2();
 
-                lastPosition.copy( this.object.position );
-                lastQuaternion.copy( this.object.quaternion );
+	var moveDelta = new zen3d.Vector3();
 
-                return true;
+	var rotateVector = new zen3d.Vector2();
+	var moveVector = new zen3d.Vector3();
 
-            }
+	var mouseState = 0;
+	var moveState = { up: 0, down: 0, left: 0, right: 0, forward: 0, back: 0 };
 
-            return false;
-        }
+	var scope = this;
 
-        var tempVector = new zen3d.Vector3();
+	function updateRotateVector() {
+		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-        var lastPosition = new zen3d.Vector3();
-        var lastQuaternion = new zen3d.Quaternion();
-        var EPS = 0.000001;
+		var x = rotateDelta.x, y = rotateDelta.y;
+		rotateDelta.x = (2 * Math.PI * y / element.clientHeight);
+		rotateDelta.y = (2 * Math.PI * x / element.clientWidth);
+	}
 
-        var rotateStart = new zen3d.Vector2();
-        var rotateEnd = new zen3d.Vector2();
-        var rotateDelta = new zen3d.Vector2();
+	function updateMovementVector() {
+		moveDelta.x = (-moveState.left + moveState.right);
+		moveDelta.y = (-moveState.down + moveState.up);
+		moveDelta.z = (-moveState.forward + moveState.back);
+	}
 
-        var moveDelta = new zen3d.Vector3();
+	function mousedown(event) {
+		rotateStart.set(event.clientX, event.clientY);
 
-        var rotateVector = new zen3d.Vector2();
-        var moveVector = new zen3d.Vector3();
+		mouseState = 1;
+	}
 
-        var mouseState = 0;
-        var moveState = { up: 0, down: 0, left: 0, right: 0, forward: 0, back: 0};
+	function mousemove(event) {
+		if (mouseState == 0) return;
 
-        var scope = this;
+		rotateEnd.set(event.clientX, event.clientY);
 
-        function updateRotateVector() {
-            var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+		rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(-scope.rotateSpeed);
 
-            var x = rotateDelta.x, y = rotateDelta.y;
-            rotateDelta.x = ( 2 * Math.PI * y / element.clientHeight);
-            rotateDelta.y = ( 2 * Math.PI * x / element.clientWidth);
-        }
+		updateRotateVector();
 
-        function updateMovementVector() {
-            moveDelta.x = ( - moveState.left + moveState.right );
-            moveDelta.y = ( - moveState.down + moveState.up );
-            moveDelta.z = ( - moveState.forward + moveState.back );
-        }
+		rotateStart.copy(rotateEnd);
+	}
 
-        function mousedown ( event ) {
-            rotateStart.set( event.clientX, event.clientY );
+	function mouseup(event) {
+		mouseState = 0;
 
-            mouseState = 1;
-        }
+		rotateDelta.set(0, 0);
+	}
 
-        function mousemove ( event ) {
-            if(mouseState == 0) return;
+	function keydown(event) {
+		switch (event.keyCode) {
+		case 87: /* W */ moveState.forward = 1; break;
+		case 83: /* S */ moveState.back = 1; break;
 
-            rotateEnd.set( event.clientX, event.clientY );
+		case 65: /* A */ moveState.left = 1; break;
+		case 68: /* D */ moveState.right = 1; break;
 
-            rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( -scope.rotateSpeed );
+		case 82: /* R */ moveState.up = 1; break;
+		case 70: /* F */ moveState.down = 1; break;
 
-            updateRotateVector();
+		case 69: /* E */ moveState.up = 1; break;
+		case 81: /* Q */ moveState.down = 1; break;
+		}
 
-            rotateStart.copy( rotateEnd );
-        }
+		updateMovementVector();
+	}
 
-        function mouseup ( event ) {
-            mouseState = 0;
+	function keyup(event) {
+		switch (event.keyCode) {
+		case 87: /* W */ moveState.forward = 0; break;
+		case 83: /* S */ moveState.back = 0; break;
 
-            rotateDelta.set(0, 0);
-        }
+		case 65: /* A */ moveState.left = 0; break;
+		case 68: /* D */ moveState.right = 0; break;
 
-        function keydown(event) {
+		case 82: /* R */ moveState.up = 0; break;
+		case 70: /* F */ moveState.down = 0; break;
 
-            switch ( event.keyCode ) {
-    
-                case 87: /*W*/ moveState.forward = 1; break;
-                case 83: /*S*/ moveState.back = 1; break;
-    
-                case 65: /*A*/ moveState.left = 1; break;
-                case 68: /*D*/ moveState.right = 1; break;
-    
-                case 82: /*R*/ moveState.up = 1; break;
-                case 70: /*F*/ moveState.down = 1; break;
+		case 69: /* E */ moveState.up = 0; break;
+		case 81: /* Q */ moveState.down = 0; break;
+		}
 
-                case 69: /*E*/ moveState.up = 1; break;
-                case 81: /*Q*/ moveState.down = 1; break;
-    
-            }
+		updateMovementVector();
+	}
 
-            updateMovementVector();
+	this.domElement.addEventListener('mousemove', mousemove, false);
+	this.domElement.addEventListener('mousedown', mousedown, false);
+	this.domElement.addEventListener('mouseup', mouseup, false);
 
-        }
+	window.addEventListener('keydown', keydown, false);
+	window.addEventListener('keyup', keyup, false);
 
-        function keyup(event) {
-
-            switch ( event.keyCode ) {
-    
-                case 87: /*W*/ moveState.forward = 0; break;
-                case 83: /*S*/ moveState.back = 0; break;
-    
-                case 65: /*A*/ moveState.left = 0; break;
-                case 68: /*D*/ moveState.right = 0; break;
-    
-                case 82: /*R*/ moveState.up = 0; break;
-                case 70: /*F*/ moveState.down = 0; break;
-
-                case 69: /*E*/ moveState.up = 0; break;
-                case 81: /*Q*/ moveState.down = 0; break;
-    
-            }
-
-            updateMovementVector();
-
-        }
-
-        this.domElement.addEventListener( 'mousemove', mousemove, false );
-        this.domElement.addEventListener( 'mousedown', mousedown, false );
-        this.domElement.addEventListener( 'mouseup', mouseup, false );
-
-        window.addEventListener( 'keydown', keydown, false );
-        window.addEventListener( 'keyup', keyup, false );
-
-        updateMovementVector();
-        updateRotateVector();
-    }
-
-    zen3d.FreeControls = FreeControls;
-})();
+	updateMovementVector();
+	updateRotateVector();
+}

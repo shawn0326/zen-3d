@@ -55,8 +55,8 @@
     "eslint-fix": "eslint src/core --fix",
     "eslint-extensions": "eslint src/extension",
     "eslint-extensions-fix": "eslint src/extension --fix",
-    "eslint-examples": "eslint examples/jsm",
-    "eslint-examples-fix": "eslint examples/jsm --fix",
+    "eslint-examples": "eslint examples/js",
+    "eslint-examples-fix": "eslint examples/js --fix",
     "example": "live-server --port=8080 --open=examples --watch=examples,build"
   }
 }

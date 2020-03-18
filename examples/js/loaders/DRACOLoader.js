@@ -1,4 +1,6 @@
-'use strict';
+/**
+ * DRACOLoader.js
+ */
 
 /**
  * @param {zen3d.LoadingManager} manager

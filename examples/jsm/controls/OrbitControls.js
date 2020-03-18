@@ -1,11 +1,3 @@
-import {
-	Matrix4,
-	Quaternion,
-	Spherical,
-	Vector2,
-	Vector3
-} from "../../../build/zen3d.module.js";
-
 /**
  * @author qiao / https://github.com/qiao
  * @author mrdoob / http://mrdoob.com
@@ -15,6 +7,14 @@ import {
  * @author shawn0326 / http://halflab.me
  */
 
+import {
+	Matrix4,
+	Quaternion,
+	Spherical,
+	Vector2,
+	Vector3
+} from "../../../build/zen3d.module.js";
+
 // This set of controls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
 //
@@ -22,7 +22,7 @@ import {
 //    Dolly - middle mouse, or mousewheel / touch: two-finger spread or squish
 //    Pan - right mouse, or arrow keys / touch: two-finger move
 
-function OrbitControls(object, domElement) {
+var OrbitControls = function(object, domElement) {
 	this.object = object;
 
 	this.domElement = (domElement !== undefined) ? domElement : document;
@@ -299,10 +299,10 @@ function OrbitControls(object, domElement) {
 			project.copy(scope.object.projectionMatrix);
 			projectInv.getInverse(project);
 
-			var depth = p.set(0, 0, targetDistance).applyProjection(project).z;
+			var depth = p.set(0, 0, targetDistance).applyMatrix4(project).z;
 
 			// full-screen to world distance
-			var distance = p.set(0, -0.5, depth).applyProjection(projectInv).y;
+			var distance = p.set(0, -0.5, depth).applyMatrix4(projectInv).y;
 			distance *= 2;
 
 			// we use only clientHeight here so aspect ratio does not distort speed
@@ -721,6 +721,6 @@ function OrbitControls(object, domElement) {
 	// force an update at start
 
 	this.update();
-}
+};
 
 export { OrbitControls };

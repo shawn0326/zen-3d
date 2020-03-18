@@ -1,10 +1,14 @@
+/**
+ * @author shawn0326 / http://halflab.me
+ */
+
 import {
 	Quaternion,
 	Vector2,
 	Vector3
 } from "../../../build/zen3d.module.js";
 
-function FreeControls(object, domElement) {
+var FreeControls = function(object, domElement) {
 	this.object = object;
 	this.object.euler.order = 'YXZ'; // the right order?
 

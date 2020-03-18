@@ -1,12 +1,13 @@
+/**
+ * @author James Baicoianu / http://www.baicoianu.com/
+ */
+
 import {
 	Quaternion,
 	Vector3
 } from "../../../build/zen3d.module.js";
 
-/**
- * @author James Baicoianu / http://www.baicoianu.com/
- */
-function FlyControls(object, domElement) {
+var FlyControls = function(object, domElement) {
 	this.object = object;
 
 	this.domElement = (domElement !== undefined) ? domElement : document;

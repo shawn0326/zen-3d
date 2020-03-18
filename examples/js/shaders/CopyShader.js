@@ -1,3 +1,7 @@
+/**
+ * Copy Shader
+ */
+
 zen3d.CopyShader = {
 
 	uniforms: {
@@ -9,23 +13,23 @@ zen3d.CopyShader = {
 
 	vertexShader: [
 
-        "attribute vec3 a_Position;",
-        "attribute vec2 a_Uv;",
+		"attribute vec3 a_Position;",
+		"attribute vec2 a_Uv;",
 
-        "uniform mat4 u_Projection;",
-        "uniform mat4 u_View;",
-        "uniform mat4 u_Model;",
+		"uniform mat4 u_Projection;",
+		"uniform mat4 u_View;",
+		"uniform mat4 u_Model;",
 
 		"varying vec2 v_Uv;",
 
 		"void main() {",
 
-			"v_Uv = a_Uv;",
-			"gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+		"	v_Uv = a_Uv;",
+		"	gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
 
 		"}"
 
-	].join( "\n" ),
+	].join("\n"),
 
 	fragmentShader: [
 
@@ -37,11 +41,11 @@ zen3d.CopyShader = {
 
 		"void main() {",
 
-			"vec4 texel = texture2D( tDiffuse, v_Uv );",
-			"gl_FragColor = opacity * texel;",
+		"	vec4 texel = texture2D( tDiffuse, v_Uv );",
+		"	gl_FragColor = opacity * texel;",
 
 		"}"
 
-	].join( "\n" )
+	].join("\n")
 
 };

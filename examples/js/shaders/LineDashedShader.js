@@ -1,3 +1,7 @@
+/**
+ * Line Dashed Shader
+ */
+
 zen3d.LineDashedShader = {
 
 	uniforms: {
@@ -15,11 +19,11 @@ zen3d.LineDashedShader = {
 		'varying float vLineDistance;',
 
 		'void main() {',
-		'vLineDistance = scale * lineDistance;',
+		'	vLineDistance = scale * lineDistance;',
 
-		'vec3 transformed = vec3(a_Position);',
+		'	vec3 transformed = vec3(a_Position);',
 
-		'#include <pvm_vert>',
+		'	#include <pvm_vert>',
 		'}'
 	].join("\n"),
 
@@ -33,14 +37,14 @@ zen3d.LineDashedShader = {
 		'varying float vLineDistance;',
 
 		'void main() {',
-		'if ( mod( vLineDistance, totalSize ) > dashSize ) {',
-		'discard;',
-		'}',
+		'	if ( mod( vLineDistance, totalSize ) > dashSize ) {',
+		'		discard;',
+		'	}',
 
-		'#include <begin_frag>',
-		'#include <end_frag>',
-		'#include <premultipliedAlpha_frag>',
-		'#include <fog_frag>',
+		'	#include <begin_frag>',
+		'	#include <end_frag>',
+		'	#include <premultipliedAlpha_frag>',
+		'	#include <fog_frag>',
 		'}'
 	].join("\n")
 

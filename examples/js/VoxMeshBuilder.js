@@ -1,4 +1,8 @@
-(function() {
+/**
+ * VOXMeshBuilder
+ */
+
+zen3d.VOXMeshBuilder = (function() {
 	function VOXFace3(a, b, c, normal, color, materialIndex) {
 		this.a = a;
 		this.b = b;
@@ -510,5 +514,5 @@
 		return hashTable;
 	};
 
-	zen3d.VOXMeshBuilder = VOXMeshBuilder;
+	return VOXMeshBuilder;
 })();

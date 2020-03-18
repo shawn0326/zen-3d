@@ -1,3 +1,7 @@
+/**
+ * Depth Linear Shader
+ */
+
 zen3d.DepthLinearShader = {
 
 	defines: {
@@ -14,32 +18,32 @@ zen3d.DepthLinearShader = {
 
 	vertexShader: [
 
-        "attribute vec3 a_Position;",
-        "attribute vec2 a_Uv;",
+		"attribute vec3 a_Position;",
+		"attribute vec2 a_Uv;",
 
-        "uniform mat4 u_Projection;",
-        "uniform mat4 u_View;",
-        "uniform mat4 u_Model;",
+		"uniform mat4 u_Projection;",
+		"uniform mat4 u_View;",
+		"uniform mat4 u_Model;",
 
 		"varying vec2 v_Uv;",
 
 		"void main() {",
 
-			"v_Uv = a_Uv;",
-			"gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+		"	v_Uv = a_Uv;",
+		"	gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
 
 		"}"
 
-	].join( "\n" ),
+	].join("\n"),
 
 	fragmentShader: [
 
 		"float perspectiveDepthToViewZ( const in float invClipZ, const in float near, const in float far ) {",
-			"return ( near * far ) / ( ( far - near ) * invClipZ - far );",
+		"	return ( near * far ) / ( ( far - near ) * invClipZ - far );",
 		"}",
 
 		"float viewZToOrthographicDepth( const in float viewZ, const in float near, const in float far ) {",
-			"return ( viewZ + near ) / ( near - far );",
+		"	return ( viewZ + near ) / ( near - far );",
 		"}",
 
 		"uniform sampler2D depthTex;",
@@ -52,12 +56,12 @@ zen3d.DepthLinearShader = {
 
 		"void main() {",
 
-			"vec4 texel = texture2D( depthTex, v_Uv );",
-			"float depth = perspectiveDepthToViewZ(texel.r, cameraNear, cameraFar);",
-			"gl_FragColor = vec4( vec3( 1. - viewZToOrthographicDepth(depth, cameraNear, cameraFar) ), 1. );",
+		"	vec4 texel = texture2D( depthTex, v_Uv );",
+		"	float depth = perspectiveDepthToViewZ(texel.r, cameraNear, cameraFar);",
+		"	gl_FragColor = vec4( vec3( 1. - viewZToOrthographicDepth(depth, cameraNear, cameraFar) ), 1. );",
 
 		"}"
 
-	].join( "\n" )
+	].join("\n")
 
 };

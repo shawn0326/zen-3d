@@ -18,23 +18,23 @@ zen3d.ColorAdjustShader = {
 	vertexShader: [
 
 		"attribute vec3 a_Position;",
-        "attribute vec2 a_Uv;",
+		"attribute vec2 a_Uv;",
 
-        "uniform mat4 u_Projection;",
-        "uniform mat4 u_View;",
-        "uniform mat4 u_Model;",
+		"uniform mat4 u_Projection;",
+		"uniform mat4 u_View;",
+		"uniform mat4 u_Model;",
 
 		"varying vec2 v_Uv;",
 
 		"void main() {",
 
-            "v_Uv = a_Uv;",
+		"	v_Uv = a_Uv;",
 
-			"gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+		"	gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
 
 		"}"
 
-	].join( "\n" ),
+	].join("\n"),
 
 	fragmentShader: [
 
@@ -42,9 +42,9 @@ zen3d.ColorAdjustShader = {
 		"uniform float contrast;",
 		"uniform float exposure;",
 		"uniform float gamma;",
-        "uniform float saturation;",
+		"uniform float saturation;",
 
-        "uniform sampler2D tDiffuse;",
+		"uniform sampler2D tDiffuse;",
 
 		"varying vec2 v_Uv;",
 
@@ -53,24 +53,24 @@ zen3d.ColorAdjustShader = {
 
 		"void main() {",
 
-			"vec4 tex = texture2D( tDiffuse, v_Uv );",
+		"	vec4 tex = texture2D( tDiffuse, v_Uv );",
 
-			// brightness
-			"vec3 color = clamp(tex.rgb + vec3(brightness), 0.0, 1.0);",
-			// contrast
-			"color = clamp( (color-vec3(0.5))*contrast+vec3(0.5), 0.0, 1.0);",
-			// exposure
-			"color = clamp( color * pow(2.0, exposure), 0.0, 1.0);",
-			// gamma
-			"color = clamp( pow(color, vec3(gamma)), 0.0, 1.0);",
-			// saturation
-			"float luminance = dot( color, w );",
-			"color = mix(vec3(luminance), color, saturation);",
+		// brightness
+		"	vec3 color = clamp(tex.rgb + vec3(brightness), 0.0, 1.0);",
+		// contrast
+		"	color = clamp( (color-vec3(0.5))*contrast+vec3(0.5), 0.0, 1.0);",
+		// exposure
+		"	color = clamp( color * pow(2.0, exposure), 0.0, 1.0);",
+		// gamma
+		"	color = clamp( pow(color, vec3(gamma)), 0.0, 1.0);",
+		// saturation
+		"	float luminance = dot( color, w );",
+		"	color = mix(vec3(luminance), color, saturation);",
 
-			"gl_FragColor = vec4(color, tex.a);",
+		"	gl_FragColor = vec4(color, tex.a);",
 
 		"}"
 
-	].join( "\n" )
+	].join("\n")
 
 };

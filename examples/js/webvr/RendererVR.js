@@ -1,98 +1,100 @@
-(function() {
-    
-    var RendererVR = function(view) {
-        zen3d.Renderer.call(this, view);
+/**
+ * RendererVR
+ */
 
-        this.vrDisplay = undefined;
+zen3d.RendererVR = (function() {
+	var RendererVR = function(view) {
+		zen3d.Renderer.call(this, view);
 
-        function gotVRDisplays(displays) {
-            if (displays.length > 0) {
-                this.vrDisplay = displays[0];
-            } else {
-                console.warn('HMD not available');
-            }
-        };
+		this.vrDisplay = undefined;
 
-        if (navigator.getVRDisplays) {
-            navigator.getVRDisplays().then(gotVRDisplays.bind(this)).catch(function() {
-                console.warn('RendererVR: Unable to get VR Displays');
-            });
-        } else {
-            console.warn('getVRDisplays not exist in navigator');
-        }
+		function gotVRDisplays(displays) {
+			if (displays.length > 0) {
+				this.vrDisplay = displays[0];
+			} else {
+				console.warn('HMD not available');
+			}
+		}
 
-        this.frameData = null;
+		if (navigator.getVRDisplays) {
+			navigator.getVRDisplays().then(gotVRDisplays.bind(this)).catch(function() {
+				console.warn('RendererVR: Unable to get VR Displays');
+			});
+		} else {
+			console.warn('getVRDisplays not exist in navigator');
+		}
 
-        if ('VRFrameData' in window) {
-            this.frameData = new window.VRFrameData();
-        } else {
-            console.warn('VRFrameData not exist');
-        }
-    }
+		this.frameData = null;
 
-    RendererVR.prototype = Object.create(zen3d.Renderer.prototype);
-    RendererVR.prototype.constructor = RendererVR;
+		if ('VRFrameData' in window) {
+			this.frameData = new window.VRFrameData();
+		} else {
+			console.warn('VRFrameData not exist');
+		}
+	}
 
-    var viewMatrix = new zen3d.Matrix4();
+	RendererVR.prototype = Object.create(zen3d.Renderer.prototype);
+	RendererVR.prototype.constructor = RendererVR;
 
-    RendererVR.prototype.render = function(scene, camera, renderTarget, forceClear) {
-        var vrDisplay = this.vrDisplay;
-        var frameData = this.frameData;
-        var cameraL = camera.cameraL;
-        var cameraR = camera.cameraR;
+	var viewMatrix = new zen3d.Matrix4();
 
-        if (!vrDisplay) {
-            return;
-        }
+	RendererVR.prototype.render = function(scene, camera, renderTarget, forceClear) {
+		var vrDisplay = this.vrDisplay;
+		var frameData = this.frameData;
+		var cameraL = camera.cameraL;
+		var cameraR = camera.cameraR;
 
-        // read from camera
-        vrDisplay.depthNear = camera.near;
-        vrDisplay.depthFar = camera.far;
+		if (!vrDisplay) {
+			return;
+		}
 
-        vrDisplay.getFrameData(frameData);
+		// read from camera
+		vrDisplay.depthNear = camera.near;
+		vrDisplay.depthFar = camera.far;
 
-        // set Left Camera
-        cameraL.projectionMatrix.elements = frameData.leftProjectionMatrix;
-        viewMatrix.elements = frameData.leftViewMatrix;
-        viewMatrix.inverse().decompose(cameraL.position, cameraL.quaternion, cameraL.scale);
-        cameraL.position.add(camera.position);
-        cameraL.updateMatrix();
+		vrDisplay.getFrameData(frameData);
 
-        // set Right Camera
-        cameraR.projectionMatrix.elements = frameData.leftProjectionMatrix;
-        viewMatrix.elements = frameData.rightViewMatrix;
-        viewMatrix.inverse().decompose(cameraR.position, cameraR.quaternion, cameraR.scale);
-        cameraR.position.add(camera.position);
-        cameraR.updateMatrix();
+		// set Left Camera
+		cameraL.projectionMatrix.elements = frameData.leftProjectionMatrix;
+		viewMatrix.elements = frameData.leftViewMatrix;
+		viewMatrix.inverse().decompose(cameraL.position, cameraL.quaternion, cameraL.scale);
+		cameraL.position.add(camera.position);
+		cameraL.updateMatrix();
 
-        this.matrixAutoUpdate && scene.updateMatrix();
-        this.lightsAutoupdate && scene.updateLights();
+		// set Right Camera
+		cameraR.projectionMatrix.elements = frameData.leftProjectionMatrix;
+		viewMatrix.elements = frameData.rightViewMatrix;
+		viewMatrix.inverse().decompose(cameraR.position, cameraR.quaternion, cameraR.scale);
+		cameraR.position.add(camera.position);
+		cameraR.updateMatrix();
 
-        if ( this.shadowAutoUpdate || this.shadowNeedsUpdate ) {
-            this.shadowMapPass.render(this.glCore, scene);
-            this.shadowNeedsUpdate = false;
-        }
+		this.matrixAutoUpdate && scene.updateMatrix();
+		this.lightsAutoupdate && scene.updateLights();
 
-        if (renderTarget === undefined) {
-            renderTarget = this.backRenderTarget;
-        }
-        this.glCore.renderTarget.setRenderTarget(renderTarget);
+		if (this.shadowAutoUpdate || this.shadowNeedsUpdate) {
+			this.shadowMapPass.render(this.glCore, scene);
+			this.shadowNeedsUpdate = false;
+		}
 
-        if (this.autoClear || forceClear) {
-            this.glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-            this.glCore.clear(true, true, true);
-        }
+		if (renderTarget === undefined) {
+			renderTarget = this.backRenderTarget;
+		}
+		this.glCore.renderTarget.setRenderTarget(renderTarget);
 
-        this.glCore.render(scene, cameraL);
-        this.glCore.render(scene, cameraR);
+		if (this.autoClear || forceClear) {
+			this.glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			this.glCore.clear(true, true, true);
+		}
 
-        if (!!renderTarget.texture) {
-            this.glCore.renderTarget.updateRenderTargetMipmap(renderTarget);
-        }
+		this.glCore.render(scene, cameraL);
+		this.glCore.render(scene, cameraR);
 
-        vrDisplay.submitFrame();
-    }
+		if (!!renderTarget.texture) {
+			this.glCore.renderTarget.updateRenderTargetMipmap(renderTarget);
+		}
 
-    zen3d.RendererVR = RendererVR;
+		vrDisplay.submitFrame();
+	}
 
+	return RendererVR;
 })();

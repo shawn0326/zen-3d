@@ -31,8 +31,8 @@ zen3d.FastGaussianBlurShader = {
 
 		"void main() {",
 
-		"v_Uv = a_Uv;",
-		"gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
+		"   v_Uv = a_Uv;",
+		"   gl_Position = u_Projection * u_View * u_Model * vec4( a_Position, 1.0 );",
 
 		"}"
 

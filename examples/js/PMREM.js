@@ -1,4 +1,9 @@
-(function() {
+/**
+ * prefilter EnvironmentMap
+ * http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
+ */
+
+zen3d.PMREM = (function() {
 	var prefilterShader = {
 
 		defines: {
@@ -65,7 +70,6 @@
 	};
 
 	function generateNormalDistribution(capabilities, roughnessLevels, sampleSize) {
-		// http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 		// GLSL not support bit operation, use lookup instead
 		// V -> i / N, U -> roughness
 		var roughnessLevels = roughnessLevels || 256;
@@ -129,7 +133,7 @@
 		return normalDistribution;
 	}
 
-	zen3d.PMREM = {
+	return {
 		/**
 		 * @param  {zen3d.GLCore} glCore
 		 * @param  {zen3d.TextureCube} envMap

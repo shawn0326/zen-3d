@@ -1,4 +1,12 @@
-(function() {
+/**
+ * @author Rich Tibbett / https://github.com/richtr
+ * @author mrdoob / http://mrdoob.com/
+ * @author Tony Parisi / http://www.tonyparisi.com/
+ * @author Takahiro / https://github.com/takahirox
+ * @author Don McCurdy / https://www.donmccurdy.com
+ */
+
+zen3d.GLTFLoader = (function() {
 	function decodeText(array) {
 		if (typeof TextDecoder !== 'undefined') {
 			return new TextDecoder().decode(array);
@@ -55,13 +63,6 @@
 		return path + url;
 	}
 
-	/**
-     * @author Rich Tibbett / https://github.com/richtr
-     * @author mrdoob / http://mrdoob.com/
-     * @author Tony Parisi / http://www.tonyparisi.com/
-     * @author Takahiro / https://github.com/takahirox
-     * @author Don McCurdy / https://www.donmccurdy.com
-     */
 	var GLTFLoader = function(manager) {
 		this.manager = (manager !== undefined) ? manager : zen3d.DefaultLoadingManager;
 		this.dracoLoader = null;
@@ -177,8 +178,6 @@
 			onLoad(glTF);
 		}, onError);
 	}
-
-	zen3d.GLTFLoader = GLTFLoader;
 
 	/* GLTFREGISTRY */
 
@@ -932,7 +931,7 @@
 	/**
      * @param  {zen3d.Geometry} geometry
      * @param  {GLTF.Primitive} primitiveDef
-     * @param  {Array<zen3d.WebGLAttribute>} accessors
+     * @param  {Array<zen3d.BufferAttribute|zen3d.InterleavedBufferAttribute>} accessors
      */
 	function addPrimitiveAttributes(geometry, primitiveDef, accessors) {
 		var attributes = primitiveDef.attributes;
@@ -1773,4 +1772,6 @@
 		rotation: 'quaternion',
 		weights: 'morphTargetInfluences'
 	};
+
+	return GLTFLoader;
 })();

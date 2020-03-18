@@ -1,30 +1,30 @@
-(function() {
-    var PointLightHelper = function(light, sphereSize, color) {
-        this.light = light;
+/**
+ * PointLightHelper
+ */
 
-        this.color = color;
+zen3d.PointLightHelper = function(light, sphereSize, color) {
+	this.light = light;
 
-        var geometry = new zen3d.SphereGeometry(sphereSize, 4, 2);
-        var material = new zen3d.LineMaterial();
+	this.color = color;
 
-        zen3d.Mesh.call(this, geometry, material);
+	var geometry = new zen3d.SphereGeometry(sphereSize, 4, 2);
+	var material = new zen3d.LineMaterial();
 
-        this.update();
-    };
+	zen3d.Mesh.call(this, geometry, material);
 
-    PointLightHelper.prototype = Object.assign(Object.create(zen3d.Mesh.prototype), {
+	this.update();
+};
 
-        constructor: PointLightHelper,
+zen3d.PointLightHelper.prototype = Object.assign(Object.create(zen3d.Mesh.prototype), {
 
-        update: function() {
-            if ( this.color !== undefined ) {
-                this.material.diffuse.setHex( this.color );
-            } else {
-                this.material.diffuse.copy( this.light.color );
-            }
-        }
+	constructor: zen3d.PointLightHelper,
 
-    });
+	update: function() {
+		if (this.color !== undefined) {
+			this.material.diffuse.setHex(this.color);
+		} else {
+			this.material.diffuse.copy(this.light.color);
+		}
+	}
 
-    zen3d.PointLightHelper = PointLightHelper;
-})();
+});

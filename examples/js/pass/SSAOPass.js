@@ -1,4 +1,8 @@
-(function() {
+/**
+ * SSAO pass
+ */
+
+zen3d.SSAOPass = (function() {
 	// 生成一张随机噪声图的数据
 	// 返回的数组为Uint8Array，长度为 size * size * 4
 	function generateNoiseData(size) {
@@ -113,5 +117,5 @@
 		this.material.uniforms["noiseTexSize"] = [size, size];
 	}
 
-	zen3d.SSAOPass = SSAOPass;
+	return SSAOPass;
 })();

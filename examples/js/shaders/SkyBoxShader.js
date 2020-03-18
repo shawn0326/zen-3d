@@ -1,4 +1,6 @@
-// sky shader
+/**
+ * SkyBox Shader
+ */
 
 zen3d.SkyBoxShader = {
 
@@ -15,9 +17,9 @@ zen3d.SkyBoxShader = {
 		"#include <common_vert>",
 		"varying vec3 v_ModelPos;",
 		"void main() {",
-		"v_ModelPos = (u_Model * vec4(a_Position, 0.0)).xyz;",
-		"gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);",
-		"gl_Position.z = gl_Position.w;", // set z to camera.far
+		"	v_ModelPos = (u_Model * vec4(a_Position, 0.0)).xyz;",
+		"	gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);",
+		"	gl_Position.z = gl_Position.w;", // set z to camera.far
 		"}"
 	].join("\n"),
 
@@ -25,9 +27,9 @@ zen3d.SkyBoxShader = {
 		"#include <common_frag>",
 
 		"#ifdef PANORAMA",
-		"uniform sampler2D diffuseMap;",
+		"	uniform sampler2D diffuseMap;",
 		"#else",
-		"uniform samplerCube cubeMap;",
+		"	uniform samplerCube cubeMap;",
 		"#endif",
 
 		"uniform float level;",
@@ -35,38 +37,38 @@ zen3d.SkyBoxShader = {
 
 		"void main() {",
 
-		"#include <begin_frag>",
+		"	#include <begin_frag>",
 
-		"vec3 V = normalize(v_ModelPos);",
+		"	vec3 V = normalize(v_ModelPos);",
 
-		"#ifdef PANORAMA",
+		"	#ifdef PANORAMA",
 
-		"float phi = acos(V.y);",
+		"		float phi = acos(V.y);",
 		// consistent with cubemap.
 		// atan(y, x) is same with atan2 ?
-		"float theta = atan(V.x, V.z) + PI * 0.5;",
-		"vec2 uv = vec2(theta / 2.0 / PI, -phi / PI);",
+		"		float theta = atan(V.x, V.z) + PI * 0.5;",
+		"		vec2 uv = vec2(theta / 2.0 / PI, -phi / PI);",
 
-		"#ifdef TEXTURE_LOD_EXT",
-		"outColor *= mapTexelToLinear(texture2DLodEXT(diffuseMap, fract(uv), level));",
-		"#else",
-		"outColor *= mapTexelToLinear(texture2D(diffuseMap, fract(uv), level));",
-		"#endif",
+		"		#ifdef TEXTURE_LOD_EXT",
+		"			outColor *= mapTexelToLinear(texture2DLodEXT(diffuseMap, fract(uv), level));",
+		"		#else",
+		"			outColor *= mapTexelToLinear(texture2D(diffuseMap, fract(uv), level));",
+		"		#endif",
 
-		"#else",
+		"	#else",
 
-		"#ifdef TEXTURE_LOD_EXT",
-		"outColor *= mapTexelToLinear(textureCubeLodEXT(cubeMap, V, level));",
-		"#else",
-		"outColor *= mapTexelToLinear(textureCube(cubeMap, V, level));",
-		"#endif",
+		"		#ifdef TEXTURE_LOD_EXT",
+		"			outColor *= mapTexelToLinear(textureCubeLodEXT(cubeMap, V, level));",
+		"		#else",
+		"			outColor *= mapTexelToLinear(textureCube(cubeMap, V, level));",
+		"		#endif",
 
-		"#endif",
+		"	#endif",
 
-		"#include <end_frag>",
-		"#ifdef GAMMA",
-		"#include <encodings_frag>",
-		"#endif",
+		"	#include <end_frag>",
+		"	#ifdef GAMMA",
+		"		#include <encodings_frag>",
+		"	#endif",
 		"}"
 	].join("\n")
 
