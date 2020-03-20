@@ -14,7 +14,7 @@ function RGBELoader(manager) {
 	this.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 }
 
-Object.assign(RGBELoader.prototype, {
+Object.assign(RGBELoader.prototype, /** @lends zen3d.RGBELoader.prototype */{
 
 	/**
      * Load the URL and pass the response to the onLoad function.
