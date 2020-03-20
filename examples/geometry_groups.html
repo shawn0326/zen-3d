@@ -45,6 +45,7 @@
 
 			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
@@ -90,7 +91,7 @@
 			var cube = new zen3d.Mesh(cube_geometry, [phong1, phong2, phong3, phong4, phong5, phong6]);
 			scene.add(cube);
 
-	        var ambientLight = new zen3d.AmbientLight(0xffffff);
+	        var ambientLight = new zen3d.AmbientLight(0xffffff, 1);
 	        scene.add(ambientLight);
 
 	        var directLight = new zen3d.DirectionalLight(0xffffff, 1.5);
@@ -106,8 +107,8 @@
 	        scene.add(lightBall);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = true;
+			camera.gammaFactor = 2;
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 	        camera.position.set(10, 10, 30);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);

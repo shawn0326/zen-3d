@@ -186,8 +186,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					material.needsUpdate = true;
 				} else if (scene.clippingPlanes && scene.clippingPlanes.length !==  materialProperties.numClippingPlanes) {
 					material.needsUpdate = true;
-				} else if (camera.gammaInput !==  materialProperties.gammaInput ||
-                    camera.gammaOutput !==  materialProperties.gammaOutput ||
+				} else if (camera.outputEncoding !==  materialProperties.outputEncoding ||
                     camera.gammaFactor !==  materialProperties.gammaFactor) {
 					material.needsUpdate = true;
 				} else {
@@ -224,8 +223,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				}
 
 				materialProperties.numClippingPlanes = scene.clippingPlanes ? scene.clippingPlanes.length : 0;
-				materialProperties.gammaInput = camera.gammaInput;
-				materialProperties.gammaOutput = camera.gammaOutput;
+				materialProperties.outputEncoding = camera.outputEncoding;
 				materialProperties.gammaFactor = camera.gammaFactor;
 
 				material.needsUpdate = false;

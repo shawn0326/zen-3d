@@ -66,8 +66,7 @@
 	        scene.add(ambientLight);
 
 			var camera = new zen3d.Camera();
-			// camera.gammaInput = true;
-			camera.gammaOutput = true;
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 			camera.position.set(0, 20, 200);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);

@@ -71,7 +71,7 @@
 
 			var camera = new zen3d.Camera();
 			camera.gammaFactor = 1.5;
-			camera.gammaOutput = true;
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 	        camera.position.set(10, 10, 30);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
@@ -96,8 +96,6 @@
 			function getMultipleSamplingRenderTarget(value) {
 				if (!renderTargets[value]) {
 					var renderTarget = new zen3d.RenderTarget2D(width, height);
-					renderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-					renderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 					renderTarget.attach(
 						new zen3d.RenderBuffer(width, height, zen3d.WEBGL_PIXEL_FORMAT.RGBA8, value), 
 						zen3d.ATTACHMENT.COLOR_ATTACHMENT0

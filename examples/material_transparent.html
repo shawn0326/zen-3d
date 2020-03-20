@@ -49,6 +49,7 @@
 
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 
 			var phong = new zen3d.PhongMaterial();
 	        phong.diffuse.setHex(0xffffff);
@@ -97,8 +98,8 @@
 	        scene.add(lightBall);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = true;
+			camera.gammaFactor = 2;
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 	        camera.position.set(0, 50, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);

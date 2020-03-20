@@ -103,8 +103,7 @@
 			directionalLight.shadow.mapSize.set(1024, 1024);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = false;
-			camera.gammaOutput = true;
+			camera.gammaFactor = 2;
 	        camera.position.set(-8, 7, 20);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(50 / 180 * Math.PI, width / height, 1, 500);
@@ -140,6 +139,7 @@
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.encoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 			tempRenderTarget.texture.generateMipmaps = false;
 
 			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);

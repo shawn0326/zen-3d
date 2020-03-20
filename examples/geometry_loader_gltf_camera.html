@@ -59,7 +59,7 @@
 
 				scene.add(result.scene);
 				camera = result.cameras[0];
-				camera.gammaOutput = true;
+				camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 				camera.setPerspective(60 / 180 * Math.PI, width / height, 0.1, 1000);
 
 				controller = new zen3d.OrbitControls(camera, canvas);

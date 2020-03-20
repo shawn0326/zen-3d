@@ -81,8 +81,6 @@
 	        scene.add(spotLight);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = false;
 	        camera.position.set(0, 4, 10);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
@@ -111,7 +109,7 @@
 			colorAdjustPass.uniforms["brightness"] = 0.01;
 			colorAdjustPass.uniforms["contrast"] = 1.01;
 			colorAdjustPass.uniforms["exposure"] = 0.6;
-			colorAdjustPass.uniforms["gamma"] = 0.5;
+			colorAdjustPass.uniforms["gamma"] = 1;
 			colorAdjustPass.uniforms["saturation"] =  1.6;
 			var filmPass = new zen3d.ShaderPostPass(zen3d.FilmShader);
 			filmPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;

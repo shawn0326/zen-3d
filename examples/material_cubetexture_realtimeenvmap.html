@@ -60,6 +60,7 @@
 
 			// plane
 			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+			texture.anisotropy = 16;
 			var plane_geometry = new zen3d.PlaneGeometry(80, 80);
 			var plane_material = new zen3d.BasicMaterial();
 			plane_material.diffuse.setHex(0xffffff);
@@ -70,8 +71,6 @@
 
 			// sphere
 			var environmentMapPass = new zen3d.EnvironmentMapPass();
-			environmentMapPass.camera.gammaInput = true;
-			environmentMapPass.camera.gammaOutput = true;
 
 			var sphere_geometry = new zen3d.SphereGeometry(10, 30, 30);
 			var phong = new zen3d.PhongMaterial();
@@ -103,8 +102,6 @@
 
 			// camera
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = true;
 			camera.position.set(0, 20, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);

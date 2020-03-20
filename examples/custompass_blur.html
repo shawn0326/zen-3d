@@ -80,8 +80,7 @@
 	        scene.add(spotLight);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = true;
+			camera.gammaFactor = 1.3;
 	        camera.position.set(0, 4, 10);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
@@ -91,7 +90,8 @@
 			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
 			var tempRenderTarget1 = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget1.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-        	tempRenderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget1.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget1.texture.encoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
         	tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;

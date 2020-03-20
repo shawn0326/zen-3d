@@ -65,13 +65,14 @@
 
 			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
+	        lambert.diffuse.setHex(0x888888);
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 	        scene.add(plane);
 
 	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 2);
 			directionalLight.position.set(-30, 30, 0);
+			directionalLight.intensity = 3;
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.shadow.windowSize = 100;
 			directionalLight.shadow.bias = -0.04;
@@ -84,8 +85,7 @@
 			directionalLight.shadow.mapSize.set(1024, 1024);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = false;
-			camera.gammaOutput = true;
+			camera.gammaFactor = 1.3;
 	        camera.position.set(30, 50, 100);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 500);
@@ -107,6 +107,7 @@
 			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+			tempRenderTarget.texture.encoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 			tempRenderTarget.generateMipmaps = false;
 
 			var tempRenderTarget1 = new zen3d.RenderTarget2D(width, height);
@@ -122,7 +123,7 @@
 			var shadowMapPass = new zen3d.ShadowMapPass();
 
 			var highLightPass = new zen3d.ShaderPostPass(zen3d.LuminosityHighPassShader);
-			highLightPass.uniforms.luminosityThreshold = 0.6;
+			highLightPass.uniforms.luminosityThreshold = 0.5;
 			highLightPass.uniforms.tDiffuse = tempRenderTarget.texture;
 
 			var blurPassX = new zen3d.BlurPass(zen3d.BlurShader);

@@ -17,18 +17,13 @@ function generateProgramCode(props, material) {
 	return code;
 }
 
-function getTextureEncodingFromMap(map, gammaOverrideLinear) {
+function getTextureEncodingFromMap(map) {
 	var encoding;
 
 	if (!map) {
 		encoding = TEXEL_ENCODING_TYPE.LINEAR;
 	} else if (map.encoding) {
 		encoding = map.encoding;
-	}
-
-	// add backwards compatibility for Renderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
-	if (encoding === TEXEL_ENCODING_TYPE.LINEAR && gammaOverrideLinear) {
-		encoding = TEXEL_ENCODING_TYPE.GAMMA;
 	}
 
 	return encoding;
@@ -379,10 +374,10 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	// encoding
 	var currentRenderTarget = state.currentRenderTarget;
 	props.gammaFactor = camera.gammaFactor;
-	props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
-	props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap || material.cubeMap, camera.gammaInput);
-	props.envMapEncoding = getTextureEncodingFromMap(material.envMap, camera.gammaInput);
-	props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, camera.gammaInput);
+	props.outputEncoding = !!currentRenderTarget.texture ? getTextureEncodingFromMap(currentRenderTarget.texture) : camera.outputEncoding;
+	props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap || material.cubeMap);
+	props.envMapEncoding = getTextureEncodingFromMap(material.envMap);
+	props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap);
 	// other
 	props.alphaTest = material.alphaTest;
 	props.premultipliedAlpha = material.premultipliedAlpha;

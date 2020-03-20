@@ -87,6 +87,7 @@
 
 			var directionalLight = new zen3d.DirectionalLight(0xffffff);
 			directionalLight.position.set(30, 100, 30);
+			directionalLight.intensity = 2.5;
 			directionalLight.lookAt(new zen3d.Vector3( 0, 35, 0 ), new zen3d.Vector3(0, 0, 0));
 			directionalLight.shadow.windowSize = 200;
 			directionalLight.shadow.mapSize.set(1024, 1024);
@@ -95,8 +96,8 @@
 			scene.add(directionalLight);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = true;
+			camera.gammaFactor = 1.5;
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 	        camera.position.set(120, 80, 80);
 	        camera.lookAt(new zen3d.Vector3(0, 35, 0), new zen3d.Vector3(0, 1, 0));
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);

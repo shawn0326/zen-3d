@@ -46,6 +46,7 @@
 			// couch
 			var couch_texture = zen3d.Texture2D.fromSrc("resources/normal/couch.jpg");
 			var couch_norm_texture = zen3d.Texture2D.fromSrc("resources/normal/counch_norm.jpg");
+			couch_norm_texture.flipY = false;
 			var couch_material = new zen3d.PhongMaterial();
 			couch_material.diffuseMap = couch_texture;
 			couch_material.normalMap = couch_norm_texture;
@@ -53,10 +54,10 @@
 			var couch = new zen3d.Mesh(couch_geom, couch_material);
 			scene.add(couch);
 
-			var ambientLight = new zen3d.AmbientLight(0xffffff);
+			var ambientLight = new zen3d.AmbientLight(0xffffff, 0.3);
 	        scene.add(ambientLight);
 
-			var pointLight = new zen3d.PointLight(0xffffff, 1, 300, 1);
+			var pointLight = new zen3d.PointLight(0xffffff, 4, 300, 1);
 			pointLight.position.set(0, 5, 0);
 			scene.add(pointLight);
 
@@ -68,8 +69,6 @@
 	        scene.add(lightBall);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = true;
 			camera.position.set(0, 100, 80);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);

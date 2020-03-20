@@ -32,20 +32,36 @@ Object.defineProperties(zen3d.CameraVR.prototype, {
 	},
 	gammaInput: {
 		get: function() {
-			return this.cameraL.gammaInput;
+			console.warn("zen3d.CameraVR: .gammaInput has been removed. Use texture.encoding instead.");
+			return false;
 		},
 		set: function(value) {
-			this.cameraL.gammaInput = value;
-			this.cameraR.gammaInput = value;
+			console.warn("zen3d.CameraVR: .gammaInput has been removed. Use texture.encoding instead.");
 		}
 	},
 	gammaOutput: {
 		get: function() {
-			return this.cameraL.gammaOutput;
+			console.warn("zen3d.CameraVR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			return this.cameraL.outputEncoding == zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 		},
 		set: function(value) {
-			this.cameraL.gammaOutput = value;
-			this.cameraR.gammaOutput = value;
+			console.warn("zen3d.CameraVR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			if (value) {
+				this.cameraL.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+				this.cameraR.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+			} else {
+				this.cameraL.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
+				this.cameraR.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.LINEAR;
+			}
+		}
+	},
+	outputEncoding: {
+		get: function() {
+			return this.cameraL.outputEncoding;
+		},
+		set: function(value) {
+			this.cameraL.outputEncoding = value;
+			this.cameraR.outputEncoding = value;
 		}
 	}
 });

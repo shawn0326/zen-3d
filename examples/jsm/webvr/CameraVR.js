@@ -36,22 +36,13 @@ Object.defineProperties(CameraVR.prototype, {
 			this.cameraR.gammaFactor = value;
 		}
 	},
-	gammaInput: {
+	outputEncoding: {
 		get: function() {
-			return this.cameraL.gammaInput;
+			return this.cameraL.outputEncoding;
 		},
 		set: function(value) {
-			this.cameraL.gammaInput = value;
-			this.cameraR.gammaInput = value;
-		}
-	},
-	gammaOutput: {
-		get: function() {
-			return this.cameraL.gammaOutput;
-		},
-		set: function(value) {
-			this.cameraL.gammaOutput = value;
-			this.cameraR.gammaOutput = value;
+			this.cameraL.outputEncoding = value;
+			this.cameraR.outputEncoding = value;
 		}
 	}
 });

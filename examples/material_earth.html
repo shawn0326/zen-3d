@@ -153,9 +153,8 @@
 			spotLight.quaternion.setFromUnitVectors(originVec, posToTarget);
 
 			var camera = new zen3d.Camera();
-			camera.gammaInput = true;
-			camera.gammaOutput = true;
-			camera.gammaFactor = 1.7;
+			camera.gammaFactor = 1.4;
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 	        camera.position.set(0, 0, 20);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 1000);

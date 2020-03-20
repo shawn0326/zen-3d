@@ -58,7 +58,7 @@
 			sky_box.gamma = true;
 
 			var camera = new zen3d.Camera();
-			camera.gammaOutput = true;
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 			camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 10000);
 			camera.add(sky_box);
 			scene.add(camera);

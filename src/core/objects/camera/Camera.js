@@ -1,4 +1,4 @@
-import { OBJECT_TYPE } from '../../const.js';
+import { OBJECT_TYPE, TEXEL_ENCODING_TYPE } from '../../const.js';
 import { Object3D } from '../Object3D.js';
 import { Matrix4 } from '../../math/Matrix4.js';
 import { Frustum } from '../../math/Frustum.js';
@@ -50,18 +50,11 @@ function Camera() {
 	this.gammaFactor = 2.0;
 
 	/**
-     * If set, then it expects that all textures and colors are premultiplied gamma.
-     * @type {boolean}
-     * @default false
+     * Output pixel encoding.
+     * @type {zen3d.TEXEL_ENCODING_TYPE}
+     * @default zen3d.TEXEL_ENCODING_TYPE.LINEAR
      */
-	this.gammaInput = false;
-
-	/**
-     * If set, then it expects that all textures and colors need to be outputted in premultiplied gamma.
-     * @type {boolean}
-     * @default false
-     */
-	this.gammaOutput = false;
+	this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
 
 	/**
      * Where on the screen is the camera rendered in normalized coordinates.
@@ -173,14 +166,39 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 		this.frustum.copy(source.frustum);
 		this.gammaFactor = source.gammaFactor;
-		this.gammaInput = source.gammaInput;
-		this.gammaOutput = source.gammaOutput;
+		this.outputEncoding = source.outputEncoding;
 		this.rect.copy(source.rect);
 		this.frustumCulled = source.frustumCulled;
 
 		return this;
 	}
 
+});
+
+Object.defineProperties(Camera.prototype, {
+	gammaInput: {
+		get: function() {
+			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+			return false;
+		},
+		set: function(value) {
+			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+		}
+	},
+	gammaOutput: {
+		get: function() {
+			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			return this.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
+		},
+		set: function(value) {
+			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			if (value) {
+				this.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
+			} else {
+				this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
+			}
+		}
+	}
 });
 
 export { Camera };

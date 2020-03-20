@@ -11296,18 +11296,13 @@
 		return code;
 	}
 
-	function getTextureEncodingFromMap(map, gammaOverrideLinear) {
+	function getTextureEncodingFromMap(map) {
 		var encoding;
 
 		if (!map) {
 			encoding = TEXEL_ENCODING_TYPE.LINEAR;
 		} else if (map.encoding) {
 			encoding = map.encoding;
-		}
-
-		// add backwards compatibility for Renderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
-		if (encoding === TEXEL_ENCODING_TYPE.LINEAR && gammaOverrideLinear) {
-			encoding = TEXEL_ENCODING_TYPE.GAMMA;
 		}
 
 		return encoding;
@@ -11656,10 +11651,10 @@
 		// encoding
 		var currentRenderTarget = state.currentRenderTarget;
 		props.gammaFactor = camera.gammaFactor;
-		props.outputEncoding = getTextureEncodingFromMap(currentRenderTarget.texture || null, camera.gammaOutput);
-		props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap || material.cubeMap, camera.gammaInput);
-		props.envMapEncoding = getTextureEncodingFromMap(material.envMap, camera.gammaInput);
-		props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap, camera.gammaInput);
+		props.outputEncoding = !!currentRenderTarget.texture ? getTextureEncodingFromMap(currentRenderTarget.texture) : camera.outputEncoding;
+		props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap || material.cubeMap);
+		props.envMapEncoding = getTextureEncodingFromMap(material.envMap);
+		props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap);
 		// other
 		props.alphaTest = material.alphaTest;
 		props.premultipliedAlpha = material.premultipliedAlpha;
@@ -12271,8 +12266,7 @@
 						material.needsUpdate = true;
 					} else if (scene.clippingPlanes && scene.clippingPlanes.length !==  materialProperties.numClippingPlanes) {
 						material.needsUpdate = true;
-					} else if (camera.gammaInput !==  materialProperties.gammaInput ||
-	                    camera.gammaOutput !==  materialProperties.gammaOutput ||
+					} else if (camera.outputEncoding !==  materialProperties.outputEncoding ||
 	                    camera.gammaFactor !==  materialProperties.gammaFactor) {
 						material.needsUpdate = true;
 					} else {
@@ -12309,8 +12303,7 @@
 					}
 
 					materialProperties.numClippingPlanes = scene.clippingPlanes ? scene.clippingPlanes.length : 0;
-					materialProperties.gammaInput = camera.gammaInput;
-					materialProperties.gammaOutput = camera.gammaOutput;
+					materialProperties.outputEncoding = camera.outputEncoding;
 					materialProperties.gammaFactor = camera.gammaFactor;
 
 					material.needsUpdate = false;
@@ -12986,18 +12979,11 @@
 		this.gammaFactor = 2.0;
 
 		/**
-	     * If set, then it expects that all textures and colors are premultiplied gamma.
-	     * @type {boolean}
-	     * @default false
+	     * Output pixel encoding.
+	     * @type {zen3d.TEXEL_ENCODING_TYPE}
+	     * @default zen3d.TEXEL_ENCODING_TYPE.LINEAR
 	     */
-		this.gammaInput = false;
-
-		/**
-	     * If set, then it expects that all textures and colors need to be outputted in premultiplied gamma.
-	     * @type {boolean}
-	     * @default false
-	     */
-		this.gammaOutput = false;
+		this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
 
 		/**
 	     * Where on the screen is the camera rendered in normalized coordinates.
@@ -13109,14 +13095,39 @@
 
 			this.frustum.copy(source.frustum);
 			this.gammaFactor = source.gammaFactor;
-			this.gammaInput = source.gammaInput;
-			this.gammaOutput = source.gammaOutput;
+			this.outputEncoding = source.outputEncoding;
 			this.rect.copy(source.rect);
 			this.frustumCulled = source.frustumCulled;
 
 			return this;
 		}
 
+	});
+
+	Object.defineProperties(Camera.prototype, {
+		gammaInput: {
+			get: function() {
+				console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+				return false;
+			},
+			set: function(value) {
+				console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+			}
+		},
+		gammaOutput: {
+			get: function() {
+				console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+				return this.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
+			},
+			set: function(value) {
+				console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+				if (value) {
+					this.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
+				} else {
+					this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
+				}
+			}
+		}
 	});
 
 	/**

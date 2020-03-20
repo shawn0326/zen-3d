@@ -88,7 +88,6 @@
 
 			var camera = new zen3d.Camera();
 			camera.gammaFactor = 1.5;
-			camera.gammaOutput = true;
 	        camera.position.set(10, 10, 30);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
@@ -123,6 +122,7 @@
 			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
 			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+			tempRenderTarget2.texture.encoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 			tempRenderTarget2.attach(
 				depthTexture,
 				zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT
