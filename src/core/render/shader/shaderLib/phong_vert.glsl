@@ -1,3 +1,5 @@
+#define USE_PHONG
+
 #include <common_vert>
 #include <normal_pars_vert>
 #include <uv_pars_vert>

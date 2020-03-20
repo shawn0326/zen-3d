@@ -108,9 +108,6 @@ function createProgram(gl, props, defines) {
 		props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 		props.useShadow ? '#define USE_SHADOW' : '',
 		props.flatShading ? '#define FLAT_SHADED' : '',
-		props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-		props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
-		(props.materialType == MATERIAL_TYPE.PBR || props.materialType == MATERIAL_TYPE.PBR2) ? '#define USE_PBR' : '',
 		props.flipSided ? '#define FLIP_SIDED' : '',
 
 		props.useDiffuseMap ? ('#define USE_DIFFUSE_MAP ' +  props.useDiffuseMap) : '',
@@ -188,10 +185,6 @@ function createProgram(gl, props, defines) {
 		props.shadowType === SHADOW_TYPE.PCSS64_SOFT ? '#define USE_PCSS64_SOFT_SHADOW' : '',
 		(props.shadowType === SHADOW_TYPE.PCSS16_SOFT || props.shadowType === SHADOW_TYPE.PCSS32_SOFT || props.shadowType === SHADOW_TYPE.PCSS64_SOFT) ? '#define USE_PCSS_SOFT_SHADOW' : '',
 		props.flatShading ? '#define FLAT_SHADED' : '',
-		props.materialType == MATERIAL_TYPE.LAMBERT ? '#define USE_LAMBERT' : '',
-		props.materialType == MATERIAL_TYPE.PHONG ? '#define USE_PHONG' : '',
-		(props.materialType == MATERIAL_TYPE.PBR || props.materialType == MATERIAL_TYPE.PBR2) ? '#define USE_PBR' : '',
-		props.materialType == MATERIAL_TYPE.PBR2 ? '#define USE_PBR2' : '',
 		props.doubleSided ? '#define DOUBLE_SIDED' : '',
 		props.useShaderTextureLOD ? '#define TEXTURE_LOD_EXT' : '',
 

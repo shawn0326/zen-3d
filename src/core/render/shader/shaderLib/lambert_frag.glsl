@@ -1,3 +1,5 @@
+#define USE_LAMBERT
+
 #include <common_frag>
 #include <dithering_pars_frag>
 

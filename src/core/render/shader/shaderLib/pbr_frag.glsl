@@ -1,3 +1,5 @@
+#define USE_PBR
+
 #include <common_frag>
 #include <dithering_pars_frag>
 
