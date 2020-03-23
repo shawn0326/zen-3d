@@ -4667,7 +4667,7 @@
 				request.open('GET', url, true);
 
 				request.addEventListener('load', function(event) {
-					var response = event.target.response;
+					var response = this.response;
 					if (this.status === 200) {
 						if (onLoad) { onLoad(response); }
 						scope.manager.itemEnd(url);
@@ -5214,7 +5214,7 @@
 		this.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 	}
 
-	Object.assign(RGBELoader.prototype, {
+	Object.assign(RGBELoader.prototype, /** @lends zen3d.RGBELoader.prototype */{
 
 		/**
 	     * Load the URL and pass the response to the onLoad function.

@@ -92,7 +92,7 @@ Object.assign(FileLoader.prototype, /** @lends zen3d.FileLoader.prototype */{
 			request.open('GET', url, true);
 
 			request.addEventListener('load', function(event) {
-				var response = event.target.response;
+				var response = this.response;
 				if (this.status === 200) {
 					if (onLoad) onLoad(response);
 					scope.manager.itemEnd(url);
