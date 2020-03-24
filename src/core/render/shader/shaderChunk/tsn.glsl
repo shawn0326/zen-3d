@@ -1,7 +1,9 @@
+// Per-Pixel Tangent Space Normal Mapping
+// http://hacksoflife.blogspot.ch/2009/11/per-pixel-tangent-space-normal-mapping.html
 mat3 tsn(vec3 N, vec3 V, vec2 uv) {
-
-    vec3 q0 = dFdx( V.xyz );
-    vec3 q1 = dFdy( V.xyz );
+    // Workaround for Adreno/Nexus5 not able able to do dFdx( Vec3 ) ...
+    vec3 q0 = vec3(dFdx(V.x), dFdx(V.y), dFdx(V.z));
+    vec3 q1 = vec3(dFdy(V.x), dFdy(V.y), dFdy(V.z));
     vec2 st0 = dFdx( uv.st );
     vec2 st1 = dFdy( uv.st );
 

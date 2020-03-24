@@ -56,7 +56,6 @@ import skinning_vert from './shaderChunk/skinning_vert.glsl';
 import specularMap_frag from './shaderChunk/specularMap_frag.glsl';
 import specularMap_pars_frag from './shaderChunk/specularMap_pars_frag.glsl';
 import spotlight_pars_frag from './shaderChunk/spotlight_pars_frag.glsl';
-import tbn from './shaderChunk/tbn.glsl';
 import transpose from './shaderChunk/transpose.glsl';
 import tsn from './shaderChunk/tsn.glsl';
 import uv_pars_frag from './shaderChunk/uv_pars_frag.glsl';
@@ -125,7 +124,6 @@ export var ShaderChunk = {
 	specularMap_frag: specularMap_frag,
 	specularMap_pars_frag: specularMap_pars_frag,
 	spotlight_pars_frag: spotlight_pars_frag,
-	tbn: tbn,
 	transpose: transpose,
 	tsn: tsn,
 	uv_pars_frag: uv_pars_frag,

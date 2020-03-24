@@ -8401,6 +8401,15 @@ function Material() {
 	this.vertexColors = VERTEX_COLOR.NONE;
 
 	/**
+     * Defines whether precomputed vertex tangents, which must be provided in a vec4 "tangent" attribute, are used.
+     * When disabled, tangents are derived automatically.
+     * Using precomputed tangents will give more accurate normal map details in some cases, such as with mirrored UVs.
+     * @type {boolean}
+     * @default false
+     */
+	this.vertexTangents = false;
+
+	/**
      * The diffuse color.
      * @type {zen3d.Color3}
      * @default zen3d.Color3(0xffffff)
@@ -11023,7 +11032,7 @@ var aoMap_pars_frag = "#ifdef USE_AOMAP\r\n\r\n\tuniform sampler2D aoMap;\r\n\tu
 
 var begin_frag = "vec4 outColor = vec4(u_Color, u_Opacity);";
 
-var begin_vert = "vec3 transformed = vec3(a_Position);\r\n#if defined(USE_NORMAL) || defined(USE_ENV_MAP)\r\n    vec3 objectNormal = vec3(a_Normal);\r\n#endif";
+var begin_vert = "vec3 transformed = vec3(a_Position);\r\n#if defined(USE_NORMAL) || defined(USE_ENV_MAP)\r\n    vec3 objectNormal = vec3(a_Normal);\r\n#endif\r\n#ifdef USE_TANGENT\r\n    vec3 objectTangent = vec3(a_Tangent.xyz);\r\n#endif";
 
 var bsdfs = "// diffuse just use lambert\r\n\r\nvec4 BRDF_Diffuse_Lambert(vec4 diffuseColor) {\r\n    return RECIPROCAL_PI * diffuseColor;\r\n}\r\n\r\n// specular use Cook-Torrance microfacet model, http://ruh.li/GraphicsCookTorrance.html\r\n// About RECIPROCAL_PI: referenced by http://www.joshbarczak.com/blog/?p=272\r\n\r\nvec4 F_Schlick( const in vec4 specularColor, const in float dotLH ) {\r\n\t// Original approximation by Christophe Schlick '94\r\n\tfloat fresnel = pow( 1.0 - dotLH, 5.0 );\r\n\r\n\t// Optimized variant (presented by Epic at SIGGRAPH '13)\r\n\t// float fresnel = exp2( ( -5.55473 * dotLH - 6.98316 ) * dotLH );\r\n\r\n\treturn ( 1.0 - specularColor ) * fresnel + specularColor;\r\n}\r\n\r\n// use blinn phong instead of phong\r\nfloat D_BlinnPhong( const in float shininess, const in float dotNH ) {\r\n    // ( shininess * 0.5 + 1.0 ), three.js do this, but why ???\r\n\treturn RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * pow( dotNH, shininess );\r\n}\r\n\r\nfloat G_BlinnPhong_Implicit( ) {\r\n\t// geometry term is (n dot l)(n dot v) / 4(n dot l)(n dot v)\r\n\treturn 0.25;\r\n}\r\n\r\nvec4 BRDF_Specular_BlinnPhong(vec4 specularColor, vec3 N, vec3 L, vec3 V, float shininess) {\r\n    vec3 H = normalize(L + V);\r\n\r\n    float dotNH = saturate(dot(N, H));\r\n    float dotLH = saturate(dot(L, H));\r\n\r\n    vec4 F = F_Schlick(specularColor, dotLH);\r\n\r\n    float G = G_BlinnPhong_Implicit( );\r\n\r\n    float D = D_BlinnPhong(shininess, dotNH);\r\n\r\n    return F * G * D;\r\n}\r\n\r\n// Microfacet Models for Refraction through Rough Surfaces - equation (33)\r\n// http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html\r\n// alpha is \"roughness squared\" in Disney’s reparameterization\r\nfloat D_GGX( const in float alpha, const in float dotNH ) {\r\n\r\n\tfloat a2 = pow2( alpha );\r\n\r\n\tfloat denom = pow2( dotNH ) * ( a2 - 1.0 ) + 1.0; // avoid alpha = 0 with dotNH = 1\r\n\r\n\treturn RECIPROCAL_PI * a2 / pow2( denom );\r\n\r\n}\r\n\r\n// Microfacet Models for Refraction through Rough Surfaces - equation (34)\r\n// http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html\r\n// alpha is \"roughness squared\" in Disney’s reparameterization\r\nfloat G_GGX_Smith( const in float alpha, const in float dotNL, const in float dotNV ) {\r\n\r\n\t// geometry term = G(l)⋅G(v) / 4(n⋅l)(n⋅v)\r\n\r\n\tfloat a2 = pow2( alpha );\r\n\r\n\tfloat gl = dotNL + sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNL ) );\r\n\tfloat gv = dotNV + sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNV ) );\r\n\r\n\treturn 1.0 / ( gl * gv );\r\n\r\n}\r\n\r\n// Moving Frostbite to Physically Based Rendering 2.0 - page 12, listing 2\r\n// http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr_v2.pdf\r\nfloat G_GGX_SmithCorrelated( const in float alpha, const in float dotNL, const in float dotNV ) {\r\n\r\n\tfloat a2 = pow2( alpha );\r\n\r\n\t// dotNL and dotNV are explicitly swapped. This is not a mistake.\r\n\tfloat gv = dotNL * sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNV ) );\r\n\tfloat gl = dotNV * sqrt( a2 + ( 1.0 - a2 ) * pow2( dotNL ) );\r\n\r\n\treturn 0.5 / max( gv + gl, EPSILON );\r\n}\r\n\r\n// GGX Distribution, Schlick Fresnel, GGX-Smith Visibility\r\nvec4 BRDF_Specular_GGX(vec4 specularColor, vec3 N, vec3 L, vec3 V, float roughness) {\r\n\r\n\tfloat alpha = pow2( roughness ); // UE4's roughness\r\n\r\n\tvec3 H = normalize(L + V);\r\n\r\n\tfloat dotNL = saturate( dot(N, L) );\r\n\tfloat dotNV = saturate( dot(N, V) );\r\n\tfloat dotNH = saturate( dot(N, H) );\r\n\tfloat dotLH = saturate( dot(L, H) );\r\n\r\n\tvec4 F = F_Schlick( specularColor, dotLH );\r\n\r\n\tfloat G = G_GGX_SmithCorrelated( alpha, dotNL, dotNV );\r\n\r\n\tfloat D = D_GGX( alpha, dotNH );\r\n\r\n\treturn F * G * D;\r\n\r\n}\r\n\r\n// ref: https://www.unrealengine.com/blog/physically-based-shading-on-mobile - environmentBRDF for GGX on mobile\r\nvec4 BRDF_Specular_GGX_Environment( const in vec3 N, const in vec3 V, const in vec4 specularColor, const in float roughness ) {\r\n\r\n\tfloat dotNV = saturate( dot( N, V ) );\r\n\r\n\tconst vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );\r\n\r\n\tconst vec4 c1 = vec4( 1, 0.0425, 1.04, - 0.04 );\r\n\r\n\tvec4 r = roughness * c0 + c1;\r\n\r\n\tfloat a004 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;\r\n\r\n\tvec2 AB = vec2( -1.04, 1.04 ) * a004 + r.zw;\r\n\r\n\treturn specularColor * AB.x + AB.y;\r\n\r\n}\r\n\r\n// source: http://simonstechblog.blogspot.ca/2011/12/microfacet-brdf.html\r\nfloat GGXRoughnessToBlinnExponent( const in float ggxRoughness ) {\r\n\treturn ( 2.0 / pow2( ggxRoughness + 0.0001 ) - 2.0 );\r\n}\r\n\r\nfloat BlinnExponentToGGXRoughness( const in float blinnExponent ) {\r\n\treturn sqrt( 2.0 / ( blinnExponent + 2.0 ) );\r\n}";
 
@@ -11043,7 +11052,7 @@ var color_vert = "#if defined(USE_VCOLOR_RGB) || defined(USE_VCOLOR_RGBA)\r\n   
 
 var common_frag = "uniform mat4 u_View;\r\n\r\nuniform float u_Opacity;\r\nuniform vec3 u_Color;\r\n\r\nuniform vec3 u_CameraPosition;";
 
-var common_vert = "attribute vec3 a_Position;\r\nattribute vec3 a_Normal;\r\n\r\n#include <transpose>\r\n#include <inverse>\r\n\r\nuniform mat4 u_Projection;\r\nuniform mat4 u_View;\r\nuniform mat4 u_Model;\r\n\r\nuniform vec3 u_CameraPosition;\r\n\r\n#ifdef USE_MORPHTARGETS\r\n\r\n    attribute vec3 morphTarget0;\r\n    attribute vec3 morphTarget1;\r\n    attribute vec3 morphTarget2;\r\n    attribute vec3 morphTarget3;\r\n\r\n    #ifdef USE_MORPHNORMALS\r\n\r\n    \tattribute vec3 morphNormal0;\r\n    \tattribute vec3 morphNormal1;\r\n    \tattribute vec3 morphNormal2;\r\n    \tattribute vec3 morphNormal3;\r\n\r\n    #else\r\n\r\n    \tattribute vec3 morphTarget4;\r\n    \tattribute vec3 morphTarget5;\r\n    \tattribute vec3 morphTarget6;\r\n    \tattribute vec3 morphTarget7;\r\n\r\n    #endif\r\n\r\n#endif";
+var common_vert = "attribute vec3 a_Position;\r\nattribute vec3 a_Normal;\r\n#ifdef USE_TANGENT\r\n\tattribute vec4 a_Tangent;\r\n#endif\r\n\r\n#include <transpose>\r\n#include <inverse>\r\n\r\nuniform mat4 u_Projection;\r\nuniform mat4 u_View;\r\nuniform mat4 u_Model;\r\n\r\nuniform vec3 u_CameraPosition;\r\n\r\n#ifdef USE_MORPHTARGETS\r\n\r\n    attribute vec3 morphTarget0;\r\n    attribute vec3 morphTarget1;\r\n    attribute vec3 morphTarget2;\r\n    attribute vec3 morphTarget3;\r\n\r\n    #ifdef USE_MORPHNORMALS\r\n\r\n    \tattribute vec3 morphNormal0;\r\n    \tattribute vec3 morphNormal1;\r\n    \tattribute vec3 morphNormal2;\r\n    \tattribute vec3 morphNormal3;\r\n\r\n    #else\r\n\r\n    \tattribute vec3 morphTarget4;\r\n    \tattribute vec3 morphTarget5;\r\n    \tattribute vec3 morphTarget6;\r\n    \tattribute vec3 morphTarget7;\r\n\r\n    #endif\r\n\r\n#endif";
 
 var diffuseMap_frag = "#ifdef USE_DIFFUSE_MAP\r\n    #if (USE_DIFFUSE_MAP == 1)\r\n        vec4 texelColor = texture2D( diffuseMap, v_Uv );\r\n    #elif (USE_DIFFUSE_MAP == 2)\r\n        vec4 texelColor = texture2D( diffuseMap, v_Uv2 );\r\n    #else \r\n        vec4 texelColor = texture2D( diffuseMap, v_Uv );\r\n    #endif\r\n    \r\n    texelColor = mapTexelToLinear( texelColor );\r\n\r\n    outColor *= texelColor;\r\n#endif";
 
@@ -11083,15 +11092,15 @@ var alphamap_pars_frag = "#ifdef USE_ALPHA_MAP\r\n\r\n\tuniform sampler2D alphaM
 
 var alphamap_frag = "#ifdef USE_ALPHA_MAP\r\n\r\n\t#ifdef USE_ALPHA_MAP_UV_TRANSFORM\r\n\t\toutColor.a *= texture2D(alphaMap, vAlphaMapUV).g;\r\n\t#else\r\n\t\t#if (USE_ALPHA_MAP == 1)\r\n\t\t\toutColor.a *= texture2D(alphaMap, v_Uv).g;\r\n\t\t#elif (USE_ALPHA_MAP == 2)\r\n            outColor.a *= texture2D(alphaMap, v_Uv2).g;\r\n\t\t#else\r\n            outColor.a *= texture2D(alphaMap, v_Uv).g;\r\n        #endif\r\n\t#endif\r\n\r\n#endif";
 
-var normalMap_pars_frag = "#include <tbn>\r\n#include <tsn>\r\nuniform sampler2D normalMap;";
+var normalMap_pars_frag = "#if !defined(USE_TANGENT) || defined(FLAT_SHADED)\r\n    #include <tsn>\r\n#endif\r\nuniform sampler2D normalMap;";
 
-var normal_frag = "#ifdef USE_NORMAL\r\n    #ifdef DOUBLE_SIDED\r\n    \tfloat flipNormal = ( float( gl_FrontFacing ) * 2.0 - 1.0 );\r\n    #else\r\n    \tfloat flipNormal = 1.0;\r\n    #endif\r\n    #ifdef FLAT_SHADED\r\n        // Workaround for Adreno/Nexus5 not able able to do dFdx( vViewPosition ) ...\r\n    \tvec3 fdx = vec3( dFdx( v_modelPos.x ), dFdx( v_modelPos.y ), dFdx( v_modelPos.z ) );\r\n    \tvec3 fdy = vec3( dFdy( v_modelPos.x ), dFdy( v_modelPos.y ), dFdy( v_modelPos.z ) );\r\n    \tvec3 N = normalize( cross( fdx, fdy ) );\r\n    #else\r\n        vec3 N = normalize(v_Normal) * flipNormal;\r\n    #endif\r\n    #ifdef USE_NORMAL_MAP\r\n        vec3 normalMapColor = texture2D(normalMap, v_Uv).rgb;\r\n        // for now, uv coord is flip Y\r\n        mat3 tspace = tsn(N, -v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\r\n        // mat3 tspace = tbn(normalize(v_Normal), v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\r\n        N = normalize(tspace * (normalMapColor * 2.0 - 1.0));\r\n    #elif defined(USE_BUMPMAP)\r\n        N = perturbNormalArb(-v_modelPos, N, dHdxy_fwd(v_Uv));\r\n    #endif\r\n#endif";
+var normal_frag = "#ifdef USE_NORMAL\r\n    #ifdef FLAT_SHADED\r\n        // Workaround for Adreno/Nexus5 not able able to do dFdx( Vec3 ) ...\r\n    \tvec3 fdx = vec3( dFdx( v_modelPos.x ), dFdx( v_modelPos.y ), dFdx( v_modelPos.z ) );\r\n    \tvec3 fdy = vec3( dFdy( v_modelPos.x ), dFdy( v_modelPos.y ), dFdy( v_modelPos.z ) );\r\n    \tvec3 N = normalize( cross( fdx, fdy ) );\r\n    #else\r\n        vec3 N = normalize(v_Normal);\r\n        #ifdef DOUBLE_SIDED\r\n            N = N * ( float( gl_FrontFacing ) * 2.0 - 1.0 );\r\n        #endif  \r\n    #endif\r\n    #ifdef USE_NORMAL_MAP\r\n        vec3 mapN = texture2D(normalMap, v_Uv).rgb * 2.0 - 1.0;\r\n        #if defined(USE_TANGENT) && !defined(FLAT_SHADED)\r\n            vec3 tangent = normalize(v_Tangent);\r\n            vec3 bitangent = normalize(v_Bitangent);\r\n            #ifdef DOUBLE_SIDED\r\n                tangent = tangent * ( float( gl_FrontFacing ) * 2.0 - 1.0 );\r\n                bitangent = bitangent * ( float( gl_FrontFacing ) * 2.0 - 1.0 );\r\n            #endif  \r\n            mat3 tspace = mat3(tangent, bitangent, N);\r\n        #else\r\n            // for now, uv coord is flip Y\r\n            mat3 tspace = tsn(N, -v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));\r\n            mapN.xy *= ( float( gl_FrontFacing ) * 2.0 - 1.0 );\r\n        #endif\r\n        N = normalize(tspace * mapN);\r\n    #elif defined(USE_BUMPMAP)\r\n        N = perturbNormalArb(-v_modelPos, N, dHdxy_fwd(v_Uv));\r\n    #endif\r\n#endif";
 
-var normal_pars_frag = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    varying vec3 v_Normal;\r\n#endif";
+var normal_pars_frag = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    varying vec3 v_Normal;\r\n    #ifdef USE_TANGENT\r\n        varying vec3 v_Tangent;\r\n\t\tvarying vec3 v_Bitangent;\r\n    #endif\r\n#endif";
 
-var normal_pars_vert = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    //attribute vec3 a_Normal;\r\n    varying vec3 v_Normal;\r\n#endif";
+var normal_pars_vert = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    varying vec3 v_Normal;\r\n    #ifdef USE_TANGENT\r\n        varying vec3 v_Tangent;\r\n\t\tvarying vec3 v_Bitangent;\r\n    #endif\r\n#endif";
 
-var normal_vert = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    v_Normal = (transposeMat4(inverseMat4(u_Model)) * vec4(objectNormal, 1.0)).xyz;\r\n\r\n    #ifdef FLIP_SIDED\r\n    \tv_Normal = - v_Normal;\r\n    #endif\r\n#endif";
+var normal_vert = "#if defined(USE_NORMAL) && !defined(FLAT_SHADED)\r\n    v_Normal = (transposeMat4(inverseMat4(u_Model)) * vec4(objectNormal, 0.0)).xyz;\r\n\r\n    #ifdef FLIP_SIDED\r\n    \tv_Normal = - v_Normal;\r\n    #endif\r\n\r\n    #ifdef USE_TANGENT\r\n        v_Tangent = (transposeMat4(inverseMat4(u_Model)) * vec4(objectTangent, 0.0)).xyz;\r\n\r\n        #ifdef FLIP_SIDED\r\n            v_Tangent = - v_Tangent;\r\n        #endif\r\n\r\n        v_Bitangent = normalize(cross(v_Normal, v_Tangent) * a_Tangent.w);\r\n    #endif\r\n#endif\r\n";
 
 var packing = "const float PackUpscale = 256. / 255.; // fraction -> 0..1 (including 1)\r\nconst float UnpackDownscale = 255. / 256.; // 0..1 -> fraction (excluding 1)\r\n\r\nconst vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256.,  256. );\r\nconst vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );\r\n\r\nconst float ShiftRight8 = 1. / 256.;\r\n\r\nvec4 packDepthToRGBA( const in float v ) {\r\n\r\n    vec4 r = vec4( fract( v * PackFactors ), v );\r\n    r.yzw -= r.xyz * ShiftRight8; // tidy overflow\r\n    return r * PackUpscale;\r\n\r\n}\r\n\r\nfloat unpackRGBAToDepth( const in vec4 v ) {\r\n\r\n    return dot( v, UnpackFactors );\r\n\r\n}";
 
@@ -11131,11 +11140,9 @@ var specularMap_pars_frag = "#ifdef USE_SPECULARMAP\r\n\r\n\tuniform sampler2D s
 
 var spotlight_pars_frag = "struct SpotLight\r\n{\r\n    vec3 position;\r\n    vec4 color;\r\n    float distance;\r\n    float decay;\r\n    float coneCos;\r\n    float penumbraCos;\r\n    vec3 direction;\r\n\r\n    int shadow;\r\n    float shadowBias;\r\n    float shadowRadius;\r\n    vec2 shadowMapSize;\r\n};\r\nuniform SpotLight u_Spot[NUM_SPOT_LIGHTS];";
 
-var tbn = "mat3 tbn(vec3 N, vec3 p, vec2 uv) {\r\n    vec3 dp1 = dFdx(p.xyz);\r\n    vec3 dp2 = dFdy(p.xyz);\r\n    vec2 duv1 = dFdx(uv.st);\r\n    vec2 duv2 = dFdy(uv.st);\r\n    vec3 dp2perp = cross(dp2, N);\r\n    vec3 dp1perp = cross(N, dp1);\r\n    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;\r\n    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;\r\n    float invmax = 1.0 / sqrt(max(dot(T,T), dot(B,B)));\r\n    return mat3(T * invmax, B * invmax, N);\r\n}";
-
 var transpose = "mat4 transposeMat4(mat4 inMatrix) {\r\n    vec4 i0 = inMatrix[0];\r\n    vec4 i1 = inMatrix[1];\r\n    vec4 i2 = inMatrix[2];\r\n    vec4 i3 = inMatrix[3];\r\n    mat4 outMatrix = mat4(\r\n        vec4(i0.x, i1.x, i2.x, i3.x),\r\n        vec4(i0.y, i1.y, i2.y, i3.y),\r\n        vec4(i0.z, i1.z, i2.z, i3.z),\r\n        vec4(i0.w, i1.w, i2.w, i3.w)\r\n    );\r\n    return outMatrix;\r\n}";
 
-var tsn = "mat3 tsn(vec3 N, vec3 V, vec2 uv) {\r\n\r\n    vec3 q0 = dFdx( V.xyz );\r\n    vec3 q1 = dFdy( V.xyz );\r\n    vec2 st0 = dFdx( uv.st );\r\n    vec2 st1 = dFdy( uv.st );\r\n\r\n    vec3 S = normalize( q0 * st1.t - q1 * st0.t );\r\n    vec3 T = normalize( -q0 * st1.s + q1 * st0.s );\r\n    // vec3 N = normalize( N );\r\n\r\n    mat3 tsn = mat3( S, T, N );\r\n    return tsn;\r\n}";
+var tsn = "// Per-Pixel Tangent Space Normal Mapping\r\n// http://hacksoflife.blogspot.ch/2009/11/per-pixel-tangent-space-normal-mapping.html\r\nmat3 tsn(vec3 N, vec3 V, vec2 uv) {\r\n    // Workaround for Adreno/Nexus5 not able able to do dFdx( Vec3 ) ...\r\n    vec3 q0 = vec3(dFdx(V.x), dFdx(V.y), dFdx(V.z));\r\n    vec3 q1 = vec3(dFdy(V.x), dFdy(V.y), dFdy(V.z));\r\n    vec2 st0 = dFdx( uv.st );\r\n    vec2 st1 = dFdy( uv.st );\r\n\r\n    vec3 S = normalize( q0 * st1.t - q1 * st0.t );\r\n    vec3 T = normalize( -q0 * st1.s + q1 * st0.s );\r\n    // vec3 N = normalize( N );\r\n\r\n    mat3 tsn = mat3( S, T, N );\r\n    return tsn;\r\n}";
 
 var uv_pars_frag = "#if defined(USE_DIFFUSE_MAP) || defined(USE_ALPHA_MAP) || defined(USE_NORMAL_MAP) || defined(USE_BUMPMAP) || defined(USE_SPECULARMAP) || defined(USE_EMISSIVEMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_METALNESSMAP) || defined(USE_GLOSSINESSMAP) || defined(USE_AOMAP)\r\n    varying vec2 v_Uv;\r\n#endif\r\n\r\n#ifdef USE_UV2\r\n    varying vec2 v_Uv2;\r\n#endif\r\n\r\n#ifdef USE_ALPHA_MAP_UV_TRANSFORM\r\n    varying vec2 vAlphaMapUV;\r\n#endif ";
 
@@ -11208,7 +11215,6 @@ var ShaderChunk = {
 	specularMap_frag: specularMap_frag,
 	specularMap_pars_frag: specularMap_pars_frag,
 	spotlight_pars_frag: spotlight_pars_frag,
-	tbn: tbn,
 	transpose: transpose,
 	tsn: tsn,
 	uv_pars_frag: uv_pars_frag,
@@ -11390,6 +11396,7 @@ function createProgram(gl, props, defines) {
 		props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
+		props.useVertexTangents ? '#define USE_TANGENT' : '',
 
 		props.morphTargets ? '#define USE_MORPHTARGETS' : '',
 		props.morphNormals && props.flatShading === false ? '#define USE_MORPHNORMALS' : '',
@@ -11467,6 +11474,7 @@ function createProgram(gl, props, defines) {
 		props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
+		props.useVertexTangents ? '#define USE_TANGENT' : '',
 		props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
 		props.fog ? '#define USE_FOG' : '',
 		props.fogExp2 ? '#define USE_EXP2_FOG' : '',
@@ -11659,6 +11667,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.alphaTest = material.alphaTest;
 	props.premultipliedAlpha = material.premultipliedAlpha;
 	props.useVertexColors = material.vertexColors;
+	props.useVertexTangents = !!material.normalMap && material.vertexTangents;
 	props.numClippingPlanes = !!clippingPlanes ? clippingPlanes.length : 0;
 	props.flatShading = material.shading === SHADING_TYPE.FLAT_SHADING;
 	props.fog = !!fog;

@@ -125,6 +125,15 @@ function Material() {
 	this.vertexColors = VERTEX_COLOR.NONE;
 
 	/**
+     * Defines whether precomputed vertex tangents, which must be provided in a vec4 "tangent" attribute, are used.
+     * When disabled, tangents are derived automatically.
+     * Using precomputed tangents will give more accurate normal map details in some cases, such as with mirrored UVs.
+     * @type {boolean}
+     * @default false
+     */
+	this.vertexTangents = false;
+
+	/**
      * The diffuse color.
      * @type {zen3d.Color3}
      * @default zen3d.Color3(0xffffff)

@@ -1,5 +1,8 @@
 attribute vec3 a_Position;
 attribute vec3 a_Normal;
+#ifdef USE_TANGENT
+	attribute vec4 a_Tangent;
+#endif
 
 #include <transpose>
 #include <inverse>

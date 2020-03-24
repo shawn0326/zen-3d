@@ -113,6 +113,7 @@ function createProgram(gl, props, defines) {
 		props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
+		props.useVertexTangents ? '#define USE_TANGENT' : '',
 
 		props.morphTargets ? '#define USE_MORPHTARGETS' : '',
 		props.morphNormals && props.flatShading === false ? '#define USE_MORPHNORMALS' : '',
@@ -190,6 +191,7 @@ function createProgram(gl, props, defines) {
 		props.useAOMap ? ('#define USE_AOMAP ' + props.useAOMap) : '',
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
+		props.useVertexTangents ? '#define USE_TANGENT' : '',
 		props.premultipliedAlpha ? '#define USE_PREMULTIPLIED_ALPHA' : '',
 		props.fog ? '#define USE_FOG' : '',
 		props.fogExp2 ? '#define USE_EXP2_FOG' : '',
@@ -382,6 +384,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.alphaTest = material.alphaTest;
 	props.premultipliedAlpha = material.premultipliedAlpha;
 	props.useVertexColors = material.vertexColors;
+	props.useVertexTangents = !!material.normalMap && material.vertexTangents;
 	props.numClippingPlanes = !!clippingPlanes ? clippingPlanes.length : 0;
 	props.flatShading = material.shading === SHADING_TYPE.FLAT_SHADING;
 	props.fog = !!fog;
