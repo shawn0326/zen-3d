@@ -13,6 +13,7 @@ var files = {
 		"geometry_loader_gltf",
 		"geometry_loader_gltf2",
 		"geometry_loader_gltf3",
+		"geometry_loader_gltf_tangent",
 		"geometry_loader_gltf_morphtargets",
 		"geometry_loader_gltf_materials_unlit",
 		"geometry_loader_gltf_uvtransform",

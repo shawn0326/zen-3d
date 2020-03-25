@@ -22,11 +22,11 @@
             mat3 tspace = mat3(tangent, bitangent, N);
         #else
             // for now, uv coord is flip Y
-            mat3 tspace = tsn(N, -v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));
+            mat3 tspace = tsn(N, v_modelPos, vec2(v_Uv.x, 1.0 - v_Uv.y));
             mapN.xy *= ( float( gl_FrontFacing ) * 2.0 - 1.0 );
         #endif
         N = normalize(tspace * mapN);
     #elif defined(USE_BUMPMAP)
-        N = perturbNormalArb(-v_modelPos, N, dHdxy_fwd(v_Uv));
+        N = perturbNormalArb(v_modelPos, N, dHdxy_fwd(v_Uv));
     #endif
 #endif
