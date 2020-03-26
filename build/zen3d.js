@@ -912,6 +912,17 @@
 		/**
 	     *
 	     */
+		addScaledVector: function (v, s) {
+			this.x += v.x * s;
+			this.y += v.y * s;
+			this.z += v.z * s;
+
+			return this;
+		},
+
+		/**
+	     *
+	     */
 		subVectors: function(a, b) {
 			this.x = a.x - b.x;
 			this.y = a.y - b.y;

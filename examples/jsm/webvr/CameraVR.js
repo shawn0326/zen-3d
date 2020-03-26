@@ -5,7 +5,8 @@
 import {
 	Camera,
 	OBJECT_TYPE,
-	Object3D
+	Object3D,
+	TEXEL_ENCODING_TYPE
 } from "../../../build/zen3d.module.js";
 
 var CameraVR = function() {
@@ -34,6 +35,31 @@ Object.defineProperties(CameraVR.prototype, {
 		set: function(value) {
 			this.cameraL.gammaFactor = value;
 			this.cameraR.gammaFactor = value;
+		}
+	},
+	gammaInput: {
+		get: function() {
+			console.warn("CameraVR: .gammaInput has been removed. Use texture.encoding instead.");
+			return false;
+		},
+		set: function(value) {
+			console.warn("CameraVR: .gammaInput has been removed. Use texture.encoding instead.");
+		}
+	},
+	gammaOutput: {
+		get: function() {
+			console.warn("CameraVR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			return this.cameraL.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
+		},
+		set: function(value) {
+			console.warn("CameraVR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			if (value) {
+				this.cameraL.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
+				this.cameraR.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
+			} else {
+				this.cameraL.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
+				this.cameraR.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
+			}
 		}
 	},
 	outputEncoding: {

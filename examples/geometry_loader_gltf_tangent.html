@@ -25,6 +25,7 @@
 	</style>
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
+	<script src="./js/GeometryUtils.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
 	<script src="./libs/nanobar.min.js"></script>
@@ -53,6 +54,7 @@
 	        var scene = new zen3d.Scene();
 
 			// NormalTangentMirrorTest NormalTangentTest
+			// var file = "resources/models/gltf/NormalTangentTest/glTF/NormalTangentTest.gltf";
 			var file = "resources/models/gltf/NormalTangentMirrorTest/glTF/NormalTangentMirrorTest.gltf";
 
 			var cube_texture = zen3d.TextureCube.fromSrc([
@@ -84,6 +86,9 @@
 					if (object.material) {
 						var objectMaterial = object.material;
 						objectMaterial.envMap = cube_texture;
+
+						// zen3d.GeometryUtils.computeTangents(object.geometry);
+						// objectMaterial.vertexTangents = true;
 					}
 				});
 

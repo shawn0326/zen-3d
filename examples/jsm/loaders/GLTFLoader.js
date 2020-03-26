@@ -760,12 +760,17 @@ var GLTFLoader = (function() {
 					}
 
 					// If the material will be modified later on, clone it now.
+					var useVertexTangents = geometry.attributes.a_Tangent !== undefined;
 					var useVertexColors = geometry.attributes.a_Color !== undefined;
 					var useFlatShading = geometry.attributes.a_Normal === undefined;
 					var useSkinning = meshDef.isSkinnedMesh === true;
 
-					if (useVertexColors || useFlatShading || useSkinning) {
+					if (useVertexTangents || useVertexColors || useFlatShading || useSkinning) {
 						material = material.clone();
+					}
+
+					if (useVertexTangents) {
+						material.vertexTangents = true;
 					}
 
 					if (useVertexColors) {
@@ -1745,6 +1750,7 @@ var GLTFLoader = (function() {
 	var ATTRIBUTES = {
 		POSITION: 'a_Position',
 		NORMAL: 'a_Normal',
+		TANGENT: 'a_Tangent',
 		TEXCOORD_0: 'a_Uv',
 		TEXCOORD0: 'a_Uv', // deprecated
 		TEXCOORD: 'a_Uv', // deprecated
