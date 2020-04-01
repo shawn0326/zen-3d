@@ -35,12 +35,12 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "eslint": "^6.2.2",
+    "eslint": "^6.8.0",
     "jsdoc": "^3.6.3",
     "live-server": "^1.2.1",
-    "rollup": "^1.20.2",
+    "rollup": "^1.32.1",
     "rollup-plugin-buble": "^0.19.8",
-    "uglify-js": "^3.6.0"
+    "uglify-js": "^3.8.1"
   },
   "scripts": {
     "default": "rollup -c",

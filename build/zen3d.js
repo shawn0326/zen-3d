@@ -3,7 +3,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = global || self, factory(global.zen3d = {}));
-}(this, function (exports) { 'use strict';
+}(this, (function (exports) { 'use strict';
 
 	/**
 	 * Method for generate uuid.
@@ -12533,8 +12533,6 @@
 					case "alphaMapUVTransform":
 						material.alphaMap.updateMatrix();
 						uniform.set(material.alphaMap.matrix.elements);
-					default:
-						break;
 					}
 				}
 
@@ -15561,4 +15559,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
