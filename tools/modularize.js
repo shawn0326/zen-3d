@@ -53,6 +53,8 @@ var files = [
 
 	{ path: 'webvr/CameraVR.js', dependencies: [], ignoreList: [] },
 	{ path: 'webvr/RendererVR.js', dependencies: [], ignoreList: [] },
+	{ path: 'webxr/CameraXR.js', dependencies: [], ignoreList: [] },
+	{ path: 'webxr/RendererXR.js', dependencies: [], ignoreList: [] },
 
 	{ path: 'Clock.js', dependencies: [], ignoreList: [] },
 	{ path: 'GBuffer.js', dependencies: [], ignoreList: ['Camera'] },
