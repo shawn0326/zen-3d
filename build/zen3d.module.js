@@ -7280,6 +7280,89 @@ Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /**
      */
 	dispose: function() {
 		this.dispatchEvent({ type: 'dispose' });
+	},
+
+	/**
+     * Copies another Geometry to this Geometry.
+     * @param {zen3d.Geometry} source - The geometry to be copied.
+     * @return {zen3d.Geometry}
+     */
+	copy: function(source) {
+		var name, i, l;
+
+		// reset
+
+		this.index = null;
+		this.attributes = {};
+		this.morphAttributes = {};
+		this.groups = [];
+		this.boundingBox = null;
+		this.boundingSphere = null;
+
+		// index
+
+		var index = source.index;
+
+		if (index !== null) {
+			this.setIndex(index.clone());
+		}
+
+		// attributes
+
+		var attributes = source.attributes;
+
+		for (name in attributes) {
+			var attribute = attributes[name];
+			this.addAttribute(name, attribute.clone());
+		}
+
+		// morph attributes
+
+		var morphAttributes = source.morphAttributes;
+
+		for (name in morphAttributes) {
+			var array = [];
+			var morphAttribute = morphAttributes[name]; // morphAttribute: array of Float32BufferAttributes
+
+			for (i = 0, l = morphAttribute.length; i < l; i++) {
+				array.push(morphAttribute[i].clone());
+			}
+
+			this.morphAttributes[name] = array;
+		}
+
+		// groups
+
+		var groups = source.groups;
+
+		for (i = 0, l = groups.length; i < l; i++) {
+			var group = groups[i];
+			this.addGroup(group.start, group.count, group.materialIndex);
+		}
+
+		var boundingBox = source.boundingBox;
+
+		if (boundingBox !== null) {
+			this.boundingBox = new Box3().copy(boundingBox);
+		}
+
+		// bounding sphere
+
+		var boundingSphere = source.boundingSphere;
+
+		if (boundingSphere !== null) {
+			this.boundingSphere = new Sphere().copy(boundingSphere);
+		}
+
+		return this;
+	},
+
+	/**
+     * Creates a clone of this Geometry.
+     * @return {zen3d.Geometry}
+     */
+	clone() {
+		return new Geometry().copy(this);
 	}
 
 });

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - clouds</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./js/GeometryUtils.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - clouds
+	</div>
+	
+	<script id="vs" type="x-shader/x-vertex">
+
+        attribute vec3 a_Position;
+
+		attribute vec2 a_Uv;
+		varying vec2 v_Uv;
+
+		uniform mat4 u_Projection;
+		uniform mat4 u_View;
+		uniform mat4 u_Model;
+
+		void main() {
+			gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);
+			v_Uv = a_Uv;
+		}
+
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+
+        uniform sampler2D tex;
+
+        uniform vec3 fogColor;
+        uniform float fogNear;
+        uniform float fogFar;
+
+        varying vec2 v_Uv;
+
+        void main() {
+
+            float depth = gl_FragCoord.z / gl_FragCoord.w;
+            float fogFactor = smoothstep( fogNear, fogFar, depth );
+
+            gl_FragColor = texture2D( tex, v_Uv );
+            gl_FragColor.w *= pow( gl_FragCoord.z, 20.0 );
+			gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
+
+        }
+
+    </script>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+			var height = window.innerHeight || 2;
+			
+			var container = document.createElement( 'div' );
+            document.body.appendChild( container );
+
+            // 2D gradient Sky
+
+            var canvas = document.createElement( 'canvas' );
+            canvas.width = 32;
+            canvas.height = window.innerHeight;
+
+            var context = canvas.getContext( '2d' );
+
+            var gradient = context.createLinearGradient( 0, 0, 0, canvas.height );
+            gradient.addColorStop(0, "#1e4877");
+            gradient.addColorStop(0.5, "#4584b4");
+
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            container.style.background = 'url(' + canvas.toDataURL('image/png') + ')';
+			container.style.backgroundSize = '32px 100%';
+			
+			// 3d Clouds
+
+	        var canvas = document.createElement('canvas');
+	        canvas.width = width;
+	        canvas.height = height;
+			container.appendChild(canvas);
+
+	        var renderer = new zen3d.Renderer(canvas, { antialias: true, alpha: true });
+			renderer.glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+
+			var scene = new zen3d.Scene();
+			
+			var texture = zen3d.Texture2D.fromSrc("resources/cloud10.png");
+			texture.anisotropy = 16;
+
+			var material = new zen3d.ShaderMaterial({
+				uniforms: {
+					"tex": texture,
+					"fogColor": new zen3d.Color3().setHex(0x4584b4).toArray(),
+					"fogNear": -100,
+					"fogFar": 3000,
+				},
+				vertexShader: document.getElementById('vs').textContent,
+				fragmentShader: document.getElementById('fs').textContent
+			});
+			material.depthWrite = false;
+			material.depthTest = false;
+			material.transparent = true;
+
+			var plane = new zen3d.Mesh(new zen3d.PlaneGeometry(64, 64), material);
+			var planeGeometries = [];
+
+			var vector3 = new zen3d.Vector3();
+			
+			function transformPositionAttribute(attribute, matrix) {
+				var array = attribute.array;
+				var count = attribute.count;
+				for (var i = 0; i < count; i++) {
+					vector3.fromArray(array, i * 3);
+					vector3.applyMatrix4(matrix);
+					vector3.toArray(array, i * 3);
+				}
+			}
+
+			function transformNormalAttribute(attribute, matrix) {
+				var array = attribute.array;
+				var count = attribute.count;
+				for (var i = 0; i < count; i++) {
+					vector3.fromArray(array, i * 3);
+					vector3.applyMatrix4(matrix);
+					vector3.toArray(array, i * 3);
+				}
+			}
+
+            for (var i = 0; i < 8000; i++) {
+                plane.position.x = Math.random() * 1000 - 500;
+                plane.position.y = -Math.random() * Math.random() * 200 - 15;
+				plane.position.z = i;
+				plane.euler.x = Math.PI / 2;
+                plane.euler.y = Math.random() * Math.PI;
+				plane.scale.x = plane.scale.y = Math.random() * Math.random() * 1.5 + 0.5;
+				plane.updateMatrix();
+
+				var cloneGeo = plane.geometry.clone();
+				transformPositionAttribute(cloneGeo.attributes['a_Position'], plane.matrix);
+				transformNormalAttribute(cloneGeo.attributes['a_Normal'], plane.matrix);
+				planeGeometries.push(cloneGeo);
+            }
+
+            // merge
+			var geometry = zen3d.GeometryUtils.mergeGeometries(planeGeometries);
+			
+			var mesh = new zen3d.Mesh(geometry, material);
+            scene.add(mesh);
+
+			var mesh = new zen3d.Mesh(geometry, material);
+            mesh.position.z = - 8000;
+			scene.add(mesh);
+
+			var camera = new zen3d.Camera();
+			camera.frustumCulled = false;
+			camera.setPerspective(30 / 180 * Math.PI, width / height, 1, 3000);
+			scene.add(camera);
+
+			var mouseX = 0, mouseY = 0;
+			var start_time = Date.now();
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			function onDocumentMouseMove(event) {
+				mouseX = (event.clientX - windowHalfX) * 0.25;
+				mouseY = (event.clientY - windowHalfY) * 0.15;
+			}
+
+			document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+			function loop(count) {
+				requestAnimationFrame(loop);
+				
+				var position = ((Date.now() - start_time) * 0.03) % 8000;
+
+				camera.position.x += (mouseX - camera.position.x) * 0.01;
+				camera.position.y += (-mouseY - camera.position.y) * 0.01;
+				camera.position.z = -position + 8000;
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(30 / 180 * Math.PI, width / height, 1, 3000);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

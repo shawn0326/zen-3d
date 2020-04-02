@@ -146,6 +146,119 @@ zen3d.GeometryUtils = {
 				handleVertex(indices[j + 2]);
 			}
 		}
+	},
+
+	// TODO morphTargetAttributes
+	mergeGeometries: function(geometries, useGroups) {
+		var isIndexed = geometries[0].index !== null;
+
+		var attributesUsed = new Set(Object.keys(geometries[0].attributes));
+
+		var attributes = {};
+
+		var mergedGeometry = new zen3d.Geometry();
+
+		var offset = 0;
+
+		for (var i = 0; i < geometries.length; ++i) {
+			var geometry = geometries[i];
+
+			// ensure that all geometries are indexed, or none
+
+			if (isIndexed !== (geometry.index !== null)) return null;
+
+			// gather attributes, exit early if they're different
+
+			for (var name in geometry.attributes) {
+				if (!attributesUsed.has(name)) return null;
+
+				if (attributes[name] === undefined) attributes[name] = [];
+
+				attributes[name].push(geometry.attributes[name]);
+			}
+
+			if (useGroups) {
+				var count;
+
+				if (isIndexed) {
+					count = geometry.index.count;
+				} else if (geometry.attributes.position !== undefined) {
+					count = geometry.attributes.position.count;
+				} else {
+					return null;
+				}
+
+				mergedGeometry.addGroup(offset, count, i);
+
+				offset += count;
+			}
+		}
+
+		// merge indices
+
+		if (isIndexed) {
+			var indexOffset = 0;
+			var mergedIndex = [];
+
+			for (var i = 0; i < geometries.length; ++i) {
+				var index = geometries[i].index;
+
+				for (var j = 0; j < index.count; ++j) {
+					mergedIndex.push(index.array[j] + indexOffset);
+				}
+
+				indexOffset += geometries[i].attributes.a_Position.count;
+			}
+
+			mergedGeometry.setIndex(mergedIndex);
+		}
+
+		// merge attributes
+
+		for (var name in attributes) {
+			var mergedAttribute = this.mergeBufferAttributes(attributes[name]);
+
+			if (!mergedAttribute) return null;
+
+			mergedGeometry.addAttribute(name, mergedAttribute);
+		}
+
+		return mergedGeometry;
+	},
+
+	mergeBufferAttributes: function (attributes) {
+		var TypedArray;
+		var size;
+		var normalized;
+		var arrayLength = 0;
+
+		for (var i = 0; i < attributes.length; ++i) {
+			var attribute = attributes[i];
+
+			if (attribute.isInterleavedBufferAttribute) return null;
+
+			if (TypedArray === undefined) TypedArray = attribute.array.constructor;
+			if (TypedArray !== attribute.array.constructor) return null;
+
+			if (size === undefined) size = attribute.size;
+			if (size !== attribute.size) return null;
+
+			if (normalized === undefined) normalized = attribute.normalized;
+			if (normalized !== attribute.normalized) return null;
+
+			arrayLength += attribute.array.length;
+		}
+
+		var array = new TypedArray(arrayLength);
+		var offset = 0;
+
+		for (var i = 0; i < attributes.length; ++i) {
+			array.set(attributes[i].array, offset);
+
+			offset += attributes[i].array.length;
+		}
+
+		return new zen3d.BufferAttribute(array, size, normalized);
 	}
 
 }

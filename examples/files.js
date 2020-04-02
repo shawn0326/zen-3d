@@ -50,8 +50,7 @@ var files = {
 		"material_shader_sky",
 		"material_shader_xray",
 		"material_flatshading",
-		"material_vertexcolors",
-		"material_earth"
+		"material_vertexcolors"
 	],
 	"camera": [
 		"camera_cameras",
@@ -131,5 +130,9 @@ var files = {
 		"webgl_instanced_draw",
 		"webgl_polygonoffset",
 		"webgl_canvas_transparent"
+	],
+	"lab": [
+		"lab_clouds",
+		"lab_earth"
 	]
 };
