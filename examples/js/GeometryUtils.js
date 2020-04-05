@@ -259,6 +259,60 @@ zen3d.GeometryUtils = {
 		}
 
 		return new zen3d.BufferAttribute(array, size, normalized);
-	}
+	},
+
+	applyMatrix4: (function() {
+		var _vector3 = new zen3d.Vector3();
+		var _mat3 = new zen3d.Matrix3();
+
+		return function(geometry, matrix, updateBoundings) {
+			var array, count;
+
+			var position = geometry.attributes['a_Position'];
+			if (position !== undefined) {
+				array = position.array;
+				count = position.count;
+				for (var i = 0; i < count; i++) {
+					_vector3.fromArray(array, i * 3);
+					_vector3.applyMatrix4(matrix);
+					_vector3.toArray(array, i * 3);
+				}
+				position.version++;
+			}
+
+			var normal = geometry.attributes['a_Normal'];
+			if (normal !== undefined) {
+				array = normal.array;
+				count = normal.count;
+				var normalMatrix = _mat3.setFromMatrix4(matrix).inverse().transpose();
+				for (var i = 0; i < count; i++) {
+					_vector3.fromArray(array, i * 3);
+					_vector3.applyMatrix4(normalMatrix).normalize();
+					_vector3.toArray(array, i * 3);
+				}
+				normal.version++;
+			}
+
+			var tangent = geometry.attributes['a_Tangent'];
+			if (tangent !== undefined) {
+				array = tangent.array;
+				count = tangent.count;
+				for (var i = 0; i < count; i++) {
+					_vector3.fromArray(array, i * 3);
+					_vector3.transformDirection(matrix);
+					_vector3.toArray(array, i * 3);
+				}
+				tangent.version++;
+			}
+
+			if (geometry.boundingBox !== null && updateBoundings) {
+				geometry.computeBoundingBox();
+			}
+
+			if (geometry.boundingSphere !== null && updateBoundings) {
+				geometry.computeBoundingSphere();
+			}
+		}
+	})()
 
 }

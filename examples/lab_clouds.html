@@ -129,28 +129,6 @@
 			var plane = new zen3d.Mesh(new zen3d.PlaneGeometry(64, 64), material);
 			var planeGeometries = [];
 
-			var vector3 = new zen3d.Vector3();
-			
-			function transformPositionAttribute(attribute, matrix) {
-				var array = attribute.array;
-				var count = attribute.count;
-				for (var i = 0; i < count; i++) {
-					vector3.fromArray(array, i * 3);
-					vector3.applyMatrix4(matrix);
-					vector3.toArray(array, i * 3);
-				}
-			}
-
-			function transformNormalAttribute(attribute, matrix) {
-				var array = attribute.array;
-				var count = attribute.count;
-				for (var i = 0; i < count; i++) {
-					vector3.fromArray(array, i * 3);
-					vector3.applyMatrix4(matrix);
-					vector3.toArray(array, i * 3);
-				}
-			}
-
             for (var i = 0; i < 8000; i++) {
                 plane.position.x = Math.random() * 1000 - 500;
                 plane.position.y = -Math.random() * Math.random() * 200 - 15;
@@ -161,8 +139,7 @@
 				plane.updateMatrix();
 
 				var cloneGeo = plane.geometry.clone();
-				transformPositionAttribute(cloneGeo.attributes['a_Position'], plane.matrix);
-				transformNormalAttribute(cloneGeo.attributes['a_Normal'], plane.matrix);
+				zen3d.GeometryUtils.applyMatrix4(cloneGeo, plane.matrix);
 				planeGeometries.push(cloneGeo);
             }
 
