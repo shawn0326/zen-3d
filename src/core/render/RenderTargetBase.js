@@ -29,6 +29,8 @@ RenderTargetBase.prototype = Object.assign(Object.create(EventDispatcher.prototy
 
 	constructor: RenderTargetBase,
 
+	isRenderTarget: true,
+
 	/**
      * Resize the render target.
      * @param {number} width - The width of the render target.

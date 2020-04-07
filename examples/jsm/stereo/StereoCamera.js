@@ -1,5 +1,5 @@
 /**
- * CameraXR
+ * StereoCamera
  */
 
 import {
@@ -9,7 +9,7 @@ import {
 	TEXEL_ENCODING_TYPE
 } from "../../../build/zen3d.module.js";
 
-var CameraXR = function() {
+var StereoCamera = function() {
 	Object3D.call(this);
 
 	this.type = OBJECT_TYPE.CAMERA;
@@ -21,10 +21,10 @@ var CameraXR = function() {
 	this.far = 1000;
 }
 
-CameraXR.prototype = Object.create(Object3D.prototype);
-CameraXR.prototype.constructor = CameraXR;
+StereoCamera.prototype = Object.create(Object3D.prototype);
+StereoCamera.prototype.constructor = StereoCamera;
 
-Object.defineProperties(CameraXR.prototype, {
+Object.defineProperties(StereoCamera.prototype, {
 	gammaFactor: {
 		get: function() {
 			return this.cameraL.gammaFactor;
@@ -36,20 +36,20 @@ Object.defineProperties(CameraXR.prototype, {
 	},
 	gammaInput: {
 		get: function() {
-			console.warn("CameraXR: .gammaInput has been removed. Use texture.encoding instead.");
+			console.warn("StereoCamera: .gammaInput has been removed. Use texture.encoding instead.");
 			return false;
 		},
 		set: function(value) {
-			console.warn("CameraXR: .gammaInput has been removed. Use texture.encoding instead.");
+			console.warn("StereoCamera: .gammaInput has been removed. Use texture.encoding instead.");
 		}
 	},
 	gammaOutput: {
 		get: function() {
-			console.warn("CameraXR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			console.warn("StereoCamera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
 			return this.cameraL.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
 		},
 		set: function(value) {
-			console.warn("CameraXR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			console.warn("StereoCamera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
 			if (value) {
 				this.cameraL.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
 				this.cameraR.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
@@ -70,4 +70,4 @@ Object.defineProperties(CameraXR.prototype, {
 	}
 });
 
-export { CameraXR };
+export { StereoCamera };

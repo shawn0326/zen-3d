@@ -18,7 +18,7 @@ The aim of the project is to create an easy to use, lightweight, 3D/2D library. 
 [![image](./examples/resources/screenshot/screenshot1.png)](https://shawn0326.github.io/zen-3d/examples/#material_cubetexture_realtimeenvmap)
 [![image](./examples/resources/screenshot/screenshot0.png)](https://shawn0326.github.io/zen-3d/examples/#geometry_loader_gltf)
 [![image](./examples/resources/screenshot/screenshot3.png)](https://shawn0326.github.io/zen-3d/examples/#canvas2d_canvas2d)
-[![image](./examples/resources/screenshot/screenshot4.png)](https://shawn0326.github.io/zen-3d/examples/#webvr_car)
+[![image](./examples/resources/screenshot/screenshot4.png)](https://shawn0326.github.io/zen-3d/examples/#stereo_webvr_car)
 <br />
 [![image](./examples/resources/screenshot/screenshot5.png)](https://shawn0326.github.io/zen-3d/examples/#animation_monster)
 [![image](./examples/resources/screenshot/screenshot6.png)](https://shawn0326.github.io/zen-3d/examples/#sprite_sprites)

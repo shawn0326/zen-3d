@@ -84,11 +84,9 @@ var files = {
 	"raycast": [
 		"raycast_raycaster"
 	],
-	"webvr": [
-		"webvr_car"
-	],
-	"webxr": [
-		"webxr_vr_car"
+	"stereo": [
+		"stereo_webvr_car",
+		"stereo_webxr_vr_car"
 	],
 	"physics": [
 		"physics_cannon",

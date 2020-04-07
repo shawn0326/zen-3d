@@ -20,9 +20,11 @@
 			color: white;
 		}
 	</style>
+	<script src="./libs/webvr-polyfill.js"></script>
 	<script src="../build/zen3d.js"></script>
-	<script src="./js/webxr/CameraXR.js"></script>
-	<script src="./js/webxr/RendererXR.js"></script>
+	<script src="./js/stereo/WebVRControls.js"></script>
+	<script src="./js/stereo/StereoCamera.js"></script>
+	<script src="./js/stereo/StereoRenderer.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 </head>
 <body>
@@ -30,7 +32,7 @@
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - car
 		<br/>
-		<span id="info_text"></span>
+		it's a webvr demo
     </div>
 
 	<script>
@@ -44,7 +46,7 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
-	        var renderer = new zen3d.RendererXR(canvas);
+	        var renderer = new zen3d.StereoRenderer(canvas);
 			renderer.shadowAutoUpdate = false;
 
 	        var scene = new zen3d.Scene();
@@ -94,28 +96,29 @@
 	        lightBall.position.set(0, 5, 0);
 	        scene.add(lightBall);
 
-			var camera = new zen3d.CameraXR();
+			var camera = new zen3d.StereoCamera();
 			camera.position.set(3.0, 2.3, 1.0);
 			camera.near = 1;
 			camera.far = 1000;
-	        scene.add(camera);
-
-	        function loop(count, frame) {
-				renderer.session.requestAnimationFrame(loop);
-				renderer.setFrame(frame);
-				renderer.render(scene, camera);
-			}
+			scene.add(camera);
 			
-			renderer.init().then(function() {
-				renderer.session.requestAnimationFrame(loop);
+			var webvrControl = new zen3d.WebVRControl(camera);
+			webvrControl.enter().then(function(context) {
+				context.requestAnimationFrame(loop);
 			}).catch(function(e) {
-				if (typeof e === 'string' || e instanceof String) {
-					document.getElementById("info_text").innerHTML = e;
-				} else {
-					document.getElementById("info_text").innerHTML = "WebXR is not supported by your browser!"
-				}
 				console.error(e);
 			});
+
+	        function loop(count) {
+				// request AnimationFrame by webvr display
+				webvrControl.getContext().requestAnimationFrame(loop);
+
+				webvrControl.update();
+
+				renderer.render(scene, camera);
+
+				webvrControl.submit();
+	        }
 
 			function onWindowResize() {
 				width = window.innerWidth || 2;

@@ -20,10 +20,10 @@
 			color: white;
 		}
 	</style>
-	<script src="./libs/webvr-polyfill.js"></script>
 	<script src="../build/zen3d.js"></script>
-	<script src="./js/webvr/CameraVR.js"></script>
-	<script src="./js/webvr/RendererVR.js"></script>
+	<script src="./js/stereo/WebXRControls.js"></script>
+	<script src="./js/stereo/StereoCamera.js"></script>
+	<script src="./js/stereo/StereoRenderer.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 </head>
 <body>
@@ -31,7 +31,7 @@
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - car
 		<br/>
-		it's a webvr demo
+		<span id="info_text"></span>
     </div>
 
 	<script>
@@ -45,7 +45,12 @@
 	        canvas.height = height;
 			document.body.appendChild( canvas );
 
-	        var renderer = new zen3d.RendererVR(canvas);
+	        var renderer = new zen3d.StereoRenderer(canvas, {
+				antialias: true,
+				alpha: false,
+				stencil: true,
+				xrCompatible: true
+			});
 			renderer.shadowAutoUpdate = false;
 
 	        var scene = new zen3d.Scene();
@@ -95,20 +100,31 @@
 	        lightBall.position.set(0, 5, 0);
 	        scene.add(lightBall);
 
-			var camera = new zen3d.CameraVR();
+			var camera = new zen3d.StereoCamera();
 			camera.position.set(3.0, 2.3, 1.0);
 			camera.near = 1;
 			camera.far = 1000;
-	        scene.add(camera);
+			scene.add(camera);
+			
+			var webxrControl = new zen3d.WebXRControl(camera);
+			webxrControl.enter(renderer.glCore.gl).then(function(context) {
+				context.requestAnimationFrame(loop);
+			}).catch(function(e) {
+				if (typeof e === 'string' || e instanceof String) {
+					document.getElementById("info_text").innerHTML = e;
+				} else {
+					document.getElementById("info_text").innerHTML = "WebXR is not supported by your browser!"
+				}
+				console.error(e);
+			});
 
-	        function loop(count) {
+	        function loop(count, frame) {
+				webxrControl.getContext().requestAnimationFrame(loop);
 
-				requestAnimationFrame(loop);
+				webxrControl.update(frame, width, height);
 
-				renderer.render(scene, camera);
-	        }
-
-			loop(0);
+				renderer.render(scene, camera, webxrControl.getFramebuffer());
+			}
 
 			function onWindowResize() {
 				width = window.innerWidth || 2;

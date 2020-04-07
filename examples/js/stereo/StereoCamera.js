@@ -1,8 +1,8 @@
 /**
- * CameraXR
+ * StereoCamera
  */
 
-zen3d.CameraXR = function() {
+zen3d.StereoCamera = function() {
 	zen3d.Object3D.call(this);
 
 	this.type = zen3d.OBJECT_TYPE.CAMERA;
@@ -14,10 +14,10 @@ zen3d.CameraXR = function() {
 	this.far = 1000;
 }
 
-zen3d.CameraXR.prototype = Object.create(zen3d.Object3D.prototype);
-zen3d.CameraXR.prototype.constructor = zen3d.CameraXR;
+zen3d.StereoCamera.prototype = Object.create(zen3d.Object3D.prototype);
+zen3d.StereoCamera.prototype.constructor = zen3d.StereoCamera;
 
-Object.defineProperties(zen3d.CameraXR.prototype, {
+Object.defineProperties(zen3d.StereoCamera.prototype, {
 	gammaFactor: {
 		get: function() {
 			return this.cameraL.gammaFactor;
@@ -29,20 +29,20 @@ Object.defineProperties(zen3d.CameraXR.prototype, {
 	},
 	gammaInput: {
 		get: function() {
-			console.warn("zen3d.CameraXR: .gammaInput has been removed. Use texture.encoding instead.");
+			console.warn("zen3d.StereoCamera: .gammaInput has been removed. Use texture.encoding instead.");
 			return false;
 		},
 		set: function(value) {
-			console.warn("zen3d.CameraXR: .gammaInput has been removed. Use texture.encoding instead.");
+			console.warn("zen3d.StereoCamera: .gammaInput has been removed. Use texture.encoding instead.");
 		}
 	},
 	gammaOutput: {
 		get: function() {
-			console.warn("zen3d.CameraXR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			console.warn("zen3d.StereoCamera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
 			return this.cameraL.outputEncoding == zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 		},
 		set: function(value) {
-			console.warn("zen3d.CameraXR: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			console.warn("zen3d.StereoCamera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
 			if (value) {
 				this.cameraL.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
 				this.cameraR.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;

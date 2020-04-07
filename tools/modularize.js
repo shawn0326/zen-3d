@@ -51,10 +51,10 @@ var files = [
 	{ path: 'shaders/SSRShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/VolumeShader.js', dependencies: [], ignoreList: [] },
 
-	{ path: 'webvr/CameraVR.js', dependencies: [], ignoreList: [] },
-	{ path: 'webvr/RendererVR.js', dependencies: [], ignoreList: [] },
-	{ path: 'webxr/CameraXR.js', dependencies: [], ignoreList: [] },
-	{ path: 'webxr/RendererXR.js', dependencies: [], ignoreList: [] },
+	{ path: 'stereo/StereoCamera.js', dependencies: [], ignoreList: [] },
+	{ path: 'stereo/StereoRenderer.js', dependencies: [], ignoreList: [] },
+	{ path: 'stereo/WebVRControls.js', dependencies: [], ignoreList: [] },
+	{ path: 'stereo/WebXRControls.js', dependencies: [], ignoreList: [] },
 
 	{ path: 'Clock.js', dependencies: [], ignoreList: [] },
 	{ path: 'GBuffer.js', dependencies: [], ignoreList: ['Camera'] },
