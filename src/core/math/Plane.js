@@ -37,6 +37,16 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 	/**
      *
      */
+	setFromNormalAndCoplanarPoint: function (normal, point) {
+		this.normal.copy(normal);
+		this.constant = -point.dot(this.normal);
+
+		return this;
+	},
+
+	/**
+     *
+     */
 	normalize: function() {
 		// Note: will lead to a divide by zero if the plane is invalid.
 

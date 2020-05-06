@@ -57,6 +57,13 @@ Object.assign(Vector4.prototype, /** @lends zen3d.Vector4.prototype */{
 	/**
      *
      */
+	dot: function (v) {
+		return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+	},
+
+	/**
+     *
+     */
 	getLengthSquared: function () {
 		return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
 	},

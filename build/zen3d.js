@@ -598,6 +598,8 @@
 
 	});
 
+	var _vector = new Vector3();
+
 	/**
 	 * a vector 3 class
 	 * @constructor
@@ -734,6 +736,17 @@
 			this.x = y * v.z - z * v.y;
 			this.y = z * v.x - x * v.z;
 			this.z = x * v.y - y * v.x;
+
+			return this;
+		},
+
+		/**
+	     *
+	     */
+		negate: function () {
+			this.x = -this.x;
+			this.y = -this.y;
+			this.z = -this.z;
 
 			return this;
 		},
@@ -996,6 +1009,16 @@
 	     */
 		unproject: function(camera) {
 			return this.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.worldMatrix);
+		},
+
+		/**
+	     *
+	     */
+		reflect: function (normal) {
+			// reflect incident vector off plane orthogonal to normal
+			// normal is assumed to have unit length
+
+			return this.sub(_vector.copy(normal).multiplyScalar(2 * this.dot(normal)));
 		},
 
 		/**
@@ -1355,6 +1378,8 @@
 
 	});
 
+	var _v1 = new Vector3();
+
 	/**
 	 * a 4x4 matrix class
 	 * @constructor
@@ -1693,6 +1718,42 @@
 			te[11] = 0;
 
 			// bottom row
+			te[12] = 0;
+			te[13] = 0;
+			te[14] = 0;
+			te[15] = 1;
+
+			return this;
+		},
+
+		/**
+	     * @method
+	     */
+		extractRotation: function(m) {
+			// this method does not support reflection matrices
+
+			var te = this.elements;
+			var me = m.elements;
+
+			var scaleX = 1 / _v1.setFromMatrixColumn(m, 0).getLength();
+			var scaleY = 1 / _v1.setFromMatrixColumn(m, 1).getLength();
+			var scaleZ = 1 / _v1.setFromMatrixColumn(m, 2).getLength();
+
+			te[0] = me[0] * scaleX;
+			te[1] = me[1] * scaleX;
+			te[2] = me[2] * scaleX;
+			te[3] = 0;
+
+			te[4] = me[4] * scaleY;
+			te[5] = me[5] * scaleY;
+			te[6] = me[6] * scaleY;
+			te[7] = 0;
+
+			te[8] = me[8] * scaleZ;
+			te[9] = me[9] * scaleZ;
+			te[10] = me[10] * scaleZ;
+			te[11] = 0;
+
 			te[12] = 0;
 			te[13] = 0;
 			te[14] = 0;
@@ -2370,6 +2431,13 @@
 			this.w *= scalar;
 
 			return this;
+		},
+
+		/**
+	     *
+	     */
+		dot: function (v) {
+			return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
 		},
 
 		/**
@@ -3603,6 +3671,16 @@
 		setComponents: function(x, y, z, w) {
 			this.normal.set(x, y, z);
 			this.constant = w;
+
+			return this;
+		},
+
+		/**
+	     *
+	     */
+		setFromNormalAndCoplanarPoint: function (normal, point) {
+			this.normal.copy(normal);
+			this.constant = -point.dot(this.normal);
 
 			return this;
 		},
