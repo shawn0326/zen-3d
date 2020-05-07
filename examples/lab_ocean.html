@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - ocean</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./js/objects/Water.js"></script>
+	<script src="./js/objects/Sky.js"></script>
+	<script src="./js/objects/SkyBox.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - ocean
+	</div>
+
+	<script>
+		var devicePixelRatio = window.devicePixelRatio;
+
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
+
+		var canvas = document.createElement( 'canvas' );
+		canvas.width = devicePixelRatio * width;
+		canvas.height = devicePixelRatio * height;
+		canvas.style.width = width + "px";
+		canvas.style.height = height + "px";
+		document.body.appendChild( canvas );
+
+		var renderer = new zen3d.Renderer(canvas);
+		renderer.matrixAutoUpdate = false;
+		renderer.lightsAutoupdate = false;
+
+		// Sky
+
+		var environmentMapPass = new zen3d.EnvironmentMapPass();
+
+		var skyScene = new zen3d.Scene();
+		var sky = new zen3d.Sky();
+		skyScene.add(sky);
+
+		// Scene
+
+		var scene = new zen3d.Scene();
+
+		var light = new zen3d.DirectionalLight( 0xffffff );
+		light.color.setHex(0xffffff);
+		light.intensity = 2.5;
+		scene.add( light );
+
+		// Sphere
+
+		var geometry = new zen3d.SphereGeometry( 20, 8, 8 );
+		var material = new zen3d.PBRMaterial();
+		material.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
+		material.envMap = environmentMapPass.renderTexture;
+		material.envMapIntensity = 0.5;
+		material.side = zen3d.DRAW_SIDE.DOUBLE; // fix white edge between sphere and water 
+		var sphere = new zen3d.Mesh(geometry, material);
+		scene.add(sphere);		
+
+		// Water
+
+		var waterGeometry = new zen3d.PlaneGeometry(10000, 10000);
+		var waterNormalTexture = zen3d.Texture2D.fromSrc('./resources/waternormals.jpg');
+		waterNormalTexture.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+		waterNormalTexture.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+
+		water = new zen3d.Water(
+			waterGeometry,
+			{
+				textureWidth: 512,
+				textureHeight: 512,
+				waterNormals: waterNormalTexture,
+				alpha: 1.0,
+				sunDirection: light.position.clone().normalize(),
+				sunColor: 0xffffff,
+				waterColor: 0x001e0f,
+				distortionScale: 3.7
+			}
+		);
+
+		scene.add( water );
+
+		// Camera
+
+		var camera = new zen3d.Camera();
+		camera.position.set( 30, 30, 100 );
+		camera.setPerspective(55 / 180 * Math.PI, width / height, 1, 20000);
+		var skyBox = new zen3d.SkyBox();
+		skyBox.texture = environmentMapPass.renderTexture;
+		camera.add(skyBox);
+		scene.add(camera);
+
+		// add a hover controller
+
+		var controller = new zen3d.OrbitControls(camera, canvas);
+		controller.minDistance = 40.0;
+		controller.maxDistance = 200.0;
+		controller.target.set( 0, 10, 0 );
+		controller.maxPolarAngle = Math.PI * 0.495;
+		
+		/// GUI
+
+		var effectController  = {
+			turbidity: 10,
+			rayleigh: 2,
+			mieCoefficient: 0.005,
+			mieDirectionalG: 0.8,
+			luminance: 1,
+			inclination: 0.49, // elevation / inclination
+			azimuth: 0.205, // Facing front
+		};
+
+		var distance = 400;
+
+		function skyChanged() {
+
+			var uniforms = sky.material.uniforms;
+			uniforms.turbidity = effectController.turbidity;
+			uniforms.rayleigh = effectController.rayleigh;
+			uniforms.luminance = effectController.luminance;
+			uniforms.mieCoefficient = effectController.mieCoefficient;
+			uniforms.mieDirectionalG = effectController.mieDirectionalG;
+
+			var theta = Math.PI * ( effectController.inclination - 0.5 );
+			var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
+
+			uniforms.sunPosition[0] = distance * Math.cos( phi );
+			uniforms.sunPosition[1] = distance * Math.sin( phi ) * Math.sin( theta );
+			uniforms.sunPosition[2] = distance * Math.sin( phi ) * Math.cos( theta );
+
+			light.position.x = distance * Math.cos( phi );
+			light.position.y = distance * Math.sin( phi ) * Math.sin( theta );
+			light.position.z = distance * Math.sin( phi ) * Math.cos( theta );
+			light.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+			light.position.clone().normalize().toArray(water.material.uniforms['sunDirection']);
+
+			environmentMapPass.render(renderer.glCore, skyScene);
+
+		}
+
+		var gui = new dat.GUI();
+
+		var skyFolder = gui.addFolder('Sky');
+		// skyFolder.add( effectController, "turbidity", 1.0, 20.0, 0.1 ).onChange( skyChanged );
+		// skyFolder.add( effectController, "rayleigh", 0.0, 4, 0.001 ).onChange( skyChanged );
+		// skyFolder.add( effectController, "mieCoefficient", 0.0, 0.1, 0.001 ).onChange( skyChanged );
+		// skyFolder.add( effectController, "mieDirectionalG", 0.0, 1, 0.001 ).onChange( skyChanged );
+		// skyFolder.add( effectController, "luminance", 0.0, 2 ).onChange( skyChanged );
+		skyFolder.add( effectController, "inclination", 0, 0.5, 0.0001 ).onChange( skyChanged );
+		skyFolder.add( effectController, "azimuth", 0, 1, 0.0001 ).onChange( skyChanged );
+		skyFolder.open();
+
+		var uniforms = water.material.uniforms;
+
+		var waterFolder = gui.addFolder('Water');
+		waterFolder.add( uniforms, 'distortionScale', 0, 8, 0.1 );
+		waterFolder.add( uniforms, 'size', 0.1, 10, 0.1 );
+		waterFolder.add( uniforms, 'alpha', 0.9, 1, .001 );
+		waterFolder.open();
+
+		skyChanged();
+
+		function loop(count) {
+
+			requestAnimationFrame(loop);
+
+			var time = performance.now() * 0.001;
+
+			sphere.position.y = Math.sin( time ) * 20 + 5;
+			sphere.euler.x = time * 0.5;
+			sphere.euler.z = time * 0.51;
+
+			water.material.uniforms['time'] += 1.0 / 60.0;
+
+			controller.update();
+
+			scene.updateLights(); // call update lights
+
+			water.updateReflect(renderer.glCore, scene, camera, skyBox); // need pass skyBox for now
+
+			scene.updateMatrix(); // call update matrix
+
+			renderer.render(scene, camera);
+		}
+
+		loop(0);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(55 / 180 * Math.PI, width / height, 1, 20000);
+
+			renderer.backRenderTarget.resize(devicePixelRatio * width, devicePixelRatio * height);
+
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
+		}
+		window.addEventListener("resize", onWindowResize, false);
+	</script>
+</body>
+</html>

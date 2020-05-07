@@ -131,6 +131,7 @@ var files = {
 	],
 	"lab": [
 		"lab_clouds",
-		"lab_earth"
+		"lab_earth",
+		"lab_ocean"
 	]
 };
