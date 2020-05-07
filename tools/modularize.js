@@ -27,6 +27,7 @@ var files = [
 	{ path: 'objects/SkyBox.js', dependencies: [], ignoreList: [] },
 	{ path: 'objects/SpotLightHelper.js', dependencies: [], ignoreList: [] },
 	{ path: 'objects/Sprite.js', dependencies: [], ignoreList: [] },
+	{ path: 'objects/Water.js', dependencies: [], ignoreList: [] },
 
 	{ path: 'pass/BlurPass.js', dependencies: [{ name: 'BlurShader', path: 'shaders/BlurShader.js' }], ignoreList: [] },
 	{ path: 'pass/SSAOPass.js', dependencies: [{ name: 'SSAOShader', path: 'shaders/SSAOShader.js' }], ignoreList: [] },

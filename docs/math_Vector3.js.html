@@ -26,7 +26,9 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>/**
+            <pre class="prettyprint source linenums"><code>var _vector = new Vector3();
+
+/**
  * a vector 3 class
  * @constructor
  * @memberof zen3d
@@ -162,6 +164,17 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 		this.x = y * v.z - z * v.y;
 		this.y = z * v.x - x * v.z;
 		this.z = x * v.y - y * v.x;
+
+		return this;
+	},
+
+	/**
+     *
+     */
+	negate: function () {
+		this.x = -this.x;
+		this.y = -this.y;
+		this.z = -this.z;
 
 		return this;
 	},
@@ -424,6 +437,16 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
      */
 	unproject: function(camera) {
 		return this.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.worldMatrix);
+	},
+
+	/**
+     *
+     */
+	reflect: function (normal) {
+		// reflect incident vector off plane orthogonal to normal
+		// normal is assumed to have unit length
+
+		return this.sub(_vector.copy(normal).multiplyScalar(2 * this.dot(normal)));
 	},
 
 	/**
