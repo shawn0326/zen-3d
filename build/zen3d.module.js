@@ -10461,7 +10461,7 @@ function createBuffer(gl, data, attribute, bufferType) {
 	data.version = attribute.version;
 }
 
-function updateBuffer(gl, buffer, attribute, bufferType) {
+function updateBuffer(gl, capabilities, buffer, attribute, bufferType) {
 	var array = attribute.array;
 	var updateRange = attribute.updateRange;
 
@@ -10475,14 +10475,19 @@ function updateBuffer(gl, buffer, attribute, bufferType) {
 	} else if (updateRange.count === 0) {
 		console.error('updateBuffer: dynamic BufferAttribute marked as needsUpdate but updateRange.count is 0, ensure you are using set methods or updating manually.');
 	} else {
-		gl.bufferSubData(bufferType, updateRange.offset * array.BYTES_PER_ELEMENT,
-			array.subarray(updateRange.offset, updateRange.offset + updateRange.count));
+		if (capabilities.version >= 2) {
+			gl.bufferSubData(bufferType, updateRange.offset * array.BYTES_PER_ELEMENT,
+				array, updateRange.offset, updateRange.count);
+		} else {
+			gl.bufferSubData(bufferType, updateRange.offset * array.BYTES_PER_ELEMENT,
+				array.subarray(updateRange.offset, updateRange.offset + updateRange.count));
+		}
 
 		updateRange.count = -1; // reset range
 	}
 }
 
-function updateAttribute(gl, properties, attribute, bufferType) {
+function updateAttribute(gl, properties, capabilities, attribute, bufferType) {
 	// if isInterleavedBufferAttribute, get InterleavedBuffer as data.
 	// else get BufferAttribute as data
 	if (attribute.isInterleavedBufferAttribute) attribute = attribute.data;
@@ -10492,7 +10497,7 @@ function updateAttribute(gl, properties, attribute, bufferType) {
 	if (data.buffer === undefined) {
 		createBuffer(gl, data, attribute, bufferType);
 	} else if (data.version < attribute.version) {
-		updateBuffer(gl, data.buffer, attribute, bufferType);
+		updateBuffer(gl, capabilities, data.buffer, attribute, bufferType);
 		data.version = attribute.version;
 	}
 }
@@ -10525,6 +10530,7 @@ Object.assign(WebGLGeometry.prototype, {
 	setGeometry: function(geometry) {
 		var gl = this.gl;
 		var properties = this.properties;
+		var capabilities = this.capabilities;
 
 		var geometryProperties = this.properties.get(geometry);
 		if (!geometryProperties.created) {
@@ -10534,18 +10540,18 @@ Object.assign(WebGLGeometry.prototype, {
 		}
 
 		if (geometry.index !== null) {
-			updateAttribute(gl, properties, geometry.index, gl.ELEMENT_ARRAY_BUFFER);
+			updateAttribute(gl, properties, capabilities, geometry.index, gl.ELEMENT_ARRAY_BUFFER);
 		}
 
 		for (var name in geometry.attributes) {
-			updateAttribute(gl, properties, geometry.attributes[name], gl.ARRAY_BUFFER);
+			updateAttribute(gl, properties, capabilities, geometry.attributes[name], gl.ARRAY_BUFFER);
 		}
 
 		for (var name in geometry.morphAttributes) {
 			var array = geometry.morphAttributes[name];
 
 			for (var i = 0, l = array.length; i < l; i++) {
-				updateAttribute(gl, properties, array[i], gl.ARRAY_BUFFER);
+				updateAttribute(gl, properties, capabilities, array[i], gl.ARRAY_BUFFER);
 			}
 		}
 
