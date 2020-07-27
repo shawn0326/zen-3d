@@ -6094,6 +6094,20 @@ function Object3D() {
      * @default {}
      */
 	this.userData = {};
+
+	/**
+	 * When this is set, it calculates the matrix of position, (rotation or quaternion) and scale every frame and also recalculates the worldMatrix property.
+	 * @type {boolean}
+	 * @default true
+	 */
+	this.matrixAutoUpdate = true;
+
+	/**
+	 * When this is set, it calculates the matrix in that frame and resets this property to false.
+	 * @type {boolean}
+	 * @default true
+	 */
+	this.matrixNeedsUpdate = true;
 }
 
 Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
@@ -6167,9 +6181,12 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
      * Update the local transform.
      */
 	updateMatrix: function() {
-		var matrix = this.matrix.transform(this.position, this.scale, this.quaternion);
+		if (this.matrixAutoUpdate || this.matrixNeedsUpdate) {
+			this.matrix.transform(this.position, this.scale, this.quaternion);
+			this.matrixNeedsUpdate = false;
+		}
 
-		this.worldMatrix.copy(matrix);
+		this.worldMatrix.copy(this.matrix);
 
 		if (this.parent) {
 			var parentMatrix = this.parent.worldMatrix;
