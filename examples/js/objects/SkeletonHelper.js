@@ -64,7 +64,7 @@ zen3d.SkeletonHelper.prototype.updateMatrix = function () {
 	var boneMatrix = new zen3d.Matrix4();
 	var worldMatrixInv = new zen3d.Matrix4();
 
-	return function updateMatrix() {
+	return function updateMatrix(force) {
 		var bones = this.bones;
 
 		var geometry = this.geometry;
@@ -96,6 +96,6 @@ zen3d.SkeletonHelper.prototype.updateMatrix = function () {
 
 		geometry.getAttribute('a_Position').version++;
 
-		zen3d.Mesh.prototype.updateMatrix.call(this);
+		zen3d.Mesh.prototype.updateMatrix.call(this, force);
 	};
 }();

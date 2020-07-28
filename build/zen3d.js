@@ -6114,6 +6114,13 @@
 		 * @default true
 		 */
 		this.matrixNeedsUpdate = true;
+
+		/**
+		 * When this is set, it calculates the world matrix in that frame and resets this property to false.
+		 * @type {boolean}
+		 * @default true
+		 */
+		this.worldMatrixNeedsUpdate = true;
 	}
 
 	Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
@@ -6137,6 +6144,7 @@
 		add: function(object) {
 			this.children.push(object);
 			object.parent = this;
+			object.worldMatrixNeedsUpdate = true;
 		},
 
 		/**
@@ -6149,6 +6157,7 @@
 				this.children.splice(index, 1);
 			}
 			object.parent = null;
+			object.worldMatrixNeedsUpdate = true;
 		},
 
 		/**
@@ -6186,22 +6195,29 @@
 		/**
 	     * Update the local transform.
 	     */
-		updateMatrix: function() {
+		updateMatrix: function(force) {
 			if (this.matrixAutoUpdate || this.matrixNeedsUpdate) {
 				this.matrix.transform(this.position, this.scale, this.quaternion);
+
 				this.matrixNeedsUpdate = false;
+				this.worldMatrixNeedsUpdate = true;
 			}
 
-			this.worldMatrix.copy(this.matrix);
+			if (this.worldMatrixNeedsUpdate || force) {
+				this.worldMatrix.copy(this.matrix);
 
-			if (this.parent) {
-				var parentMatrix = this.parent.worldMatrix;
-				this.worldMatrix.premultiply(parentMatrix);
+				if (this.parent) {
+					var parentMatrix = this.parent.worldMatrix;
+					this.worldMatrix.premultiply(parentMatrix);
+				}
+
+				this.worldMatrixNeedsUpdate = false;
+				force = true;
 			}
 
 			var children = this.children;
 			for (var i = 0, l = children.length; i < l; i++) {
-				children[i].updateMatrix();
+				children[i].updateMatrix(force);
 			}
 		},
 
@@ -13137,6 +13153,8 @@
 
 	});
 
+	var _mat4_1 = new Matrix4();
+
 	/**
 	 * The camera used for rendering a 3D scene.
 	 * @memberof zen3d
@@ -13275,18 +13293,14 @@
 			};
 		}(),
 
-		updateMatrix: function() {
-			var matrix = new Matrix4();
+		updateMatrix: function(force) {
+			Object3D.prototype.updateMatrix.call(this, force);
 
-			return function updateMatrix() {
-				Object3D.prototype.updateMatrix.call(this);
+			this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
 
-				this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
-
-				matrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
-				this.frustum.setFromMatrix(matrix); // update frustum
-			}
-		}(),
+			_mat4_1.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+			this.frustum.setFromMatrix(_mat4_1); // update frustum
+		},
 
 		copy: function (source, recursive) {
 			Object3D.prototype.copy.call(this, source, recursive);
@@ -15590,8 +15604,8 @@
 			this.bindMatrixInverse.getInverse(bindMatrix);
 		},
 
-		updateMatrix: function() {
-			Mesh.prototype.updateMatrix.call(this);
+		updateMatrix: function(force) {
+			Mesh.prototype.updateMatrix.call(this, force);
 
 			if (this.bindMode === 'attached') {
 				this.bindMatrixInverse.getInverse(this.worldMatrix);

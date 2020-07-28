@@ -166,6 +166,13 @@ function Object3D() {
 	 * @default true
 	 */
 	this.matrixNeedsUpdate = true;
+
+	/**
+	 * When this is set, it calculates the world matrix in that frame and resets this property to false.
+	 * @type {boolean}
+	 * @default true
+	 */
+	this.worldMatrixNeedsUpdate = true;
 }
 
 Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
@@ -189,6 +196,7 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 	add: function(object) {
 		this.children.push(object);
 		object.parent = this;
+		object.worldMatrixNeedsUpdate = true;
 	},
 
 	/**
@@ -201,6 +209,7 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 			this.children.splice(index, 1);
 		}
 		object.parent = null;
+		object.worldMatrixNeedsUpdate = true;
 	},
 
 	/**
@@ -238,22 +247,29 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
 	/**
      * Update the local transform.
      */
-	updateMatrix: function() {
+	updateMatrix: function(force) {
 		if (this.matrixAutoUpdate || this.matrixNeedsUpdate) {
 			this.matrix.transform(this.position, this.scale, this.quaternion);
+
 			this.matrixNeedsUpdate = false;
+			this.worldMatrixNeedsUpdate = true;
 		}
 
-		this.worldMatrix.copy(this.matrix);
+		if (this.worldMatrixNeedsUpdate || force) {
+			this.worldMatrix.copy(this.matrix);
 
-		if (this.parent) {
-			var parentMatrix = this.parent.worldMatrix;
-			this.worldMatrix.premultiply(parentMatrix);
+			if (this.parent) {
+				var parentMatrix = this.parent.worldMatrix;
+				this.worldMatrix.premultiply(parentMatrix);
+			}
+
+			this.worldMatrixNeedsUpdate = false;
+			force = true;
 		}
 
 		var children = this.children;
 		for (var i = 0, l = children.length; i < l; i++) {
-			children[i].updateMatrix();
+			children[i].updateMatrix(force);
 		}
 	},
 

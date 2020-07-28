@@ -6,6 +6,8 @@ import { Vector4 } from '../../math/Vector4.js';
 import { Quaternion } from '../../math/Quaternion.js';
 import { Vector3 } from '../../math/Vector3.js';
 
+var _mat4_1 = new Matrix4();
+
 /**
  * The camera used for rendering a 3D scene.
  * @memberof zen3d
@@ -144,18 +146,14 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 		};
 	}(),
 
-	updateMatrix: function() {
-		var matrix = new Matrix4();
+	updateMatrix: function(force) {
+		Object3D.prototype.updateMatrix.call(this, force);
 
-		return function updateMatrix() {
-			Object3D.prototype.updateMatrix.call(this);
+		this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
 
-			this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
-
-			matrix.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
-			this.frustum.setFromMatrix(matrix); // update frustum
-		}
-	}(),
+		_mat4_1.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+		this.frustum.setFromMatrix(_mat4_1); // update frustum
+	},
 
 	copy: function (source, recursive) {
 		Object3D.prototype.copy.call(this, source, recursive);

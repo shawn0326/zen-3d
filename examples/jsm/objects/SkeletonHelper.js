@@ -75,7 +75,7 @@ SkeletonHelper.prototype.updateMatrix = function () {
 	var boneMatrix = new Matrix4();
 	var worldMatrixInv = new Matrix4();
 
-	return function updateMatrix() {
+	return function updateMatrix(force) {
 		var bones = this.bones;
 
 		var geometry = this.geometry;
@@ -107,7 +107,7 @@ SkeletonHelper.prototype.updateMatrix = function () {
 
 		geometry.getAttribute('a_Position').version++;
 
-		Mesh.prototype.updateMatrix.call(this);
+		Mesh.prototype.updateMatrix.call(this, force);
 	};
 }();
 

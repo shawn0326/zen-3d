@@ -65,8 +65,8 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
 		this.bindMatrixInverse.getInverse(bindMatrix);
 	},
 
-	updateMatrix: function() {
-		Mesh.prototype.updateMatrix.call(this);
+	updateMatrix: function(force) {
+		Mesh.prototype.updateMatrix.call(this, force);
 
 		if (this.bindMode === 'attached') {
 			this.bindMatrixInverse.getInverse(this.worldMatrix);

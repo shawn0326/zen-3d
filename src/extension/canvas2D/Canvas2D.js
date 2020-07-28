@@ -305,8 +305,8 @@ class Canvas2D extends zen3d.Object3D {
 	}
 
 	// override
-	updateMatrix() {
-		zen3d.Object3D.prototype.updateMatrix.call(this);
+	updateMatrix(force) {
+		zen3d.Object3D.prototype.updateMatrix.call(this, force);
 
 		this.sprites = [];
 
