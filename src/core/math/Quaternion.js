@@ -1,4 +1,3 @@
-import { Vector3 } from './Vector3.js';
 import { Matrix4 } from './Matrix4.js';
 
 /**
@@ -296,41 +295,40 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 	/**
      * @method
      */
-	setFromUnitVectors: function () {
+	setFromUnitVectors: function (vFrom, vTo) {
 		// http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
 
 		// assumes direction vectors vFrom and vTo are normalized
 
-		var v1 = new Vector3();
-		var r;
-
 		var EPS = 0.000001;
 
-		return function setFromUnitVectors(vFrom, vTo) {
-			if (v1 === undefined) v1 = new Vector3();
+		var r = vFrom.dot(vTo) + 1;
 
-			r = vFrom.dot(vTo) + 1;
+		if (r < EPS) {
+			r = 0;
 
-			if (r < EPS) {
-				r = 0;
-
-				if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
-					v1.set(-vFrom.y, vFrom.x, 0);
-				} else {
-					v1.set(0, -vFrom.z, vFrom.y);
-				}
+			if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
+				this._x = -vFrom.y;
+				this._y = vFrom.x;
+				this._z = 0;
+				this._w = r;
 			} else {
-				v1.crossVectors(vFrom, vTo);
+				this._x = 0;
+				this._y = -vFrom.z;
+				this._z = vFrom.y;
+				this._w = r;
 			}
+		} else {
+			// crossVectors( vFrom, vTo ); // inlined to avoid cyclic dependency on Vector3
 
-			this._x = v1.x;
-			this._y = v1.y;
-			this._z = v1.z;
+			this._x = vFrom.y * vTo.z - vFrom.z * vTo.y;
+			this._y = vFrom.z * vTo.x - vFrom.x * vTo.z;
+			this._z = vFrom.x * vTo.y - vFrom.y * vTo.x;
 			this._w = r;
+		}
 
-			return this.normalize();
-		};
-	}(),
+		return this.normalize();
+	},
 
 	/**
      *

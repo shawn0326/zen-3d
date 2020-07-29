@@ -5,7 +5,9 @@ import { Euler } from '../math/Euler.js';
 import { Quaternion } from '../math/Quaternion.js';
 import { Matrix4 } from '../math/Matrix4.js';
 
-var object3DId = 0;
+var _object3DId = 0;
+
+var _mat4_1 = new Matrix4();
 
 /**
  * This is the base class for most objects in zen3d
@@ -14,7 +16,7 @@ var object3DId = 0;
  * @memberof zen3d
  */
 function Object3D() {
-	Object.defineProperty(this, 'id', { value: object3DId++ });
+	Object.defineProperty(this, 'id', { value: _object3DId++ });
 
 	/**
      * UUID of this object instance.
@@ -280,21 +282,11 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
      * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
      * @return {Vector3} - the result.
      */
-	getWorldDirection: function() {
-		var position = new Vector3();
-		var quaternion = new Quaternion();
-		var scale = new Vector3();
-
-		return function getWorldDirection(optionalTarget) {
-			var result = optionalTarget || new Vector3();
-
-			this.worldMatrix.decompose(position, quaternion, scale);
-
-			result.set(0, 0, 1).applyQuaternion(quaternion);
-
-			return result;
-		};
-	}(),
+	getWorldDirection: function(optionalTarget) {
+		optionalTarget = optionalTarget || new Vector3();
+		var e = this.worldMatrix.elements;
+		return optionalTarget.set(e[8], e[9], e[10]).normalize();
+	},
 
 	/**
      * Rotates the object to face a point in local space.
@@ -302,14 +294,10 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
      * @param {Vector3} target - A vector representing a position in local space.
      * @param {Vector3} up — A vector representing the up direction in local space.
      */
-	lookAt: function() {
-		var m = new Matrix4();
-
-		return function lookAt(target, up) {
-			m.lookAtRH(target, this.position, up);
-			this.quaternion.setFromRotationMatrix(m);
-		};
-	}(),
+	lookAt: function(target, up) {
+		_mat4_1.lookAtRH(target, this.position, up);
+		this.quaternion.setFromRotationMatrix(_mat4_1);
+	},
 
 	/**
      * Method to get intersections between a casted ray and this object.

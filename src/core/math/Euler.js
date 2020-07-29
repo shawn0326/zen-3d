@@ -1,5 +1,7 @@
 import { Matrix4 } from './Matrix4.js';
 
+var _matrix = new Matrix4();
+
 /**
  * a Euler class
  * @constructor
@@ -176,15 +178,10 @@ Object.assign(Euler.prototype, /** @lends zen3d.Euler.prototype */{
 	/**
      *
      */
-	setFromQuaternion: function() {
-		var matrix = new Matrix4();
-
-		return function(q, order, update) {
-			q.toMatrix4(matrix);
-
-			return this.setFromRotationMatrix(matrix, order, update);
-		};
-	}(),
+	setFromQuaternion: function(q, order, update) {
+		q.toMatrix4(_matrix);
+		return this.setFromRotationMatrix(_matrix, order, update);
+	},
 
 	onChange: function(callback) {
 		this.onChangeCallback = callback;

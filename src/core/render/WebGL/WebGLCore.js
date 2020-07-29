@@ -29,24 +29,23 @@ function defaultIfRender(renderable) {
 
 function noop() {}
 
-var getClippingPlanesData = function() {
-	var planesData;
-	var plane = new Plane();
-	return function getClippingPlanesData(planes, camera) {
-		if (!planesData || planesData.length < planes.length * 4) {
-			planesData = new Float32Array(planes.length * 4);
-		}
+var planesData;
+var helpPlane = new Plane();
 
-		for (var i = 0; i < planes.length; i++) {
-			plane.copy(planes[i]);// .applyMatrix4(camera.viewMatrix);
-			planesData[i * 4 + 0] = plane.normal.x;
-			planesData[i * 4 + 1] = plane.normal.y;
-			planesData[i * 4 + 2] = plane.normal.z;
-			planesData[i * 4 + 3] = plane.constant;
-		}
-		return planesData;
+function getClippingPlanesData(planes, camera) {
+	if (!planesData || planesData.length < planes.length * 4) {
+		planesData = new Float32Array(planes.length * 4);
 	}
-}();
+
+	for (var i = 0; i < planes.length; i++) {
+		helpPlane.copy(planes[i]);// .applyMatrix4(camera.viewMatrix);
+		planesData[i * 4 + 0] = helpPlane.normal.x;
+		planesData[i * 4 + 1] = helpPlane.normal.y;
+		planesData[i * 4 + 2] = helpPlane.normal.z;
+		planesData[i * 4 + 3] = helpPlane.constant;
+	}
+	return planesData;
+}
 
 /**
  * Core render methods by WebGL.

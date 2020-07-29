@@ -3,7 +3,6 @@ import { Object3D } from '../Object3D.js';
 import { Matrix4 } from '../../math/Matrix4.js';
 import { Frustum } from '../../math/Frustum.js';
 import { Vector4 } from '../../math/Vector4.js';
-import { Quaternion } from '../../math/Quaternion.js';
 import { Vector3 } from '../../math/Vector3.js';
 
 var _mat4_1 = new Matrix4();
@@ -84,14 +83,10 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
      * @param {zen3d.Vector3} target - The target that the camera look at.
      * @param {zen3d.Vector3} up - The up direction of the camera.
      */
-	lookAt: function() {
-		var m = new Matrix4();
-
-		return function lookAt(target, up) {
-			m.lookAtRH(this.position, target, up);
-			this.quaternion.setFromRotationMatrix(m);
-		};
-	}(),
+	lookAt: function(target, up) {
+		_mat4_1.lookAtRH(this.position, target, up);
+		this.quaternion.setFromRotationMatrix(_mat4_1);
+	},
 
 	/**
      * Set orthographic projection matrix.
@@ -129,22 +124,11 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 		this.projectionMatrixInverse.getInverse(this.projectionMatrix);
 	},
 
-	getWorldDirection: function() {
-		var position = new Vector3();
-		var quaternion = new Quaternion();
-		var scale = new Vector3();
-
-		return function getWorldDirection(optionalTarget) {
-			var result = optionalTarget || new Vector3();
-
-			this.worldMatrix.decompose(position, quaternion, scale);
-
-			// -z
-			result.set(0, 0, -1).applyQuaternion(quaternion);
-
-			return result;
-		};
-	}(),
+	getWorldDirection: function(optionalTarget) {
+		optionalTarget = optionalTarget || new Vector3();
+		var e = this.worldMatrix.elements;
+		return optionalTarget.set(-e[8], -e[9], -e[10]).normalize();
+	},
 
 	updateMatrix: function(force) {
 		Object3D.prototype.updateMatrix.call(this, force);

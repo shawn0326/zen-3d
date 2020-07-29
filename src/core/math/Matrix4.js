@@ -1,6 +1,11 @@
 import { Vector3 } from './Vector3.js';
 
-var _v1 = new Vector3();
+var _vec3_1 = new Vector3();
+var _mat4_1 = new Matrix4();
+
+var _x = new Vector3();
+var _y = new Vector3();
+var _z = new Vector3();
 
 /**
  * a 4x4 matrix class
@@ -266,38 +271,34 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
      * Make transform from pos&scale&rotation(Quaternion).
      * @method
      */
-	transform: function() {
-		var matrix = new Matrix4();
+	transform: function(pos, scale, rot) {
+		var rotMatrix = rot.toMatrix4(_mat4_1);
 
-		return function(pos, scale, rot) {
-			var rotMatrix = rot.toMatrix4(matrix);
+		var rele = rotMatrix.elements;
+		var ele = this.elements;
 
-			var rele = rotMatrix.elements;
-			var ele = this.elements;
+		ele[0] = rele[0] * scale.x;
+		ele[1] = rele[1] * scale.x;
+		ele[2] = rele[2] * scale.x;
+		ele[3] = 0;
 
-			ele[0] = rele[0] * scale.x;
-			ele[1] = rele[1] * scale.x;
-			ele[2] = rele[2] * scale.x;
-			ele[3] = 0;
+		ele[4] = rele[4] * scale.y;
+		ele[5] = rele[5] * scale.y;
+		ele[6] = rele[6] * scale.y;
+		ele[7] = 0;
 
-			ele[4] = rele[4] * scale.y;
-			ele[5] = rele[5] * scale.y;
-			ele[6] = rele[6] * scale.y;
-			ele[7] = 0;
+		ele[8] = rele[8] * scale.z;
+		ele[9] = rele[9] * scale.z;
+		ele[10] = rele[10] * scale.z;
+		ele[11] = 0;
 
-			ele[8] = rele[8] * scale.z;
-			ele[9] = rele[9] * scale.z;
-			ele[10] = rele[10] * scale.z;
-			ele[11] = 0;
+		ele[12] = pos.x;
+		ele[13] = pos.y;
+		ele[14] = pos.z;
+		ele[15] = 1;
 
-			ele[12] = pos.x;
-			ele[13] = pos.y;
-			ele[14] = pos.z;
-			ele[15] = 1;
-
-			return this;
-		}
-	}(),
+		return this;
+	},
 
 	/**
      *
@@ -357,9 +358,9 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 		var te = this.elements;
 		var me = m.elements;
 
-		var scaleX = 1 / _v1.setFromMatrixColumn(m, 0).getLength();
-		var scaleY = 1 / _v1.setFromMatrixColumn(m, 1).getLength();
-		var scaleZ = 1 / _v1.setFromMatrixColumn(m, 2).getLength();
+		var scaleX = 1 / _vec3_1.setFromMatrixColumn(m, 0).getLength();
+		var scaleY = 1 / _vec3_1.setFromMatrixColumn(m, 1).getLength();
+		var scaleZ = 1 / _vec3_1.setFromMatrixColumn(m, 2).getLength();
 
 		te[0] = me[0] * scaleX;
 		te[1] = me[1] * scaleX;
@@ -387,101 +388,90 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 	/**
      * @method
      */
-	lookAtRH: function() {
-		var x = new Vector3();
-		var y = new Vector3();
-		var z = new Vector3();
+	lookAtRH: function(eye, target, up) {
+		var te = this.elements;
 
-		return function lookAtRH(eye, target, up) {
-			var te = this.elements;
+		_z.subVectors(eye, target);
 
-			z.subVectors(eye, target);
+		if (_z.getLengthSquared() === 0) {
+			// eye and target are in the same position
 
-			if (z.getLengthSquared() === 0) {
-				// eye and target are in the same position
-
-				z.z = 1;
-			}
-
-			z.normalize();
-			x.crossVectors(up, z);
-
-			if (x.getLengthSquared() === 0) {
-				// up and z are parallel
-
-				if (Math.abs(up.z) === 1) {
-					z.x += 0.0001;
-				} else {
-					z.z += 0.0001;
-				}
-
-				z.normalize();
-				x.crossVectors(up, z);
-			}
-
-			x.normalize();
-			y.crossVectors(z, x);
-
-			te[0] = x.x; te[4] = y.x; te[8] = z.x;
-			te[1] = x.y; te[5] = y.y; te[9] = z.y;
-			te[2] = x.z; te[6] = y.z; te[10] = z.z;
-
-			return this;
+			_z.z = 1;
 		}
-	}(),
+
+		_z.normalize();
+		_x.crossVectors(up, _z);
+
+		if (_x.getLengthSquared() === 0) {
+			// up and z are parallel
+
+			if (Math.abs(up.z) === 1) {
+				_z.x += 0.0001;
+			} else {
+				_z.z += 0.0001;
+			}
+
+			_z.normalize();
+			_x.crossVectors(up, _z);
+		}
+
+		_x.normalize();
+		_y.crossVectors(_z, _x);
+
+		te[0] = _x.x; te[4] = _y.x; te[8] = _z.x;
+		te[1] = _x.y; te[5] = _y.y; te[9] = _z.y;
+		te[2] = _x.z; te[6] = _y.z; te[10] = _z.z;
+
+		return this;
+	},
 
 	/**
      * @method
      */
-	decompose: function() {
-		var vector = new Vector3(), matrix = new Matrix4();
+	decompose: function(position, quaternion, scale) {
+		var te = this.elements;
 
-		return function(position, quaternion, scale) {
-			var te = this.elements;
+		var sx = _vec3_1.set(te[0], te[1], te[2]).getLength();
+		var sy = _vec3_1.set(te[4], te[5], te[6]).getLength();
+		var sz = _vec3_1.set(te[8], te[9], te[10]).getLength();
 
-			var sx = vector.set(te[0], te[1], te[2]).getLength();
-			var sy = vector.set(te[4], te[5], te[6]).getLength();
-			var sz = vector.set(te[8], te[9], te[10]).getLength();
-
-			// if determine is negative, we need to invert one scale
-			var det = this.determinant();
-			if (det < 0) {
-				sx = -sx;
-			}
-
-			position.x = te[12];
-			position.y = te[13];
-			position.z = te[14];
-
-			// scale the rotation part
-
-			matrix.elements.set(this.elements); // at this point matrix is incomplete so we can't use .copy()
-
-			var invSX = 1 / sx;
-			var invSY = 1 / sy;
-			var invSZ = 1 / sz;
-
-			matrix.elements[0] *= invSX;
-			matrix.elements[1] *= invSX;
-			matrix.elements[2] *= invSX;
-
-			matrix.elements[4] *= invSY;
-			matrix.elements[5] *= invSY;
-			matrix.elements[6] *= invSY;
-
-			matrix.elements[8] *= invSZ;
-			matrix.elements[9] *= invSZ;
-			matrix.elements[10] *= invSZ;
-
-			quaternion.setFromRotationMatrix(matrix);
-
-			scale.x = sx;
-			scale.y = sy;
-			scale.z = sz;
-
-			return this;
+		// if determine is negative, we need to invert one scale
+		var det = this.determinant();
+		if (det < 0) {
+			sx = -sx;
 		}
-	}(),
+
+		position.x = te[12];
+		position.y = te[13];
+		position.z = te[14];
+
+		// scale the rotation part
+		_mat4_1.copy(this);
+
+		var invSX = 1 / sx;
+		var invSY = 1 / sy;
+		var invSZ = 1 / sz;
+
+		_mat4_1.elements[0] *= invSX;
+		_mat4_1.elements[1] *= invSX;
+		_mat4_1.elements[2] *= invSX;
+
+		_mat4_1.elements[4] *= invSY;
+		_mat4_1.elements[5] *= invSY;
+		_mat4_1.elements[6] *= invSY;
+
+		_mat4_1.elements[8] *= invSZ;
+		_mat4_1.elements[9] *= invSZ;
+		_mat4_1.elements[10] *= invSZ;
+
+		quaternion.setFromRotationMatrix(_mat4_1);
+
+		scale.x = sx;
+		scale.y = sy;
+		scale.z = sz;
+
+		return this;
+	},
 
 	/**
      * @method

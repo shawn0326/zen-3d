@@ -1,5 +1,15 @@
-
 import { Vector3 } from './Vector3.js';
+
+var _points = [
+	new Vector3(),
+	new Vector3(),
+	new Vector3(),
+	new Vector3(),
+	new Vector3(),
+	new Vector3(),
+	new Vector3(),
+	new Vector3()
+];
 
 /**
  * @constructor
@@ -135,37 +145,24 @@ Object.assign(Box3.prototype, /** @lends zen3d.Box3.prototype */{
 	/**
      * @method
      */
-	applyMatrix4: function() {
-		var points = [
-			new Vector3(),
-			new Vector3(),
-			new Vector3(),
-			new Vector3(),
-			new Vector3(),
-			new Vector3(),
-			new Vector3(),
-			new Vector3()
-		];
+	applyMatrix4: function(matrix) {
+		// transform of empty box is an empty box.
+		if (this.isEmpty()) return this;
 
-		return function applyMatrix4(matrix) {
-			// transform of empty box is an empty box.
-			if (this.isEmpty()) return this;
+		// NOTE: I am using a binary pattern to specify all 2^3 combinations below
+		_points[0].set(this.min.x, this.min.y, this.min.z).applyMatrix4(matrix); // 000
+		_points[1].set(this.min.x, this.min.y, this.max.z).applyMatrix4(matrix); // 001
+		_points[2].set(this.min.x, this.max.y, this.min.z).applyMatrix4(matrix); // 010
+		_points[3].set(this.min.x, this.max.y, this.max.z).applyMatrix4(matrix); // 011
+		_points[4].set(this.max.x, this.min.y, this.min.z).applyMatrix4(matrix); // 100
+		_points[5].set(this.max.x, this.min.y, this.max.z).applyMatrix4(matrix); // 101
+		_points[6].set(this.max.x, this.max.y, this.min.z).applyMatrix4(matrix); // 110
+		_points[7].set(this.max.x, this.max.y, this.max.z).applyMatrix4(matrix); // 111
 
-			// NOTE: I am using a binary pattern to specify all 2^3 combinations below
-			points[0].set(this.min.x, this.min.y, this.min.z).applyMatrix4(matrix); // 000
-			points[1].set(this.min.x, this.min.y, this.max.z).applyMatrix4(matrix); // 001
-			points[2].set(this.min.x, this.max.y, this.min.z).applyMatrix4(matrix); // 010
-			points[3].set(this.min.x, this.max.y, this.max.z).applyMatrix4(matrix); // 011
-			points[4].set(this.max.x, this.min.y, this.min.z).applyMatrix4(matrix); // 100
-			points[5].set(this.max.x, this.min.y, this.max.z).applyMatrix4(matrix); // 101
-			points[6].set(this.max.x, this.max.y, this.min.z).applyMatrix4(matrix); // 110
-			points[7].set(this.max.x, this.max.y, this.max.z).applyMatrix4(matrix); // 111
+		this.setFromPoints(_points);
 
-			this.setFromPoints(points);
-
-			return this;
-		};
-	}(),
+		return this;
+	},
 
 	/**
      *

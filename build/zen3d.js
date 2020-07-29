@@ -5,6 +5,11 @@
 	(global = global || self, factory(global.zen3d = {}));
 }(this, (function (exports) { 'use strict';
 
+	var _lut = [];
+	for (var i = 0; i < 256; i++) {
+		_lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
+	}
+
 	/**
 	 * Method for generate uuid.
 	 * ( http://www.broofa.com/Tools/Math.uuid.htm )
@@ -12,28 +17,21 @@
 	 * @name zen3d.generateUUID
 	 * @return {string} - The uuid.
 	 */
-	var generateUUID = (function () {
-		var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
-		var uuid = new Array(36);
-		var rnd = 0, r;
+	function generateUUID() {
+		// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
 
-		return function generateUUID() {
-			for (var i = 0; i < 36; i++) {
-				if (i === 8 || i === 13 || i === 18 || i === 23) {
-					uuid[i] = '-';
-				} else if (i === 14) {
-					uuid[i] = '4';
-				} else {
-					if (rnd <= 0x02) { rnd = 0x2000000 + (Math.random() * 0x1000000) | 0; }
-					r = rnd & 0xf;
-					rnd = rnd >> 4;
-					uuid[i] = chars[(i === 19) ? (r & 0x3) | 0x8 : r];
-				}
-			}
+		var d0 = Math.random() * 0xffffffff | 0;
+		var d1 = Math.random() * 0xffffffff | 0;
+		var d2 = Math.random() * 0xffffffff | 0;
+		var d3 = Math.random() * 0xffffffff | 0;
+		var uuid = _lut[d0 & 0xff] + _lut[d0 >> 8 & 0xff] + _lut[d0 >> 16 & 0xff] + _lut[d0 >> 24 & 0xff] + '-' +
+			_lut[d1 & 0xff] + _lut[d1 >> 8 & 0xff] + '-' + _lut[d1 >> 16 & 0x0f | 0x40] + _lut[d1 >> 24 & 0xff] + '-' +
+			_lut[d2 & 0x3f | 0x80] + _lut[d2 >> 8 & 0xff] + '-' + _lut[d2 >> 16 & 0xff] + _lut[d2 >> 24 & 0xff] +
+			_lut[d3 & 0xff] + _lut[d3 >> 8 & 0xff] + _lut[d3 >> 16 & 0xff] + _lut[d3 >> 24 & 0xff];
 
-			return uuid.join('');
-		};
-	})();
+		// .toUpperCase() here flattens concatenated strings to save heap memory space.
+		return uuid.toUpperCase();
+	}
 
 	/**
 	 * Is this number a power of two.
@@ -1041,6 +1039,13 @@
 
 	});
 
+	var _vec3_1 = new Vector3();
+
+	var _diff = new Vector3();
+	var _edge1 = new Vector3();
+	var _edge2 = new Vector3();
+	var _normal = new Vector3();
+
 	/**
 	 * @constructor
 	 * @memberof zen3d
@@ -1074,41 +1079,37 @@
 		/**
 	     * @method
 	     */
-		intersectsSphere: function() {
-			var v1 = new Vector3();
+		intersectsSphere: function(sphere, optionalTarget) {
+			_vec3_1.subVectors(sphere.center, this.origin);
+			var tca = _vec3_1.dot(this.direction);
+			var d2 = _vec3_1.dot(_vec3_1) - tca * tca;
+			var radius2 = sphere.radius * sphere.radius;
+			if (d2 > radius2) {
+				return null;
+			}
 
-			return function intersectSphere(sphere, optionalTarget) {
-				v1.subVectors(sphere.center, this.origin);
-				var tca = v1.dot(this.direction);
-				var d2 = v1.dot(v1) - tca * tca;
-				var radius2 = sphere.radius * sphere.radius;
-				if (d2 > radius2) {
-					return null;
-				}
+			var thc = Math.sqrt(radius2 - d2);
 
-				var thc = Math.sqrt(radius2 - d2);
+			// t0 = first intersect point - entrance on front of sphere
+			var t0 = tca - thc;
 
-				// t0 = first intersect point - entrance on front of sphere
-				var t0 = tca - thc;
+			// t1 = second intersect point - exit point on back of sphere
+			var t1 = tca + thc;
+			// console.log(t0, t1);
+			// test to see if both t0 and t1 are behind the ray - if so, return null
+			if (t0 < 0 && t1 < 0) {
+				return null;
+			}
+			// test to see if t0 is behind the ray:
+			// if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
+			// in order to always return an intersect point that is in front of the ray.
+			if (t0 < 0) {
+				return this.at(t1, optionalTarget);
+			}
 
-				// t1 = second intersect point - exit point on back of sphere
-				var t1 = tca + thc;
-				// console.log(t0, t1);
-				// test to see if both t0 and t1 are behind the ray - if so, return null
-				if (t0 < 0 && t1 < 0) {
-					return null;
-				}
-				// test to see if t0 is behind the ray:
-				// if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
-				// in order to always return an intersect point that is in front of the ray.
-				if (t0 < 0) {
-					return this.at(t1, optionalTarget);
-				}
-
-				// else t0 is in front of the ray, so return the first collision point scaled by t0
-				return this.at(t0, optionalTarget);
-			};
-		}(),
+			// else t0 is in front of the ray, so return the first collision point scaled by t0
+			return this.at(t0, optionalTarget);
+		},
 
 		/**
 	     *
@@ -1171,69 +1172,63 @@
 		/**
 	     * @method
 	     */
-		intersectTriangle: function() {
+		intersectTriangle: function(a, b, c, backfaceCulling, optionalTarget) {
 			// Compute the offset origin, edges, and normal.
-			var diff = new Vector3();
-			var edge1 = new Vector3();
-			var edge2 = new Vector3();
-			var normal = new Vector3();
 
-			return function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
-				// from http://www.geometrictools.com/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
+			// from http://www.geometrictools.com/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
 
-				edge1.subVectors(b, a);
-				edge2.subVectors(c, a);
-				normal.crossVectors(edge1, edge2);
+			_edge1.subVectors(b, a);
+			_edge2.subVectors(c, a);
+			_normal.crossVectors(_edge1, _edge2);
 
-				// Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
-				// E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
-				//   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
-				//   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
-				//   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
-				var DdN = this.direction.dot(normal);
-				var sign;
-				if (DdN > 0) {
-					if (backfaceCulling) { return null; }
-					sign = 1;
-				} else if (DdN < 0) {
-					sign = -1;
-					DdN = -DdN;
-				} else {
-					return null;
-				}
-
-				diff.subVectors(this.origin, a);
-				var DdQxE2 = sign * this.direction.dot(edge2.crossVectors(diff, edge2));
-
-				// b1 < 0, no intersection
-				if (DdQxE2 < 0) {
-					return null;
-				}
-
-				var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
-
-				// b2 < 0, no intersection
-				if (DdE1xQ < 0) {
-					return null;
-				}
-
-				// b1+b2 > 1, no intersection
-				if (DdQxE2 + DdE1xQ > DdN) {
-					return null;
-				}
-
-				// Line intersects triangle, check if ray does.
-				var QdN = -sign * diff.dot(normal);
-
-				// t < 0, no intersection
-				if (QdN < 0) {
-					return null;
-				}
-
-				// Ray intersects triangle.
-				return this.at(QdN / DdN, optionalTarget);
+			// Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
+			// E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
+			//   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
+			//   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
+			//   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
+			var DdN = this.direction.dot(_normal);
+			var sign;
+			if (DdN > 0) {
+				if (backfaceCulling) { return null; }
+				sign = 1;
+			} else if (DdN < 0) {
+				sign = -1;
+				DdN = -DdN;
+			} else {
+				return null;
 			}
-		}(),
+
+			_diff.subVectors(this.origin, a);
+			var DdQxE2 = sign * this.direction.dot(_edge2.crossVectors(_diff, _edge2));
+
+			// b1 < 0, no intersection
+			if (DdQxE2 < 0) {
+				return null;
+			}
+
+			var DdE1xQ = sign * this.direction.dot(_edge1.cross(_diff));
+
+			// b2 < 0, no intersection
+			if (DdE1xQ < 0) {
+				return null;
+			}
+
+			// b1+b2 > 1, no intersection
+			if (DdQxE2 + DdE1xQ > DdN) {
+				return null;
+			}
+
+			// Line intersects triangle, check if ray does.
+			var QdN = -sign * _diff.dot(_normal);
+
+			// t < 0, no intersection
+			if (QdN < 0) {
+				return null;
+			}
+
+			// Ray intersects triangle.
+			return this.at(QdN / DdN, optionalTarget);
+		},
 
 		/**
 	     *
@@ -1378,7 +1373,12 @@
 
 	});
 
-	var _v1 = new Vector3();
+	var _vec3_1$1 = new Vector3();
+	var _mat4_1 = new Matrix4();
+
+	var _x = new Vector3();
+	var _y = new Vector3();
+	var _z = new Vector3();
 
 	/**
 	 * a 4x4 matrix class
@@ -1644,38 +1644,34 @@
 	     * Make transform from pos&scale&rotation(Quaternion).
 	     * @method
 	     */
-		transform: function() {
-			var matrix = new Matrix4();
+		transform: function(pos, scale, rot) {
+			var rotMatrix = rot.toMatrix4(_mat4_1);
 
-			return function(pos, scale, rot) {
-				var rotMatrix = rot.toMatrix4(matrix);
+			var rele = rotMatrix.elements;
+			var ele = this.elements;
 
-				var rele = rotMatrix.elements;
-				var ele = this.elements;
+			ele[0] = rele[0] * scale.x;
+			ele[1] = rele[1] * scale.x;
+			ele[2] = rele[2] * scale.x;
+			ele[3] = 0;
 
-				ele[0] = rele[0] * scale.x;
-				ele[1] = rele[1] * scale.x;
-				ele[2] = rele[2] * scale.x;
-				ele[3] = 0;
+			ele[4] = rele[4] * scale.y;
+			ele[5] = rele[5] * scale.y;
+			ele[6] = rele[6] * scale.y;
+			ele[7] = 0;
 
-				ele[4] = rele[4] * scale.y;
-				ele[5] = rele[5] * scale.y;
-				ele[6] = rele[6] * scale.y;
-				ele[7] = 0;
+			ele[8] = rele[8] * scale.z;
+			ele[9] = rele[9] * scale.z;
+			ele[10] = rele[10] * scale.z;
+			ele[11] = 0;
 
-				ele[8] = rele[8] * scale.z;
-				ele[9] = rele[9] * scale.z;
-				ele[10] = rele[10] * scale.z;
-				ele[11] = 0;
+			ele[12] = pos.x;
+			ele[13] = pos.y;
+			ele[14] = pos.z;
+			ele[15] = 1;
 
-				ele[12] = pos.x;
-				ele[13] = pos.y;
-				ele[14] = pos.z;
-				ele[15] = 1;
-
-				return this;
-			}
-		}(),
+			return this;
+		},
 
 		/**
 	     *
@@ -1735,9 +1731,9 @@
 			var te = this.elements;
 			var me = m.elements;
 
-			var scaleX = 1 / _v1.setFromMatrixColumn(m, 0).getLength();
-			var scaleY = 1 / _v1.setFromMatrixColumn(m, 1).getLength();
-			var scaleZ = 1 / _v1.setFromMatrixColumn(m, 2).getLength();
+			var scaleX = 1 / _vec3_1$1.setFromMatrixColumn(m, 0).getLength();
+			var scaleY = 1 / _vec3_1$1.setFromMatrixColumn(m, 1).getLength();
+			var scaleZ = 1 / _vec3_1$1.setFromMatrixColumn(m, 2).getLength();
 
 			te[0] = me[0] * scaleX;
 			te[1] = me[1] * scaleX;
@@ -1765,101 +1761,90 @@
 		/**
 	     * @method
 	     */
-		lookAtRH: function() {
-			var x = new Vector3();
-			var y = new Vector3();
-			var z = new Vector3();
+		lookAtRH: function(eye, target, up) {
+			var te = this.elements;
 
-			return function lookAtRH(eye, target, up) {
-				var te = this.elements;
+			_z.subVectors(eye, target);
 
-				z.subVectors(eye, target);
+			if (_z.getLengthSquared() === 0) {
+				// eye and target are in the same position
 
-				if (z.getLengthSquared() === 0) {
-					// eye and target are in the same position
-
-					z.z = 1;
-				}
-
-				z.normalize();
-				x.crossVectors(up, z);
-
-				if (x.getLengthSquared() === 0) {
-					// up and z are parallel
-
-					if (Math.abs(up.z) === 1) {
-						z.x += 0.0001;
-					} else {
-						z.z += 0.0001;
-					}
-
-					z.normalize();
-					x.crossVectors(up, z);
-				}
-
-				x.normalize();
-				y.crossVectors(z, x);
-
-				te[0] = x.x; te[4] = y.x; te[8] = z.x;
-				te[1] = x.y; te[5] = y.y; te[9] = z.y;
-				te[2] = x.z; te[6] = y.z; te[10] = z.z;
-
-				return this;
+				_z.z = 1;
 			}
-		}(),
+
+			_z.normalize();
+			_x.crossVectors(up, _z);
+
+			if (_x.getLengthSquared() === 0) {
+				// up and z are parallel
+
+				if (Math.abs(up.z) === 1) {
+					_z.x += 0.0001;
+				} else {
+					_z.z += 0.0001;
+				}
+
+				_z.normalize();
+				_x.crossVectors(up, _z);
+			}
+
+			_x.normalize();
+			_y.crossVectors(_z, _x);
+
+			te[0] = _x.x; te[4] = _y.x; te[8] = _z.x;
+			te[1] = _x.y; te[5] = _y.y; te[9] = _z.y;
+			te[2] = _x.z; te[6] = _y.z; te[10] = _z.z;
+
+			return this;
+		},
 
 		/**
 	     * @method
 	     */
-		decompose: function() {
-			var vector = new Vector3(), matrix = new Matrix4();
+		decompose: function(position, quaternion, scale) {
+			var te = this.elements;
 
-			return function(position, quaternion, scale) {
-				var te = this.elements;
+			var sx = _vec3_1$1.set(te[0], te[1], te[2]).getLength();
+			var sy = _vec3_1$1.set(te[4], te[5], te[6]).getLength();
+			var sz = _vec3_1$1.set(te[8], te[9], te[10]).getLength();
 
-				var sx = vector.set(te[0], te[1], te[2]).getLength();
-				var sy = vector.set(te[4], te[5], te[6]).getLength();
-				var sz = vector.set(te[8], te[9], te[10]).getLength();
-
-				// if determine is negative, we need to invert one scale
-				var det = this.determinant();
-				if (det < 0) {
-					sx = -sx;
-				}
-
-				position.x = te[12];
-				position.y = te[13];
-				position.z = te[14];
-
-				// scale the rotation part
-
-				matrix.elements.set(this.elements); // at this point matrix is incomplete so we can't use .copy()
-
-				var invSX = 1 / sx;
-				var invSY = 1 / sy;
-				var invSZ = 1 / sz;
-
-				matrix.elements[0] *= invSX;
-				matrix.elements[1] *= invSX;
-				matrix.elements[2] *= invSX;
-
-				matrix.elements[4] *= invSY;
-				matrix.elements[5] *= invSY;
-				matrix.elements[6] *= invSY;
-
-				matrix.elements[8] *= invSZ;
-				matrix.elements[9] *= invSZ;
-				matrix.elements[10] *= invSZ;
-
-				quaternion.setFromRotationMatrix(matrix);
-
-				scale.x = sx;
-				scale.y = sy;
-				scale.z = sz;
-
-				return this;
+			// if determine is negative, we need to invert one scale
+			var det = this.determinant();
+			if (det < 0) {
+				sx = -sx;
 			}
-		}(),
+
+			position.x = te[12];
+			position.y = te[13];
+			position.z = te[14];
+
+			// scale the rotation part
+			_mat4_1.copy(this);
+
+			var invSX = 1 / sx;
+			var invSY = 1 / sy;
+			var invSZ = 1 / sz;
+
+			_mat4_1.elements[0] *= invSX;
+			_mat4_1.elements[1] *= invSX;
+			_mat4_1.elements[2] *= invSX;
+
+			_mat4_1.elements[4] *= invSY;
+			_mat4_1.elements[5] *= invSY;
+			_mat4_1.elements[6] *= invSY;
+
+			_mat4_1.elements[8] *= invSZ;
+			_mat4_1.elements[9] *= invSZ;
+			_mat4_1.elements[10] *= invSZ;
+
+			quaternion.setFromRotationMatrix(_mat4_1);
+
+			scale.x = sx;
+			scale.y = sy;
+			scale.z = sz;
+
+			return this;
+		},
 
 		/**
 	     * @method
@@ -1979,6 +1964,8 @@
 		}
 
 	});
+
+	var _matrix = new Matrix4();
 
 	/**
 	 * a Euler class
@@ -2156,15 +2143,10 @@
 		/**
 	     *
 	     */
-		setFromQuaternion: function() {
-			var matrix = new Matrix4();
-
-			return function(q, order, update) {
-				q.toMatrix4(matrix);
-
-				return this.setFromRotationMatrix(matrix, order, update);
-			};
-		}(),
+		setFromQuaternion: function(q, order, update) {
+			q.toMatrix4(_matrix);
+			return this.setFromRotationMatrix(_matrix, order, update);
+		},
 
 		onChange: function(callback) {
 			this.onChangeCallback = callback;
@@ -3103,41 +3085,40 @@
 		/**
 	     * @method
 	     */
-		setFromUnitVectors: function () {
+		setFromUnitVectors: function (vFrom, vTo) {
 			// http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
 
 			// assumes direction vectors vFrom and vTo are normalized
 
-			var v1 = new Vector3();
-			var r;
-
 			var EPS = 0.000001;
 
-			return function setFromUnitVectors(vFrom, vTo) {
-				if (v1 === undefined) { v1 = new Vector3(); }
+			var r = vFrom.dot(vTo) + 1;
 
-				r = vFrom.dot(vTo) + 1;
+			if (r < EPS) {
+				r = 0;
 
-				if (r < EPS) {
-					r = 0;
-
-					if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
-						v1.set(-vFrom.y, vFrom.x, 0);
-					} else {
-						v1.set(0, -vFrom.z, vFrom.y);
-					}
+				if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
+					this._x = -vFrom.y;
+					this._y = vFrom.x;
+					this._z = 0;
+					this._w = r;
 				} else {
-					v1.crossVectors(vFrom, vTo);
+					this._x = 0;
+					this._y = -vFrom.z;
+					this._z = vFrom.y;
+					this._w = r;
 				}
+			} else {
+				// crossVectors( vFrom, vTo ); // inlined to avoid cyclic dependency on Vector3
 
-				this._x = v1.x;
-				this._y = v1.y;
-				this._z = v1.z;
+				this._x = vFrom.y * vTo.z - vFrom.z * vTo.y;
+				this._y = vFrom.z * vTo.x - vFrom.x * vTo.z;
+				this._z = vFrom.x * vTo.y - vFrom.y * vTo.x;
 				this._w = r;
+			}
 
-				return this.normalize();
-			};
-		}(),
+			return this.normalize();
+		},
 
 		/**
 	     *
@@ -3368,6 +3349,17 @@
 
 	});
 
+	var _points = [
+		new Vector3(),
+		new Vector3(),
+		new Vector3(),
+		new Vector3(),
+		new Vector3(),
+		new Vector3(),
+		new Vector3(),
+		new Vector3()
+	];
+
 	/**
 	 * @constructor
 	 * @memberof zen3d
@@ -3502,37 +3494,24 @@
 		/**
 	     * @method
 	     */
-		applyMatrix4: function() {
-			var points = [
-				new Vector3(),
-				new Vector3(),
-				new Vector3(),
-				new Vector3(),
-				new Vector3(),
-				new Vector3(),
-				new Vector3(),
-				new Vector3()
-			];
+		applyMatrix4: function(matrix) {
+			// transform of empty box is an empty box.
+			if (this.isEmpty()) { return this; }
 
-			return function applyMatrix4(matrix) {
-				// transform of empty box is an empty box.
-				if (this.isEmpty()) { return this; }
+			// NOTE: I am using a binary pattern to specify all 2^3 combinations below
+			_points[0].set(this.min.x, this.min.y, this.min.z).applyMatrix4(matrix); // 000
+			_points[1].set(this.min.x, this.min.y, this.max.z).applyMatrix4(matrix); // 001
+			_points[2].set(this.min.x, this.max.y, this.min.z).applyMatrix4(matrix); // 010
+			_points[3].set(this.min.x, this.max.y, this.max.z).applyMatrix4(matrix); // 011
+			_points[4].set(this.max.x, this.min.y, this.min.z).applyMatrix4(matrix); // 100
+			_points[5].set(this.max.x, this.min.y, this.max.z).applyMatrix4(matrix); // 101
+			_points[6].set(this.max.x, this.max.y, this.min.z).applyMatrix4(matrix); // 110
+			_points[7].set(this.max.x, this.max.y, this.max.z).applyMatrix4(matrix); // 111
 
-				// NOTE: I am using a binary pattern to specify all 2^3 combinations below
-				points[0].set(this.min.x, this.min.y, this.min.z).applyMatrix4(matrix); // 000
-				points[1].set(this.min.x, this.min.y, this.max.z).applyMatrix4(matrix); // 001
-				points[2].set(this.min.x, this.max.y, this.min.z).applyMatrix4(matrix); // 010
-				points[3].set(this.min.x, this.max.y, this.max.z).applyMatrix4(matrix); // 011
-				points[4].set(this.max.x, this.min.y, this.min.z).applyMatrix4(matrix); // 100
-				points[5].set(this.max.x, this.min.y, this.max.z).applyMatrix4(matrix); // 101
-				points[6].set(this.max.x, this.max.y, this.min.z).applyMatrix4(matrix); // 110
-				points[7].set(this.max.x, this.max.y, this.max.z).applyMatrix4(matrix); // 111
+			this.setFromPoints(_points);
 
-				this.setFromPoints(points);
-
-				return this;
-			};
-		}(),
+			return this;
+		},
 
 		/**
 	     *
@@ -3545,6 +3524,9 @@
 		}
 
 	});
+
+	var _box3_1 = new Box3();
+	var _vec3_1$2 = new Vector3();
 
 	/**
 	 * @constructor
@@ -3572,34 +3554,24 @@
 		/**
 	     * @method
 	     */
-		setFromArray: function() {
-			var box = new Box3();
-			var point = new Vector3();
+		setFromArray: function(array, gap) {
+			var _gap = (gap !== undefined ? gap : 3);
 
-			return function setFromArray(array, gap) {
-				var _gap = (gap !== undefined ? gap : 3);
+			var center = this.center;
 
-				var center = this.center;
+			_box3_1.setFromArray(array, _gap).getCenter(center);
 
-				box.setFromArray(array, _gap).getCenter(center);
+			var maxRadiusSq = 0;
 
-				var maxRadiusSq = 0;
-
-				for (var i = 0, l = array.length; i < l; i += _gap) {
-					var x = array[i];
-					var y = array[i + 1];
-					var z = array[i + 2];
-
-					point.set(x, y, z);
-
-					maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(point));
-				}
-
-				this.radius = Math.sqrt(maxRadiusSq);
-
-				return this;
+			for (var i = 0, l = array.length; i < l; i += _gap) {
+				_vec3_1$2.fromArray(array, i);
+				maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_vec3_1$2));
 			}
-		}(),
+
+			this.radius = Math.sqrt(maxRadiusSq);
+
+			return this;
+		},
 
 		/**
 	     *
@@ -3641,6 +3613,9 @@
 		}
 
 	});
+
+	var _vec3_1$3 = new Vector3();
+	var _mat4_1$1 = new Matrix3();
 
 	/**
 	 * @constructor
@@ -3726,24 +3701,21 @@
 		/**
 	     * @method
 	     */
-		applyMatrix4: function() {
-			var v1 = new Vector3();
-			var m1 = new Matrix3();
+		applyMatrix4: function(matrix, optionalNormalMatrix) {
+			var normalMatrix = optionalNormalMatrix || _mat4_1$1.setFromMatrix4(matrix).inverse().transpose();
 
-			return function applyMatrix4(matrix, optionalNormalMatrix) {
-				var normalMatrix = optionalNormalMatrix || m1.setFromMatrix4(matrix).inverse().transpose();
+			var referencePoint = this.coplanarPoint(_vec3_1$3).applyMatrix4(matrix);
 
-				var referencePoint = this.coplanarPoint(v1).applyMatrix4(matrix);
+			var normal = this.normal.applyMatrix3(normalMatrix).normalize();
 
-				var normal = this.normal.applyMatrix3(normalMatrix).normalize();
+			this.constant = -referencePoint.dot(normal);
 
-				this.constant = -referencePoint.dot(normal);
-
-				return this;
-			}
-		}()
+			return this;
+		}
 
 	});
+
+	var _vec3_1$4 = new Vector3();
 
 	/**
 	 * @constructor
@@ -3827,36 +3799,27 @@
 			return true;
 		},
 
-		intersectsBox: function() {
-			var p1 = new Vector3();
-			var p2 = new Vector3();
+		intersectsBox: function(box) {
+			var planes = this.planes;
 
-			return function intersectsBox(box) {
-				var planes = this.planes;
+			for (var i = 0; i < 6; i++) {
+				var plane = planes[i];
 
-				for (var i = 0; i < 6; i++) {
-					var plane = planes[i];
+				// corner at max distance
 
-					p1.x = plane.normal.x > 0 ? box.min.x : box.max.x;
-					p2.x = plane.normal.x > 0 ? box.max.x : box.min.x;
-					p1.y = plane.normal.y > 0 ? box.min.y : box.max.y;
-					p2.y = plane.normal.y > 0 ? box.max.y : box.min.y;
-					p1.z = plane.normal.z > 0 ? box.min.z : box.max.z;
-					p2.z = plane.normal.z > 0 ? box.max.z : box.min.z;
+				_vec3_1$4.x = plane.normal.x > 0 ? box.max.x : box.min.x;
+				_vec3_1$4.y = plane.normal.y > 0 ? box.max.y : box.min.y;
+				_vec3_1$4.z = plane.normal.z > 0 ? box.max.z : box.min.z;
 
-					var d1 = plane.distanceToPoint(p1);
-					var d2 = plane.distanceToPoint(p2);
+				// if both outside plane, no intersection
 
-					// if both outside plane, no intersection
-
-					if (d1 < 0 && d2 < 0) {
-						return false;
-					}
+				if (plane.distanceToPoint(_vec3_1$4) < 0) {
+					return false;
 				}
-
-				return true;
 			}
-		}(),
+
+			return true;
+		},
 
 		clone: function () {
 			return new this.constructor().copy(this);
@@ -3891,6 +3854,19 @@
 		}
 
 		return this.setRGB(r, g, b);
+	}
+
+	function euclideanModulo(n, m) {
+		return ((n % m) + m) % m;
+	}
+
+	function hue2rgb(p, q, t) {
+		if (t < 0) { t += 1; }
+		if (t > 1) { t -= 1; }
+		if (t < 1 / 6) { return p + (q - p) * 6 * t; }
+		if (t < 1 / 2) { return q; }
+		if (t < 2 / 3) { return p + (q - p) * 6 * (2 / 3 - t); }
+		return p;
 	}
 
 	Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
@@ -3949,39 +3925,24 @@
 		/**
 	     * Set from HSL.
 	     */
-		setHSL: function() {
-			function euclideanModulo(n, m) {
-				return ((n % m) + m) % m;
+		setHSL: function(h, s, l) {
+			// h,s,l ranges are in 0.0 - 1.0
+			h = euclideanModulo(h, 1);
+			s = Math.max(0, Math.min(1, s));
+			l = Math.max(0, Math.min(1, l));
+
+			if (s === 0) {
+				this.r = this.g = this.b = l;
+			} else {
+				var p = l <= 0.5 ? l * (1 + s) : l + s - (l * s);
+				var q = (2 * l) - p;
+
+				this.r = hue2rgb(q, p, h + 1 / 3);
+				this.g = hue2rgb(q, p, h);
+				this.b = hue2rgb(q, p, h - 1 / 3);
 			}
-
-			function hue2rgb(p, q, t) {
-				if (t < 0) { t += 1; }
-				if (t > 1) { t -= 1; }
-				if (t < 1 / 6) { return p + (q - p) * 6 * t; }
-				if (t < 1 / 2) { return q; }
-				if (t < 2 / 3) { return p + (q - p) * 6 * (2 / 3 - t); }
-				return p;
-			}
-
-			return function setHSL(h, s, l) {
-				// h,s,l ranges are in 0.0 - 1.0
-				h = euclideanModulo(h, 1);
-				s = Math.max(0, Math.min(1, s));
-				l = Math.max(0, Math.min(1, l));
-
-				if (s === 0) {
-					this.r = this.g = this.b = l;
-				} else {
-					var p = l <= 0.5 ? l * (1 + s) : l + s - (l * s);
-					var q = (2 * l) - p;
-
-					this.r = hue2rgb(q, p, h + 1 / 3);
-					this.g = hue2rgb(q, p, h);
-					this.b = hue2rgb(q, p, h - 1 / 3);
-				}
-				return this;
-			};
-		}(),
+			return this;
+		},
 
 		/**
 	     *
@@ -4011,6 +3972,11 @@
 		}
 
 	});
+
+	var _v0 = new Vector3();
+	var _v1 = new Vector3();
+	var _v2 = new Vector3();
+	var _v3 = new Vector3();
 
 	/**
 	 * @constructor
@@ -4043,78 +4009,68 @@
 	/**
 	 * @method
 	 */
-	Triangle.normal = function() {
-		var v0 = new Vector3();
+	Triangle.normal = function(a, b, c, optionalTarget) {
+		var result = optionalTarget || new Vector3();
 
-		return function normal(a, b, c, optionalTarget) {
-			var result = optionalTarget || new Vector3();
+		result.subVectors(c, b);
+		_v0.subVectors(a, b);
+		result.cross(_v0);
 
-			result.subVectors(c, b);
-			v0.subVectors(a, b);
-			result.cross(v0);
+		var resultLengthSq = result.getLengthSquared();
+		if (resultLengthSq > 0) {
+			return result.multiplyScalar(1 / Math.sqrt(resultLengthSq));
+		}
 
-			var resultLengthSq = result.getLengthSquared();
-			if (resultLengthSq > 0) {
-				return result.multiplyScalar(1 / Math.sqrt(resultLengthSq));
-			}
-
-			return result.set(0, 0, 0);
-		};
-	}();
+		return result.set(0, 0, 0);
+	};
 
 	/**
 	 * static/instance method to calculate barycentric coordinates.
 	 * based on: http://www.blackpawn.com/texts/pointinpoly/default.html
 	 * @method
 	 */
-	Triangle.barycoordFromPoint = function() {
-		var v0 = new Vector3();
-		var v1 = new Vector3();
-		var v2 = new Vector3();
+	Triangle.barycoordFromPoint = function(point, a, b, c, optionalTarget) {
+		_v0.subVectors(c, a);
+		_v1.subVectors(b, a);
+		_v2.subVectors(point, a);
 
-		return function barycoordFromPoint(point, a, b, c, optionalTarget) {
-			v0.subVectors(c, a);
-			v1.subVectors(b, a);
-			v2.subVectors(point, a);
+		var dot00 = _v0.dot(_v0);
+		var dot01 = _v0.dot(_v1);
+		var dot02 = _v0.dot(_v2);
+		var dot11 = _v1.dot(_v1);
+		var dot12 = _v1.dot(_v2);
 
-			var dot00 = v0.dot(v0);
-			var dot01 = v0.dot(v1);
-			var dot02 = v0.dot(v2);
-			var dot11 = v1.dot(v1);
-			var dot12 = v1.dot(v2);
+		var denom = (dot00 * dot11 - dot01 * dot01);
 
-			var denom = (dot00 * dot11 - dot01 * dot01);
+		var result = optionalTarget || new Vector3();
 
-			var result = optionalTarget || new Vector3();
+		// collinear or singular triangle
+		if (denom === 0) {
+			// arbitrary location outside of triangle?
+			// not sure if this is the best idea, maybe should be returning undefined
+			return result.set(-2, -1, -1);
+		}
 
-			// collinear or singular triangle
-			if (denom === 0) {
-				// arbitrary location outside of triangle?
-				// not sure if this is the best idea, maybe should be returning undefined
-				return result.set(-2, -1, -1);
-			}
+		var invDenom = 1 / denom;
+		var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+		var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-			var invDenom = 1 / denom;
-			var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-			var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-			// barycentric coordinates must always sum to 1
-			return result.set(1 - u - v, v, u);
-		};
-	}();
+		// barycentric coordinates must always sum to 1
+		return result.set(1 - u - v, v, u);
+	};
 
 	/**
 	 * @method
 	 */
-	Triangle.containsPoint = function() {
-		var v1 = new Vector3();
+	Triangle.containsPoint = function(point, a, b, c) {
+		Triangle.barycoordFromPoint(point, a, b, c, _v3);
+		return (_v3.x >= 0) && (_v3.y >= 0) && ((_v3.x + _v3.y) <= 1);
+	};
 
-		return function containsPoint(point, a, b, c) {
-			var result = Triangle.barycoordFromPoint(point, a, b, c, v1);
-
-			return (result.x >= 0) && (result.y >= 0) && ((result.x + result.y) <= 1);
-		};
-	}();
+	var _A0 = new Vector2();
+	var _B0 = new Vector2();
+	var _A1 = new Vector2();
+	var _B1 = new Vector2();
 
 	/**
 	 * @constructor
@@ -4150,36 +4106,29 @@
 		/**
 	     * @method
 	     */
-		calc: function () {
-			var A0 = new Vector2();
-			var B0 = new Vector2();
-			var A1 = new Vector2();
-			var B1 = new Vector2();
-
-			return function calc(t) {
-				for (var i = 0; i < this.segCount; i++) {
-					if (t >= this.posPoints[i].x && t <= this.posPoints[i + 1].x) {
-						A0.copy(this.posPoints[i]);
-						A1.copy(this.posPoints[i + 1]);
-						B0.copy(this.ctrlPoints[i]);
-						B1.copy(this.ctrlPoints[i + 1]);
-						break;
-					}
+		calc: function (t) {
+			for (var i = 0; i < this.segCount; i++) {
+				if (t >= this.posPoints[i].x && t <= this.posPoints[i + 1].x) {
+					_A0.copy(this.posPoints[i]);
+					_A1.copy(this.posPoints[i + 1]);
+					_B0.copy(this.ctrlPoints[i]);
+					_B1.copy(this.ctrlPoints[i + 1]);
+					break;
 				}
-
-				if (!A0) {
-					A0.copy(this.posPoints[this.posPoints.length - 1]);
-				}
-				if (!B0) {
-					B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
-				}
-				A1.copy(A1 || A0);
-				B1.copy(B1 || B0);
-
-				t = (t - A0.x) / (A1.x - A0.x);
-				return this._cubic_bezier(A0.y, B0.y, B1.y, A1.y, t);
 			}
-		}(),
+
+			if (!_A0) {
+				_A0.copy(this.posPoints[this.posPoints.length - 1]);
+			}
+			if (!_B0) {
+				_B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
+			}
+			_A1.copy(_A1 || _A0);
+			_B1.copy(_B1 || _B0);
+
+			t = (t - _A0.x) / (_A1.x - _A0.x);
+			return this._cubic_bezier(_A0.y, _B0.y, _B1.y, _A1.y, t);
+		},
 
 		/**
 	     * Average x sampler.
@@ -5953,7 +5902,9 @@
 
 	});
 
-	var object3DId = 0;
+	var _object3DId = 0;
+
+	var _mat4_1$2 = new Matrix4();
 
 	/**
 	 * This is the base class for most objects in zen3d
@@ -5962,7 +5913,7 @@
 	 * @memberof zen3d
 	 */
 	function Object3D() {
-		Object.defineProperty(this, 'id', { value: object3DId++ });
+		Object.defineProperty(this, 'id', { value: _object3DId++ });
 
 		/**
 	     * UUID of this object instance.
@@ -6228,21 +6179,11 @@
 	     * @param {Vector3} [optionalTarget=] — the result will be copied into this Vector3.
 	     * @return {Vector3} - the result.
 	     */
-		getWorldDirection: function() {
-			var position = new Vector3();
-			var quaternion = new Quaternion();
-			var scale = new Vector3();
-
-			return function getWorldDirection(optionalTarget) {
-				var result = optionalTarget || new Vector3();
-
-				this.worldMatrix.decompose(position, quaternion, scale);
-
-				result.set(0, 0, 1).applyQuaternion(quaternion);
-
-				return result;
-			};
-		}(),
+		getWorldDirection: function(optionalTarget) {
+			optionalTarget = optionalTarget || new Vector3();
+			var e = this.worldMatrix.elements;
+			return optionalTarget.set(e[8], e[9], e[10]).normalize();
+		},
 
 		/**
 	     * Rotates the object to face a point in local space.
@@ -6250,14 +6191,10 @@
 	     * @param {Vector3} target - A vector representing a position in local space.
 	     * @param {Vector3} up — A vector representing the up direction in local space.
 	     */
-		lookAt: function() {
-			var m = new Matrix4();
-
-			return function lookAt(target, up) {
-				m.lookAtRH(target, this.position, up);
-				this.quaternion.setFromRotationMatrix(m);
-			};
-		}(),
+		lookAt: function(target, up) {
+			_mat4_1$2.lookAtRH(target, this.position, up);
+			this.quaternion.setFromRotationMatrix(_mat4_1$2);
+		},
 
 		/**
 	     * Method to get intersections between a casted ray and this object.
@@ -6356,6 +6293,8 @@
 	Bone.prototype = Object.create(Object3D.prototype);
 	Bone.prototype.constructor = Bone;
 
+	var _offsetMatrix = new Matrix4();
+
 	/**
 	 * Use an array of bones to create a skeleton that can be used by a SkinnedMesh.
 	 * @constructor
@@ -6420,20 +6359,16 @@
 	     * @return {zen3d.Bone}
 	     */
 		updateBones: function() {
-			var offsetMatrix = new Matrix4();
-
-			return function updateBones() {
-				for (var i = 0; i < this.bones.length; i++) {
-					var bone = this.bones[i];
-					offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
-					offsetMatrix.toArray(this.boneMatrices, i * 16);
-				}
-
-				if (this.boneTexture !== undefined) {
-					this.boneTexture.version++;
-				}
+			for (var i = 0; i < this.bones.length; i++) {
+				var bone = this.bones[i];
+				_offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
+				_offsetMatrix.toArray(this.boneMatrices, i * 16);
 			}
-		}(),
+
+			if (this.boneTexture !== undefined) {
+				this.boneTexture.version++;
+			}
+		},
 
 		/**
 	     * Searches through the skeleton's bone array and returns the first with a matching name.
@@ -12329,24 +12264,23 @@
 
 	function noop() {}
 
-	var getClippingPlanesData = function() {
-		var planesData;
-		var plane = new Plane();
-		return function getClippingPlanesData(planes, camera) {
-			if (!planesData || planesData.length < planes.length * 4) {
-				planesData = new Float32Array(planes.length * 4);
-			}
+	var planesData;
+	var helpPlane = new Plane();
 
-			for (var i = 0; i < planes.length; i++) {
-				plane.copy(planes[i]);// .applyMatrix4(camera.viewMatrix);
-				planesData[i * 4 + 0] = plane.normal.x;
-				planesData[i * 4 + 1] = plane.normal.y;
-				planesData[i * 4 + 2] = plane.normal.z;
-				planesData[i * 4 + 3] = plane.constant;
-			}
-			return planesData;
+	function getClippingPlanesData(planes, camera) {
+		if (!planesData || planesData.length < planes.length * 4) {
+			planesData = new Float32Array(planes.length * 4);
 		}
-	}();
+
+		for (var i = 0; i < planes.length; i++) {
+			helpPlane.copy(planes[i]);// .applyMatrix4(camera.viewMatrix);
+			planesData[i * 4 + 0] = helpPlane.normal.x;
+			planesData[i * 4 + 1] = helpPlane.normal.y;
+			planesData[i * 4 + 2] = helpPlane.normal.z;
+			planesData[i * 4 + 3] = helpPlane.constant;
+		}
+		return planesData;
+	}
 
 	/**
 	 * Core render methods by WebGL.
@@ -12715,7 +12649,7 @@
 						uniform.set(material.scale);
 						break;
 					case "clippingPlanes":
-						var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
+						var planesData = getClippingPlanesData(scene.clippingPlanes || []);
 						uniform.set(planesData);
 						break;
 					case "uvTransform":
@@ -13153,7 +13087,7 @@
 
 	});
 
-	var _mat4_1 = new Matrix4();
+	var _mat4_1$3 = new Matrix4();
 
 	/**
 	 * The camera used for rendering a 3D scene.
@@ -13231,14 +13165,10 @@
 	     * @param {zen3d.Vector3} target - The target that the camera look at.
 	     * @param {zen3d.Vector3} up - The up direction of the camera.
 	     */
-		lookAt: function() {
-			var m = new Matrix4();
-
-			return function lookAt(target, up) {
-				m.lookAtRH(this.position, target, up);
-				this.quaternion.setFromRotationMatrix(m);
-			};
-		}(),
+		lookAt: function(target, up) {
+			_mat4_1$3.lookAtRH(this.position, target, up);
+			this.quaternion.setFromRotationMatrix(_mat4_1$3);
+		},
 
 		/**
 	     * Set orthographic projection matrix.
@@ -13276,30 +13206,19 @@
 			this.projectionMatrixInverse.getInverse(this.projectionMatrix);
 		},
 
-		getWorldDirection: function() {
-			var position = new Vector3();
-			var quaternion = new Quaternion();
-			var scale = new Vector3();
-
-			return function getWorldDirection(optionalTarget) {
-				var result = optionalTarget || new Vector3();
-
-				this.worldMatrix.decompose(position, quaternion, scale);
-
-				// -z
-				result.set(0, 0, -1).applyQuaternion(quaternion);
-
-				return result;
-			};
-		}(),
+		getWorldDirection: function(optionalTarget) {
+			optionalTarget = optionalTarget || new Vector3();
+			var e = this.worldMatrix.elements;
+			return optionalTarget.set(-e[8], -e[9], -e[10]).normalize();
+		},
 
 		updateMatrix: function(force) {
 			Object3D.prototype.updateMatrix.call(this, force);
 
 			this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
 
-			_mat4_1.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
-			this.frustum.setFromMatrix(_mat4_1); // update frustum
+			_mat4_1$3.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+			this.frustum.setFromMatrix(_mat4_1$3); // update frustum
 		},
 
 		copy: function (source, recursive) {
@@ -14423,6 +14342,24 @@
 
 	});
 
+	var _sphere = new Sphere();
+	var _box = new Box3();
+	var _inverseMatrix = new Matrix4();
+	var _ray = new Ray();
+
+	var _barycoord = new Vector3();
+
+	var _vA = new Vector3();
+	var _vB = new Vector3();
+	var _vC = new Vector3();
+
+	var _uvA = new Vector2();
+	var _uvB = new Vector2();
+	var _uvC = new Vector2();
+
+	var _intersectionPoint = new Vector3();
+	var _intersectionPointWorld = new Vector3();
+
 	/**
 	 * Class representing triangular polygon mesh based objects.
 	 * Also serves as a base for other classes such as {@link zen3d.SkinnedMesh}.
@@ -14464,117 +14401,59 @@
 		/**
 	     * @override
 	     */
-		raycast: function() {
-			var sphere = new Sphere();
-			var box = new Box3();
-			var inverseMatrix = new Matrix4();
-			var ray = new Ray();
+		raycast: function(raycaster, intersects) {
+			var geometry = this.geometry;
+			var worldMatrix = this.worldMatrix;
 
-			var barycoord = new Vector3();
-
-			var vA = new Vector3();
-			var vB = new Vector3();
-			var vC = new Vector3();
-
-			var uvA = new Vector2();
-			var uvB = new Vector2();
-			var uvC = new Vector2();
-
-			var intersectionPoint = new Vector3();
-			var intersectionPointWorld = new Vector3();
-
-			function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
-				Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
-
-				uv1.multiplyScalar(barycoord.x);
-				uv2.multiplyScalar(barycoord.y);
-				uv3.multiplyScalar(barycoord.z);
-
-				uv1.add(uv2).add(uv3);
-
-				return uv1.clone();
+			// Sphere test
+			_sphere.copy(geometry.boundingSphere);
+			_sphere.applyMatrix4(worldMatrix);
+			if (!raycaster.ray.intersectsSphere(_sphere)) {
+				return;
 			}
 
-			function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
-				var intersect;
-				var material = object.material;
-
-				if (material.side === DRAW_SIDE.BACK) {
-					intersect = ray.intersectTriangle(pC, pB, pA, true, point);
-				} else {
-					intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DRAW_SIDE.DOUBLE, point);
-				}
-
-				if (intersect === null) { return null; }
-
-				intersectionPointWorld.copy(point);
-				intersectionPointWorld.applyMatrix4(object.worldMatrix);
-
-				var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
-
-				if (distance < raycaster.near || distance > raycaster.far) { return null; }
-
-				return {
-					distance: distance,
-					point: intersectionPointWorld.clone(),
-					object: object
-				};
+			// Box test
+			_box.copy(geometry.boundingBox);
+			_box.applyMatrix4(worldMatrix);
+			if (!raycaster.ray.intersectsBox(_box)) {
+				return;
 			}
 
-			return function raycast(raycaster, intersects) {
-				var geometry = this.geometry;
-				var worldMatrix = this.worldMatrix;
+			// Vertex test
+			_inverseMatrix.getInverse(worldMatrix);
+			_ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
 
-				// sphere test
-				sphere.copy(geometry.boundingSphere);
-				sphere.applyMatrix4(worldMatrix);
-				if (!raycaster.ray.intersectsSphere(sphere)) {
-					return;
-				}
+			var index = geometry.index.array;
+			var position = geometry.getAttribute("a_Position");
+			var uv = geometry.getAttribute("a_Uv");
+			var a, b, c;
 
-				// box test
-				box.copy(geometry.boundingBox);
-				box.applyMatrix4(worldMatrix);
-				if (!raycaster.ray.intersectsBox(box)) {
-					return;
-				}
+			for (var i = 0; i < index.length; i += 3) {
+				a = index[i];
+				b = index[i + 1];
+				c = index[i + 2];
 
-				// vertex test
-				inverseMatrix.getInverse(worldMatrix);
-				ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+				_vA.fromArray(position.array, a * 3);
+				_vB.fromArray(position.array, b * 3);
+				_vC.fromArray(position.array, c * 3);
 
-				var index = geometry.index.array;
-				var position = geometry.getAttribute("a_Position");
-				var uv = geometry.getAttribute("a_Uv");
-				var a, b, c;
+				var intersection = checkIntersection(this, raycaster, _ray, _vA, _vB, _vC, _intersectionPoint);
 
-				for (var i = 0; i < index.length; i += 3) {
-					a = index[i];
-					b = index[i + 1];
-					c = index[i + 2];
+				if (intersection) {
+					// uv
+					_uvA.fromArray(uv.array, a * 2);
+					_uvB.fromArray(uv.array, b * 2);
+					_uvC.fromArray(uv.array, c * 2);
 
-					vA.fromArray(position.array, a * 3);
-					vB.fromArray(position.array, b * 3);
-					vC.fromArray(position.array, c * 3);
+					intersection.uv = uvIntersection(_intersectionPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC);
 
-					var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
+					intersection.face = [a, b, c];
+					intersection.faceIndex = a;
 
-					if (intersection) {
-						// uv
-						uvA.fromArray(uv.array, a * 2);
-						uvB.fromArray(uv.array, b * 2);
-						uvC.fromArray(uv.array, c * 2);
-
-						intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
-
-						intersection.face = [a, b, c];
-						intersection.faceIndex = a;
-
-						intersects.push(intersection);
-					}
+					intersects.push(intersection);
 				}
 			}
-		}(),
+		},
 
 		copy: function(source) {
 			Object3D.prototype.copy.call(this, source);
@@ -14589,6 +14468,44 @@
 		}
 
 	});
+
+	function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
+		Triangle.barycoordFromPoint(point, p1, p2, p3, _barycoord);
+
+		uv1.multiplyScalar(_barycoord.x);
+		uv2.multiplyScalar(_barycoord.y);
+		uv3.multiplyScalar(_barycoord.z);
+
+		uv1.add(uv2).add(uv3);
+
+		return uv1.clone();
+	}
+
+	function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
+		var intersect;
+		var material = object.material;
+
+		if (material.side === DRAW_SIDE.BACK) {
+			intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+		} else {
+			intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DRAW_SIDE.DOUBLE, point);
+		}
+
+		if (intersect === null) { return null; }
+
+		_intersectionPointWorld.copy(point);
+		_intersectionPointWorld.applyMatrix4(object.worldMatrix);
+
+		var distance = raycaster.ray.origin.distanceTo(_intersectionPointWorld);
+
+		if (distance < raycaster.near || distance > raycaster.far) { return null; }
+
+		return {
+			distance: distance,
+			point: _intersectionPointWorld.clone(),
+			object: object
+		};
+	}
 
 	/**
 	 * Shader post pass.

@@ -17,6 +17,19 @@ function Color3(r, g, b) {
 	return this.setRGB(r, g, b);
 }
 
+function euclideanModulo(n, m) {
+	return ((n % m) + m) % m;
+}
+
+function hue2rgb(p, q, t) {
+	if (t < 0) t += 1;
+	if (t > 1) t -= 1;
+	if (t < 1 / 6) return p + (q - p) * 6 * t;
+	if (t < 1 / 2) return q;
+	if (t < 2 / 3) return p + (q - p) * 6 * (2 / 3 - t);
+	return p;
+}
+
 Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
 
 	/**
@@ -73,39 +86,24 @@ Object.assign(Color3.prototype, /** @lends zen3d.Color3.prototype */{
 	/**
      * Set from HSL.
      */
-	setHSL: function() {
-		function euclideanModulo(n, m) {
-			return ((n % m) + m) % m;
+	setHSL: function(h, s, l) {
+		// h,s,l ranges are in 0.0 - 1.0
+		h = euclideanModulo(h, 1);
+		s = Math.max(0, Math.min(1, s));
+		l = Math.max(0, Math.min(1, l));
+
+		if (s === 0) {
+			this.r = this.g = this.b = l;
+		} else {
+			var p = l <= 0.5 ? l * (1 + s) : l + s - (l * s);
+			var q = (2 * l) - p;
+
+			this.r = hue2rgb(q, p, h + 1 / 3);
+			this.g = hue2rgb(q, p, h);
+			this.b = hue2rgb(q, p, h - 1 / 3);
 		}
-
-		function hue2rgb(p, q, t) {
-			if (t < 0) t += 1;
-			if (t > 1) t -= 1;
-			if (t < 1 / 6) return p + (q - p) * 6 * t;
-			if (t < 1 / 2) return q;
-			if (t < 2 / 3) return p + (q - p) * 6 * (2 / 3 - t);
-			return p;
-		}
-
-		return function setHSL(h, s, l) {
-			// h,s,l ranges are in 0.0 - 1.0
-			h = euclideanModulo(h, 1);
-			s = Math.max(0, Math.min(1, s));
-			l = Math.max(0, Math.min(1, l));
-
-			if (s === 0) {
-				this.r = this.g = this.b = l;
-			} else {
-				var p = l <= 0.5 ? l * (1 + s) : l + s - (l * s);
-				var q = (2 * l) - p;
-
-				this.r = hue2rgb(q, p, h + 1 / 3);
-				this.g = hue2rgb(q, p, h);
-				this.b = hue2rgb(q, p, h - 1 / 3);
-			}
-			return this;
-		};
-	}(),
+		return this;
+	},
 
 	/**
      *

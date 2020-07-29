@@ -1,5 +1,7 @@
 import { Matrix4 } from '../../math/Matrix4.js';
 
+var _offsetMatrix = new Matrix4();
+
 /**
  * Use an array of bones to create a skeleton that can be used by a SkinnedMesh.
  * @constructor
@@ -64,20 +66,16 @@ Object.assign(Skeleton.prototype, /** @lends zen3d.Skeleton.prototype */{
      * @return {zen3d.Bone}
      */
 	updateBones: function() {
-		var offsetMatrix = new Matrix4();
-
-		return function updateBones() {
-			for (var i = 0; i < this.bones.length; i++) {
-				var bone = this.bones[i];
-				offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
-				offsetMatrix.toArray(this.boneMatrices, i * 16);
-			}
-
-			if (this.boneTexture !== undefined) {
-				this.boneTexture.version++;
-			}
+		for (var i = 0; i < this.bones.length; i++) {
+			var bone = this.bones[i];
+			_offsetMatrix.multiplyMatrices(bone.worldMatrix, bone.offsetMatrix);
+			_offsetMatrix.toArray(this.boneMatrices, i * 16);
 		}
-	}(),
+
+		if (this.boneTexture !== undefined) {
+			this.boneTexture.version++;
+		}
+	},
 
 	/**
      * Searches through the skeleton's bone array and returns the first with a matching name.

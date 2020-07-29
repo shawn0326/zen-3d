@@ -1,6 +1,9 @@
 import { Vector3 } from './Vector3.js';
 import { Box3 } from './Box3.js';
 
+var _box3_1 = new Box3();
+var _vec3_1 = new Vector3();
+
 /**
  * @constructor
  * @memberof zen3d
@@ -27,34 +30,24 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 	/**
      * @method
      */
-	setFromArray: function() {
-		var box = new Box3();
-		var point = new Vector3();
+	setFromArray: function(array, gap) {
+		var _gap = (gap !== undefined ? gap : 3);
 
-		return function setFromArray(array, gap) {
-			var _gap = (gap !== undefined ? gap : 3);
+		var center = this.center;
 
-			var center = this.center;
+		_box3_1.setFromArray(array, _gap).getCenter(center);
 
-			box.setFromArray(array, _gap).getCenter(center);
+		var maxRadiusSq = 0;
 
-			var maxRadiusSq = 0;
-
-			for (var i = 0, l = array.length; i < l; i += _gap) {
-				var x = array[i];
-				var y = array[i + 1];
-				var z = array[i + 2];
-
-				point.set(x, y, z);
-
-				maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(point));
-			}
-
-			this.radius = Math.sqrt(maxRadiusSq);
-
-			return this;
+		for (var i = 0, l = array.length; i < l; i += _gap) {
+			_vec3_1.fromArray(array, i);
+			maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_vec3_1));
 		}
-	}(),
+
+		this.radius = Math.sqrt(maxRadiusSq);
+
+		return this;
+	},
 
 	/**
      *

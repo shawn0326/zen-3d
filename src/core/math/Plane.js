@@ -1,6 +1,9 @@
 import { Vector3 } from './Vector3.js';
 import { Matrix3 } from './Matrix3.js';
 
+var _vec3_1 = new Vector3();
+var _mat4_1 = new Matrix3();
+
 /**
  * @constructor
  * @memberof zen3d
@@ -85,22 +88,17 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 	/**
      * @method
      */
-	applyMatrix4: function() {
-		var v1 = new Vector3();
-		var m1 = new Matrix3();
+	applyMatrix4: function(matrix, optionalNormalMatrix) {
+		var normalMatrix = optionalNormalMatrix || _mat4_1.setFromMatrix4(matrix).inverse().transpose();
 
-		return function applyMatrix4(matrix, optionalNormalMatrix) {
-			var normalMatrix = optionalNormalMatrix || m1.setFromMatrix4(matrix).inverse().transpose();
+		var referencePoint = this.coplanarPoint(_vec3_1).applyMatrix4(matrix);
 
-			var referencePoint = this.coplanarPoint(v1).applyMatrix4(matrix);
+		var normal = this.normal.applyMatrix3(normalMatrix).normalize();
 
-			var normal = this.normal.applyMatrix3(normalMatrix).normalize();
+		this.constant = -referencePoint.dot(normal);
 
-			this.constant = -referencePoint.dot(normal);
-
-			return this;
-		}
-	}()
+		return this;
+	}
 
 });
 
