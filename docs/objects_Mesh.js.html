@@ -36,6 +36,24 @@ import { Vector3 } from '../math/Vector3.js';
 import { Vector2 } from '../math/Vector2.js';
 import { Triangle } from '../math/Triangle.js';
 
+var _sphere = new Sphere();
+var _box = new Box3();
+var _inverseMatrix = new Matrix4();
+var _ray = new Ray();
+
+var _barycoord = new Vector3();
+
+var _vA = new Vector3();
+var _vB = new Vector3();
+var _vC = new Vector3();
+
+var _uvA = new Vector2();
+var _uvB = new Vector2();
+var _uvC = new Vector2();
+
+var _intersectionPoint = new Vector3();
+var _intersectionPointWorld = new Vector3();
+
 /**
  * Class representing triangular polygon mesh based objects.
  * Also serves as a base for other classes such as {@link zen3d.SkinnedMesh}.
@@ -77,117 +95,59 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 	/**
      * @override
      */
-	raycast: function() {
-		var sphere = new Sphere();
-		var box = new Box3();
-		var inverseMatrix = new Matrix4();
-		var ray = new Ray();
+	raycast: function(raycaster, intersects) {
+		var geometry = this.geometry;
+		var worldMatrix = this.worldMatrix;
 
-		var barycoord = new Vector3();
-
-		var vA = new Vector3();
-		var vB = new Vector3();
-		var vC = new Vector3();
-
-		var uvA = new Vector2();
-		var uvB = new Vector2();
-		var uvC = new Vector2();
-
-		var intersectionPoint = new Vector3();
-		var intersectionPointWorld = new Vector3();
-
-		function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
-			Triangle.barycoordFromPoint(point, p1, p2, p3, barycoord);
-
-			uv1.multiplyScalar(barycoord.x);
-			uv2.multiplyScalar(barycoord.y);
-			uv3.multiplyScalar(barycoord.z);
-
-			uv1.add(uv2).add(uv3);
-
-			return uv1.clone();
+		// Sphere test
+		_sphere.copy(geometry.boundingSphere);
+		_sphere.applyMatrix4(worldMatrix);
+		if (!raycaster.ray.intersectsSphere(_sphere)) {
+			return;
 		}
 
-		function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
-			var intersect;
-			var material = object.material;
-
-			if (material.side === DRAW_SIDE.BACK) {
-				intersect = ray.intersectTriangle(pC, pB, pA, true, point);
-			} else {
-				intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DRAW_SIDE.DOUBLE, point);
-			}
-
-			if (intersect === null) return null;
-
-			intersectionPointWorld.copy(point);
-			intersectionPointWorld.applyMatrix4(object.worldMatrix);
-
-			var distance = raycaster.ray.origin.distanceTo(intersectionPointWorld);
-
-			if (distance &lt; raycaster.near || distance > raycaster.far) return null;
-
-			return {
-				distance: distance,
-				point: intersectionPointWorld.clone(),
-				object: object
-			};
+		// Box test
+		_box.copy(geometry.boundingBox);
+		_box.applyMatrix4(worldMatrix);
+		if (!raycaster.ray.intersectsBox(_box)) {
+			return;
 		}
 
-		return function raycast(raycaster, intersects) {
-			var geometry = this.geometry;
-			var worldMatrix = this.worldMatrix;
+		// Vertex test
+		_inverseMatrix.getInverse(worldMatrix);
+		_ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
 
-			// sphere test
-			sphere.copy(geometry.boundingSphere);
-			sphere.applyMatrix4(worldMatrix);
-			if (!raycaster.ray.intersectsSphere(sphere)) {
-				return;
-			}
+		var index = geometry.index.array;
+		var position = geometry.getAttribute("a_Position");
+		var uv = geometry.getAttribute("a_Uv");
+		var a, b, c;
 
-			// box test
-			box.copy(geometry.boundingBox);
-			box.applyMatrix4(worldMatrix);
-			if (!raycaster.ray.intersectsBox(box)) {
-				return;
-			}
+		for (var i = 0; i &lt; index.length; i += 3) {
+			a = index[i];
+			b = index[i + 1];
+			c = index[i + 2];
 
-			// vertex test
-			inverseMatrix.getInverse(worldMatrix);
-			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+			_vA.fromArray(position.array, a * 3);
+			_vB.fromArray(position.array, b * 3);
+			_vC.fromArray(position.array, c * 3);
 
-			var index = geometry.index.array;
-			var position = geometry.getAttribute("a_Position");
-			var uv = geometry.getAttribute("a_Uv");
-			var a, b, c;
+			var intersection = checkIntersection(this, raycaster, _ray, _vA, _vB, _vC, _intersectionPoint);
 
-			for (var i = 0; i &lt; index.length; i += 3) {
-				a = index[i];
-				b = index[i + 1];
-				c = index[i + 2];
+			if (intersection) {
+				// uv
+				_uvA.fromArray(uv.array, a * 2);
+				_uvB.fromArray(uv.array, b * 2);
+				_uvC.fromArray(uv.array, c * 2);
 
-				vA.fromArray(position.array, a * 3);
-				vB.fromArray(position.array, b * 3);
-				vC.fromArray(position.array, c * 3);
+				intersection.uv = uvIntersection(_intersectionPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC);
 
-				var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
+				intersection.face = [a, b, c];
+				intersection.faceIndex = a;
 
-				if (intersection) {
-					// uv
-					uvA.fromArray(uv.array, a * 2);
-					uvB.fromArray(uv.array, b * 2);
-					uvC.fromArray(uv.array, c * 2);
-
-					intersection.uv = uvIntersection(intersectionPoint, vA, vB, vC, uvA, uvB, uvC);
-
-					intersection.face = [a, b, c];
-					intersection.faceIndex = a;
-
-					intersects.push(intersection);
-				}
+				intersects.push(intersection);
 			}
 		}
-	}(),
+	},
 
 	copy: function(source) {
 		Object3D.prototype.copy.call(this, source);
@@ -202,6 +162,44 @@ Mesh.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends zen
 	}
 
 });
+
+function uvIntersection(point, p1, p2, p3, uv1, uv2, uv3) {
+	Triangle.barycoordFromPoint(point, p1, p2, p3, _barycoord);
+
+	uv1.multiplyScalar(_barycoord.x);
+	uv2.multiplyScalar(_barycoord.y);
+	uv3.multiplyScalar(_barycoord.z);
+
+	uv1.add(uv2).add(uv3);
+
+	return uv1.clone();
+}
+
+function checkIntersection(object, raycaster, ray, pA, pB, pC, point) {
+	var intersect;
+	var material = object.material;
+
+	if (material.side === DRAW_SIDE.BACK) {
+		intersect = ray.intersectTriangle(pC, pB, pA, true, point);
+	} else {
+		intersect = ray.intersectTriangle(pA, pB, pC, material.side !== DRAW_SIDE.DOUBLE, point);
+	}
+
+	if (intersect === null) return null;
+
+	_intersectionPointWorld.copy(point);
+	_intersectionPointWorld.applyMatrix4(object.worldMatrix);
+
+	var distance = raycaster.ray.origin.distanceTo(_intersectionPointWorld);
+
+	if (distance &lt; raycaster.near || distance > raycaster.far) return null;
+
+	return {
+		distance: distance,
+		point: _intersectionPointWorld.clone(),
+		object: object
+	};
+}
 
 export { Mesh };</code></pre>
         </article>
@@ -219,7 +217,7 @@ export { Mesh };</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a>
 </footer>
 
 <script> prettyPrint(); </script>

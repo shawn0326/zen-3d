@@ -1,10 +1,13 @@
 zen-3d
 ========
 
-[![Latest NPM release][npm-badge]][npm-badge-url]
+[![NPM Package][npm]][npm-url]
+[![Build Size][build-size]][build-size-url]
+[![NPM Downloads][npm-downloads]][npmtrends-url]
 [![License][license-badge]][license-badge-url]
 [![Issues][issues-badge]][issues-badge-url]
 ![Dev Dependencies][devDependencies-badge]
+[![Language Grade][lgtm]][lgtm-url]
 
 ### JavaScript 3D library ###
 
@@ -33,6 +36,12 @@ you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
 <script src="zen3d.min.js"></script>
 ````
 
+or import as es6 module:
+
+````javascript
+import * as zen3d from 'js/zen3d.module.js';
+````
+
 ### 3D Format Support ###
 
 [GLTF](https://github.com/KhronosGroup/glTF) /
@@ -51,45 +60,25 @@ you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
 * [3D Texture](https://shawn0326.github.io/zen-3d/examples/#material_texture3d). (WebGL 2.0)
 * [Multisampled Renderbuffers](https://shawn0326.github.io/zen-3d/examples/#custompass_msaa). (WebGL 2.0)
 
-### Build ###
-
-* install [Node.js](https://nodejs.org) (include NPM).
-
-* install devDependencies packages.
-
-````
-npm install
-````
-
-* you can run the following scripts
-
-````
-// build shader & zen3d
-npm run default
-// build zen3d
-npm run build
-// build extensions
-npm run extension
-// start a server to run examples
-npm run example
-````
-
-build path is `./build`.
-
 ### Projects ###
 
 * [zen-viewer](https://shawn0326.github.io/zen-viewer/)
 
-### About Me ###
+### Change log ###
 
-* Blog: [Half Lab](http://www.halflab.me)
-* Email: shawn0326@163.com
-* Weibo: [@谢帅shawn](http://weibo.com/shawn0326)
+[Releases](https://github.com/shawn0326/zen-3d/releases)
 
-[npm-badge]: https://img.shields.io/npm/v/zen-3d.svg
-[npm-badge-url]: https://www.npmjs.com/package/zen-3d
+
+[npm]: https://img.shields.io/npm/v/zen-3d
+[npm-url]: https://www.npmjs.com/package/zen-3d
+[build-size]: https://badgen.net/bundlephobia/minzip/zen-3d
+[build-size-url]: https://bundlephobia.com/result?p=zen-3d
+[npm-downloads]: https://img.shields.io/npm/dw/zen-3d
+[npmtrends-url]: https://www.npmtrends.com/zen-3d
 [license-badge]: https://img.shields.io/npm/l/zen-3d.svg
 [license-badge-url]: ./LICENSE
 [issues-badge]: https://img.shields.io/github/issues/shawn0326/zen-3d.svg
 [issues-badge-url]: https://github.com/shawn0326/zen-3d/issues
 [devDependencies-badge]: https://img.shields.io/librariesio/github/shawn0326/zen-3d.svg
+[lgtm]: https://img.shields.io/lgtm/alerts/github/shawn0326/zen-3d
+[lgtm-url]: https://lgtm.com/projects/g/shawn0326/zen-3d/
