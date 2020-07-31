@@ -6,7 +6,7 @@ zen-3d
 [![NPM Downloads][npm-downloads]][npmtrends-url]
 [![License][license-badge]][license-badge-url]
 [![Issues][issues-badge]][issues-badge-url]
-![Dev Dependencies][devDependencies-badge]
+[![Dev Dependencies][dev-dependencies]][dev-dependencies-url]
 [![Language Grade][lgtm]][lgtm-url]
 
 ### JavaScript 3D library ###
@@ -79,6 +79,7 @@ import * as zen3d from 'js/zen3d.module.js';
 [license-badge-url]: ./LICENSE
 [issues-badge]: https://img.shields.io/github/issues/shawn0326/zen-3d.svg
 [issues-badge-url]: https://github.com/shawn0326/zen-3d/issues
-[devDependencies-badge]: https://img.shields.io/librariesio/github/shawn0326/zen-3d.svg
+[dev-dependencies]: https://img.shields.io/david/dev/shawn0326/zen-3d
+[dev-dependencies-url]: https://david-dm.org/shawn0326/zen-3d#info=devDependencies
 [lgtm]: https://img.shields.io/lgtm/alerts/github/shawn0326/zen-3d
 [lgtm-url]: https://lgtm.com/projects/g/shawn0326/zen-3d/
