@@ -61,9 +61,9 @@
 				});
 
 				// add mesh to scene
-				for(var i = 0; i < result.scene.children.length; i++) {
-					scene.add(result.scene.children[i]);
-					
+				var children = result.scene.children.slice(0);
+				for(var i = 0, l = children.length; i < l; i++) {
+					scene.add(children[i]);		
 				}
 
 			});

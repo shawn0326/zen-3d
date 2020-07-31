@@ -6093,8 +6093,18 @@
 	     * @param {zen3d.Object3D} object
 	     */
 		add: function(object) {
-			this.children.push(object);
+			if (object === this) {
+				console.error("Object3D.add: object can't be added as a child of itself.", object);
+				return;
+			}
+
+			if (object.parent !== null) {
+				object.parent.remove(object);
+			}
+
 			object.parent = this;
+			this.children.push(object);
+
 			object.worldMatrixNeedsUpdate = true;
 		},
 
@@ -6105,10 +6115,11 @@
 		remove: function(object) {
 			var index = this.children.indexOf(object);
 			if (index !== -1) {
+				object.parent = null;
 				this.children.splice(index, 1);
+
+				object.worldMatrixNeedsUpdate = true;
 			}
-			object.parent = null;
-			object.worldMatrixNeedsUpdate = true;
 		},
 
 		/**
