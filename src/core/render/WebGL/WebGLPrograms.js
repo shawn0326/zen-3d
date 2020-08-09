@@ -96,10 +96,10 @@ function createProgram(gl, props, defines) {
 
 		(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 		(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-		(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+		(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) ? '#define USE_NORMAL' : '',
+		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
+		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
 		props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 		props.useShadow ? '#define USE_SHADOW' : '',
 		props.flatShading ? '#define FLAT_SHADED' : '',
@@ -166,10 +166,10 @@ function createProgram(gl, props, defines) {
 
 		(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 		(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-		(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+		(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) ? '#define USE_NORMAL' : '',
+		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
+		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
 		props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 		props.useShadow ? '#define USE_SHADOW' : '',
 		props.shadowType === SHADOW_TYPE.HARD ? '#define USE_HARD_SHADOW' : '',
@@ -198,14 +198,16 @@ function createProgram(gl, props, defines) {
 		props.alphaTest ? ('#define ALPHATEST ' + props.alphaTest) : '',
 		props.useEnvMap ? '#define ' + props.envMapCombine : '',
 		'#define GAMMA_FACTOR ' + props.gammaFactor,
+		props.useMatcap ? '#define USE_MATCAP' : '',
 
 		props.dithering ? '#define DITHERING' : '',
 
-		(props.diffuseMapEncoding || props.envMapEncoding || props.emissiveMapEncoding || props.outputEncoding) ? ShaderChunk["encodings_pars_frag"] : '',
-		props.diffuseMapEncoding ? getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding) : '',
-		props.envMapEncoding ? getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding) : '',
-		props.emissiveMapEncoding ? getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding) : '',
-		props.outputEncoding ? getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding) : '',
+		ShaderChunk["encodings_pars_frag"],
+		getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding),
+		props.useEnvMap ? getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding) : '',
+		props.useEmissiveMap ? getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding) : '',
+		props.useMatcap ? getTexelDecodingFunction("matcapTexelToLinear", props.matcapEncoding) : '',
+		getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding),
 
 		props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '',
 
@@ -357,6 +359,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useMetalnessMap = !!material.metalnessMap;
 	props.useGlossinessMap = !!material.glossinessMap;
 	props.useAOMap = !!material.aoMap ? (material.aoMapCoord + 1) : 0;
+	props.useMatcap = !!material.matcap;
 	// lights
 	props.ambientLightNum = !!lights ? lights.ambientsNum : 0;
 	props.directLightNum = !!lights ? lights.directsNum : 0;
@@ -380,6 +383,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap || material.cubeMap);
 	props.envMapEncoding = getTextureEncodingFromMap(material.envMap);
 	props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap);
+	props.matcapEncoding = getTextureEncodingFromMap(material.matcap);
 	// other
 	props.alphaTest = material.alphaTest;
 	props.premultipliedAlpha = material.premultipliedAlpha;

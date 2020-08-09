@@ -413,6 +413,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				case "scale":
 					uniform.set(material.scale);
 					break;
+				case "matcap":
+					uniform.set(material.matcap, this);
+					break;
 				case "clippingPlanes":
 					var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
 					uniform.set(planesData);

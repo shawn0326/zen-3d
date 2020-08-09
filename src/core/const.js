@@ -39,6 +39,7 @@ export var MATERIAL_TYPE = {
 	PHONG: "phong",
 	PBR: "pbr",
 	PBR2: "pbr2",
+	MATCAP: 'matcap',
 	POINT: "point",
 	LINE: "line",
 	CANVAS2D: "canvas2d",

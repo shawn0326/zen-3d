@@ -138,6 +138,7 @@
 		PHONG: "phong",
 		PBR: "pbr",
 		PBR2: "pbr2",
+		MATCAP: 'matcap',
 		POINT: "point",
 		LINE: "line",
 		CANVAS2D: "canvas2d",
@@ -9109,6 +9110,41 @@
 	});
 
 	/**
+	 * MatcapMaterial is defined by a MatCap (or Lit Sphere) texture, which encodes the material color and shading.
+	 * MatcapMaterial does not respond to lights since the matcap image file encodes baked lighting.
+	 * It will cast a shadow onto an object that receives shadows (and shadow clipping works), but it will not self-shadow or receive shadows.
+	 * @constructor
+	 * @extends zen3d.Material
+	 * @memberof zen3d
+	 */
+	function MatcapMaterial() {
+		Material.call(this);
+
+		this.type = MATERIAL_TYPE.MATCAP;
+
+		/**
+	     * The matcap map.
+	     * @type {zen3d.Texture2D}
+	     * @default null
+	     */
+		this.matcap = null;
+	}
+
+	MatcapMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.MatcapMaterial.prototype */{
+
+		constructor: MatcapMaterial,
+
+		copy: function(source) {
+			Material.prototype.copy.call(this, source);
+
+			this.matcap = source.matcap;
+
+			return this;
+		}
+
+	});
+
+	/**
 	 * The default material used by Points.
 	 * @constructor
 	 * @extends zen3d.Material
@@ -11414,6 +11450,10 @@
 
 	var pbr_vert = "#define USE_PBR\r\n\r\n#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
 
+	var matcap_frag = "#define MATCAP\r\n\r\nuniform sampler2D matcap;\r\nvarying vec3 vViewPosition;\r\n\r\n#include <common_frag>\r\n#include <dithering_pars_frag>\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <alphamap_pars_frag>\r\n#include <normalMap_pars_frag>\r\n#include <viewModelPos_pars_frag>\r\n#include <bumpMap_pars_frag>\r\n#include <normal_pars_frag>\r\n#include <fog_pars_frag>\r\n#include <clippingPlanes_pars_frag>\r\nvoid main() {\r\n    #include <clippingPlanes_frag>\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphamap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <normal_frag>\r\n\r\n    vec3 viewDir = normalize(vViewPosition);\r\n\tvec3 x = normalize(vec3(viewDir.z, 0.0, -viewDir.x));\r\n\tvec3 y = cross(viewDir, x);\r\n    vec3 viewN = (u_View * vec4(N, 0.0)).xyz;\r\n\tvec2 uv = vec2(dot(x, viewN), dot(y, viewN)) * 0.495 + 0.5; // 0.495 to remove artifacts caused by undersized matcap disks\r\n\r\n    #ifdef USE_MATCAP\r\n\t\tvec4 matcapColor = texture2D(matcap, uv);\r\n\t\tmatcapColor = matcapTexelToLinear(matcapColor);\r\n\t#else\r\n\t\tvec4 matcapColor = vec4(1.0);\r\n\t#endif\r\n\r\n\toutColor.rgb *= matcapColor.rgb;\r\n\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n    #include <dithering_frag>\r\n}";
+
+	var matcap_vert = "#define MATCAP\r\n\r\nvarying vec3 vViewPosition;\r\n\r\n#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n\r\n    vec4 mvPosition = u_View * u_Model * vec4(transformed, 1.0);\r\n    vViewPosition = - mvPosition.xyz;\r\n}";
+
 	var phong_frag = "#define USE_PHONG\r\n\r\n#include <common_frag>\r\n#include <dithering_pars_frag>\r\n\r\n// if no light> this will not active\r\nuniform float u_Specular;\r\nuniform vec3 u_SpecularColor;\r\n#include <specularMap_pars_frag>\r\n\r\nuniform vec3 emissive;\r\n\r\n#include <uv_pars_frag>\r\n#include <color_pars_frag>\r\n#include <diffuseMap_pars_frag>\r\n#include <alphamap_pars_frag>\r\n#include <normalMap_pars_frag>\r\n#include <bumpMap_pars_frag>\r\n#include <light_pars_frag>\r\n#include <normal_pars_frag>\r\n#include <viewModelPos_pars_frag>\r\n#include <bsdfs>\r\n#include <envMap_pars_frag>\r\n#include <aoMap_pars_frag>\r\n#include <shadowMap_pars_frag>\r\n#include <fog_pars_frag>\r\n#include <emissiveMap_pars_frag>\r\n#include <clippingPlanes_pars_frag>\r\nvoid main() {\r\n    #include <clippingPlanes_frag>\r\n    #include <begin_frag>\r\n    #include <color_frag>\r\n    #include <diffuseMap_frag>\r\n    #include <alphamap_frag>\r\n    #include <alphaTest_frag>\r\n    #include <normal_frag>\r\n    #include <specularMap_frag>\r\n    #include <light_frag>\r\n    #include <envMap_frag>\r\n    #include <shadowMap_frag>\r\n\r\n    vec3 totalEmissiveRadiance = emissive;\r\n    #include <emissiveMap_frag>\r\n    outColor += vec4(totalEmissiveRadiance.rgb, 0.0);\r\n\r\n    #include <end_frag>\r\n    #include <encodings_frag>\r\n    #include <premultipliedAlpha_frag>\r\n    #include <fog_frag>\r\n    #include <dithering_frag>\r\n}";
 
 	var phong_vert = "#define USE_PHONG\r\n\r\n#include <common_vert>\r\n#include <normal_pars_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <viewModelPos_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <shadowMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <morphnormal_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <normal_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <viewModelPos_vert>\r\n    #include <envMap_vert>\r\n    #include <shadowMap_vert>\r\n}";
@@ -11439,6 +11479,8 @@
 		pbr_vert: pbr_vert,
 		pbr2_frag: pbr2_frag,
 		pbr2_vert: pbr_vert,
+		matcap_frag: matcap_frag,
+		matcap_vert: matcap_vert,
 		phong_frag: phong_frag,
 		phong_vert: phong_vert,
 		point_frag: point_frag,
@@ -11538,10 +11580,10 @@
 
 			(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 			(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-			(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
-			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+			(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) ? '#define USE_NORMAL' : '',
+			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
+			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
 			props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 			props.useShadow ? '#define USE_SHADOW' : '',
 			props.flatShading ? '#define FLAT_SHADED' : '',
@@ -11608,10 +11650,10 @@
 
 			(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 			(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-			(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) ? '#define USE_NORMAL' : '',
-			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+			(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) ? '#define USE_NORMAL' : '',
+			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
+			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
+			((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
 			props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 			props.useShadow ? '#define USE_SHADOW' : '',
 			props.shadowType === SHADOW_TYPE.HARD ? '#define USE_HARD_SHADOW' : '',
@@ -11640,14 +11682,16 @@
 			props.alphaTest ? ('#define ALPHATEST ' + props.alphaTest) : '',
 			props.useEnvMap ? '#define ' + props.envMapCombine : '',
 			'#define GAMMA_FACTOR ' + props.gammaFactor,
+			props.useMatcap ? '#define USE_MATCAP' : '',
 
 			props.dithering ? '#define DITHERING' : '',
 
-			(props.diffuseMapEncoding || props.envMapEncoding || props.emissiveMapEncoding || props.outputEncoding) ? ShaderChunk["encodings_pars_frag"] : '',
-			props.diffuseMapEncoding ? getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding) : '',
-			props.envMapEncoding ? getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding) : '',
-			props.emissiveMapEncoding ? getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding) : '',
-			props.outputEncoding ? getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding) : '',
+			ShaderChunk["encodings_pars_frag"],
+			getTexelDecodingFunction("mapTexelToLinear", props.diffuseMapEncoding),
+			props.useEnvMap ? getTexelDecodingFunction("envMapTexelToLinear", props.envMapEncoding) : '',
+			props.useEmissiveMap ? getTexelDecodingFunction("emissiveMapTexelToLinear", props.emissiveMapEncoding) : '',
+			props.useMatcap ? getTexelDecodingFunction("matcapTexelToLinear", props.matcapEncoding) : '',
+			getTexelEncodingFunction("linearToOutputTexel", props.outputEncoding),
 
 			props.packDepthToRGBA ? '#define DEPTH_PACKING_RGBA' : '' ].filter(filterEmptyLine).join("\n");
 
@@ -11797,6 +11841,7 @@
 		props.useMetalnessMap = !!material.metalnessMap;
 		props.useGlossinessMap = !!material.glossinessMap;
 		props.useAOMap = !!material.aoMap ? (material.aoMapCoord + 1) : 0;
+		props.useMatcap = !!material.matcap;
 		// lights
 		props.ambientLightNum = !!lights ? lights.ambientsNum : 0;
 		props.directLightNum = !!lights ? lights.directsNum : 0;
@@ -11820,6 +11865,7 @@
 		props.diffuseMapEncoding = getTextureEncodingFromMap(material.diffuseMap || material.cubeMap);
 		props.envMapEncoding = getTextureEncodingFromMap(material.envMap);
 		props.emissiveMapEncoding = getTextureEncodingFromMap(material.emissiveMap);
+		props.matcapEncoding = getTextureEncodingFromMap(material.matcap);
 		// other
 		props.alphaTest = material.alphaTest;
 		props.premultipliedAlpha = material.premultipliedAlpha;
@@ -12658,6 +12704,9 @@
 						break;
 					case "scale":
 						uniform.set(material.scale);
+						break;
+					case "matcap":
+						uniform.set(material.matcap, this);
 						break;
 					case "clippingPlanes":
 						var planesData = getClippingPlanesData(scene.clippingPlanes || []);
@@ -15604,6 +15653,7 @@
 	exports.LineMaterial = LineMaterial;
 	exports.LoadingManager = LoadingManager;
 	exports.MATERIAL_TYPE = MATERIAL_TYPE;
+	exports.MatcapMaterial = MatcapMaterial;
 	exports.Material = Material;
 	exports.Matrix3 = Matrix3;
 	exports.Matrix4 = Matrix4;

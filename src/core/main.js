@@ -65,6 +65,7 @@ export { LambertMaterial } from './material/LambertMaterial.js';
 export { PhongMaterial } from './material/PhongMaterial.js';
 export { PBRMaterial } from './material/PBRMaterial.js';
 export { PBR2Material } from './material/PBR2Material.js';
+export { MatcapMaterial } from './material/MatcapMaterial.js';
 export { PointsMaterial } from './material/PointsMaterial.js';
 export { LineMaterial } from './material/LineMaterial.js';
 export { ShaderMaterial } from './material/ShaderMaterial.js';

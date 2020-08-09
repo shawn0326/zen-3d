@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - matcap</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./js/loaders/GLTFLoader.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+	<script src="./libs/nanobar.min.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - matcap
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width * window.devicePixelRatio;
+	        canvas.height = height * window.devicePixelRatio;
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
+			document.body.appendChild( canvas );
+
+	        var renderer = new zen3d.Renderer(canvas);
+
+	        var scene = new zen3d.Scene();
+
+			var file = "resources/models/gltf/LeePerrySmith/LeePerrySmith.glb";
+
+			var matcapTextures = {
+				collor: zen3d.Texture2D.fromSrc("resources/matcaps/matcap-collor.jpg"),
+				darkgreymetal: zen3d.Texture2D.fromSrc("resources/matcaps/matcap-darkgreymetal.jpg")
+			};
+
+			var nanobar = new Nanobar();
+			nanobar.el.style.background = "gray";
+
+			var loadingManager = new zen3d.LoadingManager(function() {
+				nanobar.go(100);
+				nanobar.el.style.background = "transparent";
+			}, function(url, itemsLoaded, itemsTotal) {
+				if (itemsLoaded < itemsTotal) {
+					nanobar.go(itemsLoaded / itemsTotal * 100);
+				}
+			});
+
+			var loader = new zen3d.GLTFLoader(loadingManager);
+			var root;
+			loader.load(file, function(result) {
+				// add mesh to scene
+				root = result.scene;
+
+				root.traverse(node => {
+					if (node.material) {
+						node.material = new zen3d.MatcapMaterial();
+						node.material.matcap = matcapTextures.darkgreymetal;
+					}
+				});
+
+				scene.add(root);
+			});
+
+			var camera = new zen3d.Camera();
+			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+	        camera.position.set(0, 3, 15);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 1000);
+	        scene.add(camera);
+
+			var controller = new zen3d.OrbitControls(camera, canvas);
+			controller.enablePan = false;
+			controller.minDistance = 10;
+			controller.maxDistance = 200;
+
+			var params = {matcap: 'darkgreymetal'};
+			var gui = new dat.GUI();
+			gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
+			gui.add(params, "matcap", ['collor', 'darkgreymetal']).onChange(function(value) {
+				root.traverse(node => {
+					if (node.material) {
+						node.material.matcap = matcapTextures[value];
+					}
+				});
+			});
+
+	        function loop(count) {
+
+	            requestAnimationFrame(loop);
+
+				controller.update();
+
+	            renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 1000);
+
+				renderer.backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
+
+				canvas.style.width = width + "px";
+				canvas.style.height = height + "px";
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>
