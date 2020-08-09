@@ -2890,7 +2890,6 @@
 
 			// shortest direction
 			if (dot < 0) {
-				dot = -dot;
 				w2 = -w2;
 				x2 = -x2;
 				y2 = -y2;
@@ -4108,6 +4107,11 @@
 	     * @method
 	     */
 		calc: function (t) {
+			_A0.copy(this.posPoints[this.posPoints.length - 1]);
+			_B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
+			_A1.copy(_A0);
+			_B1.copy(_B0);
+
 			for (var i = 0; i < this.segCount; i++) {
 				if (t >= this.posPoints[i].x && t <= this.posPoints[i + 1].x) {
 					_A0.copy(this.posPoints[i]);
@@ -4117,15 +4121,6 @@
 					break;
 				}
 			}
-
-			if (!_A0) {
-				_A0.copy(this.posPoints[this.posPoints.length - 1]);
-			}
-			if (!_B0) {
-				_B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
-			}
-			_A1.copy(_A1 || _A0);
-			_B1.copy(_B1 || _B0);
 
 			t = (t - _A0.x) / (_A1.x - _A0.x);
 			return this._cubic_bezier(_A0.y, _B0.y, _B1.y, _A1.y, t);
@@ -5393,10 +5388,10 @@
 						}
 
 						if (match = line.match(gamma_re)) {
-							header.gamma = parseFloat(match[1], 10);
+							header.gamma = parseFloat(match[1]);
 						}
 						if (match = line.match(exposure_re)) {
-							header.exposure = parseFloat(match[1], 10);
+							header.exposure = parseFloat(match[1]);
 						}
 						if (match = line.match(format_re)) {
 							header.valid |= RGBE_VALID_FORMAT;
@@ -5866,7 +5861,7 @@
 	     * @member {Object}
 	     * @default null
 	     */
-		this.image = { data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2 };
+		this.image = { data: new Uint8Array([255, 255, 255, 255, 255, 255, 255, 255]), width: 2, height: 2, depth: 2 };
 
 		/**
 	     * WebGLTexture texel data format.
@@ -13102,7 +13097,7 @@
 					} else {
 						gl.enableVertexAttribArray(programAttribute.location);
 
-						if (geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
+						if (geometryAttribute.isInstancedBufferAttribute) {
 							if (capabilities.version >= 2) {
 								gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
 							} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {

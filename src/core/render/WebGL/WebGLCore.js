@@ -814,7 +814,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				} else {
 					gl.enableVertexAttribArray(programAttribute.location);
 
-					if (geometryAttribute && geometryAttribute.isInstancedBufferAttribute) {
+					if (geometryAttribute.isInstancedBufferAttribute) {
 						if (capabilities.version >= 2) {
 							gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
 						} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {

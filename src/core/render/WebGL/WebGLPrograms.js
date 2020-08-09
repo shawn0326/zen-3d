@@ -371,7 +371,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useShadow = object.receiveShadow && !!lights && lights.shadowsNum > 0;
 	if (object.shadowType.indexOf("pcss") > -1 && capabilities.version < 2) {
 		console.warn("WebGL 1.0 not support PCSS soft shadow, fallback to POISSON_SOFT");
-		props.shadowType = SHADOW_TYPE.POISSON_SOFT
+		props.shadowType = SHADOW_TYPE.POISSON_SOFT;
 	} else {
 		props.shadowType = object.shadowType;
 	}

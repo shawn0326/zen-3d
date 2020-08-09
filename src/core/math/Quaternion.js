@@ -99,7 +99,6 @@ Object.assign(Quaternion.prototype, /** @lends zen3d.Quaternion.prototype */{
 
 		// shortest direction
 		if (dot < 0) {
-			dot = -dot;
 			w2 = -w2;
 			x2 = -x2;
 			y2 = -y2;

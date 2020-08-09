@@ -17,7 +17,7 @@ function Texture3D() {
      * @member {Object}
      * @default null
      */
-	this.image = { data: new Uint8Array(255, 255, 255, 255, 255, 255, 255, 255), width: 2, height: 2, depth: 2 };
+	this.image = { data: new Uint8Array([255, 255, 255, 255, 255, 255, 255, 255]), width: 2, height: 2, depth: 2 };
 
 	/**
      * WebGLTexture texel data format.

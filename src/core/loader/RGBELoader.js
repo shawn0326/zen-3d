@@ -154,10 +154,10 @@ Object.assign(RGBELoader.prototype, /** @lends zen3d.RGBELoader.prototype */{
 					}
 
 					if (match = line.match(gamma_re)) {
-						header.gamma = parseFloat(match[1], 10);
+						header.gamma = parseFloat(match[1]);
 					}
 					if (match = line.match(exposure_re)) {
-						header.exposure = parseFloat(match[1], 10);
+						header.exposure = parseFloat(match[1]);
 					}
 					if (match = line.match(format_re)) {
 						header.valid |= RGBE_VALID_FORMAT;

@@ -1,4 +1,5 @@
 import { Vector2 } from './Vector2.js';
+import { BLEND_FACTOR } from '../const.js';
 
 var _A0 = new Vector2();
 var _B0 = new Vector2();
@@ -40,6 +41,11 @@ Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
      * @method
      */
 	calc: function (t) {
+		_A0.copy(this.posPoints[this.posPoints.length - 1]);
+		_B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
+		_A1.copy(_A0);
+		_B1.copy(_B0);
+
 		for (var i = 0; i < this.segCount; i++) {
 			if (t >= this.posPoints[i].x && t <= this.posPoints[i + 1].x) {
 				_A0.copy(this.posPoints[i]);
@@ -49,15 +55,6 @@ Object.assign(Curve.prototype, /** @lends zen3d.Curve.prototype */{
 				break;
 			}
 		}
-
-		if (!_A0) {
-			_A0.copy(this.posPoints[this.posPoints.length - 1]);
-		}
-		if (!_B0) {
-			_B0.copy(this.ctrlPoints[this.ctrlPoints.length - 1]);
-		}
-		_A1.copy(_A1 || _A0);
-		_B1.copy(_B1 || _B0);
 
 		t = (t - _A0.x) / (_A1.x - _A0.x);
 		return this._cubic_bezier(_A0.y, _B0.y, _B1.y, _A1.y, t);

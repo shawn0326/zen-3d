@@ -429,10 +429,10 @@ function WebGLUniforms(gl, program) {
 WebGLUniforms.prototype.set = function(name, value, glCore) {
 	var u = this.map[name];
 	if (u !== undefined) u.set(value, glCore);
-}
+};
 
 WebGLUniforms.prototype.has = function(name) {
 	return !!this.map[name];
-}
+};
 
 export { WebGLUniforms };
