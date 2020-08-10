@@ -86,10 +86,12 @@ function removeAttribute(gl, properties, attribute) {
 	properties.delete(attribute);
 }
 
-function WebGLGeometry(gl, state, properties, capabilities) {
+function WebGLGeometry(gl, state, vertexArrayBindings, properties, capabilities) {
 	this.gl = gl;
 
 	this.state = state;
+
+	this.vertexArrayBindings = vertexArrayBindings;
 
 	this.properties = properties;
 
@@ -157,11 +159,7 @@ Object.assign(WebGLGeometry.prototype, {
 		for (var key in geometryProperties._vaos) {
 			var vao = geometryProperties[key];
 			if (vao) {
-				if (this.capabilities.version >= 2) {
-					gl.deleteVertexArray(vao);
-				} else {
-					gl.deleteVertexArrayOES(vao);
-				}
+				this.vertexArrayBindings.disposeVAO(vao.object);
 			}
 		}
 		geometryProperties._vaos = {};

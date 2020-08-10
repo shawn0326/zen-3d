@@ -12,6 +12,7 @@ import { WebGLTexture } from './WebGLTexture.js';
 import { WebGLRenderBuffer } from './WebGLRenderBuffer.js';
 import { WebGLRenderTarget } from './WebGLRenderTarget.js';
 import { WebGLGeometry } from './WebGLGeometry.js';
+import { WebGLVertexArrayBindings } from './WebGLVertexArrayBindings.js';
 
 var helpVector3 = new Vector3();
 var helpVector4 = new Vector4();
@@ -70,6 +71,9 @@ function WebGLCore(gl) {
 	var state = new WebGLState(gl, capabilities);
 	this.state = state;
 
+	var vertexArrayBindings = new WebGLVertexArrayBindings(gl, properties, capabilities);
+	this.vertexArrayBindings = vertexArrayBindings;
+
 	var texture = new WebGLTexture(gl, state, properties, capabilities);
 	this.texture = texture;
 
@@ -77,13 +81,11 @@ function WebGLCore(gl) {
 
 	this.renderTarget = new WebGLRenderTarget(gl, state, texture, renderBuffer, properties, capabilities);
 
-	this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
+	this.geometry = new WebGLGeometry(gl, state, vertexArrayBindings, properties, capabilities);
 
 	this.programs = new WebGLPrograms(gl, state, capabilities);
 
 	this._usedTextureUnits = 0;
-
-	this._currentGeometryProgram = "";
 }
 
 Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
@@ -152,7 +154,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		var gl = this.gl;
 		var state = this.state;
-		var vaoExt = this.capabilities.getExtension("OES_vertex_array_object");
 
 		var getMaterial = config.getMaterial || defaultGetMaterial;
 		var beforeRender = config.beforeRender || noop;
@@ -230,40 +231,14 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			var program = materialProperties.program;
 			state.setProgram(program);
 
-			var geometryProperties = this.geometry.setGeometry(geometry);
+			this.geometry.setGeometry(geometry);
 
 			// update morph targets
 			if (object.morphTargetInfluences) {
 				this.updateMorphtargets(object, geometry, program);
 			}
 
-			if (object.morphTargetInfluences) {
-				this.setupVertexAttributes(program, geometry);
-				this._currentGeometryProgram = "";
-			} else if (this.capabilities.version >= 2) { // use VAO
-				if (!geometryProperties._vaos[program.id]) {
-					geometryProperties._vaos[program.id] = gl.createVertexArray();
-					gl.bindVertexArray(geometryProperties._vaos[program.id]);
-					this.setupVertexAttributes(program, geometry);
-				} else {
-					gl.bindVertexArray(geometryProperties._vaos[program.id]);
-				}
-			} else if (vaoExt) { // use VAO extension
-				if (!geometryProperties._vaos[program.id]) {
-					geometryProperties._vaos[program.id] = vaoExt.createVertexArrayOES();
-					vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
-					this.setupVertexAttributes(program, geometry);
-				} else {
-					vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
-				}
-			} else {
-				var geometryProgram = program.id + "_" + geometry.id;
-				if (geometryProgram !== this._currentGeometryProgram) {
-					this.setupVertexAttributes(program, geometry);
-					this._currentGeometryProgram = geometryProgram;
-				}
-				this._currentGeometryProgram = geometryProgram;
-			}
+			this.vertexArrayBindings.setup(object, geometry, program);
 
 			// update uniforms
 			var uniforms = program.uniforms;
@@ -489,11 +464,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				this.draw(geometry, material, group);
 			}
 
-			if (this.capabilities.version >= 2) {
-				gl.bindVertexArray(null);
-			} else if (vaoExt) {
-				vaoExt.bindVertexArrayOES(null);
-			}
+			this.vertexArrayBindings.resetBinding();
 
 			// reset used tex Unit
 			this._usedTextureUnits = 0;
@@ -758,89 +729,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		}
 
 		program.uniforms.set('morphTargetInfluences', morphInfluences);
-	},
-
-	setupVertexAttributes: function(program, geometry) {
-		var gl = this.gl;
-		var attributes = program.attributes;
-		var properties = this.properties;
-		var capabilities = this.capabilities;
-		for (var key in attributes) {
-			var programAttribute = attributes[key];
-			var geometryAttribute = geometry.getAttribute(key);
-			if (geometryAttribute) {
-				var normalized = geometryAttribute.normalized;
-				var size = geometryAttribute.size;
-				if (programAttribute.count !== size) {
-					console.warn("WebGLCore: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
-				}
-
-				var attribute;
-				if (geometryAttribute.isInterleavedBufferAttribute) {
-					attribute = properties.get(geometryAttribute.data);
-				} else {
-					attribute = properties.get(geometryAttribute);
-				}
-				var buffer = attribute.buffer;
-				var type = attribute.type;
-				if (programAttribute.format !== type) {
-					// console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
-				}
-				var bytesPerElement = attribute.bytesPerElement;
-
-				if (geometryAttribute.isInterleavedBufferAttribute) {
-					var data = geometryAttribute.data;
-					var stride = data.stride;
-					var offset = geometryAttribute.offset;
-
-					gl.enableVertexAttribArray(programAttribute.location);
-
-					if (data && data.isInstancedInterleavedBuffer) {
-						if (capabilities.version >= 2) {
-							gl.vertexAttribDivisor(programAttribute.location, data.meshPerAttribute);
-						} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-							capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
-						} else {
-							console.warn("vertexAttribDivisor not supported");
-						}
-
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = data.meshPerAttribute * data.count;
-						}
-					}
-
-					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-					gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, bytesPerElement * stride, bytesPerElement * offset);
-				} else {
-					gl.enableVertexAttribArray(programAttribute.location);
-
-					if (geometryAttribute.isInstancedBufferAttribute) {
-						if (capabilities.version >= 2) {
-							gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
-						} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-							capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
-						} else {
-							console.warn("vertexAttribDivisor not supported");
-						}
-
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count;
-						}
-					}
-
-					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-					gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, 0, 0);
-				}
-			} else {
-				// console.warn("WebGLCore: geometry attribute " + key + " not found!");
-			}
-		}
-
-		// bind index if could
-		if (geometry.index) {
-			var indexProperty = properties.get(geometry.index);
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);
-		}
 	},
 
 	onMaterialDispose: function(event) {

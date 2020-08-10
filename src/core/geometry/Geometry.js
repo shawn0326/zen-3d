@@ -69,6 +69,13 @@ function Geometry() {
      * @default []
      */
 	this.groups = [];
+
+	/**
+     * A version number, incremented every time the attribute object or index object changes to mark VAO drity.
+     * @type {Integer}
+     * @default 0
+     */
+	this.version = 0;
 }
 
 Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), /** @lends zen3d.Geometry.prototype */{
