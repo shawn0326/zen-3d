@@ -5239,7 +5239,7 @@ Object.assign(TGALoader.prototype, /** @lends zen3d.TGALoader.prototype */{
 
 function RGBELoader(manager) {
 	this.manager = (manager !== undefined) ? manager : DefaultLoadingManager;
-	this.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
+	this.type = WEBGL_PIXEL_TYPE.UNSIGNED_BYTE;
 }
 
 Object.assign(RGBELoader.prototype, /** @lends zen3d.RGBELoader.prototype */{
@@ -5430,7 +5430,7 @@ Object.assign(RGBELoader.prototype, /** @lends zen3d.RGBELoader.prototype */{
 
 				data_rgba = new Uint8Array(4 * w * h);
 
-				if (!data_rgba || !data_rgba.length) {
+				if (!data_rgba.length) {
 					return rgbe_error(rgbe_memory_error, "unable to allocate buffer space");
 				}
 

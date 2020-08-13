@@ -690,14 +690,27 @@ var GLTFLoader = (function() {
 						var input = new inputAccessor.array.constructor(inputAccessor.array.subarray(0, inputAccessor.array.length));
 						var output = new outputAccessor.array.constructor(outputAccessor.array.subarray(0, outputAccessor.array.length));
 
-						var track = new TypedKeyframeTrack(node, PATH_PROPERTIES[target.path], input, output);
+						var targetNodes = [];
+
+						if (PATH_PROPERTIES[target.path] === PATH_PROPERTIES.weights) {
+							node.traverse(function(object) {
+								if (object.type === OBJECT_TYPE.MESH && object.morphTargetInfluences) {
+									targetNodes.push(object);
+								}
+							});
+						} else {
+							targetNodes.push(node);
+						}
+
+						for (var j = 0, jl = targetNodes.length; j < jl; j++) {
+							var track = new TypedKeyframeTrack(targetNodes[j], PATH_PROPERTIES[target.path], input, output);
+							tracks.push(track);
+						}
 
 						var maxTime = input[input.length - 1];
 						if (endFrame < maxTime) {
 							endFrame = maxTime;
 						}
-
-						tracks.push(track);
 					}
 				}
 			}

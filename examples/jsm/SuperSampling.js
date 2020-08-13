@@ -8,7 +8,7 @@ import {
 	ShaderPostPass,
 	WEBGL_TEXTURE_FILTER
 } from "../../build/zen3d.module.js";
-import { BlendShader } from "shaders/BlendShader.js";
+import { BlendShader } from "./shaders/BlendShader.js";
 
 var SuperSampling = function(width, height, samplingSize) {
 	this._samplingSize = samplingSize || 30;

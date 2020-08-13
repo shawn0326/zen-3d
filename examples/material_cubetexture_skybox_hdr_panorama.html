@@ -47,6 +47,7 @@
 	        var scene = new zen3d.Scene();
 
 			var texture = zen3d.Texture2D.fromSrc("resources/hdr/pisa.hdr");
+			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.RGBE;
 			var sky_box = new zen3d.SkyBox(texture);
 			sky_box.gamma = true;
 

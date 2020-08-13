@@ -61,7 +61,7 @@ var files = [
 	{ path: 'GBuffer.js', dependencies: [], ignoreList: ['Camera'] },
 	{ path: 'GeometryUtils.js', dependencies: [], ignoreList: ['Geoemtry'] },
 	{ path: 'PMREM.js', dependencies: [], ignoreList: ['GLCore'] },
-	{ path: 'SuperSampling.js', dependencies: [{ name: 'BlendShader', path: 'shaders/BlendShader.js' }], ignoreList: ['Camera', 'TextureBase'] },
+	{ path: 'SuperSampling.js', dependencies: [{ name: 'BlendShader', path: './shaders/BlendShader.js' }], ignoreList: ['Camera', 'TextureBase'] },
 	{ path: 'VoxMeshBuilder.js', dependencies: [], ignoreList: ['Material', 'Texture2D'] },
 ];
 
