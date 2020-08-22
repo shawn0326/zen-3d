@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>zen3d - directlight</title>
+	<title>zen3d - stencil</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
 		body {
@@ -21,6 +21,7 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
+	<script src="./js/objects/DirectionalLightHelper.js"></script>
 </head>
 <body>
 
@@ -47,34 +48,49 @@
 	        var scene = new zen3d.Scene();
 			var stencilScene = new zen3d.Scene();
 
-			var cube_geometry = new zen3d.CubeGeometry(15, 15, 15);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-			phong.diffuseMap = floorTexture;
-	        var cube = new zen3d.Mesh(cube_geometry, phong);
-			cube.castShadow = true;
-			scene.add(cube);
-
-	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
+			var sphere = new zen3d.Mesh(new zen3d.SphereGeometry(10, 20, 20), new zen3d.PhongMaterial());
 			sphere.castShadow = true;
+			sphere.material.diffuse.setHex(0xffffff);
 			scene.add(sphere);
+
+	        var cube = new zen3d.Mesh(new zen3d.CubeGeometry(15, 15, 15), new zen3d.PhongMaterial());
+			cube.castShadow = true;
+			cube.material.diffuse.setHex(0xffffff);
+			cube.material.diffuseMap = floorTexture;
+			cube.material.stencilTest = true;
+			cube.material.stencilFunc = zen3d.WEBGL_COMPARE_FUNC.LEQUAL;
+			cube.material.stencilRef = 1;
+			cube.material.stencilFuncMask = 1;
+			cube.material.stencilFail = zen3d.WEBGL_OP.KEEP;
+			cube.material.stencilZFail = zen3d.WEBGL_OP.KEEP;
+			cube.material.stencilZPass = zen3d.WEBGL_OP.KEEP;
+			scene.add(cube);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
 	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
+			lambert.diffuse.setHex(0xffffff);
+			lambert.stencilTest = true;
+			lambert.stencilFunc = zen3d.WEBGL_COMPARE_FUNC.LEQUAL;
+			lambert.stencilRef = 1;
+			lambert.stencilFuncMask = 1;
+			lambert.stencilFail = zen3d.WEBGL_OP.KEEP;
+			lambert.stencilZFail = zen3d.WEBGL_OP.KEEP;
+			lambert.stencilZPass = zen3d.WEBGL_OP.KEEP;
 	        var plane = new zen3d.Mesh(plane_geometry, lambert);
 	        plane.position.y = -10;
 			plane.receiveShadow = true;
 	        scene.add(plane);
 
-			var mask_geometry = new zen3d.SphereGeometry(20, 20, 20);
-			var basic = new zen3d.BasicMaterial();
-			basic.diffuse.setHex(0x000000);
-			basic.depthWrite = false;
-			var mask = new zen3d.Mesh(mask_geometry, basic);
+			var mask = new zen3d.Mesh(new zen3d.SphereGeometry(20, 20, 20), new zen3d.BasicMaterial());
+			mask.material.diffuse.setHex(0x000000);
+			mask.material.depthWrite = false;
+			mask.material.stencilTest = true;
+			mask.material.stencilFunc = zen3d.WEBGL_COMPARE_FUNC.ALWAYS;
+			mask.material.stencilRef = 1;
+			mask.material.stencilFuncMask = 1;
+			mask.material.stencilFail = zen3d.WEBGL_OP.KEEP;
+			mask.material.stencilZFail = zen3d.WEBGL_OP.KEEP;
+			mask.material.stencilZPass = zen3d.WEBGL_OP.REPLACE;
 			stencilScene.add(mask);
 
 	        var ambientLight = new zen3d.AmbientLight(0xbbcccc);
@@ -85,14 +101,10 @@
 			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 			directionalLight.shadow.windowSize = 100;
 			directionalLight.castShadow = true;
-	        scene.add(directionalLight);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
+			scene.add(directionalLight);
+			
+			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
+			directionalLight.add(directionalLightHelper);
 
 	        var camera = new zen3d.Camera();
 	        camera.position.set(0, 80, 100);
@@ -103,7 +115,7 @@
 
 	        function loop(count) {
 
-	            requestAnimationFrame(loop);
+				requestAnimationFrame(loop);
 
 				// rotate camera
 				camera.position.x = 100 * Math.sin(count / 1000 * .5);
@@ -112,43 +124,36 @@
 
 				mask.position.z = 30 * Math.cos(count / 1000);
 
-				var gl = renderer.glCore.gl;
-
 				renderer.glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				renderer.glCore.state.stencilBuffer.setClear(0);
 				renderer.glCore.clear(true, true, true);
 
 				directionalLight.color.setHex(0xffffff);
+				directionalLightHelper.update();
+				directionalLightHelper.visible = true;
 				sphere.scale.set(1, 1, 1);
 				plane.scale.set(1, 1, 1);
 				lambert.diffuseMap = null;
+				lambert.stencilTest = false;
 				cube.visible = false;
 				sphere.visible = true;
-				renderer.render(scene, camera, undefined, false);
 
+				renderer.render(scene, camera);
 				renderer.glCore.clear(false, true, false);
 
-				renderer.glCore.state.stencilBuffer.setTest(true);
-
-				renderer.glCore.state.stencilBuffer.setFunc(gl.ALWAYS, 1, 1);
-				renderer.glCore.state.stencilBuffer.setOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-
-				renderer.render(stencilScene, camera, undefined, false);
-				
-				renderer.glCore.state.stencilBuffer.setFunc(gl.LEQUAL, 1, 1);
-				renderer.glCore.state.stencilBuffer.setOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
+				renderer.render(stencilScene, camera);
 				renderer.glCore.clear(false, true, false);
 
 				directionalLight.color.setHex(0xffaaaa);
+				directionalLightHelper.visible = false;
 				sphere.scale.set(1.1, 1.1, 1.1);
 				plane.scale.set(1.1, 1.1, 1.1);
 				lambert.diffuseMap = floorTexture;
+				lambert.stencilTest = true;
 				cube.visible = true;
 				sphere.visible = false;
-				renderer.render(scene, camera, undefined, false);
 
-				renderer.glCore.state.stencilBuffer.setTest(false);
+				renderer.render(scene, camera);
 	        }
 
 	        loop(0);

@@ -344,6 +344,22 @@
 	};
 
 	/**
+	 * Enum for WebGL Operation.
+	 * @name zen3d.WEBGL_OP
+	 * @readonly
+	 * @enum {number}
+	 */
+	var WEBGL_OP = {
+		KEEP: 0x1E00,
+		REPLACE: 0x1E01,
+		INCR: 0x1E02,
+		DECR: 0x1E03,
+		INVERT: 0x150A,
+		INCR_WRAP: 0x8507,
+		DECR_WRAP: 0x8508
+	};
+
+	/**
 	 * Enum for WebGL Uniform Type.
 	 * Taken from the {@link http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14 WebGl spec}.
 	 * @name zen3d.WEBGL_UNIFORM_TYPE
@@ -8728,6 +8744,119 @@
 		this.colorWrite = true;
 
 		/**
+	     * Whether stencil operations are performed against the stencil buffer.
+	     * In order to perform writes or comparisons against the stencil buffer this value must be true.
+	     * @type {boolean}
+	     * @default false
+	     */
+		this.stencilTest = false;
+
+		/**
+	     * The bit mask to use when writing to the stencil buffer.
+	     * @type {number}
+	     * @default 0xFF
+	     */
+		this.stencilWriteMask = 0xff;
+
+		/**
+	     * The stencil comparison function to use.
+	     * See the {@link zen3d.WEBGL_COMPARE_FUNC} constants for all possible values.
+	     * @type {zen3d.WEBGL_COMPARE_FUNC}
+	     * @default zen3d.WEBGL_COMPARE_FUNC.ALWAYS
+	     */
+		this.stencilFunc = WEBGL_COMPARE_FUNC.ALWAYS;
+
+		/**
+	     * The value to use when performing stencil comparisons or stencil operations.
+	     * @type {number}
+	     * @default 0
+	     */
+		this.stencilRef = 0;
+
+		/**
+	     * The bit mask to use when comparing against the stencil buffer.
+	     * @type {number}
+	     * @default 0xFF
+	     */
+		this.stencilFuncMask = 0xff;
+
+		/**
+	     * Which stencil operation to perform when the comparison function returns false.
+	     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+	     * @type {zen3d.WEBGL_OP}
+	     * @default zen3d.WEBGL_OP.KEEP
+	     */
+		this.stencilFail = WEBGL_OP.KEEP;
+
+		/**
+	     * Which stencil operation to perform when the comparison function returns true but the depth test fails.
+	     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+	     * @type {zen3d.WEBGL_OP}
+	     * @default zen3d.WEBGL_OP.KEEP
+	     */
+		this.stencilZFail = WEBGL_OP.KEEP;
+
+		/**
+	     * Which stencil operation to perform when the comparison function returns true and the depth test passes.
+	     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+	     * @type {zen3d.WEBGL_OP}
+	     * @default zen3d.WEBGL_OP.KEEP
+	     */
+		this.stencilZPass = WEBGL_OP.KEEP;
+
+		/**
+	     * The stencil comparison function to use.
+	     * See the {@link zen3d.WEBGL_COMPARE_FUNC} constants for all possible values.
+	     * You can explicitly specify the two-sided stencil function state by defining stencilFuncBack, stencilRefBack and stencilFuncMaskBack.
+	     * @type {zen3d.WEBGL_COMPARE_FUNC|null}
+	     * @default null
+	     */
+		this.stencilFuncBack = null;
+
+		/**
+	     * The value to use when performing stencil comparisons or stencil operations.
+	     * You can explicitly specify the two-sided stencil function state by defining stencilFuncBack, stencilRefBack and stencilFuncMaskBack.
+	     * @type {number|null}
+	     * @default null
+	     */
+		this.stencilRefBack = null;
+
+		/**
+	     * The bit mask to use when comparing against the stencil buffer.
+	     * You can explicitly specify the two-sided stencil function state by defining stencilFuncBack, stencilRefBack and stencilFuncMaskBack.
+	     * @type {number|null}
+	     * @default null
+	     */
+		this.stencilFuncMaskBack = null;
+
+		/**
+	     * Which stencil operation to perform when the comparison function returns false.
+	     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+	     * You can explicitly specify the two-sided stencil op state by defining stencilFailBack, stencilZFailBack and stencilZPassBack.
+	     * @type {zen3d.WEBGL_OP|null}
+	     * @default null
+	     */
+		this.stencilFailBack = null;
+
+		/**
+	     * Which stencil operation to perform when the comparison function returns true but the depth test fails.
+	     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+	     * You can explicitly specify the two-sided stencil op state by defining stencilFailBack, stencilZFailBack and stencilZPassBack.
+	     * @type {zen3d.WEBGL_OP|null}
+	     * @default null
+	     */
+		this.stencilZFailBack = null;
+
+		/**
+	     * Which stencil operation to perform when the comparison function returns true and the depth test passes.
+	     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+	     * You can explicitly specify the two-sided stencil op state by defining stencilFailBack, stencilZFailBack and stencilZPassBack.
+	     * @type {zen3d.WEBGL_OP|null}
+	     * @default null
+	     */
+		this.stencilZPassBack = null;
+
+		/**
 	     * Sets the alpha value to be used when running an alpha test.
 	     * The material will not be renderered if the opacity is lower than this value.
 	     * @type {number}
@@ -9603,6 +9732,12 @@
 		var currentStencilFail = null;
 		var currentStencilZFail = null;
 		var currentStencilZPass = null;
+		var currentStencilFuncBack = null;
+		var currentStencilRefBack = null;
+		var currentStencilFuncMaskBack = null;
+		var currentStencilFailBack = null;
+		var currentStencilZFailBack = null;
+		var currentStencilZPassBack = null;
 		var currentStencilClear = null;
 
 		return {
@@ -9622,27 +9757,49 @@
 				}
 			},
 
-			setFunc: function (stencilFunc, stencilRef, stencilMask) {
+			setFunc: function (stencilFunc, stencilRef, stencilMask, stencilFuncBack, stencilRefBack, stencilMaskBack) {
 				if (currentStencilFunc !== stencilFunc ||
-	                 currentStencilRef 	!== stencilRef 	||
-	                 currentStencilFuncMask !== stencilMask) {
-					gl.stencilFunc(stencilFunc, stencilRef, stencilMask);
+					currentStencilRef !== stencilRef ||
+					currentStencilFuncMask !== stencilMask ||
+					currentStencilFuncBack !== stencilFuncBack ||
+					currentStencilRefBack !== stencilRefBack ||
+					currentStencilFuncMaskBack !== stencilMaskBack) {
+					if (stencilFuncBack === null || stencilRefBack === null || stencilMaskBack === null) {
+						gl.stencilFunc(stencilFunc, stencilRef, stencilMask);
+					} else {
+						gl.stencilFuncSeparate(gl.FRONT, stencilFunc, stencilRef, stencilMask);
+						gl.stencilFuncSeparate(gl.BACK, stencilFuncBack, stencilRefBack, stencilMaskBack);
+					}
 
 					currentStencilFunc = stencilFunc;
 					currentStencilRef = stencilRef;
 					currentStencilFuncMask = stencilMask;
+					currentStencilFuncBack = stencilFuncBack;
+					currentStencilRefBack = stencilRefBack;
+					currentStencilFuncMaskBack = stencilMaskBack;
 				}
 			},
 
-			setOp: function (stencilFail, stencilZFail, stencilZPass) {
+			setOp: function (stencilFail, stencilZFail, stencilZPass, stencilFailBack, stencilZFailBack, stencilZPassBack) {
 				if (currentStencilFail	 !== stencilFail 	||
-	                 currentStencilZFail !== stencilZFail ||
-	                 currentStencilZPass !== stencilZPass) {
-					gl.stencilOp(stencilFail, stencilZFail, stencilZPass);
+					currentStencilZFail !== stencilZFail ||
+					currentStencilZPass !== stencilZPass ||
+					currentStencilFailBack	 !== stencilFailBack ||
+					currentStencilZFailBack !== stencilZFailBack ||
+					currentStencilZPassBack !== stencilZPassBack) {
+					if (stencilFailBack === null || stencilZFailBack === null || stencilZPassBack === null) {
+						gl.stencilOp(stencilFail, stencilZFail, stencilZPass);
+					} else {
+						gl.stencilOpSeparate(gl.FRONT, stencilFail, stencilZFail, stencilZPass);
+						gl.stencilOpSeparate(gl.BACK, stencilFailBack, stencilZFailBack, stencilZPassBack);
+					}
 
 					currentStencilFail = stencilFail;
 					currentStencilZFail = stencilZFail;
 					currentStencilZPass = stencilZPass;
+					currentStencilFailBack = stencilFailBack;
+					currentStencilZFailBack = stencilZFailBack;
+					currentStencilZPassBack = stencilZPassBack;
 				}
 			},
 
@@ -12925,19 +13082,6 @@
 		setStates: function(material, frontFaceCW) {
 			var state = this.state;
 
-			// set blend
-			if (material.transparent) {
-				state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
-			} else {
-				state.setBlend(BLEND_TYPE.NONE);
-			}
-
-			// set buffers
-			state.depthBuffer.setFunc(material.depthFunc);
-			state.depthBuffer.setTest(material.depthTest);
-			state.depthBuffer.setMask(material.depthWrite);
-			state.colorBuffer.setMask(material.colorWrite);
-
 			// set draw side
 			state.setCullFace(
 				(material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
@@ -12948,12 +13092,34 @@
 
 			state.setFlipSided(flipSided);
 
+			// set blend state
+			if (material.transparent) {
+				state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
+			} else {
+				state.setBlend(BLEND_TYPE.NONE);
+			}
+
+			// set buffers state
+			state.depthBuffer.setFunc(material.depthFunc);
+			state.depthBuffer.setTest(material.depthTest);
+			state.depthBuffer.setMask(material.depthWrite);
+			state.colorBuffer.setMask(material.colorWrite);
+
+			// set stencil buffers
+			var stencilTest = material.stencilTest;
+			state.stencilBuffer.setTest(stencilTest);
+			if (stencilTest) {
+				state.stencilBuffer.setMask(material.stencilWriteMask);
+				state.stencilBuffer.setFunc(material.stencilFunc, material.stencilRef, material.stencilFuncMask, material.stencilFuncBack, material.stencilRefBack, material.stencilFuncMaskBack);
+				state.stencilBuffer.setOp(material.stencilFail, material.stencilZFail, material.stencilZPass, material.stencilFailBack, material.stencilZFailBack, material.stencilZPassBack);
+			}
+
+			state.setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
+
 			// set line width
 			if (material.lineWidth !== undefined) {
 				state.setLineWidth(material.lineWidth);
 			}
-
-			state.setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
 		},
 
 		// GL draw.
@@ -15756,6 +15922,7 @@
 	exports.VectorKeyframeTrack = VectorKeyframeTrack;
 	exports.WEBGL_ATTRIBUTE_TYPE = WEBGL_ATTRIBUTE_TYPE;
 	exports.WEBGL_COMPARE_FUNC = WEBGL_COMPARE_FUNC;
+	exports.WEBGL_OP = WEBGL_OP;
 	exports.WEBGL_PIXEL_FORMAT = WEBGL_PIXEL_FORMAT;
 	exports.WEBGL_PIXEL_TYPE = WEBGL_PIXEL_TYPE;
 	exports.WEBGL_TEXTURE_FILTER = WEBGL_TEXTURE_FILTER;

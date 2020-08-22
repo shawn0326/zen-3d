@@ -245,6 +245,22 @@ export var WEBGL_COMPARE_FUNC = {
 }
 
 /**
+ * Enum for WebGL Operation.
+ * @name zen3d.WEBGL_OP
+ * @readonly
+ * @enum {number}
+ */
+export var WEBGL_OP = {
+	KEEP: 0x1E00,
+	REPLACE: 0x1E01,
+	INCR: 0x1E02,
+	DECR: 0x1E03,
+	INVERT: 0x150A,
+	INCR_WRAP: 0x8507,
+	DECR_WRAP: 0x8508
+}
+
+/**
  * Enum for WebGL Uniform Type.
  * Taken from the {@link http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14 WebGl spec}.
  * @name zen3d.WEBGL_UNIFORM_TYPE

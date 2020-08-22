@@ -484,19 +484,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 	setStates: function(material, frontFaceCW) {
 		var state = this.state;
 
-		// set blend
-		if (material.transparent) {
-			state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
-		} else {
-			state.setBlend(BLEND_TYPE.NONE);
-		}
-
-		// set buffers
-		state.depthBuffer.setFunc(material.depthFunc);
-		state.depthBuffer.setTest(material.depthTest);
-		state.depthBuffer.setMask(material.depthWrite);
-		state.colorBuffer.setMask(material.colorWrite);
-
 		// set draw side
 		state.setCullFace(
 			(material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
@@ -507,12 +494,34 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		state.setFlipSided(flipSided);
 
+		// set blend state
+		if (material.transparent) {
+			state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
+		} else {
+			state.setBlend(BLEND_TYPE.NONE);
+		}
+
+		// set buffers state
+		state.depthBuffer.setFunc(material.depthFunc);
+		state.depthBuffer.setTest(material.depthTest);
+		state.depthBuffer.setMask(material.depthWrite);
+		state.colorBuffer.setMask(material.colorWrite);
+
+		// set stencil buffers
+		var stencilTest = material.stencilTest;
+		state.stencilBuffer.setTest(stencilTest);
+		if (stencilTest) {
+			state.stencilBuffer.setMask(material.stencilWriteMask);
+			state.stencilBuffer.setFunc(material.stencilFunc, material.stencilRef, material.stencilFuncMask, material.stencilFuncBack, material.stencilRefBack, material.stencilFuncMaskBack);
+			state.stencilBuffer.setOp(material.stencilFail, material.stencilZFail, material.stencilZPass, material.stencilFailBack, material.stencilZFailBack, material.stencilZPassBack);
+		}
+
+		state.setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
+
 		// set line width
 		if (material.lineWidth !== undefined) {
 			state.setLineWidth(material.lineWidth);
 		}
-
-		state.setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
 	},
 
 	// GL draw.

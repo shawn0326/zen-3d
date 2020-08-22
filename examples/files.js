@@ -62,8 +62,7 @@ var files = {
 	],
 	"scene": [
 		"scene_fog",
-		"scene_gamma_correction",
-		"scene_stencil"
+		"scene_gamma_correction"
 	],
 	"math": [
 		"math_frustumtest",
@@ -128,7 +127,8 @@ var files = {
 		"webgl_depthfunc",
 		"webgl_instanced_draw",
 		"webgl_polygonoffset",
-		"webgl_canvas_transparent"
+		"webgl_canvas_transparent",
+		"webgl_stencil"
 	],
 	"lab": [
 		"lab_clouds",

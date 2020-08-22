@@ -1,5 +1,5 @@
 import { EventDispatcher } from '../EventDispatcher.js';
-import { BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE, WEBGL_COMPARE_FUNC, VERTEX_COLOR } from '../const.js';
+import { BLEND_TYPE, BLEND_EQUATION, BLEND_FACTOR, ENVMAP_COMBINE_TYPE, DRAW_SIDE, SHADING_TYPE, DRAW_MODE, WEBGL_COMPARE_FUNC, WEBGL_OP, VERTEX_COLOR } from '../const.js';
 import { Color3 } from '../math/Color3.js';
 import { generateUUID } from '../base.js';
 
@@ -294,6 +294,119 @@ function Material() {
      * @default true
      */
 	this.colorWrite = true;
+
+	/**
+     * Whether stencil operations are performed against the stencil buffer.
+     * In order to perform writes or comparisons against the stencil buffer this value must be true.
+     * @type {boolean}
+     * @default false
+     */
+	this.stencilTest = false;
+
+	/**
+     * The bit mask to use when writing to the stencil buffer.
+     * @type {number}
+     * @default 0xFF
+     */
+	this.stencilWriteMask = 0xff;
+
+	/**
+     * The stencil comparison function to use.
+     * See the {@link zen3d.WEBGL_COMPARE_FUNC} constants for all possible values.
+     * @type {zen3d.WEBGL_COMPARE_FUNC}
+     * @default zen3d.WEBGL_COMPARE_FUNC.ALWAYS
+     */
+	this.stencilFunc = WEBGL_COMPARE_FUNC.ALWAYS;
+
+	/**
+     * The value to use when performing stencil comparisons or stencil operations.
+     * @type {number}
+     * @default 0
+     */
+	this.stencilRef = 0;
+
+	/**
+     * The bit mask to use when comparing against the stencil buffer.
+     * @type {number}
+     * @default 0xFF
+     */
+	this.stencilFuncMask = 0xff;
+
+	/**
+     * Which stencil operation to perform when the comparison function returns false.
+     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+     * @type {zen3d.WEBGL_OP}
+     * @default zen3d.WEBGL_OP.KEEP
+     */
+	this.stencilFail = WEBGL_OP.KEEP;
+
+	/**
+     * Which stencil operation to perform when the comparison function returns true but the depth test fails.
+     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+     * @type {zen3d.WEBGL_OP}
+     * @default zen3d.WEBGL_OP.KEEP
+     */
+	this.stencilZFail = WEBGL_OP.KEEP;
+
+	/**
+     * Which stencil operation to perform when the comparison function returns true and the depth test passes.
+     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+     * @type {zen3d.WEBGL_OP}
+     * @default zen3d.WEBGL_OP.KEEP
+     */
+	this.stencilZPass = WEBGL_OP.KEEP;
+
+	/**
+     * The stencil comparison function to use.
+     * See the {@link zen3d.WEBGL_COMPARE_FUNC} constants for all possible values.
+     * You can explicitly specify the two-sided stencil function state by defining stencilFuncBack, stencilRefBack and stencilFuncMaskBack.
+     * @type {zen3d.WEBGL_COMPARE_FUNC|null}
+     * @default null
+     */
+	this.stencilFuncBack = null;
+
+	/**
+     * The value to use when performing stencil comparisons or stencil operations.
+     * You can explicitly specify the two-sided stencil function state by defining stencilFuncBack, stencilRefBack and stencilFuncMaskBack.
+     * @type {number|null}
+     * @default null
+     */
+	this.stencilRefBack = null;
+
+	/**
+     * The bit mask to use when comparing against the stencil buffer.
+     * You can explicitly specify the two-sided stencil function state by defining stencilFuncBack, stencilRefBack and stencilFuncMaskBack.
+     * @type {number|null}
+     * @default null
+     */
+	this.stencilFuncMaskBack = null;
+
+	/**
+     * Which stencil operation to perform when the comparison function returns false.
+     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+     * You can explicitly specify the two-sided stencil op state by defining stencilFailBack, stencilZFailBack and stencilZPassBack.
+     * @type {zen3d.WEBGL_OP|null}
+     * @default null
+     */
+	this.stencilFailBack = null;
+
+	/**
+     * Which stencil operation to perform when the comparison function returns true but the depth test fails.
+     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+     * You can explicitly specify the two-sided stencil op state by defining stencilFailBack, stencilZFailBack and stencilZPassBack.
+     * @type {zen3d.WEBGL_OP|null}
+     * @default null
+     */
+	this.stencilZFailBack = null;
+
+	/**
+     * Which stencil operation to perform when the comparison function returns true and the depth test passes.
+     * See the {@link zen3d.WEBGL_OP} constants for all possible values.
+     * You can explicitly specify the two-sided stencil op state by defining stencilFailBack, stencilZFailBack and stencilZPassBack.
+     * @type {zen3d.WEBGL_OP|null}
+     * @default null
+     */
+	this.stencilZPassBack = null;
 
 	/**
      * Sets the alpha value to be used when running an alpha test.
