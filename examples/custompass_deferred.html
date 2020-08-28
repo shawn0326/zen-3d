@@ -142,13 +142,13 @@
 			var normalDepthRenderTarget = new zen3d.RenderTarget2D(width, height);
 			normalDepthRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			normalDepthRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			normalDepthRenderTarget.texture.type = zen3d.isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			normalDepthRenderTarget.texture.type = isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			normalDepthRenderTarget.texture.generateMipmaps = false;
 
 			var colorRenderTarget = new zen3d.RenderTarget2D(width, height);
 			colorRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 			colorRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			colorRenderTarget.texture.type = zen3d.isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
+			colorRenderTarget.texture.type = isMobile ? zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT : zen3d.WEBGL_PIXEL_TYPE.FLOAT;
 			colorRenderTarget.texture.generateMipmaps = false;
 
 			var resultRenderTarget = new zen3d.RenderTarget2D(width, height);
@@ -232,7 +232,6 @@
 			lightFolder.add(spotLight, "visible").name("spotLight");
 			lightFolder.open();
 
-			var direction = new zen3d.Vector3();
 			var matProjViewInverse = new zen3d.Matrix4();
 			var cameraPos = new zen3d.Vector3();
 

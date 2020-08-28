@@ -64,7 +64,7 @@ zen3d.ParticleContainer.prototype = Object.assign(Object.create(zen3d.Object3D.p
 			UINT8_VIEW[2] = Math.floor(y);
 			UINT8_VIEW[3] = Math.floor(x);
 			return FLOAT_VIEW[0];
-		}
+		};
 	}(),
 
 
@@ -79,7 +79,6 @@ zen3d.ParticleContainer.prototype = Object.assign(Object.create(zen3d.Object3D.p
 		var lifetime = 0;
 		var size = 0;
 		var sizeRandomness = 0;
-		var smoothPosition = false;
 
 		var maxVel = 2;
 		var maxSource = 250;
@@ -114,7 +113,7 @@ zen3d.ParticleContainer.prototype = Object.assign(Object.create(zen3d.Object3D.p
 			var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
 
 			// convert turbulence rating to something we can pack into a vec4
-			var turbulence = Math.floor(turbulence * 254);
+			turbulence = Math.floor(turbulence * 254);
 
 			// clamp our value to between 0. and 1.
 			velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
@@ -154,7 +153,7 @@ zen3d.ParticleContainer.prototype = Object.assign(Object.create(zen3d.Object3D.p
 					buffer.updateRange.count = vertexSize;
 				}
 			}
-		}
+		};
 	}(),
 
 	update: function(time) {

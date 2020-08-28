@@ -189,7 +189,6 @@
 			var clock = new zen3d.Clock();
 
 			// gui
-			var params = {};
 			var gui = new dat.GUI();
 			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
 			gui.add(shaderMaterial.uniforms, 'u_Uvz', 0, 64).name('depth');

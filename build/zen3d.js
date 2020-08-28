@@ -2502,18 +2502,6 @@
 		/**
 	     *
 	     */
-		multiplyScalar: function(scalar) {
-			this.x *= scalar;
-			this.y *= scalar;
-			this.z *= scalar;
-			this.w *= scalar;
-
-			return this;
-		},
-
-		/**
-	     *
-	     */
 		subVectors: function(a, b) {
 			this.x = a.x - b.x;
 			this.y = a.y - b.y;

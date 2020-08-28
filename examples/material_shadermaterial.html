@@ -117,7 +117,7 @@
 	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
 	        var sphere = new zen3d.Mesh(sphere_geometry, material2);
 			sphere.euler.z = -Math.PI / 2;
-			sphere.position.y = 10
+			sphere.position.y = 10;
 			scene.add(sphere);
 
 	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
@@ -138,7 +138,7 @@
 					sphere.material = sphere.material === material1 ? material2 : material1;
 					plane.material = plane.material === material1 ? material2 : material1;
 				}
-	        }
+	        };
 
 	        function loop(count) {
 

@@ -515,10 +515,10 @@ var GLTFLoader = (function() {
 		var json = this.json;
 		var extensions = this.extensions;
 
-		var meshReferences = this.json.meshReferences;
-		var meshUses = this.json.meshUses;
+		var meshReferences = json.meshReferences;
+		var meshUses = json.meshUses;
 
-		var nodeDef = this.json.nodes[nodeIndex];
+		var nodeDef = json.nodes[nodeIndex];
 
 		return this.getMultiDependencies([
 
@@ -735,7 +735,6 @@ var GLTFLoader = (function() {
 	GLTFParser.prototype.loadMesh = function(meshIndex) {
 		var scope = this;
 		var json = this.json;
-		var extensions = this.extensions;
 
 		var meshDef = json.meshes[meshIndex];
 
@@ -1613,7 +1612,6 @@ var GLTFLoader = (function() {
 
 	/* BINARY EXTENSION */
 
-	var BINARY_EXTENSION_BUFFER_NAME = 'binary_glTF';
 	var BINARY_EXTENSION_HEADER_MAGIC = 'glTF';
 	var BINARY_EXTENSION_HEADER_LENGTH = 12;
 	var BINARY_EXTENSION_CHUNK_TYPES = {

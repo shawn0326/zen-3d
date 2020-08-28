@@ -21,7 +21,6 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="./js/Clock.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
@@ -77,10 +76,8 @@
 
 			var directionalLight = new zen3d.DirectionalLight(0xffffff, 1);
 			directionalLight.position.set(2, 1, 2);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0))
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 	        scene.add(directionalLight);
-
-			var clock = new zen3d.Clock();
 
 	        function loop(count) {
 

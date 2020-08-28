@@ -21,7 +21,6 @@
 		}
 	</style>
 	<script src="../build/zen3d.js"></script>
-	<script src="./js/Clock.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 </head>
@@ -81,8 +80,6 @@
 
 			var controller = new zen3d.OrbitControls(camera, canvas);
 			controller.target.set(0, 0, 0);
-
-			var clock = new zen3d.Clock();
 
 	        function loop(count) {
 

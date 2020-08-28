@@ -76,7 +76,6 @@ zen3d.AssimpJsonLoader.prototype.parseSkeleton = function(meshName, bonesInfo, n
 	function getRoot(name) {
 		var node = nodeTree.getObjectByName(name);
 		var parent;
-		var breaked = false;
 		while (node.parent) {
 			parent = node.parent;
 
@@ -144,7 +143,7 @@ zen3d.AssimpJsonLoader.prototype.parseAnimations = function(json, boneMap) {
 			var boneName = channel.name;
 
 			if (!boneMap[boneName]) {
-				console.log(boneName)
+				console.log(boneName);
 				continue;
 			}
 
@@ -240,7 +239,7 @@ zen3d.AssimpJsonLoader.prototype.parseMaterial = function(json) {
 	var diffuseMap = null;
 	var normalMap = null;
 
-	var prop = json.properties;
+	var prop;
 
 	for (var key in json.properties) {
 		prop = json.properties[key];
@@ -328,11 +327,9 @@ zen3d.AssimpJsonLoader.prototype.parseMesh = function(json) {
 			bind[i] = [];
 		}
 
-		var bone, name, offset, weights, weight;
+		var bone, weights, weight;
 		for (var i = 0; i < bones.length; i++) {
 			bone = bones[i];
-			name = bone.name;
-			offset = bone.offsetmatrix;
 			weights = bone.weights;
 			for (var j = 0; j < weights.length; j++) {
 				weight = weights[j];

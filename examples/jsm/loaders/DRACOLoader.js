@@ -310,8 +310,8 @@ DRACOLoader.prototype = {
 		if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
 			if (this.drawMode === DRAW_MODE.TRIANGLE_STRIP) {
 				var stripsArray = new dracoDecoder.DracoInt32Array();
-				var numStrips = decoder.GetTriangleStripsFromMesh(
-					dracoGeometry, stripsArray);
+				// var numStrips = decoder.GetTriangleStripsFromMesh(
+				// 	dracoGeometry, stripsArray);
 				geometryBuffer.indices = new Array(stripsArray.size());
 				for (var i = 0; i < stripsArray.size(); ++i) {
 					geometryBuffer.indices[i] = stripsArray.GetValue(i);

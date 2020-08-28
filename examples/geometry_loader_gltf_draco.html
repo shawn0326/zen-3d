@@ -67,8 +67,6 @@
 			var sky_box = new zen3d.SkyBox(cube_texture);
 			sky_box.level = 4;
 
-			let objectMaterial;
-
 			var nanobar = new Nanobar();
 			nanobar.el.style.background = "gray";
 
@@ -110,7 +108,7 @@
 
 			var directionalLight = new zen3d.DirectionalLight(0xffffff, 2);
 			directionalLight.position.set(2, 1, 2);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0))
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 	        scene.add(directionalLight);
 
 			var camera = new zen3d.Camera();

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - clip stencil</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+        #info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align:center;
+			color: white;
+		}
+	</style>
+	<script src="../build/zen3d.js"></script>
+	<script src="./js/objects/DirectionalLightHelper.js"></script>
+</head>
+<body>
+
+    <div id="info">
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - clip stencil
+    </div>
+
+	<script>
+
+		(function() {
+			var width = window.innerWidth || 2;
+	        var height = window.innerHeight || 2;
+
+	        var canvas = document.createElement( 'canvas' );
+	        canvas.width = width;
+	        canvas.height = height;
+			document.body.appendChild( canvas );
+			
+			var params = {
+				animate: true,
+				planeX: {
+					constant: 0,
+					negated: false,
+					displayHelper: false
+				},
+				planeY: {
+					constant: 0,
+					negated: false,
+					displayHelper: false
+				},
+				planeZ: {
+					constant: 0,
+					negated: false,
+					displayHelper: false
+				}
+			}
+
+			var scene = new zen3d.Scene();
+
+			var camera = new zen3d.Camera();
+	        camera.position.set(2, 2, 2);
+	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+	        camera.setPerspective(36 / 180 * Math.PI, width / height, 1, 100);
+			scene.add(camera);
+			
+			var ambientLight = new zen3d.AmbientLight(0x888888);
+			scene.add(ambientLight);
+			
+			var directionalLight = new zen3d.DirectionalLight(0xffffff);
+			directionalLight.position.set(5, 10, 7.5);
+			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+			directionalLight.castShadow = true;
+			directionalLight.shadow.windowSize = 4;
+			directionalLight.shadow.mapSize.set(1024, 1024);
+			scene.add(directionalLight);
+
+			var planes = [
+				new zen3d.Plane(new zen3d.Vector3(- 1, 0, 0), 0),
+				new zen3d.Plane(new zen3d.Vector3(0, - 1, 0), 0),
+				new zen3d.Plane(new zen3d.Vector3(0, 0, - 1), 0)
+			];
+
+			var geometry = new zen3d.TorusKnotGeometry(0.4, 0.15, 220, 60);
+
+
+
+			var renderer = new zen3d.Renderer(canvas);
+			renderer.autoClear = false;
+
+			
+
+			var sphere = new zen3d.Mesh(new zen3d.SphereGeometry(10, 20, 20), new zen3d.PhongMaterial());
+			sphere.castShadow = true;
+			sphere.material.diffuse.setHex(0xffffff);
+			scene.add(sphere);
+
+	        var cube = new zen3d.Mesh(new zen3d.CubeGeometry(15, 15, 15), new zen3d.PhongMaterial());
+			cube.castShadow = true;
+			cube.material.diffuse.setHex(0xffffff);
+			cube.material.diffuseMap = floorTexture;
+			cube.material.stencilTest = true;
+			cube.material.stencilFunc = zen3d.WEBGL_COMPARE_FUNC.LEQUAL;
+			cube.material.stencilRef = 1;
+			cube.material.stencilFuncMask = 1;
+			cube.material.stencilFail = zen3d.WEBGL_OP.KEEP;
+			cube.material.stencilZFail = zen3d.WEBGL_OP.KEEP;
+			cube.material.stencilZPass = zen3d.WEBGL_OP.KEEP;
+			scene.add(cube);
+
+	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+	        var lambert = new zen3d.LambertMaterial();
+			lambert.diffuse.setHex(0xffffff);
+			lambert.stencilTest = true;
+			lambert.stencilFunc = zen3d.WEBGL_COMPARE_FUNC.LEQUAL;
+			lambert.stencilRef = 1;
+			lambert.stencilFuncMask = 1;
+			lambert.stencilFail = zen3d.WEBGL_OP.KEEP;
+			lambert.stencilZFail = zen3d.WEBGL_OP.KEEP;
+			lambert.stencilZPass = zen3d.WEBGL_OP.KEEP;
+	        var plane = new zen3d.Mesh(plane_geometry, lambert);
+	        plane.position.y = -10;
+			plane.receiveShadow = true;
+	        scene.add(plane);
+
+			var mask = new zen3d.Mesh(new zen3d.SphereGeometry(20, 20, 20), new zen3d.BasicMaterial());
+			mask.material.diffuse.setHex(0x000000);
+			mask.material.depthWrite = false;
+			mask.material.stencilTest = true;
+			mask.material.stencilFunc = zen3d.WEBGL_COMPARE_FUNC.ALWAYS;
+			mask.material.stencilRef = 1;
+			mask.material.stencilFuncMask = 1;
+			mask.material.stencilFail = zen3d.WEBGL_OP.KEEP;
+			mask.material.stencilZFail = zen3d.WEBGL_OP.KEEP;
+			mask.material.stencilZPass = zen3d.WEBGL_OP.REPLACE;
+			stencilScene.add(mask);
+
+	        
+			
+			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
+			directionalLight.add(directionalLightHelper);
+
+	        
+
+	        function loop(count) {
+
+				requestAnimationFrame(loop);
+
+				// rotate camera
+				camera.position.x = 100 * Math.sin(count / 1000 * .5);
+				camera.position.z = 100 * Math.cos(count / 1000 * .5);
+				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+				mask.position.z = 30 * Math.cos(count / 1000);
+
+				renderer.glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+				renderer.glCore.state.stencilBuffer.setClear(0);
+				renderer.glCore.clear(true, true, true);
+
+				directionalLight.color.setHex(0xffffff);
+				directionalLightHelper.update();
+				directionalLightHelper.visible = true;
+				sphere.scale.set(1, 1, 1);
+				plane.scale.set(1, 1, 1);
+				lambert.diffuseMap = null;
+				lambert.stencilTest = false;
+				cube.visible = false;
+				sphere.visible = true;
+
+				renderer.render(scene, camera);
+				renderer.glCore.clear(false, true, false);
+
+				renderer.render(stencilScene, camera);
+				renderer.glCore.clear(false, true, false);
+
+				directionalLight.color.setHex(0xffaaaa);
+				directionalLightHelper.visible = false;
+				sphere.scale.set(1.1, 1.1, 1.1);
+				plane.scale.set(1.1, 1.1, 1.1);
+				lambert.diffuseMap = floorTexture;
+				lambert.stencilTest = true;
+				cube.visible = true;
+				sphere.visible = false;
+
+				renderer.render(scene, camera);
+	        }
+
+	        loop(0);
+
+			function onWindowResize() {
+				width = window.innerWidth || 2;
+		        height = window.innerHeight || 2;
+
+				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+				renderer.backRenderTarget.resize(width, height);
+			}
+			window.addEventListener("resize", onWindowResize, false);
+		})();
+	</script>
+</body>
+</html>

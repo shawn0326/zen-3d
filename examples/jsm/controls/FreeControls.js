@@ -69,7 +69,7 @@ var FreeControls = function(object, domElement) {
 		}
 
 		return false;
-	}
+	};
 
 	var tempVector = new Vector3();
 

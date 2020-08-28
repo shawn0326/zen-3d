@@ -151,7 +151,7 @@ zen3d.Water = function(geometry, options) {
 			'   #include <fog_frag>',
 			'}'
 		].join('\n')
-	}
+	};
 
 	var material = new zen3d.ShaderMaterial(mirrorShader);
 	material.side = side;
@@ -266,7 +266,7 @@ zen3d.Water = function(geometry, options) {
 			mirrorCamera.remove(sky);
 			skyParent.add(sky);
 		}
-	}
+	};
 };
 
 zen3d.Water.prototype = Object.create(zen3d.Mesh.prototype);

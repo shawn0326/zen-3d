@@ -102,7 +102,6 @@
 			controller.rotateSpeed = 0.1;
 
 			// gui
-			var params = {};
 			var gui = new dat.GUI();
 			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
 			gui.add(shaderMaterial.uniforms, 'uAlphaCorrection', 0, 0.1, 0.001);

@@ -63,7 +63,7 @@ zen3d.FreeControls = function(object, domElement) {
 		}
 
 		return false;
-	}
+	};
 
 	var tempVector = new zen3d.Vector3();
 

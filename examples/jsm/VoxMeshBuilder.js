@@ -103,7 +103,7 @@ var VOXMeshBuilder = (function() {
 		// faces
 
 		for (i = 0, il = faces2.length; i < il; i++) {
-			var face = faces2[i], faceCopy, normal, color;
+			var face = faces2[i], faceCopy;
 
 			faceCopy = new VOXFace3(face.a + vertexOffset, face.b + vertexOffset, face.c + vertexOffset);
 			faceCopy.normal.copy(face.normal);
@@ -223,9 +223,7 @@ var VOXMeshBuilder = (function() {
 		var faceVertexUvs = this.faceVertexUvs;
 
 		var hasFaceVertexUv = faceVertexUvs[0] && faceVertexUvs[0].length > 0;
-		var hasFaceVertexUv2 = faceVertexUvs[1] && faceVertexUvs[1].length > 0;
-
-		var index = 0;
+		// var hasFaceVertexUv2 = faceVertexUvs[1] && faceVertexUvs[1].length > 0;
 
 		for (var i = 0; i < faces.length; i++) {
 			var posArray, normalArray, colorArray, uvArray;

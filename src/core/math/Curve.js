@@ -1,5 +1,4 @@
 import { Vector2 } from './Vector2.js';
-import { BLEND_FACTOR } from '../const.js';
 
 var _A0 = new Vector2();
 var _B0 = new Vector2();

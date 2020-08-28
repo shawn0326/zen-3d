@@ -166,7 +166,7 @@ var Water = function(geometry, options) {
 			'   #include <fog_frag>',
 			'}'
 		].join('\n')
-	}
+	};
 
 	var material = new ShaderMaterial(mirrorShader);
 	material.side = side;
@@ -281,7 +281,7 @@ var Water = function(geometry, options) {
 			mirrorCamera.remove(sky);
 			skyParent.add(sky);
 		}
-	}
+	};
 };
 
 Water.prototype = Object.create(Mesh.prototype);

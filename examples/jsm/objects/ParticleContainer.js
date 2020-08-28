@@ -76,7 +76,7 @@ ParticleContainer.prototype = Object.assign(Object.create(Object3D.prototype), {
 			UINT8_VIEW[2] = Math.floor(y);
 			UINT8_VIEW[3] = Math.floor(x);
 			return FLOAT_VIEW[0];
-		}
+		};
 	}(),
 
 
@@ -91,7 +91,6 @@ ParticleContainer.prototype = Object.assign(Object.create(Object3D.prototype), {
 		var lifetime = 0;
 		var size = 0;
 		var sizeRandomness = 0;
-		var smoothPosition = false;
 
 		var maxVel = 2;
 		var maxSource = 250;
@@ -126,7 +125,7 @@ ParticleContainer.prototype = Object.assign(Object.create(Object3D.prototype), {
 			var velZ = velocity.z + (Math.random() - 0.5) * velocityRandomness;
 
 			// convert turbulence rating to something we can pack into a vec4
-			var turbulence = Math.floor(turbulence * 254);
+			turbulence = Math.floor(turbulence * 254);
 
 			// clamp our value to between 0. and 1.
 			velX = Math.floor(maxSource * ((velX - -maxVel) / (maxVel - -maxVel)));
@@ -166,7 +165,7 @@ ParticleContainer.prototype = Object.assign(Object.create(Object3D.prototype), {
 					buffer.updateRange.count = vertexSize;
 				}
 			}
-		}
+		};
 	}(),
 
 	update: function(time) {
