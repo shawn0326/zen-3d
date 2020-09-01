@@ -3,8 +3,6 @@
 
 #include <uv_pars_frag>
 
-#define USE_NORMAL
-
 #include <packing>
 #include <normal_pars_frag>
 

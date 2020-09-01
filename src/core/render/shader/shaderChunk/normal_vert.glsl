@@ -1,4 +1,4 @@
-#if defined(USE_NORMAL) && !defined(FLAT_SHADED)
+#ifndef FLAT_SHADED
     v_Normal = (transposeMat4(inverseMat4(u_Model)) * vec4(objectNormal, 0.0)).xyz;
 
     #ifdef FLIP_SIDED

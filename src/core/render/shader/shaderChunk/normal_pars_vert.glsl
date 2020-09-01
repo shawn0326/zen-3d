@@ -1,4 +1,4 @@
-#if defined(USE_NORMAL) && !defined(FLAT_SHADED)
+#ifndef FLAT_SHADED
     varying vec3 v_Normal;
     #ifdef USE_TANGENT
         varying vec3 v_Tangent;

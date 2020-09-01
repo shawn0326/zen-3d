@@ -169,9 +169,7 @@ zen3d.DeferredShader = (function() {
 			vertexShader: [
 
 				"#include <common_vert>",
-
-				"#define USE_NORMAL",
-
+				"#include <morphtarget_pars_vert>",
 				"#include <skinning_pars_vert>",
 				"#include <normal_pars_vert>",
 				"#include <uv_pars_vert>",
@@ -179,7 +177,10 @@ zen3d.DeferredShader = (function() {
 				"void main() {",
 				"#include <uv_vert>",
 				"#include <begin_vert>",
+				"#include <morphtarget_vert>",
+				"#include <morphnormal_vert>",
 				"#include <skinning_vert>",
+				"#include <skinnormal_vert>",
 				"#include <normal_vert>",
 				"#include <pvm_vert>",
 				"vPosition = gl_Position;",
@@ -193,8 +194,6 @@ zen3d.DeferredShader = (function() {
 				"#include <diffuseMap_pars_frag>",
 
 				"#include <uv_pars_frag>",
-
-				"#define USE_NORMAL",
 
 				"#include <packing>",
 				"#include <normal_pars_frag>",
@@ -689,9 +688,7 @@ zen3d.DeferredShader = (function() {
 			vertexShader: [
 
 				"#include <common_vert>",
-
-				"#define USE_NORMAL",
-
+				"#include <morphtarget_pars_vert>",
 				"#include <skinning_pars_vert>",
 				"#include <normal_pars_vert>",
 				"#include <uv_pars_vert>",
@@ -699,7 +696,10 @@ zen3d.DeferredShader = (function() {
 				"void main() {",
 				"#include <uv_vert>",
 				"#include <begin_vert>",
+				"#include <morphtarget_vert>",
+				"#include <morphnormal_vert>",
 				"#include <skinning_vert>",
+				"#include <skinnormal_vert>",
 				"#include <normal_vert>",
 				"#include <pvm_vert>",
 				"vPosition = gl_Position;", // need this, but not gl_FragCoord.z / gl_FragCoord.w ?
@@ -713,9 +713,6 @@ zen3d.DeferredShader = (function() {
 				"#include <diffuseMap_pars_frag>",
 
 				"#include <uv_pars_frag>",
-
-				"#define USE_NORMAL",
-
 				"#include <packing>",
 				"#include <normal_pars_frag>",
 
