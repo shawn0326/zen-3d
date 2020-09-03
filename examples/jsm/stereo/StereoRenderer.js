@@ -18,7 +18,7 @@ StereoRenderer.prototype.render = function(scene, camera, renderTarget, forceCle
 	var cameraR = camera.cameraR;
 
 	this.matrixAutoUpdate && scene.updateMatrix();
-	this.lightsAutoupdate && scene.updateLights();
+	this.lightsAutoUpdate && scene.updateLights();
 
 	if (this.shadowAutoUpdate || this.shadowNeedsUpdate) {
 		this.shadowMapPass.render(this.glCore, scene);

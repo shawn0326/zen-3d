@@ -2,7 +2,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.zen3d = {}));
+	(global = global || self, factory(global.zen3d = {}));
 }(this, (function (exports) { 'use strict';
 
 	var _lut = [];
@@ -14892,7 +14892,7 @@
 	     * @type {boolean}
 	     * @default true
 	     */
-		this.lightsAutoupdate = true;
+		this.lightsAutoUpdate = true;
 
 		/**
 	     * Defines whether the renderer should automatically clear its output before rendering a frame.
@@ -14912,7 +14912,7 @@
 	 */
 	Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
 		this.matrixAutoUpdate && scene.updateMatrix();
-		this.lightsAutoupdate && scene.updateLights();
+		this.lightsAutoUpdate && scene.updateLights();
 
 		if (this.shadowAutoUpdate || this.shadowNeedsUpdate) {
 			this.shadowMapPass.render(this.glCore, scene);

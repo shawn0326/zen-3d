@@ -14896,7 +14896,7 @@ function Renderer(view, options) {
      * @type {boolean}
      * @default true
      */
-	this.lightsAutoupdate = true;
+	this.lightsAutoUpdate = true;
 
 	/**
      * Defines whether the renderer should automatically clear its output before rendering a frame.
@@ -14916,7 +14916,7 @@ function Renderer(view, options) {
  */
 Renderer.prototype.render = function(scene, camera, renderTarget, forceClear) {
 	this.matrixAutoUpdate && scene.updateMatrix();
-	this.lightsAutoupdate && scene.updateLights();
+	this.lightsAutoUpdate && scene.updateLights();
 
 	if (this.shadowAutoUpdate || this.shadowNeedsUpdate) {
 		this.shadowMapPass.render(this.glCore, scene);
