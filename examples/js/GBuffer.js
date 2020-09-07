@@ -360,9 +360,6 @@ zen3d.GBuffer = (function() {
 			vertexShader: [
 
 				"#include <common_vert>",
-
-				"#define USE_NORMAL",
-
 				"#include <morphtarget_pars_vert>",
 				"#include <skinning_pars_vert>",
 				"#include <normal_pars_vert>",
@@ -373,6 +370,7 @@ zen3d.GBuffer = (function() {
 				"	#include <morphtarget_vert>",
 				"	#include <morphnormal_vert>",
 				"	#include <skinning_vert>",
+				"	#include <skinnormal_vert>",
 				"	#include <normal_vert>",
 				"	#include <pvm_vert>",
 				"}"
@@ -385,8 +383,6 @@ zen3d.GBuffer = (function() {
 				"#include <diffuseMap_pars_frag>",
 
 				"#include <uv_pars_frag>",
-
-				"#define USE_NORMAL",
 
 				"#include <packing>",
 				"#include <normal_pars_frag>",
@@ -441,7 +437,6 @@ zen3d.GBuffer = (function() {
 				"void main() {",
 				"	#include <begin_vert>",
 				"	#include <morphtarget_vert>",
-				"	#include <morphnormal_vert>",
 				"	#include <skinning_vert>",
 				"	#include <pvm_vert>",
 				"	#include <uv_vert>",
@@ -488,7 +483,6 @@ zen3d.GBuffer = (function() {
 			},
 
 			vertexShader: [
-				"#define USE_NORMAL",
 				"#include <common_vert>",
 				"#include <uv_pars_vert>",
 				"#include <normal_pars_vert>",
@@ -501,6 +495,7 @@ zen3d.GBuffer = (function() {
 				"	#include <morphtarget_vert>",
 				"	#include <morphnormal_vert>",
 				"	#include <skinning_vert>",
+				"	#include <skinnormal_vert>",
 				"	#include <pvm_vert>",
 				"	#include <uv_vert>",
 				"	#include <normal_vert>",
@@ -516,8 +511,6 @@ zen3d.GBuffer = (function() {
 				"#include <diffuseMap_pars_frag>",
 
 				"#include <uv_pars_frag>",
-
-				"#define USE_NORMAL",
 
 				"#include <packing>",
 				"#include <normal_pars_frag>",

@@ -53,6 +53,7 @@ import morphtarget_pars_vert from './shaderChunk/morphtarget_pars_vert.glsl';
 import morphtarget_vert from './shaderChunk/morphtarget_vert.glsl';
 import skinning_pars_vert from './shaderChunk/skinning_pars_vert.glsl';
 import skinning_vert from './shaderChunk/skinning_vert.glsl';
+import skinnormal_vert from './shaderChunk/skinnormal_vert.glsl';
 import specularMap_frag from './shaderChunk/specularMap_frag.glsl';
 import specularMap_pars_frag from './shaderChunk/specularMap_pars_frag.glsl';
 import spotlight_pars_frag from './shaderChunk/spotlight_pars_frag.glsl';
@@ -121,6 +122,7 @@ export var ShaderChunk = {
 	morphtarget_vert: morphtarget_vert,
 	skinning_pars_vert: skinning_pars_vert,
 	skinning_vert: skinning_vert,
+	skinnormal_vert: skinnormal_vert,
 	specularMap_frag: specularMap_frag,
 	specularMap_pars_frag: specularMap_pars_frag,
 	spotlight_pars_frag: spotlight_pars_frag,

@@ -14,6 +14,7 @@ void main() {
     #include <morphtarget_vert>
     #include <morphnormal_vert>
     #include <skinning_vert>
+    #include <skinnormal_vert>
     #include <pvm_vert>
     #include <normal_vert>
     #include <uv_vert>

@@ -96,10 +96,9 @@ function createProgram(gl, props, defines) {
 
 		(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 		(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-		(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) ? '#define USE_NORMAL' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+		props.useNormalMap ? '#define USE_NORMAL_MAP' : '',
+		props.useBumpMap ? '#define USE_BUMPMAP' : '',
+		props.useSpecularMap ? '#define USE_SPECULARMAP' : '',
 		props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 		props.useShadow ? '#define USE_SHADOW' : '',
 		props.flatShading ? '#define FLAT_SHADED' : '',
@@ -114,6 +113,7 @@ function createProgram(gl, props, defines) {
 		props.useVertexColors == VERTEX_COLOR.RGB ? '#define USE_VCOLOR_RGB' : '',
 		props.useVertexColors == VERTEX_COLOR.RGBA ? '#define USE_VCOLOR_RGBA' : '',
 		props.useVertexTangents ? '#define USE_TANGENT' : '',
+		props.useVertexUvs ? '#define USE_UV' : '',
 
 		props.morphTargets ? '#define USE_MORPHTARGETS' : '',
 		props.morphNormals && props.flatShading === false ? '#define USE_MORPHNORMALS' : '',
@@ -166,10 +166,9 @@ function createProgram(gl, props, defines) {
 
 		(props.ambientLightNum) > 0 ? ('#define USE_AMBIENT_LIGHT ' + props.ambientLightNum) : '',
 		(props.pointLightNum > 0 || props.directLightNum > 0 || props.ambientLightNum > 0 || props.spotLightNum > 0) ? '#define USE_LIGHT' : '',
-		(props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) ? '#define USE_NORMAL' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useNormalMap) ? '#define USE_NORMAL_MAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useBumpMap) ? '#define USE_BUMPMAP' : '',
-		((props.pointLightNum > 0 || props.directLightNum > 0 || props.spotLightNum > 0 || props.materialType === MATERIAL_TYPE.MATCAP) && props.useSpecularMap) ? '#define USE_SPECULARMAP' : '',
+		props.useNormalMap ? '#define USE_NORMAL_MAP' : '',
+		props.useBumpMap ? '#define USE_BUMPMAP' : '',
+		props.useSpecularMap ? '#define USE_SPECULARMAP' : '',
 		props.useEmissiveMap ? ('#define USE_EMISSIVEMAP ' + props.useEmissiveMap) : '',
 		props.useShadow ? '#define USE_SHADOW' : '',
 		props.shadowType === SHADOW_TYPE.HARD ? '#define USE_HARD_SHADOW' : '',
@@ -199,6 +198,8 @@ function createProgram(gl, props, defines) {
 		props.useEnvMap ? '#define ' + props.envMapCombine : '',
 		'#define GAMMA_FACTOR ' + props.gammaFactor,
 		props.useMatcap ? '#define USE_MATCAP' : '',
+
+		props.useVertexUvs ? '#define USE_UV' : '',
 
 		props.dithering ? '#define DITHERING' : '',
 
@@ -360,6 +361,7 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.useGlossinessMap = !!material.glossinessMap;
 	props.useAOMap = !!material.aoMap ? (material.aoMapCoord + 1) : 0;
 	props.useMatcap = !!material.matcap;
+	props.useVertexUvs = !!material.diffuseMap || !!material.alphaMap || !!material.normalMap || !!material.bumpMap || !!material.specularMap || !!material.emissiveMap || !!material.roughnessMap || !!material.metalnessMap || !!material.glossinessMap || !!material.aoMap;
 	// lights
 	props.ambientLightNum = !!lights ? lights.ambientsNum : 0;
 	props.directLightNum = !!lights ? lights.directsNum : 0;
