@@ -13809,6 +13809,7 @@ Object.defineProperties(RenderTargetCube.prototype, {
  * environment map pre pass.
  * @constructor
  * @memberof zen3d
+ * @param {zen3d.RenderTargetCube} [renderTarget=] - The environment render is done to the renderTarget (if specified).
  */
 function EnvironmentMapPass(renderTarget) {
 	this.camera = new Camera();

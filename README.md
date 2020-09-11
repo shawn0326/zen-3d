@@ -42,6 +42,74 @@ or import as es6 module:
 import * as zen3d from 'js/zen3d.module.js';
 ````
 
+draw a simple cube:
+
+````javascript
+var width = window.innerWidth || 2;
+var height = window.innerHeight || 2;
+
+var canvas = document.createElement('canvas');
+canvas.width = width;
+canvas.height = height;
+document.body.appendChild(canvas);
+
+var gl = canvas.getContext("webgl2", {
+	antialias: true,
+	alpha: false,
+	stencil: true
+});
+var glCore = new zen3d.WebGLCore(gl);
+glCore.state.colorBuffer.setClear(0.1, 0.1, 0.1, 1);
+var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+var scene = new zen3d.Scene();
+
+var geometry = new zen3d.CubeGeometry(8, 8, 8);
+var material = new zen3d.PBRMaterial();
+var mesh = new zen3d.Mesh(geometry, material);
+scene.add(mesh);
+
+var ambientLight = new zen3d.AmbientLight(0xffffff);
+scene.add(ambientLight);
+
+var directionalLight = new zen3d.DirectionalLight(0xffffff);
+directionalLight.position.set(-5, 5, 5);
+directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+scene.add(directionalLight);
+
+var camera = new zen3d.Camera();
+camera.position.set(0, 10, 30);
+camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+scene.add(camera);
+
+function loop(count) {
+	requestAnimationFrame(loop);
+	
+	mesh.euler.y = count / 1000 * .5; // rotate cube
+
+	scene.updateMatrix();
+	scene.updateLights();
+
+	glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+	glCore.clear(true, true, false);
+
+	glCore.render(scene, camera);
+}
+requestAnimationFrame(loop);
+
+function onWindowResize() {
+    width = window.innerWidth || 2;
+    height = window.innerHeight || 2;
+
+	camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+    backRenderTarget.resize(width, height);
+}
+window.addEventListener("resize", onWindowResize, false);
+````
+
 ### 3D Format Support ###
 
 [GLTF](https://github.com/KhronosGroup/glTF) /

@@ -40,6 +40,7 @@ import { WebGLTexture } from './WebGLTexture.js';
 import { WebGLRenderBuffer } from './WebGLRenderBuffer.js';
 import { WebGLRenderTarget } from './WebGLRenderTarget.js';
 import { WebGLGeometry } from './WebGLGeometry.js';
+import { WebGLVertexArrayBindings } from './WebGLVertexArrayBindings.js';
 
 var helpVector3 = new Vector3();
 var helpVector4 = new Vector4();
@@ -98,6 +99,9 @@ function WebGLCore(gl) {
 	var state = new WebGLState(gl, capabilities);
 	this.state = state;
 
+	var vertexArrayBindings = new WebGLVertexArrayBindings(gl, properties, capabilities);
+	this.vertexArrayBindings = vertexArrayBindings;
+
 	var texture = new WebGLTexture(gl, state, properties, capabilities);
 	this.texture = texture;
 
@@ -105,13 +109,11 @@ function WebGLCore(gl) {
 
 	this.renderTarget = new WebGLRenderTarget(gl, state, texture, renderBuffer, properties, capabilities);
 
-	this.geometry = new WebGLGeometry(gl, state, properties, capabilities);
+	this.geometry = new WebGLGeometry(gl, state, vertexArrayBindings, properties, capabilities);
 
 	this.programs = new WebGLPrograms(gl, state, capabilities);
 
 	this._usedTextureUnits = 0;
-
-	this._currentGeometryProgram = "";
 }
 
 Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
@@ -180,7 +182,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		var gl = this.gl;
 		var state = this.state;
-		var vaoExt = this.capabilities.getExtension("OES_vertex_array_object");
 
 		var getMaterial = config.getMaterial || defaultGetMaterial;
 		var beforeRender = config.beforeRender || noop;
@@ -258,40 +259,14 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			var program = materialProperties.program;
 			state.setProgram(program);
 
-			var geometryProperties = this.geometry.setGeometry(geometry);
+			this.geometry.setGeometry(geometry);
 
 			// update morph targets
 			if (object.morphTargetInfluences) {
 				this.updateMorphtargets(object, geometry, program);
 			}
 
-			if (object.morphTargetInfluences) {
-				this.setupVertexAttributes(program, geometry);
-				this._currentGeometryProgram = "";
-			} else if (this.capabilities.version >= 2) { // use VAO
-				if (!geometryProperties._vaos[program.id]) {
-					geometryProperties._vaos[program.id] = gl.createVertexArray();
-					gl.bindVertexArray(geometryProperties._vaos[program.id]);
-					this.setupVertexAttributes(program, geometry);
-				} else {
-					gl.bindVertexArray(geometryProperties._vaos[program.id]);
-				}
-			} else if (vaoExt) { // use VAO extension
-				if (!geometryProperties._vaos[program.id]) {
-					geometryProperties._vaos[program.id] = vaoExt.createVertexArrayOES();
-					vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
-					this.setupVertexAttributes(program, geometry);
-				} else {
-					vaoExt.bindVertexArrayOES(geometryProperties._vaos[program.id]);
-				}
-			} else {
-				var geometryProgram = program.id + "_" + geometry.id;
-				if (geometryProgram !== this._currentGeometryProgram) {
-					this.setupVertexAttributes(program, geometry);
-					this._currentGeometryProgram = geometryProgram;
-				}
-				this._currentGeometryProgram = geometryProgram;
-			}
+			this.vertexArrayBindings.setup(object, geometry, program);
 
 			// update uniforms
 			var uniforms = program.uniforms;
@@ -441,6 +416,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				case "scale":
 					uniform.set(material.scale);
 					break;
+				case "matcap":
+					uniform.set(material.matcap, this);
+					break;
 				case "clippingPlanes":
 					var planesData = getClippingPlanesData(scene.clippingPlanes || [], camera);
 					uniform.set(planesData);
@@ -514,11 +492,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				this.draw(geometry, material, group);
 			}
 
-			if (this.capabilities.version >= 2) {
-				gl.bindVertexArray(null);
-			} else if (vaoExt) {
-				vaoExt.bindVertexArrayOES(null);
-			}
+			this.vertexArrayBindings.resetBinding();
 
 			// reset used tex Unit
 			this._usedTextureUnits = 0;
@@ -538,19 +512,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 	setStates: function(material, frontFaceCW) {
 		var state = this.state;
 
-		// set blend
-		if (material.transparent) {
-			state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
-		} else {
-			state.setBlend(BLEND_TYPE.NONE);
-		}
-
-		// set buffers
-		state.depthBuffer.setFunc(material.depthFunc);
-		state.depthBuffer.setTest(material.depthTest);
-		state.depthBuffer.setMask(material.depthWrite);
-		state.colorBuffer.setMask(material.colorWrite);
-
 		// set draw side
 		state.setCullFace(
 			(material.side === DRAW_SIDE.DOUBLE) ? CULL_FACE_TYPE.NONE : CULL_FACE_TYPE.BACK
@@ -561,12 +522,34 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		state.setFlipSided(flipSided);
 
+		// set blend state
+		if (material.transparent) {
+			state.setBlend(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha);
+		} else {
+			state.setBlend(BLEND_TYPE.NONE);
+		}
+
+		// set buffers state
+		state.depthBuffer.setFunc(material.depthFunc);
+		state.depthBuffer.setTest(material.depthTest);
+		state.depthBuffer.setMask(material.depthWrite);
+		state.colorBuffer.setMask(material.colorWrite);
+
+		// set stencil buffers
+		var stencilTest = material.stencilTest;
+		state.stencilBuffer.setTest(stencilTest);
+		if (stencilTest) {
+			state.stencilBuffer.setMask(material.stencilWriteMask);
+			state.stencilBuffer.setFunc(material.stencilFunc, material.stencilRef, material.stencilFuncMask, material.stencilFuncBack, material.stencilRefBack, material.stencilFuncMaskBack);
+			state.stencilBuffer.setOp(material.stencilFail, material.stencilZFail, material.stencilZPass, material.stencilFailBack, material.stencilZFailBack, material.stencilZPassBack);
+		}
+
+		state.setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
+
 		// set line width
 		if (material.lineWidth !== undefined) {
 			state.setLineWidth(material.lineWidth);
 		}
-
-		state.setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
 	},
 
 	// GL draw.
@@ -785,89 +768,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 		program.uniforms.set('morphTargetInfluences', morphInfluences);
 	},
 
-	setupVertexAttributes: function(program, geometry) {
-		var gl = this.gl;
-		var attributes = program.attributes;
-		var properties = this.properties;
-		var capabilities = this.capabilities;
-		for (var key in attributes) {
-			var programAttribute = attributes[key];
-			var geometryAttribute = geometry.getAttribute(key);
-			if (geometryAttribute) {
-				var normalized = geometryAttribute.normalized;
-				var size = geometryAttribute.size;
-				if (programAttribute.count !== size) {
-					console.warn("WebGLCore: attribute " + key + " size not match! " + programAttribute.count + " : " + size);
-				}
-
-				var attribute;
-				if (geometryAttribute.isInterleavedBufferAttribute) {
-					attribute = properties.get(geometryAttribute.data);
-				} else {
-					attribute = properties.get(geometryAttribute);
-				}
-				var buffer = attribute.buffer;
-				var type = attribute.type;
-				if (programAttribute.format !== type) {
-					// console.warn("WebGLCore: attribute " + key + " type not match! " + programAttribute.format + " : " + type);
-				}
-				var bytesPerElement = attribute.bytesPerElement;
-
-				if (geometryAttribute.isInterleavedBufferAttribute) {
-					var data = geometryAttribute.data;
-					var stride = data.stride;
-					var offset = geometryAttribute.offset;
-
-					gl.enableVertexAttribArray(programAttribute.location);
-
-					if (data &amp;&amp; data.isInstancedInterleavedBuffer) {
-						if (capabilities.version >= 2) {
-							gl.vertexAttribDivisor(programAttribute.location, data.meshPerAttribute);
-						} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-							capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, data.meshPerAttribute);
-						} else {
-							console.warn("vertexAttribDivisor not supported");
-						}
-
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = data.meshPerAttribute * data.count;
-						}
-					}
-
-					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-					gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, bytesPerElement * stride, bytesPerElement * offset);
-				} else {
-					gl.enableVertexAttribArray(programAttribute.location);
-
-					if (geometryAttribute &amp;&amp; geometryAttribute.isInstancedBufferAttribute) {
-						if (capabilities.version >= 2) {
-							gl.vertexAttribDivisor(programAttribute.location, geometryAttribute.meshPerAttribute);
-						} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-							capabilities.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(programAttribute.location, geometryAttribute.meshPerAttribute);
-						} else {
-							console.warn("vertexAttribDivisor not supported");
-						}
-
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count;
-						}
-					}
-
-					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-					gl.vertexAttribPointer(programAttribute.location, programAttribute.count, type, normalized, 0, 0);
-				}
-			} else {
-				// console.warn("WebGLCore: geometry attribute " + key + " not found!");
-			}
-		}
-
-		// bind index if could
-		if (geometry.index) {
-			var indexProperty = properties.get(geometry.index);
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexProperty.buffer);
-		}
-	},
-
 	onMaterialDispose: function(event) {
 		var material = event.target;
 		var materialProperties = this.properties.get(material);
@@ -896,13 +796,13 @@ export { WebGLCore };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBR2Material.html">PBR2Material</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.RenderBuffer.html">RenderBuffer</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.RGBELoader.html">RGBELoader</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="zen3d.html">zen3d</a></li></ul><h3>Classes</h3><ul><li><a href="LoadingManager.html">LoadingManager</a></li><li><a href="zen3d.AmbientLight.html">AmbientLight</a></li><li><a href="zen3d.AnimationMixer.html">AnimationMixer</a></li><li><a href="zen3d.BasicMaterial.html">BasicMaterial</a></li><li><a href="zen3d.Bone.html">Bone</a></li><li><a href="zen3d.BooleanKeyframeTrack.html">BooleanKeyframeTrack</a></li><li><a href="zen3d.Box2.html">Box2</a></li><li><a href="zen3d.Box3.html">Box3</a></li><li><a href="zen3d.BufferAttribute.html">BufferAttribute</a></li><li><a href="zen3d.Camera.html">Camera</a></li><li><a href="zen3d.Color3.html">Color3</a></li><li><a href="zen3d.ColorKeyframeTrack.html">ColorKeyframeTrack</a></li><li><a href="zen3d.CubeGeometry.html">CubeGeometry</a></li><li><a href="zen3d.Curve.html">Curve</a></li><li><a href="zen3d.CylinderGeometry.html">CylinderGeometry</a></li><li><a href="zen3d.DepthMaterial.html">DepthMaterial</a></li><li><a href="zen3d.DirectionalLight.html">DirectionalLight</a></li><li><a href="zen3d.DirectionalLightShadow.html">DirectionalLightShadow</a></li><li><a href="zen3d.DistanceMaterial.html">DistanceMaterial</a></li><li><a href="zen3d.EnvironmentMapPass.html">EnvironmentMapPass</a></li><li><a href="zen3d.Euler.html">Euler</a></li><li><a href="zen3d.EventDispatcher.html">EventDispatcher</a></li><li><a href="zen3d.FileLoader.html">FileLoader</a></li><li><a href="zen3d.Fog.html">Fog</a></li><li><a href="zen3d.FogExp2.html">FogExp2</a></li><li><a href="zen3d.Frustum.html">Frustum</a></li><li><a href="zen3d.Geometry.html">Geometry</a></li><li><a href="zen3d.Group.html">Group</a></li><li><a href="zen3d.ImageLoader.html">ImageLoader</a></li><li><a href="zen3d.InstancedBufferAttribute.html">InstancedBufferAttribute</a></li><li><a href="zen3d.InstancedGeometry.html">InstancedGeometry</a></li><li><a href="zen3d.InstancedInterleavedBuffer.html">InstancedInterleavedBuffer</a></li><li><a href="zen3d.InterleavedBuffer.html">InterleavedBuffer</a></li><li><a href="zen3d.InterleavedBufferAttribute.html">InterleavedBufferAttribute</a></li><li><a href="zen3d.KeyframeClip.html">KeyframeClip</a></li><li><a href="zen3d.KeyframeTrack.html">KeyframeTrack</a></li><li><a href="zen3d.LambertMaterial.html">LambertMaterial</a></li><li><a href="zen3d.Light.html">Light</a></li><li><a href="zen3d.LightCache.html">LightCache</a></li><li><a href="zen3d.LightShadow.html">LightShadow</a></li><li><a href="zen3d.LineMaterial.html">LineMaterial</a></li><li><a href="zen3d.MatcapMaterial.html">MatcapMaterial</a></li><li><a href="zen3d.Material.html">Material</a></li><li><a href="zen3d.Matrix3.html">Matrix3</a></li><li><a href="zen3d.Matrix4.html">Matrix4</a></li><li><a href="zen3d.Mesh.html">Mesh</a></li><li><a href="zen3d.NumberKeyframeTrack.html">NumberKeyframeTrack</a></li><li><a href="zen3d.Object3D.html">Object3D</a></li><li><a href="zen3d.PBR2Material.html">PBR2Material</a></li><li><a href="zen3d.PBRMaterial.html">PBRMaterial</a></li><li><a href="zen3d.PhongMaterial.html">PhongMaterial</a></li><li><a href="zen3d.Plane.html">Plane</a></li><li><a href="zen3d.PlaneGeometry.html">PlaneGeometry</a></li><li><a href="zen3d.PointLight.html">PointLight</a></li><li><a href="zen3d.PointLightShadow.html">PointLightShadow</a></li><li><a href="zen3d.PointsMaterial.html">PointsMaterial</a></li><li><a href="zen3d.PropertyBindingMixer.html">PropertyBindingMixer</a></li><li><a href="zen3d.Quaternion.html">Quaternion</a></li><li><a href="zen3d.QuaternionKeyframeTrack.html">QuaternionKeyframeTrack</a></li><li><a href="zen3d.Ray.html">Ray</a></li><li><a href="zen3d.Raycaster.html">Raycaster</a></li><li><a href="zen3d.RenderBuffer.html">RenderBuffer</a></li><li><a href="zen3d.Renderer.html">Renderer</a></li><li><a href="zen3d.RenderList.html">RenderList</a></li><li><a href="zen3d.RenderTarget2D.html">RenderTarget2D</a></li><li><a href="zen3d.RenderTargetBack.html">RenderTargetBack</a></li><li><a href="zen3d.RenderTargetBase.html">RenderTargetBase</a></li><li><a href="zen3d.RenderTargetCube.html">RenderTargetCube</a></li><li><a href="zen3d.RGBELoader.html">RGBELoader</a></li><li><a href="zen3d.Scene.html">Scene</a></li><li><a href="zen3d.ShaderMaterial.html">ShaderMaterial</a></li><li><a href="zen3d.ShaderPostPass.html">ShaderPostPass</a></li><li><a href="zen3d.ShadowMapPass.html">ShadowMapPass</a></li><li><a href="zen3d.Skeleton.html">Skeleton</a></li><li><a href="zen3d.SkinnedMesh.html">SkinnedMesh</a></li><li><a href="zen3d.Sphere.html">Sphere</a></li><li><a href="zen3d.SphereGeometry.html">SphereGeometry</a></li><li><a href="zen3d.Spherical.html">Spherical</a></li><li><a href="zen3d.SpotLight.html">SpotLight</a></li><li><a href="zen3d.SpotLightShadow.html">SpotLightShadow</a></li><li><a href="zen3d.StringKeyframeTrack.html">StringKeyframeTrack</a></li><li><a href="zen3d.Texture2D.html">Texture2D</a></li><li><a href="zen3d.Texture3D.html">Texture3D</a></li><li><a href="zen3d.TextureBase.html">TextureBase</a></li><li><a href="zen3d.TextureCube.html">TextureCube</a></li><li><a href="zen3d.TGALoader.html">TGALoader</a></li><li><a href="zen3d.TorusKnotGeometry.html">TorusKnotGeometry</a></li><li><a href="zen3d.Triangle.html">Triangle</a></li><li><a href="zen3d.Vector2.html">Vector2</a></li><li><a href="zen3d.Vector3.html">Vector3</a></li><li><a href="zen3d.Vector4.html">Vector4</a></li><li><a href="zen3d.VectorKeyframeTrack.html">VectorKeyframeTrack</a></li><li><a href="zen3d.WebGLCapabilities.html">WebGLCapabilities</a></li><li><a href="zen3d.WebGLCore.html">WebGLCore</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a>
 </footer>
 
 <script> prettyPrint(); </script>
