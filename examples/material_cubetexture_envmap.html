@@ -4,22 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - envmap</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
 </head>
@@ -35,10 +20,10 @@
 			var width = window.innerWidth || 2;
 	        var height = window.innerHeight || 2;
 
-	        var canvas = document.createElement( 'canvas' );
+	        var canvas = document.createElement('canvas');
 	        canvas.width = width;
 	        canvas.height = height;
-			document.body.appendChild( canvas );
+			document.body.appendChild(canvas);
 
 	        var renderer = new zen3d.Renderer(canvas);
 
@@ -55,26 +40,25 @@
 			var sky_box = new zen3d.SkyBox(cube_texture);
 
 			var sphere_geometry = new zen3d.SphereGeometry(20, 20, 20);
-			var phong = new zen3d.PhongMaterial();
-			phong.diffuse.setHex(0xffffff);
-			phong.envMap = cube_texture;
-			phong.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.ADD;
-			var sphere = new zen3d.Mesh(sphere_geometry, phong);
+			var material = new zen3d.PBRMaterial();
+			material.diffuse.setHex(0xffffff);
+			material.envMap = cube_texture;
+			material.roughness = 0;
+			material.metalness = 1;
+			var sphere = new zen3d.Mesh(sphere_geometry, material);
 			scene.add(sphere);
 
-			var ambientLight = new zen3d.AmbientLight(0x1c1c1c);
+			var ambientLight = new zen3d.AmbientLight(0xffffff);
 	        scene.add(ambientLight);
 
 			var camera = new zen3d.Camera();
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-			camera.position.set(0, 20, 200);
+			camera.position.set(0, -10, 200);
 	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 			camera.add(sky_box);
 	        scene.add(camera);
 
 	        function loop(count) {
-
 	            requestAnimationFrame(loop);
 
 				// rotate camera
@@ -84,8 +68,7 @@
 
 	            renderer.render(scene, camera);
 	        }
-
-	        loop(0);
+	        requestAnimationFrame(loop);
 
 			function onWindowResize() {
 				width = window.innerWidth || 2;

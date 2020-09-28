@@ -4,106 +4,94 @@
 	<meta charset="utf-8">
 	<title>zen3d - frustumtest</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - frustum test
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
+		var phong = new zen3d.PhongMaterial();
+		phong.diffuse.setHex(0xffffff);
+		var sphere = new zen3d.Mesh(sphere_geometry, phong);
+		scene.add(sphere);
 
-	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-	        var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        scene.add(ambientLight);
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(-40, 40, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		scene.add(directionalLight);
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-	        scene.add(directionalLight);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 0);
+		camera.lookAt(new zen3d.Vector3(0, 0, -1), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 0, 0);
-	        camera.lookAt(new zen3d.Vector3(0, 0, -1), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		var _sphere = new zen3d.Sphere();
+		var _box = new zen3d.Box3();
+		sphere.geometry.computeBoundingBox();
+		sphere.geometry.computeBoundingSphere();
 
-			var _sphere = new zen3d.Sphere();
-			var _box = new zen3d.Box3();
-			sphere.geometry.computeBoundingBox();
-			sphere.geometry.computeBoundingSphere();
+		// gui
 
-			// compute frustum
-			var _frustum = new zen3d.Frustum();
-			var _matrix = new zen3d.Matrix4();
-			camera.viewMatrix.getInverse(camera.worldMatrix);
-			_matrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
-			_frustum.setFromMatrix(_matrix);
+		var params = { boxTest: false,  sphereTest: false };
+		var gui = new dat.GUI();
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add(params, 'boxTest').listen();
+		gui.add(params, 'sphereTest').listen();
 
-	        function loop(count) {
+		// compute frustum
+		var _frustum = new zen3d.Frustum();
+		var _matrix = new zen3d.Matrix4();
+		camera.viewMatrix.getInverse(camera.worldMatrix);
+		_matrix.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix);
+		_frustum.setFromMatrix(_matrix);
 
-	            requestAnimationFrame(loop);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-				// rotate sphere
-				sphere.position.y = 200 * Math.sin(count / 1000 * .5);
-				sphere.position.z = 200 * Math.cos(count / 1000 * .5);
+			// rotate sphere
+			sphere.position.y = 200 * Math.sin(count / 1000);
+			sphere.position.z = 200 * Math.cos(count / 1000);
 
-				_box.copy(sphere.geometry.boundingBox).applyMatrix4(sphere.worldMatrix);
-				_sphere.copy(sphere.geometry.boundingSphere).applyMatrix4(sphere.worldMatrix);
+			_box.copy(sphere.geometry.boundingBox).applyMatrix4(sphere.worldMatrix);
+			_sphere.copy(sphere.geometry.boundingSphere).applyMatrix4(sphere.worldMatrix);
 
-				console.log("test box: " + _frustum.intersectsBox(_box));
-				console.log("test sphere: " + _frustum.intersectsSphere(_sphere));
+			params.boxTest = _frustum.intersectsBox(_box);
+			params.sphereTest = _frustum.intersectsSphere(_sphere);
 
-	            renderer.render(scene, camera);
-	        }
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-	        loop(0);
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

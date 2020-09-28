@@ -4,150 +4,115 @@
 	<meta charset="utf-8">
 	<title>zen3d - realtimeenvmap</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - realtimeenvmap
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
+		renderer.matrixAutoUpdate = false; // close auto update
+		renderer.lightsAutoUpdate = false; // close auto update
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		// small ball
+		var ball_geometry = new zen3d.SphereGeometry(4, 20, 20);
 
-			// small ball
-			var ball_geometry = new zen3d.SphereGeometry(4, 20, 20);
+		var ball1_material = new zen3d.BasicMaterial();
+		ball1_material.diffuse.setHex(0xff0000);
+		var ball1 = new zen3d.Mesh(ball_geometry, ball1_material);
+		ball1.position.set(20, 0, 0);
+		scene.add(ball1);
 
-			var ball1_material = new zen3d.BasicMaterial();
-			ball1_material.diffuse.setHex(0xff0000);
-			var ball1 = new zen3d.Mesh(ball_geometry, ball1_material);
-			ball1.position.set(20, 0, 0);
-			scene.add(ball1);
+		var ball2_material = new zen3d.BasicMaterial();
+		ball2_material.diffuse.setHex(0x0000ff);
+		var ball2 = new zen3d.Mesh(ball_geometry, ball2_material);
+		ball2.position.set(0, 0, 15);
+		scene.add(ball2);
 
-			var ball2_material = new zen3d.BasicMaterial();
-			ball2_material.diffuse.setHex(0x0000ff);
-			var ball2 = new zen3d.Mesh(ball_geometry, ball2_material);
-			ball2.position.set(0, 0, 15);
-			scene.add(ball2);
+		// plane
+		var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+		texture.anisotropy = 16;
+		var plane_geometry = new zen3d.PlaneGeometry(80, 80);
+		var plane_material = new zen3d.BasicMaterial();
+		plane_material.diffuse.setHex(0xffffff);
+		plane_material.diffuseMap = texture;
+		var plane = new zen3d.Mesh(plane_geometry, plane_material);
+		plane.position.set(0, -20, 0);
+		scene.add(plane);
 
-			// plane
-			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
-			texture.anisotropy = 16;
-			var plane_geometry = new zen3d.PlaneGeometry(80, 80);
-			var plane_material = new zen3d.BasicMaterial();
-			plane_material.diffuse.setHex(0xffffff);
-			plane_material.diffuseMap = texture;
-			var plane = new zen3d.Mesh(plane_geometry, plane_material);
-			plane.position.set(0, -20, 0);
-			scene.add(plane);
+		// sphere
+		var environmentMapPass = new zen3d.EnvironmentMapPass();
 
-			// sphere
-			var environmentMapPass = new zen3d.EnvironmentMapPass();
+		var sphere_geometry = new zen3d.SphereGeometry(10, 30, 30);
+		var material = new zen3d.PBRMaterial();
+		material.diffuse.setHex(0xffffff);
+		material.envMap = environmentMapPass.renderTexture;
+		material.roughness = 0;
+		material.metalness = 1;
+		var sphere = new zen3d.Mesh(sphere_geometry, material);
+		scene.add(sphere);
 
-			var sphere_geometry = new zen3d.SphereGeometry(10, 30, 30);
-			var phong = new zen3d.PhongMaterial();
-			phong.diffuse.setHex(0xffffff);
-			phong.envMap = environmentMapPass.renderTexture;
-			phong.envMapCombine = zen3d.ENVMAP_COMBINE_TYPE.ADD;
-			phong.envMapIntensity = .8;
-			phong.shininess = 40;
-			var phongWithoutEnv = phong.clone();
-			phongWithoutEnv.envMap = null;
-			var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere);
+		// lights
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-			// lights
-			var ambientLight = new zen3d.AmbientLight(0x1c1c1c);
-	        scene.add(ambientLight);
+		// camera
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 20, 100);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
+		scene.add(camera);
 
-			var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(-20, 20, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			scene.add(directionalLight);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-			var lightball_geometry = new zen3d.SphereGeometry(2, 20, 20);
-			var lightball_material = new zen3d.BasicMaterial();
-			lightball_material.diffuse.setHex(0xffffff);
-			var lightball = new zen3d.Mesh(lightball_geometry, lightball_material);
-			lightball.position.set(-20, 20, 0);
-			scene.add(lightball);
+			// ball rotation
+			ball1.position.x = Math.sin(count / 1000 * 1) * 20;
+			ball1.position.y = sphere.position.y;
+			ball1.position.z = Math.cos(count / 1000 * 1) * 20;
+			ball2.position.x = sphere.position.x;
+			ball2.position.y = Math.sin(count / 1000 * 1) * 15;
+			ball2.position.z = Math.cos(count / 1000 * 1) * 15;
 
-			// camera
-			var camera = new zen3d.Camera();
-			camera.position.set(0, 20, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
-	        scene.add(camera);
+			// rotate camera
+			camera.position.x = 100 * Math.sin(count / 1000 * .5);
+			camera.position.z = 100 * Math.cos(count / 1000 * .5);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-	        function loop(count) {
+			scene.updateMatrix(); // call update matrix
+			scene.updateLights(); // call update lights
 
-	            requestAnimationFrame(loop);
+			// render env map on six faces
+			sphere.visible = false;
+			environmentMapPass.render(renderer.glCore, scene);
+			sphere.visible = true;
+			
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-				// ball rotation
-			    ball1.position.x = Math.sin(count / 1000 * 1) * 20;
-			    ball1.position.y = sphere.position.y;
-			    ball1.position.z = Math.cos(count / 1000 * 1) * 20;
-			    ball2.position.x = sphere.position.x;
-			    ball2.position.y = Math.sin(count / 1000 * 1) * 15;
-			    ball2.position.z = Math.cos(count / 1000 * 1) * 15;
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-				// rotate camera
-				camera.position.x = 100 * Math.sin(count / 1000 * .5);
-				camera.position.z = 100 * Math.cos(count / 1000 * .5);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
 
-				// render env map on six faces
-				sphere.material = phongWithoutEnv;
-				scene.updateMatrix(); // call update matrix
-				scene.updateLights(); // call update lights
-			    environmentMapPass.render(renderer.glCore, scene);
-				sphere.material = phong;
-
-				renderer.matrixAutoUpdate = false; // close auto update
-        		renderer.lightsAutoUpdate = false; // close auto update
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 10000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,30 +4,13 @@
 	<meta charset="utf-8">
 	<title>zen3d - instanced draw</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-			-webkit-touch-action: none;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 
 	<script src="./js/Clock.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - instanced draw
 	</div>
@@ -69,155 +52,150 @@
 	</script>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-			var scene = new zen3d.Scene();
+		var texture = new zen3d.Texture2D.fromSrc("resources/crate_color8.tga");
+		texture.anisotropy = 16;
+		
+		var shaderMaterial = new zen3d.ShaderMaterial({
+			vertexShader: document.getElementById( 'vertexShader' ).textContent,
+			fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+			uniforms: {
+				map: texture
+			}
+		});
 
-			var texture = new zen3d.Texture2D.fromSrc("resources/crate_color8.tga");
-			texture.anisotropy = 16;
-			
-			var shaderMaterial = new zen3d.ShaderMaterial({
-				vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-				uniforms: {
-					map: texture
-				}
-			});
+		var instances = 5000;
 
-			var instances = 5000;
+		var geometry = new zen3d.CubeGeometry(3, 3, 3);
+		var instancedGeometry = createInstancedGeoemtry(geometry);
+		instancedGeometry.maxInstancedCount = instances;
 
-			var geometry = new zen3d.CubeGeometry(3, 3, 3);
-			var instancedGeometry = createInstancedGeoemtry(geometry);
-			instancedGeometry.maxInstancedCount = instances;
+		var instancedMesh = new zen3d.Mesh(instancedGeometry, shaderMaterial);
+		instancedMesh.frustumCulled = false;
+		scene.add(instancedMesh);
 
-			var instancedMesh = new zen3d.Mesh(instancedGeometry, shaderMaterial);
-			instancedMesh.frustumCulled = false;
-			scene.add(instancedMesh);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 0);
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
+		
+		function createInstancedGeoemtry(geometry) {
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 0, 0);
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-			scene.add(camera);
-			
-			function createInstancedGeoemtry(geometry) {
+			// per instance data
 
-				// per instance data
+			var offsets = [];
+			var orientations = [];
+			var scales = [];
 
-				var offsets = [];
-				var orientations = [];
-				var scales = [];
+			var vector = new zen3d.Vector4();
+			var x, y, z, w;
 
-				var vector = new zen3d.Vector4();
-				var x, y, z, w;
+			for ( var i = 0; i < instances; i ++ ) {
 
-				for ( var i = 0; i < instances; i ++ ) {
+				// offsets
 
-					// offsets
+				x = Math.random() * 100 - 50;
+				y = Math.random() * 100 - 50;
+				z = Math.random() * 100 - 50;
 
-					x = Math.random() * 100 - 50;
-					y = Math.random() * 100 - 50;
-					z = Math.random() * 100 - 50;
+				// vector.set( x, y, z, 0 ).normalize();
+				// vector.multiplyScalar( 5 ); // move out at least 5 units from center in current direction
 
-					// vector.set( x, y, z, 0 ).normalize();
-					// vector.multiplyScalar( 5 ); // move out at least 5 units from center in current direction
+				offsets.push( x + vector.x, y + vector.y, z + vector.z );
 
-					offsets.push( x + vector.x, y + vector.y, z + vector.z );
+				// orientations
 
-					// orientations
+				x = Math.random() * 2 - 1;
+				y = Math.random() * 2 - 1;
+				z = Math.random() * 2 - 1;
+				w = Math.random() * 2 - 1;
 
-					x = Math.random() * 2 - 1;
-					y = Math.random() * 2 - 1;
-					z = Math.random() * 2 - 1;
-					w = Math.random() * 2 - 1;
+				vector.set( x, y, z, w ).normalize();
 
-					vector.set( x, y, z, w ).normalize();
+				orientations.push( vector.x, vector.y, vector.z, vector.w );
 
-					orientations.push( vector.x, vector.y, vector.z, vector.w );
-
-					scales.push( 1, 1, 1 );
-
-				}
-
-				var instancedGeometry = new zen3d.InstancedGeometry();
-				instancedGeometry.addAttribute("a_Position", geometry.getAttribute("a_Position"));
-				instancedGeometry.addAttribute("a_Uv", geometry.getAttribute("a_Uv"));
-				instancedGeometry.setIndex(geometry.index);
-				instancedGeometry.addAttribute( 'instancePosition', new zen3d.InstancedBufferAttribute( new Float32Array( offsets ), 3 ) );
-				instancedGeometry.addAttribute( 'instanceQuaternion', new zen3d.InstancedBufferAttribute( new Float32Array( orientations ), 4 ) );
-				instancedGeometry.addAttribute( 'instanceScale', new zen3d.InstancedBufferAttribute( new Float32Array( scales ), 3 ) );
-
-				return instancedGeometry;
+				scales.push( 1, 1, 1 );
 
 			}
 
-			var gui = new dat.GUI( { width: 350 } );
-			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
-			gui.add( instancedGeometry, 'maxInstancedCount', 0, instances );
+			var instancedGeometry = new zen3d.InstancedGeometry();
+			instancedGeometry.addAttribute("a_Position", geometry.getAttribute("a_Position"));
+			instancedGeometry.addAttribute("a_Uv", geometry.getAttribute("a_Uv"));
+			instancedGeometry.setIndex(geometry.index);
+			instancedGeometry.addAttribute( 'instancePosition', new zen3d.InstancedBufferAttribute( new Float32Array( offsets ), 3 ) );
+			instancedGeometry.addAttribute( 'instanceQuaternion', new zen3d.InstancedBufferAttribute( new Float32Array( orientations ), 4 ) );
+			instancedGeometry.addAttribute( 'instanceScale', new zen3d.InstancedBufferAttribute( new Float32Array( scales ), 3 ) );
 
-			var lastTime = 0;
+			return instancedGeometry;
 
-			var moveQ = new zen3d.Quaternion( 0.5, 0.5, 0.5, 0.0 ).normalize();
-			var tmpQ = new zen3d.Quaternion();
-			var currentQ = new zen3d.Quaternion();
+		}
 
-	        function loop(count) {
+		var gui = new dat.GUI({ width: 350 });
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add(instancedGeometry, 'maxInstancedCount', 0, instances);
 
-				requestAnimationFrame(loop);
+		var lastTime = 0;
 
-				var time = performance.now();
+		var moveQ = new zen3d.Quaternion( 0.5, 0.5, 0.5, 0.0 ).normalize();
+		var tmpQ = new zen3d.Quaternion();
+		var currentQ = new zen3d.Quaternion();
 
-				// rotate camera
-				// camera.euler.y = time * 0.00005;
-				camera.position.x = 130 * Math.sin(time / 1000 * .1);
-				camera.position.z = 130 * Math.cos(time / 1000 * .1);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-				var delta = ( time - lastTime ) / 2000;
-				tmpQ.set( moveQ.x * delta, moveQ.y * delta, moveQ.z * delta, 1 ).normalize();
-				var orientationAttribute = instancedGeometry.getAttribute('instanceQuaternion');
+			var time = performance.now();
 
-				for ( var i = 0, il = orientationAttribute.count; i < il; i ++ ) {
+			// rotate camera
+			// camera.euler.y = time * 0.00005;
+			camera.position.x = 130 * Math.sin(time / 1000 * .1);
+			camera.position.z = 130 * Math.cos(time / 1000 * .1);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-					var offset = i * orientationAttribute.size;
+			var delta = ( time - lastTime ) / 2000;
+			tmpQ.set( moveQ.x * delta, moveQ.y * delta, moveQ.z * delta, 1 ).normalize();
+			var orientationAttribute = instancedGeometry.getAttribute('instanceQuaternion');
 
-					currentQ.fromArray( orientationAttribute.array, ( i * 4 ) );
-					currentQ.multiply( tmpQ );
+			for ( var i = 0, il = orientationAttribute.count; i < il; i ++ ) {
 
-					orientationAttribute.array[offset + 0] = currentQ.x;
-					orientationAttribute.array[offset + 1] = currentQ.y;
-					orientationAttribute.array[offset + 2] = currentQ.z;
-					orientationAttribute.array[offset + 3] = currentQ.w;
+				var offset = i * orientationAttribute.size;
 
-				}
+				currentQ.fromArray( orientationAttribute.array, ( i * 4 ) );
+				currentQ.multiply( tmpQ );
 
-				orientationAttribute.version ++;
-				lastTime = time;
+				orientationAttribute.array[offset + 0] = currentQ.x;
+				orientationAttribute.array[offset + 1] = currentQ.y;
+				orientationAttribute.array[offset + 2] = currentQ.z;
+				orientationAttribute.array[offset + 3] = currentQ.w;
 
-				renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
 			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+
+			orientationAttribute.version ++;
+			lastTime = time;
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,22 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - texture3d</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #000000;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 	<script src="./libs/simplex-noise.js"></script>
@@ -28,7 +13,6 @@
 	<script src="./js/Clock.js"></script>
 </head>
 <body>
-
     <div id="info">
 		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - texture3d
 		<br/>reference: <a href="http://medium.ixviii.io/texture3d.html" target="_blank">http://medium.ixviii.io/texture3d.html</a>
@@ -95,129 +79,122 @@
 	</script>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
+		
+		var SIZE = 64;
+		var simplex = new SimplexNoise(Math.random);
+		var scale = 0.035;
 
-			var scene = new zen3d.Scene();
-			
-			var SIZE = 64;
-			var simplex = new SimplexNoise(Math.random);
-			var scale = 0.035;
-
-			var src = new Uint8Array(SIZE * SIZE * SIZE);
-			for (var k = 0; k < SIZE; k += 1) {
-				for (var j = 0; j < SIZE; j += 1) {
-					for (var i = 0; i < SIZE; i += 1) {
-						src[i + j * SIZE + k * SIZE * SIZE] = Math.abs(simplex.noise3D(i * scale, j * scale, k * scale)) * 256;
-					}
+		var src = new Uint8Array(SIZE * SIZE * SIZE);
+		for (var k = 0; k < SIZE; k += 1) {
+			for (var j = 0; j < SIZE; j += 1) {
+				for (var i = 0; i < SIZE; i += 1) {
+					src[i + j * SIZE + k * SIZE * SIZE] = Math.abs(simplex.noise3D(i * scale, j * scale, k * scale)) * 256;
 				}
 			}
+		}
 
-			var data = new Float32Array(SIZE);
-			for (var _i = 0; _i < SIZE; _i += 1) {
-				data[_i] = _i / SIZE;
+		var data = new Float32Array(SIZE);
+		for (var _i = 0; _i < SIZE; _i += 1) {
+			data[_i] = _i / SIZE;
+		}
+
+		var texture3d = new zen3d.Texture3D();
+		texture3d.image = {
+			data: src,
+			width: SIZE,
+			height: SIZE,
+			depth: SIZE
+		};
+
+		function createInstancedGeoemtry(geometry) {
+			var instancedGeometry = new zen3d.InstancedGeometry();
+			instancedGeometry.addAttribute("a_Position", geometry.getAttribute("a_Position"));
+			instancedGeometry.addAttribute("a_Uv", geometry.getAttribute("a_Uv"));
+			instancedGeometry.setIndex(geometry.index);
+			instancedGeometry.addAttribute( 'a_UvZ', new zen3d.InstancedBufferAttribute( data, 1 ) );
+
+			return instancedGeometry;
+		}
+
+		var PLANE_SIZE = 20;
+		var geometry = new zen3d.PlaneGeometry(PLANE_SIZE, PLANE_SIZE, 1, 1);
+		var instancedGeometry = createInstancedGeoemtry(geometry);
+		instancedGeometry.maxInstancedCount = SIZE;
+
+		var shaderMaterial = new zen3d.ShaderMaterial({
+			vertexShader: document.getElementById( 'vertexShader' ).textContent,
+			fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+			uniforms: {
+				uTexture: texture3d,
+				uSpeed: 0.38,
+				uTime: 0,
+				u_Uvz: PLANE_SIZE,
+				uFogDensity: 0.022
 			}
+		});
+		
+		shaderMaterial.transparent = true;
+		shaderMaterial.premultipliedAlpha = true;
+		shaderMaterial.blending = zen3d.BLEND_TYPE.CUSTOM;
+		shaderMaterial.blendSrc = zen3d.BLEND_FACTOR.ONE;
+		shaderMaterial.blendDst = zen3d.BLEND_FACTOR.SRC_ALPHA;
+		shaderMaterial.side = zen3d.DRAW_SIDE.DOUBLE;
 
-			var texture3d = new zen3d.Texture3D();
-			texture3d.image = {
-				data: src,
-				width: SIZE,
-				height: SIZE,
-				depth: SIZE
-			};
+		var plane = new zen3d.Mesh(instancedGeometry, shaderMaterial);
+		plane.euler.x = Math.PI / 2;
+		plane.frustumCulled = false;
+		scene.add(plane);
 
-			function createInstancedGeoemtry(geometry) {
+		var camera = new zen3d.Camera();
+		camera.position.set(35, 20, 35);
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 100);
+		scene.add(camera);
+		
+		var controller = new zen3d.OrbitControls(camera, canvas);
+		controller.target.set(0, 2, 0);
+		controller.enablePan = false;
+		controller.rotateSpeed = 0.1;
 
-				var instancedGeometry = new zen3d.InstancedGeometry();
-				instancedGeometry.addAttribute("a_Position", geometry.getAttribute("a_Position"));
-				instancedGeometry.addAttribute("a_Uv", geometry.getAttribute("a_Uv"));
-				instancedGeometry.setIndex(geometry.index);
-				instancedGeometry.addAttribute( 'a_UvZ', new zen3d.InstancedBufferAttribute( data, 1 ) );
+		var clock = new zen3d.Clock();
 
-				return instancedGeometry;
+		// gui
+		var gui = new dat.GUI();
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add(shaderMaterial.uniforms, 'u_Uvz', 0, 64).name('depth');
+		gui.add(shaderMaterial.uniforms, 'uFogDensity', 0, 0.1).name('fog density');
+		gui.add(shaderMaterial.uniforms, 'uSpeed', 0, 5).name('speed');
 
-			}
-
-			var PLANE_SIZE = 20;
-			var geometry = new zen3d.PlaneGeometry(PLANE_SIZE, PLANE_SIZE, 1, 1);
-			var instancedGeometry = createInstancedGeoemtry(geometry);
-			instancedGeometry.maxInstancedCount = SIZE;
-
-			var shaderMaterial = new zen3d.ShaderMaterial({
-				vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-				uniforms: {
-					uTexture: texture3d,
-					uSpeed: 0.38,
-					uTime: 0,
-					u_Uvz: PLANE_SIZE,
-					uFogDensity: 0.022
-				}
-			});
+		function loop(count) {
+			requestAnimationFrame(loop);
 			
-			shaderMaterial.transparent = true;
-			shaderMaterial.premultipliedAlpha = true;
-			shaderMaterial.blending = zen3d.BLEND_TYPE.CUSTOM;
-			shaderMaterial.blendSrc = zen3d.BLEND_FACTOR.ONE;
-			shaderMaterial.blendDst = zen3d.BLEND_FACTOR.SRC_ALPHA;
-			shaderMaterial.side = zen3d.DRAW_SIDE.DOUBLE;
+			controller.update();
 
-			var plane = new zen3d.Mesh(instancedGeometry, shaderMaterial);
-			plane.euler.x = Math.PI / 2;
-			plane.frustumCulled = false;
-			scene.add(plane);
+			shaderMaterial.uniforms.uTime = clock.getElapsedTime();
 
-			var camera = new zen3d.Camera();
-	        camera.position.set(35, 20, 35);
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 100);
-			scene.add(camera);
-			
-			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.target.set(0, 2, 0);
-			controller.enablePan = false;
-			controller.rotateSpeed = 0.1;
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-			var clock = new zen3d.Clock();
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			// gui
-			var gui = new dat.GUI();
-			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
-			gui.add(shaderMaterial.uniforms, 'u_Uvz', 0, 64).name('depth');
-			gui.add(shaderMaterial.uniforms, 'uFogDensity', 0, 0.1).name('fog density');
-			gui.add(shaderMaterial.uniforms, 'uSpeed', 0, 5).name('speed');
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 100);
 
-	        function loop(count) {
-
-				requestAnimationFrame(loop);
-				
-				controller.update();
-
-				shaderMaterial.uniforms.uTime = clock.getElapsedTime();
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 0.1, 100);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

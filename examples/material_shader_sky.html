@@ -4,22 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - shader sky</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
@@ -27,124 +12,115 @@
 	<script src="./js/objects/GridHelper.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - shader sky
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-			var scene = new zen3d.Scene();
+		var grid = new zen3d.GridHelper(100, 10, 0x85a4d7, 0xffffff);
+		grid.position.y = -10;
+		scene.add(grid);
+		
+		var sunSphere = new zen3d.Mesh(
+			new zen3d.SphereGeometry(20000, 16, 8),
+			new zen3d.BasicMaterial()
+		);
+		sunSphere.material.diffuse.setRGB(1, 1, 1);
+		sunSphere.position.y = - 700000;
 
-			var grid = new zen3d.GridHelper(100, 10, 0x85a4d7, 0xffffff);
-			grid.position.y = -10;
-			scene.add(grid);
-			
-			var sunSphere = new zen3d.Mesh(
-				new zen3d.SphereGeometry( 20000, 16, 8 ),
-				new zen3d.BasicMaterial()
-			);
-			sunSphere.material.diffuse.setRGB(1, 1, 1);
-			sunSphere.position.y = - 700000;
+		var sky = new zen3d.Sky();
 
-			var sky = new zen3d.Sky();
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 100);
+		camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 2000000);
+		camera.add(sky);
+		scene.add(camera);
 
-			var camera = new zen3d.Camera();
-			camera.position.set(0, 0, 100);
+		// add a hover controller
+		var controller = new zen3d.OrbitControls(camera, canvas);
+		
+		/// GUI
+
+		var effectController  = {
+			turbidity: 10,
+			rayleigh: 2,
+			mieCoefficient: 0.005,
+			mieDirectionalG: 0.8,
+			luminance: 1,
+			inclination: 0.49, // elevation / inclination
+			azimuth: 0.25, // Facing front,
+			sun: ! true
+		};
+
+		var distance = 400000;
+
+		function guiChanged() {
+			var uniforms = sky.material.uniforms;
+			uniforms.turbidity = effectController.turbidity;
+			uniforms.rayleigh = effectController.rayleigh;
+			uniforms.luminance = effectController.luminance;
+			uniforms.mieCoefficient = effectController.mieCoefficient;
+			uniforms.mieDirectionalG = effectController.mieDirectionalG;
+
+			var theta = Math.PI * ( effectController.inclination - 0.5 );
+			var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
+
+			sunSphere.position.x = distance * Math.cos( phi );
+			sunSphere.position.y = distance * Math.sin( phi ) * Math.sin( theta );
+			sunSphere.position.z = distance * Math.sin( phi ) * Math.cos( theta );
+
+			scene.remove(sunSphere);
+			effectController.sun && scene.add(sunSphere);
+
+			uniforms.sunPosition[0] = distance * Math.cos( phi );
+			uniforms.sunPosition[1] = distance * Math.sin( phi ) * Math.sin( theta );
+			uniforms.sunPosition[2] = distance * Math.sin( phi ) * Math.cos( theta );
+		}
+
+		var gui = new dat.GUI();
+
+		gui.add( effectController, "turbidity", 1.0, 20.0, 0.1 ).onChange( guiChanged );
+		gui.add( effectController, "rayleigh", 0.0, 4, 0.001 ).onChange( guiChanged );
+		gui.add( effectController, "mieCoefficient", 0.0, 0.1, 0.001 ).onChange( guiChanged );
+		gui.add( effectController, "mieDirectionalG", 0.0, 1, 0.001 ).onChange( guiChanged );
+		gui.add( effectController, "luminance", 0.0, 2 ).onChange( guiChanged );
+		gui.add( effectController, "inclination", 0, 1, 0.0001 ).onChange( guiChanged );
+		gui.add( effectController, "azimuth", 0, 1, 0.0001 ).onChange( guiChanged );
+		gui.add( effectController, "sun" ).onChange( guiChanged );
+
+		guiChanged();
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			renderer.render(scene, camera);
+		}
+
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
 			camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 2000000);
-			camera.add(sky);
-			scene.add(camera);
 
-			// add a hover controller
-			var controller = new zen3d.OrbitControls(camera, canvas);
-			
-			/// GUI
-
-			var effectController  = {
-				turbidity: 10,
-				rayleigh: 2,
-				mieCoefficient: 0.005,
-				mieDirectionalG: 0.8,
-				luminance: 1,
-				inclination: 0.49, // elevation / inclination
-				azimuth: 0.25, // Facing front,
-				sun: ! true
-			};
-
-			var distance = 400000;
-
-			function guiChanged() {
-
-				var uniforms = sky.material.uniforms;
-				uniforms.turbidity = effectController.turbidity;
-				uniforms.rayleigh = effectController.rayleigh;
-				uniforms.luminance = effectController.luminance;
-				uniforms.mieCoefficient = effectController.mieCoefficient;
-				uniforms.mieDirectionalG = effectController.mieDirectionalG;
-
-				var theta = Math.PI * ( effectController.inclination - 0.5 );
-				var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
-
-				sunSphere.position.x = distance * Math.cos( phi );
-				sunSphere.position.y = distance * Math.sin( phi ) * Math.sin( theta );
-				sunSphere.position.z = distance * Math.sin( phi ) * Math.cos( theta );
-
-				scene.remove(sunSphere);
-				effectController.sun && scene.add(sunSphere);
-
-				uniforms.sunPosition[0] = distance * Math.cos( phi );
-				uniforms.sunPosition[1] = distance * Math.sin( phi ) * Math.sin( theta );
-				uniforms.sunPosition[2] = distance * Math.sin( phi ) * Math.cos( theta );
-
-				// renderer.render( scene, camera );
-
-			}
-
-			var gui = new dat.GUI();
-
-			gui.add( effectController, "turbidity", 1.0, 20.0, 0.1 ).onChange( guiChanged );
-			gui.add( effectController, "rayleigh", 0.0, 4, 0.001 ).onChange( guiChanged );
-			gui.add( effectController, "mieCoefficient", 0.0, 0.1, 0.001 ).onChange( guiChanged );
-			gui.add( effectController, "mieDirectionalG", 0.0, 1, 0.001 ).onChange( guiChanged );
-			gui.add( effectController, "luminance", 0.0, 2 ).onChange( guiChanged );
-			gui.add( effectController, "inclination", 0, 1, 0.0001 ).onChange( guiChanged );
-			gui.add( effectController, "azimuth", 0, 1, 0.0001 ).onChange( guiChanged );
-			gui.add( effectController, "sun" ).onChange( guiChanged );
-
-			guiChanged();
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				controller.update();
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 2000000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,22 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - car</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/stereo/WebXRControls.js"></script>
 	<script src="./js/stereo/StereoCamera.js"></script>
@@ -27,7 +12,6 @@
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - car
 		<br/>
@@ -35,105 +19,95 @@
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.StereoRenderer(canvas, {
+			antialias: true,
+			alpha: false,
+			stencil: true,
+			xrCompatible: true
+		});
+		renderer.shadowAutoUpdate = false;
 
-	        var renderer = new zen3d.StereoRenderer(canvas, {
-				antialias: true,
-				alpha: false,
-				stencil: true,
-				xrCompatible: true
-			});
-			renderer.shadowAutoUpdate = false;
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
+		var interior = "resources/models/assimp/interior/interior.assimp.json";
 
-			var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
-			var interior = "resources/models/assimp/interior/interior.assimp.json";
+		var loader1 = new zen3d.AssimpJsonLoader();
+		loader1.load(jeep, function(object) {
+			object.scale.set(0.4, 0.4, 0.4);
 
-			var loader1 = new zen3d.AssimpJsonLoader();
-			loader1.load(jeep, function(object) {
-				object.scale.set(0.4, 0.4, 0.4);
-
-				object.traverse(function(obj) {
-					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
-						obj.castShadow = true;
-					}
-				});
-
-				scene.add(object);
-
-				renderer.shadowNeedsUpdate = true;
-			});
-
-			var loader2 = new zen3d.AssimpJsonLoader();
-			loader2.load(interior, function(object) {
-				object.traverse(function(obj) {
-					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
-						obj.receiveShadow = true;
-					}
-				});
-
-				scene.add(object);
-			});
-
-			var ambientLight = new zen3d.AmbientLight(0xffffff, 1.2);
-	        scene.add(ambientLight);
-
-			var spotLight = new zen3d.SpotLight(0xffffff, 2.5, 30, Math.PI / 5, 0.3);
-	        spotLight.euler.set(Math.PI / 2, 0, 0);
-	        spotLight.position.set(0, 10, 0);
-			spotLight.castShadow = true;
-	        scene.add(spotLight);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(0.3, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(0, 5, 0);
-	        scene.add(lightBall);
-
-			var camera = new zen3d.StereoCamera();
-			camera.position.set(3.0, 2.3, 1.0);
-			camera.near = 1;
-			camera.far = 1000;
-			scene.add(camera);
-			
-			var webxrControl = new zen3d.WebXRControl(camera);
-			webxrControl.enter(renderer.glCore.gl).then(function(context) {
-				context.requestAnimationFrame(loop);
-			}).catch(function(e) {
-				if (typeof e === 'string' || e instanceof String) {
-					document.getElementById("info_text").innerHTML = e;
-				} else {
-					document.getElementById("info_text").innerHTML = "WebXR is not supported by your browser!"
+			object.traverse(function(obj) {
+				if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+					obj.castShadow = true;
 				}
-				console.error(e);
 			});
 
-	        function loop(count, frame) {
-				webxrControl.getContext().requestAnimationFrame(loop);
+			scene.add(object);
 
-				webxrControl.update(frame, width, height);
+			renderer.shadowNeedsUpdate = true;
+		});
 
-				renderer.render(scene, camera, webxrControl.getFramebuffer());
+		var loader2 = new zen3d.AssimpJsonLoader();
+		loader2.load(interior, function(object) {
+			object.traverse(function(obj) {
+				if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+					obj.receiveShadow = true;
+				}
+			});
+
+			scene.add(object);
+		});
+
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 1.2);
+		scene.add(ambientLight);
+
+		var spotLight = new zen3d.SpotLight(0xffffff, 2.5, 30, Math.PI / 5, 0.3);
+		spotLight.euler.set(Math.PI / 2, 0, 0);
+		spotLight.position.set(0, 10, 0);
+		spotLight.castShadow = true;
+		scene.add(spotLight);
+
+		var camera = new zen3d.StereoCamera();
+		camera.position.set(3.0, 2.3, 1.0);
+		camera.near = 1;
+		camera.far = 1000;
+		scene.add(camera);
+		
+		var webxrControl = new zen3d.WebXRControl(camera);
+		webxrControl.enter(renderer.glCore.gl).then(function(context) {
+			context.requestAnimationFrame(loop);
+		}).catch(function(e) {
+			if (typeof e === 'string' || e instanceof String) {
+				document.getElementById("info_text").innerHTML = e;
+			} else {
+				document.getElementById("info_text").innerHTML = "WebXR is not supported by your browser!"
 			}
+			console.error(e);
+		});
 
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
+		function loop(count, frame) {
+			webxrControl.getContext().requestAnimationFrame(loop);
 
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			webxrControl.update(frame, width, height);
+
+			renderer.render(scene, camera, webxrControl.getFramebuffer());
+		}
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

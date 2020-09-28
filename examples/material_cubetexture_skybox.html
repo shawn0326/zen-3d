@@ -4,89 +4,70 @@
 	<meta charset="utf-8">
 	<title>zen3d - skybox</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 
 	<script src="./js/objects/SkyBox.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - skybox
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var cube_texture = zen3d.TextureCube.fromSrc([
+			"resources/skybox/right.jpg",
+			"resources/skybox/left.jpg",
+			"resources/skybox/up.jpg",
+			"resources/skybox/down.jpg",
+			"resources/skybox/back.jpg",
+			"resources/skybox/front.jpg"
+		]);
+		var sky_box = new zen3d.SkyBox(cube_texture);
 
-			var cube_texture = zen3d.TextureCube.fromSrc([
-			    "resources/skybox/right.jpg",
-			    "resources/skybox/left.jpg",
-			    "resources/skybox/up.jpg",
-			    "resources/skybox/down.jpg",
-			    "resources/skybox/back.jpg",
-			    "resources/skybox/front.jpg"
-			]);
-			var sky_box = new zen3d.SkyBox(cube_texture);
+		var camera = new zen3d.Camera();
+		camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
+		camera.add(sky_box);
+		scene.add(camera);
+		
+		var gui = new dat.GUI();
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add(sky_box, "level", 0, 8).step(1);
 
-	        var camera = new zen3d.Camera();
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			// rotate camera
+			camera.euler.y = count / 1000 * 0.2;
+
+			renderer.render(scene, camera);
+		}
+
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
 			camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
-			camera.add(sky_box);
-			scene.add(camera);
-			
-			var gui = new dat.GUI();
-			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
-			gui.add(sky_box, "level", 0, 8).step(1);
 
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				// rotate camera
-				camera.euler.y = -count / 1000 * 0.2;
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

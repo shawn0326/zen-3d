@@ -4,22 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - depth texture</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
@@ -27,142 +12,122 @@
 	<script src="./js/shaders/CopyShader.js"></script>
 </head>
 <body>
-
     <div id="info">
-        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - depth material
+        <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - depth texture
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		// custom pass
+		var backRenderTarget = new zen3d.RenderTargetBack(canvas);
 
-	        // custom pass
-			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+		var gl = canvas.getContext("webgl", { antialias: false, alpha: false });
+		var glCore = new zen3d.WebGLCore(gl);
 
-			var gl = canvas.getContext("webgl", {
-				antialias: true, // antialias
-				alpha: false, // effect performance, default false
-				// premultipliedAlpha: false, // effect performance, default false
-				stencil: true
-			});
-			var glCore = new zen3d.WebGLCore(gl);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
+		var phong = new zen3d.PhongMaterial();
+		phong.diffuse.setHex(0xffffff);
+		var sphere = new zen3d.Mesh(sphere_geometry, phong);
+		scene.add(sphere);
 
-	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere);
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -10;
+		scene.add(plane);
 
-	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
-	        scene.add(plane);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-	        var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        scene.add(ambientLight);
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(-40, 40, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		scene.add(directionalLight);
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-	        scene.add(directionalLight);
+		var camera = new zen3d.Camera();
+		camera.position.set(50, 40, 100);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 2, 300);
+		// camera.setOrtho(- width / 4 / 2, width / 4 / 2, - height / 4 / 2, height / 4 / 2, 2, 300);
+		scene.add(camera);
 
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
+		var controller = new zen3d.OrbitControls(camera, canvas);
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(50, 40, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 2, 300);
+		var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+		tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget.texture.generateMipmaps = false;
+
+		var depthTexture = new zen3d.Texture2D();
+		depthTexture.image = {data: null, width: 4, height: 4};
+		depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
+		depthTexture.format = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
+		if (glCore.capabilities.version >= 2) {
+			depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT24;
+		}
+		depthTexture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		depthTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		depthTexture.generateMipmaps = false;
+		depthTexture.flipY = false;
+		tempRenderTarget.detach(zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
+		tempRenderTarget.attach(
+			depthTexture,
+			zen3d.ATTACHMENT.DEPTH_ATTACHMENT
+		);
+
+		var depthLinearPass = new zen3d.ShaderPostPass(zen3d.DepthLinearShader);
+		depthLinearPass.uniforms['depthTex'] = depthTexture;
+		depthLinearPass.uniforms['cameraNear'] = 2;
+		depthLinearPass.uniforms['cameraFar'] = 300;
+
+		function loop(count) {
+
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			// do render pass
+			scene.updateMatrix();
+			scene.updateLights();
+
+			glCore.renderTarget.setRenderTarget(tempRenderTarget);
+
+			glCore.state.colorBuffer.setClear(0.2, 0.2, 0.2, 1);
+			glCore.clear(true, true, true);
+
+			glCore.render(scene, camera);
+
+			glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+			glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			glCore.clear(true, true, true);
+
+			depthLinearPass.render(glCore, scene);
+		}
+
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 2, 300);
 			// camera.setOrtho(- width / 4 / 2, width / 4 / 2, - height / 4 / 2, height / 4 / 2, 2, 300);
-			scene.add(camera);
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
-
-			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget.texture.generateMipmaps = false;
-
-			var depthTexture = new zen3d.Texture2D();
-			depthTexture.image = {data: null, width: 4, height: 4};
-			depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.UNSIGNED_SHORT; // UNSIGNED_SHORT, UNSIGNED_INT
-			depthTexture.format = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT;
-			if (glCore.capabilities.version >= 2) {
-				depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH_COMPONENT24;
-			}
-			depthTexture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			depthTexture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			depthTexture.generateMipmaps = false;
-			depthTexture.flipY = false;
-			tempRenderTarget.detach(zen3d.ATTACHMENT.DEPTH_STENCIL_ATTACHMENT);
-			tempRenderTarget.attach(
-				depthTexture,
-				zen3d.ATTACHMENT.DEPTH_ATTACHMENT
-			);
-
-			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
-			copyPass.uniforms['tDiffuse'] = tempRenderTarget.texture;
-			// copyPass.uniforms['tDiffuse'] = depthTexture;
-
-			var depthLinearPass = new zen3d.ShaderPostPass(zen3d.DepthLinearShader);
-			depthLinearPass.uniforms['depthTex'] = depthTexture;
-			depthLinearPass.uniforms['cameraNear'] = 2;
-			depthLinearPass.uniforms['cameraFar'] = 300;
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				controller.update();
-
-				// do render pass
-				scene.updateMatrix();
-				scene.updateLights();
-
-				glCore.renderTarget.setRenderTarget(tempRenderTarget);
-
-				glCore.state.colorBuffer.setClear(0.2, 0.2, 0.2, 1);
-            	glCore.clear(true, true, true);
-
-				glCore.render(scene, camera);
-
-				glCore.renderTarget.setRenderTarget(backRenderTarget);
-
-				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-				glCore.clear(true, true, true);
-
-				depthLinearPass.render(glCore, scene);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 2, 300);
-				// camera.setOrtho(- width / 4 / 2, width / 4 / 2, - height / 4 / 2, height / 4 / 2, 2, 300);
-
-				backRenderTarget.resize(width, height);
-				tempRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			backRenderTarget.resize(width, height);
+			tempRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

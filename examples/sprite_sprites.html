@@ -4,126 +4,105 @@
 	<meta charset="utf-8">
 	<title>zen3d - sprites</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/objects/Sprite.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - sprites
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
+		scene.fog = new zen3d.Fog(0x000000, 1, 40);
 
-	        var scene = new zen3d.Scene();
-			scene.fog = new zen3d.Fog(0x000000, 1, 40);
+		var texture1 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake1.png");
+		var texture2 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake2.png");
+		var texture3 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake3.png");
+		var texture4 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake4.png");
+		var texture5 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake5.png");
 
-			var texture1 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake1.png");
-			var texture2 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake2.png");
-			var texture3 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake3.png");
-			var texture4 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake4.png");
-			var texture5 = zen3d.Texture2D.fromSrc("resources/sprites/snowflake5.png");
+		var texs = [texture1, texture2, texture3, texture4, texture5];
 
-			var texs = [texture1, texture2, texture3, texture4, texture5];
+		var sprites = [];
+		for(var i = 0; i < 300; i++) {
+			var sprite = new zen3d.Sprite();
+			sprite.material.diffuseMap = texs[Math.round(Math.random() * 4)];
+			sprite.material.diffuse.setHSL(Math.random(), Math.random(), Math.random());
+			sprite.material.transparent = true;
+			sprite.material.blending = zen3d.BLEND_TYPE.ADD;
 
-			var sprites = [];
-			for(var i = 0; i < 300; i++) {
-				var sprite = new zen3d.Sprite();
-				sprite.material.diffuseMap = texs[Math.round(Math.random() * 4)];
-				sprite.material.diffuse.setHSL(Math.random(), Math.random(), Math.random());
-				sprite.material.transparent = true;
-				sprite.material.blending = zen3d.BLEND_TYPE.ADD;
+			sprite.position.x = (Math.random() - 0.5) * 10;
+			sprite.position.y = (Math.random() - 0.5) * 10;
+			sprite.position.z = (Math.random() - 0.5) * 10;
+			sprite.scale.set(2, 2, 1);
 
-				sprite.position.x = (Math.random() - 0.5) * 10;
-				sprite.position.y = (Math.random() - 0.5) * 10;
-				sprite.position.z = (Math.random() - 0.5) * 10;
-				sprite.scale.set(2, 2, 1);
+			scene.add(sprite);
+			sprites.push(sprite);
+		}
 
-				scene.add(sprite);
-				sprites.push(sprite);
+		var sphere_geometry = new zen3d.SphereGeometry(0.5, 4, 2);
+		var basic = new zen3d.BasicMaterial();
+		basic.diffuse.setHex(0x00cccc);
+		var sphere = new zen3d.Mesh(sphere_geometry, basic);
+		scene.add(sphere);
+
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 10);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(75 / 180 * Math.PI, width / height, 1, 2000);
+		scene.add(camera);
+		
+		var controller = new zen3d.OrbitControls(camera, canvas);
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			// rotate camera
+			// camera.position.x = 10 * Math.sin(count / 8000);
+			// camera.position.z = 10 * Math.cos(count / 8000);
+			// camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+			controller.update();
+
+			for(var i = 0; i < sprites.length; i++) {
+				sprites[i].rotation = count / 1000 * 2;
+
+				var scale = Math.cos(count / 100 + i * 10) * 0.5 + 0.7;
+				sprites[i].scale.set(scale, scale, 1);
+
+				// var key = count / (i % 15 * 100);
+				// var h = Math.cos(key) * 0.5 + 0.5;
+				// var s = Math.sin(key) * 0.5 + 0.5;
+				// var l = Math.cos(key) * 0.5 + 0.5;
+				// sprites[i].material.diffuse.setHSL(h, s, l);
 			}
 
-			var sphere_geometry = new zen3d.SphereGeometry(0.5, 4, 2);
-	        var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0x00cccc);
-	        var sphere = new zen3d.Mesh(sphere_geometry, basic);
-			scene.add(sphere);
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 0, 10);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(75 / 180 * Math.PI, width / height, 1, 2000);
-			scene.add(camera);
-			
-			var controller = new zen3d.OrbitControls(camera, canvas);
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-	        function loop(count) {
+			camera.setPerspective(75 / 180 * Math.PI, width / height, 1, 2000);
 
-	            requestAnimationFrame(loop);
-
-				// rotate camera
-				// camera.position.x = 10 * Math.sin(count / 8000);
-				// camera.position.z = 10 * Math.cos(count / 8000);
-				// camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				controller.update();
-
-				for(var i = 0; i < sprites.length; i++) {
-					sprites[i].rotation = count / 1000 * 2;
-
-					var scale = Math.cos(count / 100 + i * 10) * 0.5 + 0.7;
-					sprites[i].scale.set(scale, scale, 1);
-
-					// var key = count / (i % 15 * 100);
-					// var h = Math.cos(key) * 0.5 + 0.5;
-					// var s = Math.sin(key) * 0.5 + 0.5;
-					// var l = Math.cos(key) * 0.5 + 0.5;
-					// sprites[i].material.diffuse.setHSL(h, s, l);
-				}
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(75 / 180 * Math.PI, width / height, 1, 2000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

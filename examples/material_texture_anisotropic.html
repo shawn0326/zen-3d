@@ -4,124 +4,82 @@
 	<meta charset="utf-8">
 	<title>zen3d - anisotropic</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - anisotropic
-        <br/>
-        touch screen to toggle anisotropy
-		<br/>
-		<span id="anisotropyValue"></span>
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+		// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		texture.wrapT = texture.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+		texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+		texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+		texture.repeat.set(20, 20);
 
-			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
-			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			texture.wrapT = texture.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
-			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
-			texture.repeat.set(20, 20);
+		var plane_geometry = new zen3d.PlaneGeometry(1000, 1000);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		lambert.diffuseMap = texture;
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -10;
+		scene.add(plane);
 
-			var texture2 = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
-			// texture.minFilter = texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			texture2.wrapT = texture2.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-			texture2.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
-			texture2.repeat.set(20, 20);
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 3.5);
+		scene.add(ambientLight);
 
-	        var plane_geometry = new zen3d.PlaneGeometry(1000, 1000);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-			lambert.diffuseMap = texture2;
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
-	        scene.add(plane);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 25, 100);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-	        var ambientLight = new zen3d.AmbientLight(0xffffff, 3);
-	        scene.add(ambientLight);
+		// input
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.5;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 25, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		var gui = new dat.GUI();
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add({ maxAnisotropy: renderer.glCore.capabilities.maxAnisotropy }, "maxAnisotropy");
+		gui.add(texture, "anisotropy", 1, renderer.glCore.capabilities.maxAnisotropy, 1).onChange(function() {
+			texture.version++;
+		});
 
-			// input
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-			var msg = document.getElementById("anisotropyValue");
+			// rotate camera
+			camera.position.x = 100 * Math.sin(count / 1000 * .2);
+			camera.position.z = 100 * Math.cos(count / 1000 * .2);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-			msg.innerText = "anisotropy filter: disable";
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-			function toggleAnisotropy(addVer) {
-				if(lambert.diffuseMap == texture) {
-					lambert.diffuseMap = texture2;
-					msg.innerText = "anisotropy filter: disable";
-				} else {
-					lambert.diffuseMap = texture;
-					msg.innerText = "anisotropy filter: x" + renderer.glCore.capabilities.maxAnisotropy;
-				}
-			}
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			document.addEventListener("mouseup", toggleAnisotropy);
-			document.addEventListener("touchend", toggleAnisotropy);
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				// rotate camera
-				camera.position.x = 100 * Math.sin(count / 1000 * .2);
-				camera.position.z = 100 * Math.cos(count / 1000 * .2);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

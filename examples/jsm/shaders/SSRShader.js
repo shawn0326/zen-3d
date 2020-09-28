@@ -33,6 +33,7 @@ var SSRShader = {
 
 		'minGlossiness': 0.2,
 		'zThicknessThreshold': 0.1,
+		'jitterOffset': 0,
 
 		'nearZ': 0,
 		'viewportSize': [512, 512],
@@ -88,6 +89,7 @@ var SSRShader = {
 		// Object larger than minGlossiness will have ssr effect
 		'uniform float minGlossiness;',
 		'uniform float zThicknessThreshold;',
+		'uniform float jitterOffset;',
 
 		'uniform float nearZ;',
 		'uniform vec2 viewportSize;',

@@ -4,22 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - ocean</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/objects/Water.js"></script>
 	<script src="./js/objects/Sky.js"></script>
@@ -39,12 +24,12 @@
 		var width = window.innerWidth || 2;
 		var height = window.innerHeight || 2;
 
-		var canvas = document.createElement( 'canvas' );
+		var canvas = document.createElement('canvas');
 		canvas.width = devicePixelRatio * width;
 		canvas.height = devicePixelRatio * height;
 		canvas.style.width = width + "px";
 		canvas.style.height = height + "px";
-		document.body.appendChild( canvas );
+		document.body.appendChild(canvas);
 
 		var renderer = new zen3d.Renderer(canvas);
 		renderer.matrixAutoUpdate = false;
@@ -62,14 +47,14 @@
 
 		var scene = new zen3d.Scene();
 
-		var light = new zen3d.DirectionalLight( 0xffffff );
+		var light = new zen3d.DirectionalLight(0xffffff);
 		light.color.setHex(0xffffff);
 		light.intensity = 2.5;
-		scene.add( light );
+		scene.add(light);
 
 		// Sphere
 
-		var geometry = new zen3d.SphereGeometry( 20, 8, 8 );
+		var geometry = new zen3d.SphereGeometry(20, 8, 8);
 		var material = new zen3d.PBRMaterial();
 		material.shading = zen3d.SHADING_TYPE.FLAT_SHADING;
 		material.envMap = environmentMapPass.renderTexture;
@@ -134,7 +119,6 @@
 		var distance = 400;
 
 		function skyChanged() {
-
 			var uniforms = sky.material.uniforms;
 			uniforms.turbidity = effectController.turbidity;
 			uniforms.rayleigh = effectController.rayleigh;
@@ -157,7 +141,6 @@
 			light.position.clone().normalize().toArray(water.material.uniforms['sunDirection']);
 
 			environmentMapPass.render(renderer.glCore, skyScene);
-
 		}
 
 		var gui = new dat.GUI();
@@ -183,7 +166,6 @@
 		skyChanged();
 
 		function loop(count) {
-
 			requestAnimationFrame(loop);
 
 			var time = performance.now() * 0.001;
@@ -204,8 +186,7 @@
 
 			renderer.render(scene, camera);
 		}
-
-		loop(0);
+		requestAnimationFrame(loop);
 
 		function onWindowResize() {
 			width = window.innerWidth || 2;

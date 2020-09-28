@@ -4,184 +4,139 @@
 	<meta charset="utf-8">
 	<title>zen3d - skinned mesh</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - skinned mesh
-        <br/>
-		press 's' to toggle shadow
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 
-			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+		var bone = new zen3d.Bone();
+		bone.position.y = -10;
+		bone.offsetMatrix.set(
+			1, 0, 0, 0,
+			0, 1, 0, 10,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		);
 
-			var bone = new zen3d.Bone();
-			bone.position.y = -10;
-			bone.offsetMatrix.set(
-				1, 0, 0, 0,
-				0, 1, 0, 10,
-				0, 0, 1, 0,
-				0, 0, 0, 1
-			);
+		var bone2 = new zen3d.Bone();
+		bone2.position.y = 20;
+		bone2.offsetMatrix.set(
+			1, 0, 0, 0,
+			0, 1, 0, -10,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		);
 
-			var bone2 = new zen3d.Bone();
-			bone2.position.y = 20;
-			bone2.offsetMatrix.set(
-				1, 0, 0, 0,
-				0, 1, 0, -10,
-				0, 0, 1, 0,
-				0, 0, 0, 1
-			);
+		bone.add(bone2);
 
-			bone.add(bone2);
+		var bones = [bone, bone2];
 
-			var bones = [bone, bone2];
+		var skeleton = new zen3d.Skeleton(bones);
 
-			var skeleton = new zen3d.Skeleton(bones);
+		var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
 
-	        var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
-
-			// insert skinIndex & skinWeight
-			var skinIndexArray = [];
-			var skinWeightArray = [];
-			var vertexCount = cube_geometry.getAttribute("a_Position").count;
-			var verticesArray = cube_geometry.getAttribute("a_Position").array;
-			for(var i = 0; i < vertexCount; i++) {
-				var offset = i * 3;
-				var y = verticesArray[offset + 1];
-				if(y > 0) {
-					// top vertices bind bone2
-					skinIndexArray.push(1, 0, 0, 0);
-					skinWeightArray.push(1, 0, 0, 0);
-				} else {
-					// bottom vertices bind bone
-					skinIndexArray.push(0, 0, 0, 0);
-					skinWeightArray.push(1, 0, 0, 0);
-				}
+		// insert skinIndex & skinWeight
+		var skinIndexArray = [];
+		var skinWeightArray = [];
+		var vertexCount = cube_geometry.getAttribute("a_Position").count;
+		var verticesArray = cube_geometry.getAttribute("a_Position").array;
+		for(var i = 0; i < vertexCount; i++) {
+			var offset = i * 3;
+			var y = verticesArray[offset + 1];
+			if(y > 0) {
+				// top vertices bind bone2
+				skinIndexArray.push(1, 0, 0, 0);
+				skinWeightArray.push(1, 0, 0, 0);
+			} else {
+				// bottom vertices bind bone
+				skinIndexArray.push(0, 0, 0, 0);
+				skinWeightArray.push(1, 0, 0, 0);
 			}
+		}
 
-			cube_geometry.removeAttribute("a_Color");
-			cube_geometry.addAttribute("skinIndex", new zen3d.BufferAttribute(new Float32Array(skinIndexArray), 4));
-			cube_geometry.addAttribute("skinWeight", new zen3d.BufferAttribute(new Float32Array(skinWeightArray), 4));
+		cube_geometry.removeAttribute("a_Color");
+		cube_geometry.addAttribute("skinIndex", new zen3d.BufferAttribute(new Float32Array(skinIndexArray), 4));
+		cube_geometry.addAttribute("skinWeight", new zen3d.BufferAttribute(new Float32Array(skinWeightArray), 4));
 
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-			phong.diffuseMap = texture;
-			var cube = new zen3d.SkinnedMesh(cube_geometry, phong);
-			cube.add(bone);
-			cube.bind(skeleton);
-			cube.frustumTest = false;
-			scene.add(cube);
+		var phong = new zen3d.PhongMaterial();
+		phong.diffuse.setHex(0xffffff);
+		phong.diffuseMap = texture;
+		var cube = new zen3d.SkinnedMesh(cube_geometry, phong);
+		cube.add(bone);
+		cube.bind(skeleton);
+		cube.frustumTest = false;
+		cube.castShadow = true;
+		scene.add(cube);
 
-	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
-	        scene.add(plane);
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -10;
+		plane.receiveShadow = true;
+		scene.add(plane);
 
-	        var ambientLight = new zen3d.AmbientLight(0x9c9c9c);
-	        scene.add(ambientLight);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			directionalLight.shadow.windowSize = 100;
-	        scene.add(directionalLight);
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(20, 30, 40);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		directionalLight.shadow.windowSize = 100;
+		directionalLight.castShadow = true;
+		scene.add(directionalLight);
 
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 50, 80);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.6;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 50, 80);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		// input
 
-			// input
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-			function toggleShadow() {
-				cube.castShadow = !cube.castShadow;
-				plane.receiveShadow = !plane.receiveShadow;
-				directionalLight.castShadow = !directionalLight.castShadow;
-			}
+			bone.euler.x = Math.cos(count / 1000 * 10) * Math.PI / 180 * 10;
+			bone2.euler.x = Math.cos(count / 1000 * 10) * Math.PI / 180 * 20;
+			bone2.euler.y = Math.sin(count / 1000 * 10) * Math.PI / 180 * 20;
 
-			toggleShadow();
+			// rotate camera
+			camera.position.x = 80 * Math.sin(count / 1000 * .5);
+			camera.position.z = 80 * Math.cos(count / 1000 * .5);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-			document.onkeydown = function(e) {
-				if(e.keyCode == 83) { // 's'
-					toggleShadow();
-				}
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-				console.log(skeleton)
-	        };
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-	        function loop(count) {
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-	            requestAnimationFrame(loop);
-
-				bone.euler.x = Math.cos(count / 1000 * 10) * Math.PI / 180 * 10;
-				bone2.euler.x = Math.cos(count / 1000 * 10) * Math.PI / 180 * 20;
-				bone2.euler.y = Math.sin(count / 1000 * 10) * Math.PI / 180 * 20;
-
-				// rotate camera
-				camera.position.x = 80 * Math.sin(count / 1000 * .5);
-				camera.position.z = 80 * Math.cos(count / 1000 * .5);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

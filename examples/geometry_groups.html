@@ -4,140 +4,107 @@
 	<meta charset="utf-8">
 	<title>zen3d - groups</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - groups
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+		texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
 
-			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
-			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
-			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xaaaaaa);
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -4.5;
+		plane.receiveShadow = true;
+		scene.add(plane);
 
-			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xf0f0f0);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
-	        scene.add(plane);
+		var phong1 = new zen3d.PhongMaterial();
+		phong1.diffuse.setHex(0xff0000);
+		phong1.side = zen3d.DRAW_SIDE.DOUBLE;
+		phong1.transparent = true;
+		phong1.opacity = 0.5;
 
-			var phong1 = new zen3d.PhongMaterial();
-			phong1.diffuse.setHex(0xff0000);
-			phong1.side = zen3d.DRAW_SIDE.DOUBLE;
-			phong1.transparent = true;
-			phong1.opacity = 0.5;
+		var phong2 = new zen3d.PhongMaterial();
+		phong2.diffuse.setHex(0x00ff00);
+		phong2.side = zen3d.DRAW_SIDE.DOUBLE;
 
-			var phong2 = new zen3d.PhongMaterial();
-			phong2.diffuse.setHex(0x00ff00);
-			phong2.side = zen3d.DRAW_SIDE.DOUBLE;
+		var phong3 = new zen3d.PhongMaterial();
+		phong3.diffuse.setHex(0x0000ff);
+		phong3.side = zen3d.DRAW_SIDE.DOUBLE;
 
-			var phong3 = new zen3d.PhongMaterial();
-			phong3.diffuse.setHex(0x0000ff);
-			phong3.side = zen3d.DRAW_SIDE.DOUBLE;
+		var phong4 = new zen3d.PhongMaterial();
+		phong4.diffuse.setHex(0xffffff);
+		phong4.side = zen3d.DRAW_SIDE.DOUBLE;
 
-			var phong4 = new zen3d.PhongMaterial();
-			phong4.diffuse.setHex(0xffffff);
-			phong4.side = zen3d.DRAW_SIDE.DOUBLE;
+		var phong5 = new zen3d.PhongMaterial();
+		phong5.diffuseMap = texture;
+		phong5.side = zen3d.DRAW_SIDE.DOUBLE;
 
-			var phong5 = new zen3d.PhongMaterial();
-			phong5.diffuseMap = texture;
-			phong5.side = zen3d.DRAW_SIDE.DOUBLE;
+		var phong6 = new zen3d.PhongMaterial();
+		phong6.diffuse.setHex(0x00ffff);
+		phong6.side = zen3d.DRAW_SIDE.DOUBLE;
 
-			var phong6 = new zen3d.PhongMaterial();
-			phong6.diffuse.setHex(0x00ffff);
-			phong6.side = zen3d.DRAW_SIDE.DOUBLE;
+		var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
 
-			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
-			// cube_geometry.addGroup(0, 6, 0);
-			// cube_geometry.addGroup(6, 6, 1);
-			// cube_geometry.addGroup(12, 6, 2);
-			// cube_geometry.addGroup(18, 6, 3);
-			// cube_geometry.addGroup(24, 6, 4);
-			// cube_geometry.addGroup(30, 6, 5);
+		var cube = new zen3d.Mesh(cube_geometry, [phong1, phong2, phong3, phong4, phong5, phong6]);
+		cube.castShadow = true;
+		scene.add(cube);
 
-			var cube = new zen3d.Mesh(cube_geometry, [phong1, phong2, phong3, phong4, phong5, phong6]);
-			scene.add(cube);
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 2);
+		scene.add(ambientLight);
 
-	        var ambientLight = new zen3d.AmbientLight(0xffffff, 1);
-	        scene.add(ambientLight);
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(20, 30, 40);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		directionalLight.castShadow = true;
+		directionalLight.shadow.windowSize = 40;
+		scene.add(directionalLight);
 
-	        var directLight = new zen3d.DirectionalLight(0xffffff, 1.5);
-	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        directLight.position.set(-40, 40, 0);
-	        scene.add(directLight);
+		var camera = new zen3d.Camera();
+		camera.position.set(10, 10, 30);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-			var lightBall_geometry = new zen3d.SphereGeometry(2, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 2;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(10, 10, 30);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+			// rotate camera
+			camera.position.x = 30 * Math.sin(count / 1000 * .5);
+			camera.position.z = 30 * Math.cos(count / 1000 * .5);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-	        function loop(count) {
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-	            requestAnimationFrame(loop);
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-				// rotate camera
-				camera.position.x = 30 * Math.sin(count / 1000 * .5);
-				camera.position.z = 30 * Math.cos(count / 1000 * .5);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,167 +4,139 @@
 	<meta charset="utf-8">
 	<title>zen3d - pbr</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/objects/SkyBox.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - pbr
     </div>
 
 	<script>
+		var useDevicePixelRatio = true;
+		var devicePixelRatio = window.devicePixelRatio;
 
-		(function() {
-			var useDevicePixelRatio = true;
-			var devicePixelRatio = window.devicePixelRatio;
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = useDevicePixelRatio ? width * devicePixelRatio : width;
+		canvas.height = useDevicePixelRatio ? height * devicePixelRatio : height;
+		canvas.style.width = width + "px";
+		canvas.style.height = height + "px";
+		document.body.appendChild(canvas);
 
-			var canvas = document.createElement( 'canvas' );
-	        canvas.width = useDevicePixelRatio ? width * devicePixelRatio : width;
-	        canvas.height = useDevicePixelRatio ? height * devicePixelRatio : height;
+		var renderer = new zen3d.Renderer(canvas);
+
+		var scene = new zen3d.Scene();
+
+		var texture = new zen3d.Texture2D.fromSrc("resources/moon_1024.jpg");
+		texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+		texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
+		texture = null;
+
+		var cube_texture = zen3d.TextureCube.fromSrc([
+			"resources/pisa/px.png",
+			"resources/pisa/nx.png",
+			"resources/pisa/py.png",
+			"resources/pisa/ny.png",
+			"resources/pisa/pz.png",
+			"resources/pisa/nz.png"
+		]);
+		var sky_box = new zen3d.SkyBox(cube_texture);
+
+		var cubeWidth = 400;
+		var numberOfSphersPerSide = 5;
+		var sphereRadius = ( cubeWidth / numberOfSphersPerSide ) * 0.8 * 0.5;
+		var stepSize = 1.0 / numberOfSphersPerSide;
+
+		var sphere_geometry = new zen3d.SphereGeometry(sphereRadius, 32, 16);
+
+		var index = 0;
+
+		for (var alpha = 0; alpha <= 1.0; alpha += stepSize) {
+			for (var beta = 0; beta <= 1.0; beta += stepSize) {
+				for (var gamma = 0; gamma <= 1.0; gamma += stepSize) {
+					var pbr_mat = new zen3d.PBRMaterial();
+					pbr_mat.diffuseMap = texture;
+					pbr_mat.bumpMap = texture;
+					pbr_mat.bumpScale = 1;
+					pbr_mat.diffuse.setHSL(alpha, 0.5, gamma * 0.5);
+					pbr_mat.metalness = beta;
+					pbr_mat.roughness = 1.0 - alpha;
+					pbr_mat.envMap = index % 2 === 0 ? null : cube_texture;
+
+					index ++;
+
+					var sphere = new zen3d.Mesh(sphere_geometry, pbr_mat);
+					sphere.position.x = alpha * 400 - 200;
+					sphere.position.y = beta * 400 - 200;
+					sphere.position.z = gamma * 400 - 200;
+					scene.add(sphere);
+				}
+			}
+			index ++;
+		}
+
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 2);
+		scene.add(ambientLight);
+
+		var directLight = new zen3d.DirectionalLight(0xffffff, 2);
+		directLight.euler.set(Math.PI / 2, -Math.PI / 4, 0);
+		directLight.position.set(-40, 40, 0);
+		scene.add(directLight);
+
+		var particleLight = new zen3d.Group();
+		scene.add(particleLight);
+
+		var pointLight = new zen3d.PointLight(0xffffff, 2, 800);
+		particleLight.add( pointLight );
+
+		var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
+		var basic = new zen3d.BasicMaterial();
+		basic.diffuse.setHex(0xffffff);
+		var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
+		particleLight.add(lightBall);
+
+		var camera = new zen3d.Camera();
+		camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+		camera.position.set(1000, 900, 1000);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+		camera.add(sky_box);
+		scene.add(camera);
+		
+		// add a hover controller
+		var controller = new zen3d.OrbitControls(camera, canvas);
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			var timer = Date.now() * 0.00025;
+
+			particleLight.position.x = Math.sin( timer * 7 ) * 300;
+			particleLight.position.y = Math.cos( timer * 5 ) * 400;
+			particleLight.position.z = Math.cos( timer * 3 ) * 300;
+
+			controller.update();
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+
+			renderer.backRenderTarget.resize(useDevicePixelRatio ? width * devicePixelRatio : width, useDevicePixelRatio ? height * devicePixelRatio : height);
 			canvas.style.width = width + "px";
 			canvas.style.height = height + "px";
-			document.body.appendChild( canvas );
-
-	        var renderer = new zen3d.Renderer(canvas);
-
-	        var scene = new zen3d.Scene();
-
-			var texture = new zen3d.Texture2D.fromSrc("resources/moon_1024.jpg");
-			texture.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
-			texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR_MIPMAP_LINEAR;
-			texture = null;
-
-			var cube_texture = zen3d.TextureCube.fromSrc([
-				"resources/pisa/px.png",
-			    "resources/pisa/nx.png",
-			    "resources/pisa/py.png",
-			    "resources/pisa/ny.png",
-			    "resources/pisa/pz.png",
-			    "resources/pisa/nz.png"
-			]);
-			var sky_box = new zen3d.SkyBox(cube_texture);
-
-			var cubeWidth = 400;
-			var numberOfSphersPerSide = 5;
-			var sphereRadius = ( cubeWidth / numberOfSphersPerSide ) * 0.8 * 0.5;
-			var stepSize = 1.0 / numberOfSphersPerSide;
-
-			var sphere_geometry = new zen3d.SphereGeometry(sphereRadius, 32, 16);
-
-			var index = 0;
-
-			for ( var alpha = 0; alpha <= 1.0; alpha += stepSize ) {
-
-				for ( var beta = 0; beta <= 1.0; beta += stepSize ) {
-
-					for ( var gamma = 0; gamma <= 1.0; gamma += stepSize ) {
-
-						var pbr_mat = new zen3d.PBRMaterial();
-						pbr_mat.diffuseMap = texture;
-						pbr_mat.bumpMap = texture;
-						pbr_mat.bumpScale = 1;
-						pbr_mat.diffuse.setHSL(alpha, 0.5, gamma * 0.5);
-						pbr_mat.metalness = beta;
-						pbr_mat.roughness = 1.0 - alpha;
-						pbr_mat.envMap = index % 2 === 0 ? null : cube_texture;
-
-						index ++;
-
-						var sphere = new zen3d.Mesh(sphere_geometry, pbr_mat);
-						sphere.position.x = alpha * 400 - 200;
-						sphere.position.y = beta * 400 - 200;
-						sphere.position.z = gamma * 400 - 200;
-						scene.add(sphere);
-
-					}
-
-				}
-
-				index ++;
-
-			}
-
-	        var ambientLight = new zen3d.AmbientLight(0xffffff, 2);
-	        scene.add(ambientLight);
-
-	        var directLight = new zen3d.DirectionalLight(0xffffff, 2);
-	        directLight.euler.set(Math.PI / 2, -Math.PI / 4, 0);
-	        directLight.position.set(-40, 40, 0);
-	        scene.add(directLight);
-
-			var particleLight = new zen3d.Group();
-			scene.add(particleLight);
-
-			var pointLight = new zen3d.PointLight(0xffffff, 2, 800);
-			particleLight.add( pointLight );
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        particleLight.add(lightBall);
-
-			var camera = new zen3d.Camera();
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-			camera.position.set(1000, 900, 1000);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
-			camera.add(sky_box);
-			scene.add(camera);
-			
-			// add a hover controller
-			var controller = new zen3d.OrbitControls(camera, canvas);
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				var timer = Date.now() * 0.00025;
-
-				particleLight.position.x = Math.sin( timer * 7 ) * 300;
-				particleLight.position.y = Math.cos( timer * 5 ) * 400;
-				particleLight.position.z = Math.cos( timer * 3 ) * 300;
-
-				controller.update();
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
-
-				renderer.backRenderTarget.resize(useDevicePixelRatio ? width * devicePixelRatio : width, useDevicePixelRatio ? height * devicePixelRatio : height);
-				canvas.style.width = width + "px";
-				canvas.style.height = height + "px";
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

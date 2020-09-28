@@ -4,117 +4,94 @@
 	<meta charset="utf-8">
 	<title>zen3d - assimp2json</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - assimp2json
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
+		renderer.shadowAutoUpdate = false;
 
-	        var renderer = new zen3d.Renderer(canvas);
-			renderer.shadowAutoUpdate = false;
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
+		var interior = "resources/models/assimp/interior/interior.assimp.json";
 
-			var jeep = "resources/models/assimp/jeep/jeep.assimp.json";
-			var interior = "resources/models/assimp/interior/interior.assimp.json";
+		var loader1 = new zen3d.AssimpJsonLoader();
+		loader1.load(jeep, function(object) {
+			object.scale.set(0.4, 0.4, 0.4);
 
-			var loader1 = new zen3d.AssimpJsonLoader();
-			loader1.load(jeep, function(object) {
-				object.scale.set(0.4, 0.4, 0.4);
-
-				object.traverse(function(obj) {
-					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
-						obj.castShadow = true;
-					}
-				});
-
-				scene.add(object);
-
-				renderer.shadowNeedsUpdate = true;
+			object.traverse(function(obj) {
+				if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+					obj.castShadow = true;
+				}
 			});
 
-			var loader2 = new zen3d.AssimpJsonLoader();
-			loader2.load(interior, function(object) {
-				object.traverse(function(obj) {
-					if(obj.type === zen3d.OBJECT_TYPE.MESH) {
-						obj.receiveShadow = true;
-					}
-				});
+			scene.add(object);
 
-				scene.add(object);
+			renderer.shadowNeedsUpdate = true;
+		});
+
+		var loader2 = new zen3d.AssimpJsonLoader();
+		loader2.load(interior, function(object) {
+			object.traverse(function(obj) {
+				if(obj.type === zen3d.OBJECT_TYPE.MESH) {
+					obj.receiveShadow = true;
+				}
 			});
 
-			var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        scene.add(ambientLight);
+			scene.add(object);
+		});
 
-	        var spotLight = new zen3d.SpotLight(0xffffff, 1.5, 30, Math.PI / 5, 0.3);
-	        spotLight.euler.set(Math.PI / 2, 0, 0);
-	        spotLight.position.set(0, 10, 0);
-			spotLight.castShadow = true;
-	        scene.add(spotLight);
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 1.8);
+		scene.add(ambientLight);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.5;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 4, 10);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		var spotLight = new zen3d.SpotLight(0xffffff, 1.5, 30, Math.PI / 5, 0.3);
+		spotLight.euler.set(Math.PI / 2, 0, 0);
+		spotLight.position.set(0, 10, 0);
+		spotLight.castShadow = true;
+		scene.add(spotLight);
 
-	        function loop(count) {
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 4, 10);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-	            requestAnimationFrame(loop);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-				// rotate camera
-				camera.position.x = 10 * Math.sin(count / 1000 * .5);
-				camera.position.z = 10 * Math.cos(count / 1000 * .5);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+			// rotate camera
+			camera.position.x = 10 * Math.sin(count / 1000 * .5);
+			camera.position.z = 10 * Math.cos(count / 1000 * .5);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-	            renderer.render(scene, camera);
-	        }
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-	        loop(0);
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

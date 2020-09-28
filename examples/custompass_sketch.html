@@ -4,22 +4,8 @@
 	<meta charset="utf-8">
 	<title>zen3d - custom pass sketch</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 
@@ -32,184 +18,170 @@
 	<script src="js/shaders/CopyShader.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass sketch
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var scene = new zen3d.Scene();
 
-			var scene = new zen3d.Scene();
+		for(var i = 0; i < 100; i++) {
+			var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
+			var phong = new zen3d.PhongMaterial();
+			phong.shading = zen3d.SHADING_TYPE.FLAT;
+			phong.diffuse.setHSL( Math.random(), 1.0, 0.3 );
+			var cube = new zen3d.Mesh(cube_geometry, phong);
+			cube.position.x = Math.random() * 100 - 50;
+			cube.position.y = Math.random() * 100 - 50;
+			cube.position.z = Math.random() * 100 - 50;
+			cube.quaternion.x = Math.random();
+			cube.quaternion.y = Math.random();
+			cube.quaternion.z = Math.random();
+			scene.add(cube);
+		}
 
-			for(var i = 0; i < 100; i++) {
-				var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
-				var phong = new zen3d.PhongMaterial();
-				phong.shading = zen3d.SHADING_TYPE.FLAT;
-				phong.diffuse.setHSL( Math.random(), 1.0, 0.3 );
-		        var cube = new zen3d.Mesh(cube_geometry, phong);
-				cube.position.x = Math.random() * 100 - 50;
-				cube.position.y = Math.random() * 100 - 50;
-				cube.position.z = Math.random() * 100 - 50;
-				cube.quaternion.x = Math.random();
-				cube.quaternion.y = Math.random();
-				cube.quaternion.z = Math.random();
-		        scene.add(cube);
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 3);
+		scene.add(ambientLight);
+
+		var directionalLight = new zen3d.DirectionalLight(0xffffff, 1);
+		directionalLight.position.set(-40, 40, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		scene.add(directionalLight);
+
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 200);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(60 / 180 * Math.PI, width / height, 0.1, 1000);
+		scene.add(camera);
+		
+		// TODO set camera near by distance
+
+		var controller = new zen3d.OrbitControls(camera, canvas);
+
+		// custom pass
+		var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+		var contextParams = { antialias: true, alpha: false };
+		// todo webgl 1.0 has bug on android here?
+		var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+		var glCore = new zen3d.WebGLCore(gl);
+
+		var gBuffer = new zen3d.GBuffer(width, height);
+		gBuffer.enableAlbedoMetalness = false;
+
+		var sketchPass = new zen3d.ShaderPostPass(zen3d.SketchShader);
+
+		var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+		tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget2.texture.generateMipmaps = false;
+
+		var matProjViewInverse = new zen3d.Matrix4();
+
+		sketchPass.uniforms["matProjViewInverse"] = matProjViewInverse.elements;
+
+		sketchPass.uniforms["normalTexture"] = gBuffer.getNormalGlossinessTexture();
+		sketchPass.uniforms["depthTexture"] = gBuffer.getDepthTexture();
+		sketchPass.uniforms["invResolution"][0] = 1 / width;
+		sketchPass.uniforms["invResolution"][1] = 1 / height;
+
+		var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
+		copyPass.material.transparent = true;
+		copyPass.material.depthWrite = false;
+		copyPass.material.depthTest = false;
+
+		var beauty = true;
+		var sketch = true;
+
+		// gui
+		var params = { type: "BEAUTY + SKETCH", uColor: [0, 0, 0] };
+		var gui = new dat.GUI();
+		gui.add(params, "type", ["BEAUTY + SKETCH", "BEAUTY", "SKETCH"]).onChange(function(val) {
+			switch(val) {
+				case "BEAUTY + SKETCH":
+					beauty = true;
+					sketch = true;
+					break;
+				case "BEAUTY":
+					beauty = true;
+					sketch = false;
+					break;
+				case "SKETCH":
+					beauty = false;
+					sketch = true;
+					break;
+			}
+		});
+		gui.add(sketchPass.uniforms, "uThreshold", 0, 1, 0.01);
+		gui.add(sketchPass.uniforms, "uContrast", 0, 1, 0.01);
+		gui.addColor(params, "uColor").onChange(function(value) {
+			sketchPass.uniforms.uColor[0] = value[0] / 255;
+			sketchPass.uniforms.uColor[1] = value[1] / 255;
+			sketchPass.uniforms.uColor[2] = value[2] / 255;
+		});;
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			// do render pass
+			scene.updateMatrix();
+			scene.updateLights();
+
+			scene.updateRenderList(camera);
+
+			gBuffer.update(glCore, scene, camera);
+
+			glCore.renderTarget.setRenderTarget(tempRenderTarget2);
+
+			glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			glCore.clear(true, true, true);
+
+			matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
+
+			sketchPass.render(glCore);
+
+			glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+			glCore.state.colorBuffer.setClear(1, 1, 1, 0);
+			glCore.clear(true, true, true);
+
+			if(beauty) {
+				glCore.render(scene, camera, false);
 			}
 
-			var ambientLight = new zen3d.AmbientLight(0xffffff, 1.5);
-	        scene.add(ambientLight);
+			if(sketch) {
+				copyPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+				copyPass.render(glCore);
+			}
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.8);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			scene.add(directionalLight);
+		}
+		requestAnimationFrame(loop);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 2;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 0, 200);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(60 / 180 * Math.PI, width / height, 0.1, 1000);
-			scene.add(camera);
-			
-			// TODO set camera near by distance
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
+			camera.setPerspective(60 / 180 * Math.PI, width / height, 0.1, 1000);
 
-			// custom pass
-			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+			backRenderTarget.resize(width, height);
+			gBuffer.resize(width, height);
 
-			var contextParams = {
-				antialias: true, // antialias
-				alpha: false, // effect performance, default false
-				// premultipliedAlpha: false, // effect performance, default false
-				stencil: true
-			};
+			tempRenderTarget2.resize(width, height);
 
-			// todo webgl 1.0 has bug on android here?
-			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
-			var glCore = new zen3d.WebGLCore(gl);
-
-			var gBuffer = new zen3d.GBuffer(width, height);
-			gBuffer.enableAlbedoMetalness = false;
-
-			var sketchPass = new zen3d.ShaderPostPass(zen3d.SketchShader);
-
-			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget2.texture.generateMipmaps = false;
-
-			var matProjViewInverse = new zen3d.Matrix4();
-
-			sketchPass.uniforms["matProjViewInverse"] = matProjViewInverse.elements;
-
-			sketchPass.uniforms["normalTexture"] = gBuffer.getNormalGlossinessTexture();
-			sketchPass.uniforms["depthTexture"] = gBuffer.getDepthTexture();
 			sketchPass.uniforms["invResolution"][0] = 1 / width;
 			sketchPass.uniforms["invResolution"][1] = 1 / height;
-
-			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
-			copyPass.material.transparent = true;
-			copyPass.material.depthWrite = false;
-			copyPass.material.depthTest = false;
-
-			var beauty = true;
-			var sketch = true;
-
-			// gui
-			var params = { type: "BEAUTY + SKETCH", uColor: [0, 0, 0] };
-			var gui = new dat.GUI();
-			gui.add(params, "type", ["BEAUTY + SKETCH", "BEAUTY", "SKETCH"]).onChange(function(val) {
-				switch(val) {
-					case "BEAUTY + SKETCH":
-						beauty = true;
-						sketch = true;
-						break;
-					case "BEAUTY":
-						beauty = true;
-						sketch = false;
-						break;
-					case "SKETCH":
-						beauty = false;
-						sketch = true;
-						break;
-				}
-			});
-			gui.add(sketchPass.uniforms, "uThreshold", 0, 1, 0.01);
-			gui.add(sketchPass.uniforms, "uContrast", 0, 1, 0.01);
-			gui.addColor(params, "uColor").onChange(function(value) {
-				sketchPass.uniforms.uColor[0] = value[0] / 255;
-				sketchPass.uniforms.uColor[1] = value[1] / 255;
-				sketchPass.uniforms.uColor[2] = value[2] / 255;
-			});;
-
-	        function loop(count) {
-
-				requestAnimationFrame(loop);
-
-				controller.update();
-
-				// do render pass
-				scene.updateMatrix();
-				scene.updateLights();
-
-				scene.updateRenderList(camera);
-
-				gBuffer.update(glCore, scene, camera);
-
-				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
-
-				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-				glCore.clear(true, true, true);
-
-				matProjViewInverse.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).inverse();
-
-				sketchPass.render(glCore);
-
-				glCore.renderTarget.setRenderTarget(backRenderTarget);
-
-				glCore.state.colorBuffer.setClear(1, 1, 1, 0);
-				glCore.clear(true, true, true);
-
-				if(beauty) {
-					glCore.render(scene, camera);
-				}
-
-				if(sketch) {
-					copyPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
-					copyPass.render(glCore);
-				}
-
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(60 / 180 * Math.PI, width / height, 0.1, 1000);
-
-				backRenderTarget.resize(width, height);
-				gBuffer.resize(width, height);
-
-				tempRenderTarget2.resize(width, height);
-
-				sketchPass.uniforms["invResolution"][0] = 1 / width;
-				sketchPass.uniforms["invResolution"][1] = 1 / height;
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,25 +4,8 @@
 	<meta charset="utf-8">
 	<title>zen3d - custom pass taa</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-		canvas {
-			-webkit-tap-highlight-color: rgba(0,0,0,0);
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 
@@ -34,143 +17,130 @@
 	<script src="./js/shaders/BlendShader.js"></script>
 	<script src="./js/SuperSampling.js"></script>
 </head>
-<body onselectstart="return false;">
-
+<body>
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass taa
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			canvas.onselectstart = function() {return false;};
-			document.body.appendChild( canvas );
+		var backRenderTarget = new zen3d.RenderTargetBack(canvas);
 
-			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+		var contextParams = { antialias: false, alpha: false };
+		var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+		var glCore = new zen3d.WebGLCore(gl);
 
-			var gl = canvas.getContext("webgl", {
-				antialias: true, // antialias
-				alpha: false, // effect performance, default false
-				// premultipliedAlpha: false, // effect performance, default false
-				stencil: true
-			});
-			var glCore = new zen3d.WebGLCore(gl);
+		var scene = new zen3d.Scene();
 
-			var scene = new zen3d.Scene();
+		var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+		texture.anisotropy = glCore.capabilities.maxAnisotropy;
+		texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		texture.addEventListener("onload", function() {
+			sceneChange = true;
+		});
 
-			var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
-			texture.anisotropy = glCore.capabilities.maxAnisotropy;
-			texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			texture.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
-			texture.addEventListener("onload", function() {
-				sceneChange = true;
-			});
+		var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
+		var material = new zen3d.BasicMaterial();
+		material.diffuseMap = texture;
+		var cube = new zen3d.Mesh(cube_geometry, material);
+		scene.add(cube);
 
-			var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
-			var material = new zen3d.BasicMaterial();
-			material.diffuseMap = texture;
-			var cube = new zen3d.Mesh(cube_geometry, material);
-			scene.add(cube);
+		var camera = new zen3d.Camera();
+		camera.position.set(10, 10, 30);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.5;
-	        camera.position.set(10, 10, 30);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		var controller = new zen3d.OrbitControls(camera, canvas);
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
+		// custom pass
 
-			// custom pass
+		var shadowMapPass = new zen3d.ShadowMapPass();
 
-			var shadowMapPass = new zen3d.ShadowMapPass();
+		var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+		tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		tempRenderTarget.texture.generateMipmaps = false;
 
-			var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
-			tempRenderTarget.texture.encoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-			tempRenderTarget.texture.generateMipmaps = false;
+		var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
 
-			var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
+		var superSampling = new zen3d.SuperSampling(width, height);
 
-			var superSampling = new zen3d.SuperSampling(width, height);
+		var oldProjectionMatrix = new zen3d.Matrix4();
 
-			var oldProjectionMatrix = new zen3d.Matrix4();
+		var sceneChange = false;
 
-			var sceneChange = false;
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-	        function loop(count) {
+			var change = controller.update();
 
-				requestAnimationFrame(loop);
-
-				var change = controller.update();
-
-				if(change || sceneChange) {
-					superSampling.start();
-					sceneChange = false;
-				}
-
-				var tex;
-
-				if(!superSampling.finished()) {
-					// do render pass
-					scene.updateMatrix();
-					scene.updateLights();
-
-					shadowMapPass.render(glCore, scene);
-
-					glCore.renderTarget.setRenderTarget(tempRenderTarget);
-
-					glCore.state.colorBuffer.setClear(0.3, 0.3, 0.3, 1);
-					glCore.clear(true, true, true);
-
-					oldProjectionMatrix.copy(camera.projectionMatrix);
-					superSampling.jitterProjection(camera, width, height);
-
-					glCore.render(scene, camera);
-
-					camera.projectionMatrix.copy(oldProjectionMatrix);
-
-					tex = superSampling.sample(glCore, tempRenderTarget.texture);
-				} else {
-					tex = superSampling.output();
-				}
-
-				copyPass.uniforms["tDiffuse"] = tex;
-
-				glCore.renderTarget.setRenderTarget(backRenderTarget);
-
-				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-				glCore.clear(true, true, true);
-				
-				copyPass.material.transparent = true;
-				copyPass.render(glCore);
-
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
-
-				backRenderTarget.resize(width, height);
-				tempRenderTarget.resize(width, height);
-
-				superSampling.resize(width, height);
-
-				sceneChange = true;
+			if(change || sceneChange) {
+				superSampling.start();
+				sceneChange = false;
 			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+
+			var tex;
+
+			if(!superSampling.finished()) {
+				// do render pass
+				scene.updateMatrix();
+				scene.updateLights();
+
+				shadowMapPass.render(glCore, scene);
+
+				glCore.renderTarget.setRenderTarget(tempRenderTarget);
+
+				glCore.state.colorBuffer.setClear(0.3, 0.3, 0.3, 1);
+				glCore.clear(true, true, true);
+
+				oldProjectionMatrix.copy(camera.projectionMatrix);
+				superSampling.jitterProjection(camera, width, height);
+
+				glCore.render(scene, camera);
+
+				camera.projectionMatrix.copy(oldProjectionMatrix);
+
+				tex = superSampling.sample(glCore, tempRenderTarget.texture);
+			} else {
+				tex = superSampling.output();
+			}
+
+			copyPass.uniforms["tDiffuse"] = tex;
+
+			glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+			glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			glCore.clear(true, true, true);
+			
+			copyPass.material.transparent = true;
+			copyPass.render(glCore);
+
+		}
+
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+			backRenderTarget.resize(width, height);
+			tempRenderTarget.resize(width, height);
+
+			superSampling.resize(width, height);
+
+			sceneChange = true;
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

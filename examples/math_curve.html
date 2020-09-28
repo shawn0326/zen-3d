@@ -4,150 +4,123 @@
 	<meta charset="utf-8">
 	<title>zen3d - curve</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
 </head>
 <body>
 
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - curve
-		<br/>
-        press 'a' to enable curve sampler
-		<br/>
-		press 'b' to disable curve sampler
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
+		var phong = new zen3d.PhongMaterial();
+		phong.diffuse.setHex(0xffffff);
+		var sphere = new zen3d.Mesh(sphere_geometry, phong);
+		scene.add(sphere);
 
-	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-	        var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        scene.add(ambientLight);
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(-40, 40, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		scene.add(directionalLight);
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-	        scene.add(directionalLight);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 200);
+		camera.lookAt(new zen3d.Vector3(0, 0, -1), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 0, 200);
-	        camera.lookAt(new zen3d.Vector3(0, 0, -1), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		var samplerNum = 6;
+		var useSampler = false;
 
-			var samplerNum = 6;
-			var useSampler = false;
+		var curve = new zen3d.Curve([
+			new zen3d.Vector2(0, 0),
+			new zen3d.Vector2(6, 0),
+			new zen3d.Vector2(6, 0),
+			new zen3d.Vector2(10, 0)
+		], [
+			new zen3d.Vector2(1, 0),
+			new zen3d.Vector2(5, -80),
+			new zen3d.Vector2(7, 80),
+			new zen3d.Vector2(10, 0)
+		]);
+		var curve_sampler = curve.averageXSampler(samplerNum);
 
-			var curve = new zen3d.Curve([
-				new zen3d.Vector2(0, 0),
-				new zen3d.Vector2(6, 0),
-				new zen3d.Vector2(6, 0),
-				new zen3d.Vector2(10, 0)
-			], [
-				new zen3d.Vector2(1, 0),
-				new zen3d.Vector2(5, -80),
-				new zen3d.Vector2(7, 80),
-				new zen3d.Vector2(10, 0)
-			]);
-			var curve_sampler = curve.averageXSampler(samplerNum);
+		var curve2 = new zen3d.Curve([
+			new zen3d.Vector2(0, 0),
+			new zen3d.Vector2(4, 0),
+			new zen3d.Vector2(4, 0),
+			new zen3d.Vector2(10, 0)
+		], [
+			new zen3d.Vector2(1, 0),
+			new zen3d.Vector2(3, 80),
+			new zen3d.Vector2(5, -80),
+			new zen3d.Vector2(10, 0)
+		]);
+		var curve2_sampler = curve2.averageXSampler(samplerNum);
 
-			var curve2 = new zen3d.Curve([
-				new zen3d.Vector2(0, 0),
-				new zen3d.Vector2(4, 0),
-				new zen3d.Vector2(4, 0),
-				new zen3d.Vector2(10, 0)
-			], [
-				new zen3d.Vector2(1, 0),
-				new zen3d.Vector2(3, 80),
-				new zen3d.Vector2(5, -80),
-				new zen3d.Vector2(10, 0)
-			]);
-			var curve2_sampler = curve2.averageXSampler(samplerNum);
+		function mix(value0, value1, t) {
+			return value0 * (1 - t) + value1 * t;
+		}
 
-			function mix(value0, value1, t) {
-		        return value0 * (1 - t) + value1 * t;
-		    }
-
-			function calcBySampler(sampler, time) {
-				var value = 0;
-				for(var i = 2; i < sampler.length; i += 2) {
-					if(sampler[i - 2] <= time && sampler[i] >= time) {
-						value = mix(sampler[i - 1], sampler[i + 1], (time - sampler[i - 2]) / (sampler[i] - sampler[i - 2]));
-					}
+		function calcBySampler(sampler, time) {
+			var value = 0;
+			for(var i = 2; i < sampler.length; i += 2) {
+				if(sampler[i - 2] <= time && sampler[i] >= time) {
+					value = mix(sampler[i - 1], sampler[i + 1], (time - sampler[i - 2]) / (sampler[i] - sampler[i - 2]));
 				}
-				return value;
 			}
+			return value;
+		}
 
-			// input
-			document.onkeydown = function(e) {
-				if(e.keyCode == 65) { // 'a'
-					useSampler = true;
-					console.log("enable curve sampler")
-				} else if(e.keyCode == 66) {// 'b'
-					useSampler = false;
-					console.log("disable curve sampler")
-				}
-	        };
+		// gui
 
-	        function loop(count) {
+		var params = { useSampler: false };
+		var gui = new dat.GUI();
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add(params, 'useSampler');
 
-	            requestAnimationFrame(loop);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-				var time = count % 1000 / 1000 * 10;
+			var time = count % 1000 / 1000 * 10;
 
-				var x = useSampler ? calcBySampler(curve_sampler, time) : curve.calc(time);
-				var y = useSampler ? calcBySampler(curve2_sampler, time) : curve2.calc(time);
+			var x = params.useSampler ? calcBySampler(curve_sampler, time) : curve.calc(time);
+			var y = params.useSampler ? calcBySampler(curve2_sampler, time) : curve2.calc(time);
 
-				sphere.position.x = x;
-				sphere.position.y = y;
+			sphere.position.x = x;
+			sphere.position.y = y;
 
-	            renderer.render(scene, camera);
-	        }
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-	        loop(0);
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

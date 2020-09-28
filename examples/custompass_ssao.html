@@ -4,22 +4,8 @@
 	<meta charset="utf-8">
 	<title>zen3d - custom pass ssao</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 
@@ -33,244 +19,229 @@
 	<script src="js/shaders/BlurShader.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass ssao
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var scene = new zen3d.Scene();
 
-			var scene = new zen3d.Scene();
+		for(var i = 0; i < 100; i++) {
+			var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
+			var phong = new zen3d.PhongMaterial();
+			phong.diffuse.setHSL( Math.random(), 1.0, 0.3 );
+			var cube = new zen3d.Mesh(cube_geometry, phong);
+			cube.position.x = Math.random() * 100 - 50;
+			cube.position.y = Math.random() * 100 - 50;
+			cube.position.z = Math.random() * 100 - 50;
+			cube.quaternion.x = Math.random();
+			cube.quaternion.y = Math.random();
+			cube.quaternion.z = Math.random();
+			scene.add(cube);
+		}
 
-			for(var i = 0; i < 100; i++) {
-				var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
-				var phong = new zen3d.PhongMaterial();
-				phong.diffuse.setHSL( Math.random(), 1.0, 0.3 );
-		        var cube = new zen3d.Mesh(cube_geometry, phong);
-				cube.position.x = Math.random() * 100 - 50;
-				cube.position.y = Math.random() * 100 - 50;
-				cube.position.z = Math.random() * 100 - 50;
-				cube.quaternion.x = Math.random();
-				cube.quaternion.y = Math.random();
-				cube.quaternion.z = Math.random();
-		        scene.add(cube);
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 3);
+		scene.add(ambientLight);
+
+		var directionalLight = new zen3d.DirectionalLight(0xffffff, 1);
+		directionalLight.position.set(-40, 40, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		scene.add(directionalLight);
+
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 200);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
+		
+		// TODO set camera near by distance
+
+		var controller = new zen3d.OrbitControls(camera, canvas);
+
+		// custom pass
+		var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+		var contextParams = { antialias: true, alpha: false };
+		// todo webgl 1.0 has bug on android here?
+		var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+		var glCore = new zen3d.WebGLCore(gl);
+
+		var gBuffer = new zen3d.GBuffer(width, height);
+		gBuffer.enableAlbedoMetalness = false;
+
+		var ssaoPass = new zen3d.SSAOPass();
+		ssaoPass.setNoiseSize(256);
+		ssaoPass.setKernelSize(32);
+		// ssaoPass.material.defines["ALCHEMY"] = 1;
+		var radius = 10;
+		ssaoPass.uniforms["intensity"] = 1;
+		ssaoPass.uniforms["power"] = 1;
+		ssaoPass.uniforms["bias"] = radius / 50;
+		ssaoPass.uniforms["radius"] = radius;
+
+		var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
+		tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget2.texture.generateMipmaps = false;
+
+		var tempRenderTarget3 = new zen3d.RenderTarget2D(width, height);
+		tempRenderTarget3.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget3.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		tempRenderTarget3.texture.generateMipmaps = false;
+
+		var projection = new zen3d.Matrix4();
+		var projectionInv = new zen3d.Matrix4();
+		var viewInverseTranspose = new zen3d.Matrix4();
+
+		ssaoPass.uniforms["projection"] = projection.elements;
+		ssaoPass.uniforms["projectionInv"] = projectionInv.elements;
+		ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+
+		ssaoPass.uniforms["normalTex"] = gBuffer.getNormalGlossinessTexture();
+		ssaoPass.uniforms["depthTex"] = gBuffer.getDepthTexture();
+		ssaoPass.uniforms["texSize"][0] = width;
+		ssaoPass.uniforms["texSize"][1] = height;
+
+		var blurPass = new zen3d.ShaderPostPass(zen3d.BlurShader);
+		blurPass.material.blending = zen3d.BLEND_TYPE.CUSTOM;
+		blurPass.material.blendSrc = zen3d.BLEND_FACTOR.ZERO;
+		blurPass.material.blendDst = zen3d.BLEND_FACTOR.SRC_COLOR;
+		blurPass.material.depthWrite = false;
+		blurPass.material.depthTest = false;
+		blurPass.uniforms["projection"] = projection.elements;
+		blurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
+
+		blurPass.uniforms["normalTex"] = gBuffer.getNormalGlossinessTexture();
+		blurPass.uniforms["depthTex"] = gBuffer.getDepthTexture();
+		blurPass.uniforms["textureSize"][0] = width;
+		blurPass.uniforms["textureSize"][1] = height;
+
+		blurPass.uniforms["blurSize"] = 2;
+		blurPass.uniforms["depthRange"] = 1;
+
+		blurPass.material.defines["NORMALTEX_ENABLED"] = 1;
+		blurPass.material.defines["DEPTHTEX_ENABLED"] = 1;
+		ssaoPass.material.defines["DEPTH_PACKING"] = 0;
+		blurPass.material.defines["DEPTH_PACKING"] = 0;
+
+		var beauty = true;
+		var ssao = true;
+
+		// gui
+		var params = {type: "BEAUTY + SSAO", kernelSize: 32};
+		var gui = new dat.GUI();
+		gui.add(params, "type", ["BEAUTY + SSAO", "BEAUTY", "SSAO"]).onChange(function(val) {
+			switch(val) {
+				case "BEAUTY + SSAO":
+					beauty = true;
+					ssao = true;
+					break;
+				case "BEAUTY":
+					beauty = true;
+					ssao = false;
+					break;
+				case "SSAO":
+					beauty = false;
+					ssao = true;
+					break;
+			}
+		});
+		gui.add(params, "kernelSize", [16, 32, 64, 128, 256]).onChange(function(val) {
+			ssaoPass.setKernelSize(val);
+		});
+		gui.add(ssaoPass.uniforms, "intensity").min(0).max(2).step(0.1);
+		gui.add(ssaoPass.uniforms, "power").min(0).max(5).step(1);
+		gui.add(ssaoPass.uniforms, "radius").min(0).max(20);
+		gui.add(ssaoPass.uniforms, "bias").min(0).max(5);
+
+		gui.add(blurPass.uniforms, "blurSize").min(0).max(2);
+		gui.add(blurPass.uniforms, "depthRange").min(0).max(3);
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			// do render pass
+			scene.updateMatrix();
+			scene.updateLights();
+
+			scene.updateRenderList(camera);
+
+			gBuffer.update(glCore, scene, camera);
+
+			glCore.renderTarget.setRenderTarget(tempRenderTarget2);
+
+			glCore.state.colorBuffer.setClear(1, 1, 1, 1);
+			glCore.clear(true, true, true);
+
+			projection.copy(camera.projectionMatrix);
+			projectionInv.copy(camera.projectionMatrix).inverse();
+			// viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
+			viewInverseTranspose.copy(camera.worldMatrix).transpose();
+
+			ssaoPass.render(glCore);
+
+			glCore.renderTarget.setRenderTarget(tempRenderTarget3);
+
+			glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			glCore.clear(true, true, true);
+
+			blurPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
+			blurPass.uniforms["direction"] = 0;
+			blurPass.render(glCore);
+
+			glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+			glCore.state.colorBuffer.setClear(0.5, 0.5, 0.5, 1);
+			glCore.clear(true, true, true);
+
+			if(beauty) {
+				scene.overrideMaterial = null;
+				glCore.render(scene, camera, false);
+
+				blurPass.material.transparent = true;
 			}
 
-			var ambientLight = new zen3d.AmbientLight(0xffffff, 1.5);
-	        scene.add(ambientLight);
+			if(ssao) {
+				blurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
+				blurPass.uniforms["direction"] = 1;
+				blurPass.render(glCore);
+			}
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.8);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			scene.add(directionalLight);
+			if(beauty) {
+				blurPass.material.transparent = false;
+			}
+		}
+		requestAnimationFrame(loop);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 2;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 0, 200);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
-			scene.add(camera);
-			
-			// TODO set camera near by distance
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
+			camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
 
-			// custom pass
-			var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+			backRenderTarget.resize(width, height);
+			gBuffer.resize(width, height);
 
-			var contextParams = {
-				antialias: true, // antialias
-				alpha: false, // effect performance, default false
-				// premultipliedAlpha: false, // effect performance, default false
-				stencil: true
-			};
+			tempRenderTarget2.resize(width, height);
+			tempRenderTarget3.resize(width, height);
 
-			// todo webgl 1.0 has bug on android here?
-			var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
-			var glCore = new zen3d.WebGLCore(gl);
-
-			var gBuffer = new zen3d.GBuffer(width, height);
-			gBuffer.enableAlbedoMetalness = false;
-
-			var ssaoPass = new zen3d.SSAOPass();
-			ssaoPass.setNoiseSize(256);
-			ssaoPass.setKernelSize(32);
-			// ssaoPass.material.defines["ALCHEMY"] = 1;
-			var radius = 10;
-			ssaoPass.uniforms["intensity"] = 1;
-			ssaoPass.uniforms["power"] = 1;
-			ssaoPass.uniforms["bias"] = radius / 50;
-			ssaoPass.uniforms["radius"] = radius;
-
-			var tempRenderTarget2 = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget2.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget2.texture.generateMipmaps = false;
-
-			var tempRenderTarget3 = new zen3d.RenderTarget2D(width, height);
-			tempRenderTarget3.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget3.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
-			tempRenderTarget3.texture.generateMipmaps = false;
-
-			var projection = new zen3d.Matrix4();
-			var projectionInv = new zen3d.Matrix4();
-			var viewInverseTranspose = new zen3d.Matrix4();
-
-			ssaoPass.uniforms["projection"] = projection.elements;
-			ssaoPass.uniforms["projectionInv"] = projectionInv.elements;
-			ssaoPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
-
-			ssaoPass.uniforms["normalTex"] = gBuffer.getNormalGlossinessTexture();
-			ssaoPass.uniforms["depthTex"] = gBuffer.getDepthTexture();
 			ssaoPass.uniforms["texSize"][0] = width;
 			ssaoPass.uniforms["texSize"][1] = height;
 
-			var blurPass = new zen3d.ShaderPostPass(zen3d.BlurShader);
-			blurPass.material.blending = zen3d.BLEND_TYPE.CUSTOM;
-			blurPass.material.blendSrc = zen3d.BLEND_FACTOR.ZERO;
-			blurPass.material.blendDst = zen3d.BLEND_FACTOR.SRC_COLOR;
-			blurPass.material.depthWrite = false;
-			blurPass.material.depthTest = false;
-			blurPass.uniforms["projection"] = projection.elements;
-			blurPass.uniforms["viewInverseTranspose"] = viewInverseTranspose.elements;
-
-			blurPass.uniforms["normalTex"] = gBuffer.getNormalGlossinessTexture();
-			blurPass.uniforms["depthTex"] = gBuffer.getDepthTexture();
 			blurPass.uniforms["textureSize"][0] = width;
 			blurPass.uniforms["textureSize"][1] = height;
-
-			blurPass.uniforms["blurSize"] = 2;
-			blurPass.uniforms["depthRange"] = 1;
-
-			blurPass.material.defines["NORMALTEX_ENABLED"] = 1;
-			blurPass.material.defines["DEPTHTEX_ENABLED"] = 1;
-			ssaoPass.material.defines["DEPTH_PACKING"] = 0;
-			blurPass.material.defines["DEPTH_PACKING"] = 0;
-
-			var beauty = true;
-			var ssao = true;
-
-			// gui
-			var params = {type: "BEAUTY + SSAO", kernelSize: 32};
-			var gui = new dat.GUI();
-			gui.add(params, "type", ["BEAUTY + SSAO", "BEAUTY", "SSAO"]).onChange(function(val) {
-				switch(val) {
-					case "BEAUTY + SSAO":
-						beauty = true;
-						ssao = true;
-						break;
-					case "BEAUTY":
-						beauty = true;
-						ssao = false;
-						break;
-					case "SSAO":
-						beauty = false;
-						ssao = true;
-						break;
-				}
-			});
-			gui.add(params, "kernelSize", [16, 32, 64, 128, 256]).onChange(function(val) {
-				ssaoPass.setKernelSize(val);
-			});
-			gui.add(ssaoPass.uniforms, "intensity").min(0).max(2).step(0.1);
-			gui.add(ssaoPass.uniforms, "power").min(0).max(5).step(1);
-			gui.add(ssaoPass.uniforms, "radius").min(0).max(20);
-			gui.add(ssaoPass.uniforms, "bias").min(0).max(5);
-
-			gui.add(blurPass.uniforms, "blurSize").min(0).max(2);
-			gui.add(blurPass.uniforms, "depthRange").min(0).max(3);
-
-	        function loop(count) {
-
-				requestAnimationFrame(loop);
-
-				controller.update();
-
-				// do render pass
-				scene.updateMatrix();
-				scene.updateLights();
-
-				scene.updateRenderList(camera);
-
-				gBuffer.update(glCore, scene, camera);
-
-				glCore.renderTarget.setRenderTarget(tempRenderTarget2);
-
-				glCore.state.colorBuffer.setClear(1, 1, 1, 1);
-				glCore.clear(true, true, true);
-
-				projection.copy(camera.projectionMatrix);
-				projectionInv.copy(camera.projectionMatrix).inverse();
-				// viewInverseTranspose.copy(camera.viewMatrix).getInverse(viewInverseTranspose).transpose();
-				viewInverseTranspose.copy(camera.worldMatrix).transpose();
-
-				ssaoPass.render(glCore);
-
-				glCore.renderTarget.setRenderTarget(tempRenderTarget3);
-
-				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-            	glCore.clear(true, true, true);
-
-				blurPass.uniforms["tDiffuse"] = tempRenderTarget2.texture;
-				blurPass.uniforms["direction"] = 0;
-				blurPass.render(glCore);
-
-				glCore.renderTarget.setRenderTarget(backRenderTarget);
-
-				glCore.state.colorBuffer.setClear(0.5, 0.5, 0.5, 1);
-				glCore.clear(true, true, true);
-
-				if(beauty) {
-					scene.overrideMaterial = null;
-					glCore.render(scene, camera);
-
-					blurPass.material.transparent = true;
-				}
-
-				if(ssao) {
-					blurPass.uniforms["tDiffuse"] = tempRenderTarget3.texture;
-					blurPass.uniforms["direction"] = 1;
-					blurPass.render(glCore);
-				}
-
-				if(beauty) {
-					blurPass.material.transparent = false;
-				}
-
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(60 / 180 * Math.PI, width / height, 1, 1000);
-
-				backRenderTarget.resize(width, height);
-				gBuffer.resize(width, height);
-
-				tempRenderTarget2.resize(width, height);
-				tempRenderTarget3.resize(width, height);
-
-				ssaoPass.uniforms["texSize"][0] = width;
-				ssaoPass.uniforms["texSize"][1] = height;
-
-				blurPass.uniforms["textureSize"][0] = width;
-				blurPass.uniforms["textureSize"][1] = height;
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

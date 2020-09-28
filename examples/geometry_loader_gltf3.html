@@ -4,135 +4,112 @@
 	<meta charset="utf-8">
 	<title>zen3d - gltf3</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/Clock.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf3
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width * window.devicePixelRatio;
+		canvas.height = height * window.devicePixelRatio;
+		canvas.style.width = width + "px";
+		canvas.style.height = height + "px";
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width * window.devicePixelRatio;
-	        canvas.height = height * window.devicePixelRatio;
-			canvas.style.width = width + "px";
-			canvas.style.height = height + "px";
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		// var file = "resources/models/gltf/Monster/glTF/Monster.gltf";
+		var file = "resources/models/gltf/Monster/glTF-Binary/Monster.glb";
 
-			// var file = "resources/models/gltf/Monster/glTF/Monster.gltf";
-			var file = "resources/models/gltf/Monster/glTF-Binary/Monster.glb";
+		var animation;
 
-			var animation;
+		var loader = new zen3d.GLTFLoader();
+		loader.load(file, function(result) {
+			// add mesh to scene
+			var object = result.scene.children[0];
+			object.children[1].castShadow = true;
+			object.scale.set( 0.4, 0.4, 0.4 );
+			object.position.set( -10, 1, 0 );
 
-			var loader = new zen3d.GLTFLoader();
-			loader.load(file, function(result) {
-				// add mesh to scene
-				var object = result.scene.children[0];
-				object.children[1].castShadow = true;
-				object.scale.set( 0.4, 0.4, 0.4 );
-				object.position.set( -10, 1, 0 );
+			object.children[1].frustumCulled = false;
 
-				object.children[1].frustumCulled = false;
-
-				animation = new zen3d.AnimationMixer();
-				result.animations.forEach(function (clip) {
-					
-					animation.add(clip);
-					animation.play(clip.name);
-					clip.endFrame = 2;
-
-				});
-
-				scene.add(object);
+			animation = new zen3d.AnimationMixer();
+			result.animations.forEach(function (clip) {
+				animation.add(clip);
+				animation.play(clip.name);
+				clip.endFrame = 2;
 			});
 
-			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0x888888);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-			plane.receiveShadow = true;
-	        scene.add(plane);
+			scene.add(object);
+		});
 
-			var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        scene.add(ambientLight);
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0x888888);
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.receiveShadow = true;
+		scene.add(plane);
 
-			var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(25, 25, 0);
-			directionalLight.intensity = 2.5;
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 0, 0));
-			directionalLight.shadow.windowSize = 25;
-			directionalLight.shadow.bias = -0.0001;
-			directionalLight.castShadow = true;
-			scene.add(directionalLight);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 2;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(50, 20, -50);
-	        camera.lookAt(new zen3d.Vector3(0, 1, 0), new zen3d.Vector3(0, 1, 0));
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(25, 25, 0);
+		directionalLight.intensity = 2.5;
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 0, 0));
+		directionalLight.shadow.windowSize = 25;
+		directionalLight.shadow.bias = -0.0001;
+		directionalLight.castShadow = true;
+		scene.add(directionalLight);
+
+		var camera = new zen3d.Camera();
+		camera.gammaFactor = 2;
+		camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+		camera.position.set(50, 20, -50);
+		camera.lookAt(new zen3d.Vector3(0, 1, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
+
+		var controller = new zen3d.OrbitControls(camera, canvas);
+		controller.target.set(0, 1, 0);
+
+		var clock = new zen3d.Clock();
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			animation && animation.update(clock.getDelta());
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.target.set(0, 1, 0);
+			renderer.backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
 
-			var clock = new zen3d.Clock();
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				controller.update();
-
-				animation && animation.update(clock.getDelta());
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
-
-				canvas.style.width = width + "px";
-				canvas.style.height = height + "px";
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,127 +4,90 @@
 	<meta charset="utf-8">
 	<title>zen3d - vox</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/VoxMeshBuilder.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./libs/vox.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - vox
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
+		renderer.shadowAutoUpdate = false;
 
-	        var renderer = new zen3d.Renderer(canvas);
-			renderer.shadowAutoUpdate = false;
-
-			var scene = new zen3d.Scene();
-			
-			var parser = new vox.Parser();
-			parser.parse("resources/models/vox/p1.vox").then(function(voxelData) {
-				var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxelData, {
-					optimizeFaces: true,
-					voxelSize: 2,
-					originToBottom: true,
-					vertexColor: true
-				});
-				var mesh = voxMeshBuilder.createMesh();
-				mesh.castShadow = true;
-				scene.add(mesh);
-
-				renderer.shadowNeedsUpdate = true;
+		var scene = new zen3d.Scene();
+		
+		var parser = new vox.Parser();
+		parser.parse("resources/models/vox/p1.vox").then(function(voxelData) {
+			var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxelData, {
+				optimizeFaces: true,
+				voxelSize: 2,
+				originToBottom: true,
+				vertexColor: true
 			});
+			var mesh = voxMeshBuilder.createMesh();
+			mesh.castShadow = true;
+			scene.add(mesh);
 
-			// var loader = new zen3d.VOXLoader();
-			// loader.load("resources/models/vox/p1.vox", function(voxData) {
-			// 	var voxMeshBuilder = new zen3d.VOXMeshBuilder(voxData, {
-			// 		optimizeFaces: true,
-			// 		voxelSize: 2,
-			// 		originToBottom: true,
-			// 		vertexColor: true
-			// 	});
-			// 	var mesh = voxMeshBuilder.createMesh();
-			// 	mesh.castShadow = true;
-			// 	scene.add(mesh);
+			renderer.shadowNeedsUpdate = true;
+		});
 
-			// 	renderer.shadowNeedsUpdate = true;
-			// });
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0x88ff88);
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.receiveShadow = true;
+		scene.add(plane);
 
-			var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0x88ff88);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-			plane.receiveShadow = true;
-	        scene.add(plane);
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 1.5);
+		scene.add(ambientLight);
 
-			var ambientLight = new zen3d.AmbientLight(0xaaaaaa);
-	        scene.add(ambientLight);
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(-30, 40, 50);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 0, 0));
+		directionalLight.shadow.windowSize = 100;
+		directionalLight.castShadow = true;
+		scene.add(directionalLight);
 
-			var directionalLight = new zen3d.DirectionalLight(0xffffff);
-	        directionalLight.euler.set(Math.PI / 4, Math.PI / 4, 0);
-	        directionalLight.position.set(-40, 40, 0);
-			directionalLight.shadow.windowSize = 100;
-			directionalLight.castShadow = true;
-	        scene.add(directionalLight);
+		var camera = new zen3d.Camera();
+		camera.position.set(40, 40, 80);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 2000);
+		scene.add(camera);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 2;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(40, 40, 80);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 2000);
-	        scene.add(camera);
+		var controller = new zen3d.OrbitControls(camera, canvas);
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-	        function loop(count) {
+			controller.update();
 
-	            requestAnimationFrame(loop);
+			renderer.render(scene, camera);
+		}
 
-				controller.update();
+		requestAnimationFrame(loop);
 
-	            renderer.render(scene, camera);
-	        }
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-	        loop(0);
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 3000);
 
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 10, 3000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

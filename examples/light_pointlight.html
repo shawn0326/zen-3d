@@ -4,22 +4,8 @@
 	<meta charset="utf-8">
 	<title>zen3d - pointlight</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 
@@ -27,115 +13,109 @@
 	<script src="./js/objects/PointLightHelper.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - point light
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
+		var phong = new zen3d.PhongMaterial();
+		phong.diffuse.setHex(0xffffff);
+		var sphere = new zen3d.Mesh(sphere_geometry, phong);
+		scene.add(sphere);
 
-	        var sphere_geometry = new zen3d.SphereGeometry(10, 20, 20);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-	        var sphere = new zen3d.Mesh(sphere_geometry, phong);
-			scene.add(sphere);
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		lambert.dithering = true;
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -10;
+		plane.shadowType = zen3d.SHADOW_TYPE.POISSON_SOFT;
+		scene.add(plane);
 
-	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-			lambert.diffuse.setHex(0xffffff);
-			lambert.dithering = true;
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-			plane.position.y = -10;
-			plane.shadowType = zen3d.SHADOW_TYPE.POISSON_SOFT;
-	        scene.add(plane);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-	        var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        scene.add(ambientLight);
+		var pointLight = new zen3d.PointLight(0xffffff, 1, 200);
+		pointLight.position.set(-20, 20, 0);
+		pointLight.shadow.bias = -0.003;
+		scene.add(pointLight);
+		
+		var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
+		pointLight.add(pointLightHelper);
 
-	        var pointLight = new zen3d.PointLight(0xffffff, 1, 200);
-	        pointLight.position.set(-20, 20, 0);
-			pointLight.shadow.bias = -0.003;
-			scene.add(pointLight);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 80, 100);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
+
+		function toggleShadow() {
+			sphere.castShadow = !sphere.castShadow;
+			sphere.receiveShadow = !sphere.receiveShadow;
+			plane.receiveShadow = !plane.receiveShadow;
+			pointLight.castShadow = !pointLight.castShadow;
+		}
+
+		toggleShadow();
+
+		// gui
+		var params = {intensity: 1, decay: 2, distance: 200, color: [255, 255, 255], useShadow: true};
+		var gui = new dat.GUI();
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add(params, "intensity", 0, 1).onChange(function(value) {pointLight.intensity = value;});
+		gui.add(params, "decay", 0, 4).onChange(function(value) {pointLight.decay = value;});
+		gui.add(params, "distance", 1, 500).onChange(function(value) {pointLight.distance = value;});
+		gui.addColor(params, "color").onChange(function(value) {
+			pointLight.color.r = value[0] / 255;
+			pointLight.color.g = value[1] / 255;
+			pointLight.color.b = value[2] / 255;
+		});
+		gui.add(params, "useShadow").onChange(function() {
+			toggleShadow()
+		});
+		gui.add(plane, "shadowType", ["hard", "poisson_soft"]);
+		gui.close();
+
+		var clock = new zen3d.Clock();
+
+		function loop(count) {
+			requestAnimationFrame(loop);
 			
-			var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
-			pointLight.add(pointLightHelper);
+			var elapsedTime = clock.getElapsedTime();
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 80, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+			// rotate camera
+			camera.position.x = 100 * Math.sin(elapsedTime * .3);
+			camera.position.z = 100 * Math.cos(elapsedTime * .3);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-			function toggleShadow() {
-				sphere.castShadow = !sphere.castShadow;
-				sphere.receiveShadow = !sphere.receiveShadow;
-				plane.receiveShadow = !plane.receiveShadow;
-				pointLight.castShadow = !pointLight.castShadow;
-			}
+			pointLightHelper.update();
 
-			toggleShadow();
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-			// gui
-			var params = {intensity: 1, decay: 2, distance: 200, color: [255, 255, 255], useShadow: true};
-			var gui = new dat.GUI();
-			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
-			gui.add(params, "intensity", 0, 1).onChange(function(value) {pointLight.intensity = value;});
-			gui.add(params, "decay", 0, 4).onChange(function(value) {pointLight.decay = value;});
-			gui.add(params, "distance", 1, 500).onChange(function(value) {pointLight.distance = value;});
-			gui.addColor(params, "color").onChange(function(value) {
-				pointLight.color.r = value[0] / 255;
-				pointLight.color.g = value[1] / 255;
-				pointLight.color.b = value[2] / 255;
-			});
-			gui.add(params, "useShadow").onChange(function() {
-				toggleShadow()
-			});
-			gui.add(plane, "shadowType", ["hard", "poisson_soft"]);
-			gui.close();
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-			var clock = new zen3d.Clock();
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-	        function loop(count) {
-
-				requestAnimationFrame(loop);
-				
-				var elapsedTime = clock.getElapsedTime();
-
-				// rotate camera
-				camera.position.x = 100 * Math.sin(elapsedTime * .3);
-				camera.position.z = 100 * Math.cos(elapsedTime * .3);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-				pointLightHelper.update();
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

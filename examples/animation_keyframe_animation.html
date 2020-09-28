@@ -4,190 +4,155 @@
 	<meta charset="utf-8">
 	<title>zen3d - keyframe animation</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 	<script src="./js/Clock.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - keyframe animation
-		<br/>
-		press 's' to toggle animation
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 
-			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+		var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
+		var phong = new zen3d.PhongMaterial();
+		phong.diffuse.setHex(0xffffff);
+		phong.diffuseMap = texture;
+		var cube = new zen3d.Mesh(cube_geometry, phong);
+		scene.add(cube);
 
-	        var cube_geometry = new zen3d.CubeGeometry(10, 10, 10);
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-			phong.diffuseMap = texture;
-	        var cube = new zen3d.Mesh(cube_geometry, phong);
-			cube.frustumTest = false;
-			scene.add(cube);
+		var clip1 = new zen3d.KeyframeClip("run");
+		var clip2 = new zen3d.KeyframeClip("change");
 
-			var clip1 = new zen3d.KeyframeClip("run");
-			var clip2 = new zen3d.KeyframeClip("change");
+		var times = [0, 1, 2, 3, 4];
+		var track = new zen3d.VectorKeyframeTrack(cube, "position", times, [
+			20, 0, 20,
+			20, 0, -20, 
+			-20, 0, -20,
+			-20, 0, 20,
+			20, 0, 20
+		]);
+		clip1.tracks.push(track);
 
-			var times = [0, 1, 2, 3, 4];
-			var track = new zen3d.VectorKeyframeTrack(cube, "position", times, [
-				20, 0, 20,
-				20, 0, -20, 
-				-20, 0, -20,
-				-20, 0, 20,
-				20, 0, 20
-			]);
-			clip1.tracks.push(track);
+		var track2 = new zen3d.VectorKeyframeTrack(cube, "scale", times, [
+			0.8, 0.8, 0.8,
+			1.5, 0.8, 0.8,
+			1.5, 1.5, 0.8,
+			1.5, 0.8, 0.8,
+			0.8, 0.8, 0.8
+		]);
+		clip1.tracks.push(track2);
 
-			var track2 = new zen3d.VectorKeyframeTrack(cube, "scale", times, [
-				0.8, 0.8, 0.8,
-				1.5, 0.8, 0.8,
-				1.5, 1.5, 0.8,
-				1.5, 0.8, 0.8,
-				0.8, 0.8, 0.8
-			]);
-			clip1.tracks.push(track2);
+		clip1.startFrame = 0;
+		clip1.endFrame = 4;
+		clip1.loop = true;
 
-			clip1.startFrame = 0;
-			clip1.endFrame = 4;
-			clip1.loop = true;
+		var track3 = new zen3d.QuaternionKeyframeTrack(cube, "quaternion", times, [
+			1, 0, 0, 1,
+			0, 1, 0, 1,
+			0, 0, 1, 1,
+			0, 1, 0, 1,
+			1, 0, 0, 1
+		]);
+		clip2.tracks.push(track3);
 
-			var track3 = new zen3d.QuaternionKeyframeTrack(cube, "quaternion", times, [
-				1, 0, 0, 1,
-				0, 1, 0, 1,
-				0, 0, 1, 1,
-				0, 1, 0, 1,
-				1, 0, 0, 1
-			]);
-			clip2.tracks.push(track3);
+		var track4 = new zen3d.ColorKeyframeTrack(cube, "material.diffuse", times, [
+			1, 1, 1,
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1,
+			1, 1, 1
+		]);
+		clip2.tracks.push(track4);
 
-			var track4 = new zen3d.ColorKeyframeTrack(cube, "material.diffuse", times, [
-				1, 1, 1,
-				1, 0, 0,
-				0, 1, 0,
-				0, 0, 1,
-				1, 1, 1
-			]);
-			clip2.tracks.push(track4);
+		clip2.startFrame = 0;
+		clip2.endFrame = 4;
+		clip2.loop = true;
 
-			clip2.startFrame = 0;
-			clip2.endFrame = 4;
-			clip2.loop = true;
+		var animation = new zen3d.AnimationMixer();
+		animation.add(clip1);
+		animation.add(clip2);
 
-			var animation = new zen3d.AnimationMixer();
-			animation.add(clip1);
-			animation.add(clip2);
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -10;
+		scene.add(plane);
 
-	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
-	        scene.add(plane);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-	        var ambientLight = new zen3d.AmbientLight(0x9c9c9c);
-	        scene.add(ambientLight);
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(20, 30, 40);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		scene.add(directionalLight);
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-	        scene.add(directionalLight);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 80, 130);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
-
-			var camera = new zen3d.Camera();
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 80, 130);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
-
-			// gui
-			var params = {anim1: true, anim2: true};
-			var gui = new dat.GUI();
-			gui.add(params, "anim1").onChange(function(value) {
-				if(value) {
-					animation.play("run");
-				} else {
-					animation.stop("run");
-				}
-			});
-			gui.add(params, "anim2").onChange(function(value) {
-				if(value) {
-					animation.play("change");
-				} else {
-					animation.stop("change");
-				}
-			});
-
-			animation.play("run");
-			animation.play("change");
-
-			var clock = new zen3d.Clock();
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				// update animation
-				animation.update(clock.getDelta() * 1.3);
-
-				// rotate camera
-				// camera.position.x = 80 * Math.sin(count / 1000 * .5);
-				// camera.position.z = 80 * Math.cos(count / 1000 * .5);
-				// camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
+		// gui
+		
+		var params = { anim1: true, anim2: true, speedFactor: 1 };
+		var gui = new dat.GUI();
+		gui.add(params, "anim1").onChange(function(value) {
+			if(value) {
+				animation.play("run");
+			} else {
+				animation.stop("run");
 			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+		});
+		gui.add(params, "anim2").onChange(function(value) {
+			if(value) {
+				animation.play("change");
+			} else {
+				animation.stop("change");
+			}
+		});
+		gui.add(params, 'speedFactor', 0, 2, 0.01);
+
+		animation.play("run");
+		animation.play("change");
+
+		var clock = new zen3d.Clock();
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			// update animation
+			animation.update(clock.getDelta() * params.speedFactor);
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

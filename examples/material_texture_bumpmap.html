@@ -4,114 +4,93 @@
 	<meta charset="utf-8">
 	<title>zen3d - bump map</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/AssimpJsonLoader.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - bump map
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var leePerrySmith = "resources/models/assimp/leePerrySmith/LeePerrySmith.json";
 
-			var leePerrySmith = "resources/models/assimp/leePerrySmith/LeePerrySmith.json";
+		var diffuseTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Map-COL.jpg");
+		var bumpTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Infinite-Level_02_Disp_NoSmoothUV-4096.jpg");
+		// var normalTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Infinite-Level_02_Tangent_SmoothUV.jpg");
+		var specularTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Map-SPEC.jpg");
 
-			var diffuseTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Map-COL.jpg");
-			var bumpTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Infinite-Level_02_Disp_NoSmoothUV-4096.jpg");
-			// var normalTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Infinite-Level_02_Tangent_SmoothUV.jpg");
-			var specularTexture = zen3d.Texture2D.fromSrc("resources/models/assimp/leePerrySmith/Map-SPEC.jpg");
+		var loader = new zen3d.AssimpJsonLoader();
+		loader.load(leePerrySmith, function(object) {
+			for(var i = 0; i < object.children.length; i++) {
+				var child = object.children[i].children[0];
 
-			var loader = new zen3d.AssimpJsonLoader();
-			loader.load(leePerrySmith, function(object) {
-				for(var i = 0; i < object.children.length; i++) {
-					var child = object.children[i].children[0];
+				child.material.diffuseMap = diffuseTexture;
 
-					child.material.diffuseMap = diffuseTexture;
+				// child.material.normalMap = normalTexture;
 
-					// child.material.normalMap = normalTexture;
+				child.material.bumpMap = bumpTexture;
+				child.material.bumpScale = 0.008;
 
-					child.material.bumpMap = bumpTexture;
-					child.material.bumpScale = 0.008;
-
-					child.material.specularMap = specularTexture;
-					child.material.specular.setHex(0x161616);
-				}
-				scene.add(object);
-			});
-
-			var ambientLight = new zen3d.AmbientLight(0xffffff);
-	        scene.add(ambientLight);
-
-			var directLight = new zen3d.DirectionalLight(0xffffff, 2);
-	        directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
-	        directLight.position.set(-40, 40, 0);
-	        scene.add(directLight);
-
-	        var spotLight = new zen3d.SpotLight(0xffffff, 3, 200, Math.PI / 3, 0.8);
-	        spotLight.euler.set(Math.PI * 3 / 4, 0, 0);
-	        spotLight.position.set(0, 3, 3);
-	        scene.add(spotLight);
-
-			var camera = new zen3d.Camera();
-	        camera.position.set(0, -.1, .4);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 0.01, 1000);
-	        scene.add(camera);
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				// rotate camera
-				camera.position.x = .4 * Math.sin(count / 1000 * .5);
-				// camera.position.z = .4 * Math.cos(count / 1000 * .5);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
+				child.material.specularMap = specularTexture;
+				child.material.specular.setHex(0x161616);
 			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			scene.add(object);
+		});
+
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
+
+		var directLight = new zen3d.DirectionalLight(0xffffff, 2);
+		directLight.euler.set(Math.PI / 2, Math.PI / 4, 0);
+		directLight.position.set(-40, 40, 0);
+		scene.add(directLight);
+
+		var spotLight = new zen3d.SpotLight(0xffffff, 3, 200, Math.PI / 3, 0.8);
+		spotLight.euler.set(Math.PI * 3 / 4, 0, 0);
+		spotLight.position.set(0, 3, 3);
+		scene.add(spotLight);
+
+		var camera = new zen3d.Camera();
+		camera.position.set(0, -.1, .4);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 0.01, 1000);
+		scene.add(camera);
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			// rotate camera
+			camera.position.x = .4 * Math.sin(count / 1000 * .5);
+			// camera.position.z = .4 * Math.cos(count / 1000 * .5);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

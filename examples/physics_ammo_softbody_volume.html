@@ -4,22 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - ammo softbody volume</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/Clock.js"></script>
@@ -27,7 +12,6 @@
 	<script src="./libs/stats.min.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - physics ammo softbody volume
 		<br/>
@@ -37,7 +21,6 @@
     </div>
 
 	<script>
-
 		Ammo().then(Ammo => {
 
 			// - Global variables -
@@ -89,7 +72,7 @@
 				canvas = document.createElement( 'canvas' );
 				canvas.width = width;
 				canvas.height = height;
-				document.body.appendChild( canvas );
+				document.body.appendChild(canvas);
 
 				camera = new zen3d.Camera();
 				camera.setPerspective(60 / 180 * Math.PI, width / height, 0.2, 2000);

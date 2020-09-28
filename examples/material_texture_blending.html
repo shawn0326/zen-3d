@@ -4,121 +4,98 @@
 	<meta charset="utf-8">
 	<title>zen3d - texture blending</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/simplex-noise.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - texture blending
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
+		renderer.glCore.state.colorBuffer.setClear(0.1, 0.8, 0.9, 1);
 
-			var renderer = new zen3d.Renderer(canvas);
-			renderer.glCore.state.colorBuffer.setClear(0.1, 0.8, 0.9, 1);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var texture1 = new zen3d.Texture2D.fromSrc("resources/grass.jpg");
+		texture1.wrapT = texture1.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+		texture1.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+		texture1.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+		texture1.repeat.set(40, 40);
 
-			var texture1 = new zen3d.Texture2D.fromSrc("resources/grass.jpg");
-			texture1.wrapT = texture1.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-			texture1.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
-			texture1.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
-			texture1.repeat.set(40, 40);
+		var texture2 = new zen3d.Texture2D.fromSrc("resources/dirt.jpg");
+		texture2.wrapT = texture2.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+		texture2.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
+		texture2.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
+		texture2.repeat.set(20, 20);
 
-			var texture2 = new zen3d.Texture2D.fromSrc("resources/dirt.jpg");
-			texture2.wrapT = texture2.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-			texture2.anisotropy = renderer.glCore.capabilities.maxAnisotropy;
-			texture2.encoding = zen3d.TEXEL_ENCODING_TYPE.SRGB;
-			texture2.repeat.set(20, 20);
+		var alphaTex1 = new zen3d.Texture2D.fromSrc("resources/ground_alpha.jpg");
+		alphaTex1.minFilter = alphaTex1.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 
-			var alphaTex1 = new zen3d.Texture2D.fromSrc("resources/ground_alpha.jpg");
-			alphaTex1.minFilter = alphaTex1.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		var alphaTex2 = new zen3d.Texture2D.fromSrc("resources/water.jpg");
+		alphaTex2.minFilter = alphaTex2.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
 
-			var alphaTex2 = new zen3d.Texture2D.fromSrc("resources/water.jpg");
-			alphaTex2.minFilter = alphaTex2.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		var plane_geometry = new zen3d.PlaneGeometry(600, 600);
+		plane_geometry.groups = [
+			{start: 0, count: Infinity, materialIndex: 0},
+			{start: 0, count: Infinity, materialIndex: 1},
+			{start: 0, count: Infinity, materialIndex: 2}
+		];
 
-			var plane_geometry = new zen3d.PlaneGeometry(600, 600);
-			plane_geometry.groups = [
-				{start: 0, count: Infinity, materialIndex: 0},
-				{start: 0, count: Infinity, materialIndex: 1},
-				{start: 0, count: Infinity, materialIndex: 2}
-			];
+		var mat1 = new zen3d.BasicMaterial();
+		mat1.diffuseMap = texture1;
 
-			var mat1 = new zen3d.BasicMaterial();
-			mat1.diffuseMap = texture1;
+		var mat2 = new zen3d.BasicMaterial();
+		mat2.diffuseMap = texture2;
+		mat2.alphaMap = alphaTex1;
+		mat2.transparent = true;
 
-			var mat2 = new zen3d.BasicMaterial();
-			mat2.diffuseMap = texture2;
-			mat2.alphaMap = alphaTex1;
-			mat2.transparent = true;
+		var mat3 = new zen3d.BasicMaterial();
+		mat3.diffuseMap = texture1;
+		mat3.alphaMap = alphaTex2;
+		mat3.transparent = true;
 
-			var mat3 = new zen3d.BasicMaterial();
-			mat3.diffuseMap = texture1;
-			mat3.alphaMap = alphaTex2;
-			mat3.transparent = true;
+		var plane = new zen3d.Mesh(plane_geometry, [mat1, mat2, mat3]);
+		plane.position.y = -10;
+		scene.add(plane);
 
-			var plane = new zen3d.Mesh(plane_geometry, [mat1, mat2, mat3]);
-	        plane.position.y = -10;
-	        scene.add(plane);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 25, 100);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.5;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 25, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-	        function loop(count) {
+			// rotate camera
+			camera.position.x = 100 * Math.sin(count / 1000 * .2);
+			camera.position.z = 100 * Math.cos(count / 1000 * .2);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-	            requestAnimationFrame(loop);
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-				// rotate camera
-				camera.position.x = 100 * Math.sin(count / 1000 * .2);
-				camera.position.z = 100 * Math.cos(count / 1000 * .2);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-	            renderer.render(scene, camera);
-	        }
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

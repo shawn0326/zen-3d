@@ -4,22 +4,8 @@
 	<meta charset="utf-8">
 	<title>zen3d - soft shadow</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 	<script src="./js/Clock.js"></script>
@@ -29,119 +15,114 @@
 	<script src="./js/objects/SpotLightHelper.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - soft shadow
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
+		
+		var cubes = [];
+		var positions = [
+			new zen3d.Vector3(0, 20, 0),
+			new zen3d.Vector3(20, 20, -20),
+			new zen3d.Vector3(-20, 20, 20)
+		];
 
-			var scene = new zen3d.Scene();
-			
-			var cubes = [];
-			var positions = [
-				new zen3d.Vector3(0, 20, 0),
-				new zen3d.Vector3(20, 20, -20),
-				new zen3d.Vector3(-20, 20, 20)
-			];
+		for (var i = 0; i < 3; i++) {
+			var cube_geometry = new zen3d.CubeGeometry(3, 40, 3);
+			var lambert = new zen3d.LambertMaterial();
+			lambert.diffuse.setHex(0xffffff);
+			var cube = new zen3d.Mesh(cube_geometry, lambert);
+			cube.position.copy(positions[i]);
+			cube.castShadow = true;
+			cube.receiveShadow = true;
+			scene.add(cube);
+			cubes.push(cube);
+		}
 
-			for (var i = 0; i < 3; i++) {
-				var cube_geometry = new zen3d.CubeGeometry(3, 40, 3);
-				var lambert = new zen3d.LambertMaterial();
-				lambert.diffuse.setHex(0xffffff);
-				var cube = new zen3d.Mesh(cube_geometry, lambert);
-				cube.position.copy(positions[i]);
-				cube.castShadow = true;
-				cube.receiveShadow = true;
-				scene.add(cube);
-				cubes.push(cube);
-			}
+		var plane_geometry = new zen3d.PlaneGeometry(500, 500);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		lambert.dithering = true;
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.receiveShadow = true;
+		plane.shadowType = renderer.glCore.capabilities.version >= 2 ? zen3d.SHADOW_TYPE.PCSS32_SOFT : zen3d.SHADOW_TYPE.POISSON_SOFT;
+		scene.add(plane);
 
-	        var plane_geometry = new zen3d.PlaneGeometry(500, 500);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-			var plane = new zen3d.Mesh(plane_geometry, lambert);
-			plane.receiveShadow = true;
-			plane.shadowType = renderer.glCore.capabilities.version >= 2 ? zen3d.SHADOW_TYPE.PCSS32_SOFT : zen3d.SHADOW_TYPE.POISSON_SOFT;
-			scene.add(plane);
+		var sphere_geometry = new zen3d.SphereGeometry(3, 10, 10);
+		var basic = new zen3d.BasicMaterial();
+		basic.diffuse.setHex(0xffffff);
+		var lightSphere = new zen3d.Mesh(sphere_geometry, basic);
+		lightSphere.position.set(50, 50, 50);
+		scene.add(lightSphere);
 
-			var sphere_geometry = new zen3d.SphereGeometry(3, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-			var lightSphere = new zen3d.Mesh(sphere_geometry, basic);
-			lightSphere.position.set(50, 50, 50);
-			scene.add(lightSphere);
+		var ambientLight = new zen3d.AmbientLight(0x111111);
+		scene.add(ambientLight);
 
-			var ambientLight = new zen3d.AmbientLight(0x111111);
-	        scene.add(ambientLight);
+		var spotLight = new zen3d.SpotLight(0xffffff, 1, 400, Math.PI / 5, 0.2);
+		spotLight.position.set(50, 50, 50);
+		spotLight.lookAt(new zen3d.Vector3(0, 10, 0), new zen3d.Vector3(0, 1, 0));
+		spotLight.castShadow = true;
+		spotLight.shadow.bias = -0.003;
+		spotLight.shadow.cameraNear = 20; // because PCSS soft shadow need a bigger value range
+		spotLight.shadow.cameraFar = 350;
+		scene.add(spotLight);
+		
+		var spotLightHelper = new zen3d.SpotLightHelper(spotLight);
+		spotLight.add(spotLightHelper);
 
-			var spotLight = new zen3d.SpotLight(0xffffff, 1, 400, Math.PI / 5, 0.2);
-			spotLight.position.set(50, 50, 50);
-			spotLight.lookAt(new zen3d.Vector3(0, 10, 0), new zen3d.Vector3(0, 1, 0));
-			spotLight.castShadow = true;
-			spotLight.shadow.bias = -0.0003;
-			spotLight.shadow.cameraNear = 20; // because PCSS soft shadow need a bigger value range
-			spotLight.shadow.cameraFar = 350;
-			scene.add(spotLight);
-			
-			var spotLightHelper = new zen3d.SpotLightHelper(spotLight);
-			spotLight.add(spotLightHelper);
+		var camera = new zen3d.Camera();
+		camera.gammaFactor = 1.5;
+		camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+		camera.position.set(80, 130, 150);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.5;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(80, 130, 150);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		var controller = new zen3d.OrbitControls(camera, canvas);
+		controller.target.set(0, 20, 0);
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.target.set(0, 20, 0);
+		var gui = new dat.GUI();
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add(plane, "shadowType", ["hard", "poisson_soft", "pcf3_soft", "pcf5_soft", "pcss16_soft", "pcss32_soft", "pcss64_soft"]);
 
-			var gui = new dat.GUI();
-			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
-			gui.add(plane, "shadowType", ["hard", "poisson_soft", "pcf3_soft", "pcf5_soft", "pcss16_soft", "pcss32_soft", "pcss64_soft"]);
+		var clock = new zen3d.Clock();
 
-			var clock = new zen3d.Clock();
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-	        function loop(count) {
+			controller.update();
 
-	            requestAnimationFrame(loop);
+			var elapsedTime = clock.getElapsedTime();
 
-				controller.update();
+			cubes[0].position.y = 25 * Math.sin(elapsedTime * 1.2) + 25;
 
-				var elapsedTime = clock.getElapsedTime();
+			spotLightHelper.update();
 
-				cubes[0].position.y = 25 * Math.sin(elapsedTime * 1.2) + 25;
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-				spotLightHelper.update();
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-				renderer.render(scene, camera);
-	        }
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

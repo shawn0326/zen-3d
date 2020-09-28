@@ -4,189 +4,144 @@
 	<meta charset="utf-8">
 	<title>zen3d - snake</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - snake
-        <br/>
-		press 's' to toggle shadow
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 
-			var texture = zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
+		var numBones = 30;
+		var distance = 50;
+		var halfDistance = distance / 2;
+		var boneLength = distance / numBones;
+		var bones = [];
+		for(var i = 0; i <= numBones; i++) {
+			var bone = new zen3d.Bone();
+			bone.position.y = (i === 0) ? -halfDistance : boneLength;
+			bone.offsetMatrix.set(
+				1, 0, 0, 0,
+				0, 1, 0, halfDistance - i * boneLength,
+				0, 0, 1, 0,
+				0, 0, 0, 1
+			);
 
-			var numBones = 30;
-			var distance = 50;
-			var halfDistance = distance / 2;
-			var boneLength = distance / numBones;
-			var bones = [];
-			for(var i = 0; i <= numBones; i++) {
-				var bone = new zen3d.Bone();
-				bone.position.y = (i === 0) ? -halfDistance : boneLength;
-				bone.offsetMatrix.set(
-					1, 0, 0, 0,
-					0, 1, 0, halfDistance - i * boneLength,
-					0, 0, 1, 0,
-					0, 0, 0, 1
-				);
+			bones.push(bone);
 
-				bones.push(bone);
+			if(i > 0) {
+				bones[bones.length - 2].add(bone);
+			}
+		}
 
-				if(i > 0) {
-					bones[bones.length - 2].add(bone);
+		var skeleton = new zen3d.Skeleton(bones);
+
+		var cylinder_geometry = new zen3d.CylinderGeometry(2, 2, distance, 10, numBones);
+
+		// insert skinIndex & skinWeight
+		var skinIndexArray = [];
+		var skinWeightArray = [];
+		var verticesArray = cylinder_geometry.getAttribute("a_Position").array;
+		var vertexCount = cylinder_geometry.getAttribute("a_Position").count;
+		for(var i = 0; i < vertexCount; i++) {
+			var offset = i * 3;
+			var y = verticesArray[offset + 1];
+
+			var boneId = 0;
+			for(var j = 0; j <= numBones; j++) {
+				if(y < (-halfDistance + j * boneLength + 0.1)) {
+					boneId = j;
+					break;
 				}
 			}
 
-			var skeleton = new zen3d.Skeleton(bones);
+			// bind bone
+			skinIndexArray.push(boneId, 0, 0, 0);
+			skinWeightArray.push(1, 0, 0, 0);
+		}
 
-	        var cylinder_geometry = new zen3d.CylinderGeometry(2, 2, distance, 10, numBones);
+		cylinder_geometry.removeAttribute("a_Color");
+		cylinder_geometry.addAttribute("skinIndex", new zen3d.BufferAttribute(new Float32Array(skinIndexArray), 4));
+		cylinder_geometry.addAttribute("skinWeight", new zen3d.BufferAttribute(new Float32Array(skinWeightArray), 4));
 
-			// insert skinIndex & skinWeight
-			var skinIndexArray = [];
-			var skinWeightArray = [];
-			var verticesArray = cylinder_geometry.getAttribute("a_Position").array;
-			var vertexCount = cylinder_geometry.getAttribute("a_Position").count;
-			for(var i = 0; i < vertexCount; i++) {
-				var offset = i * 3;
-				var y = verticesArray[offset + 1];
+		var phong = new zen3d.PhongMaterial();
+		phong.diffuse.setHex(0xffffff);
+		phong.diffuseMap = texture;
+		var cylinder = new zen3d.SkinnedMesh(cylinder_geometry, phong);
+		cylinder.bind(skeleton);
+		cylinder.add(bones[0]);
+		cylinder.euler.z = Math.PI / 2;
+		cylinder.position.x = -25;
+		cylinder.castShadow = true;
+		scene.add(cylinder);
 
-				var boneId = 0;
-				for(var j = 0; j <= numBones; j++) {
-					if(y < (-halfDistance + j * boneLength + 0.1)) {
-						boneId = j;
-						break;
-					}
-				}
+		var plane_geometry = new zen3d.PlaneGeometry(200, 200);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -20;
+		plane.receiveShadow = true;
+		scene.add(plane);
 
-				// bind bone
-				skinIndexArray.push(boneId, 0, 0, 0);
-				skinWeightArray.push(1, 0, 0, 0);
+		var ambientLight = new zen3d.AmbientLight(0xffffff);
+		scene.add(ambientLight);
+
+		var directionalLight = new zen3d.DirectionalLight(0xffffff);
+		directionalLight.position.set(20, 30, 40);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		directionalLight.shadow.windowSize = 100;
+		directionalLight.castShadow = true;
+		scene.add(directionalLight);
+
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 40, 80);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
+
+		// input
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			// transform bones
+			for(var i = 0; i < bones.length; i++) {
+				bones[i].euler.x = Math.cos(count / 1000 * 0.5) * Math.PI / 180 * 12;
 			}
 
-			cylinder_geometry.removeAttribute("a_Color");
-			cylinder_geometry.addAttribute("skinIndex", new zen3d.BufferAttribute(new Float32Array(skinIndexArray), 4));
-			cylinder_geometry.addAttribute("skinWeight", new zen3d.BufferAttribute(new Float32Array(skinWeightArray), 4));
+			// rotate camera
+			camera.position.x = 80 * Math.sin(count / 1000 * .5);
+			camera.position.z = 80 * Math.cos(count / 1000 * .5);
+			camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 
-	        var phong = new zen3d.PhongMaterial();
-	        phong.diffuse.setHex(0xffffff);
-			phong.diffuseMap = texture;
-	        var cylinder = new zen3d.SkinnedMesh(cylinder_geometry, phong);
-			cylinder.bind(skeleton);
-			cylinder.add(bones[0]);
-			cylinder.euler.z = Math.PI / 2;
-			cylinder.position.x = -25;
-			scene.add(cylinder);
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-	        lambert.diffuse.setHex(0xffffff);
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -20;
-	        scene.add(plane);
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-	        var ambientLight = new zen3d.AmbientLight(0x9c9c9c);
-	        scene.add(ambientLight);
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-	        var directionalLight = new zen3d.DirectionalLight(0xffffff);
-			directionalLight.position.set(-40, 40, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			directionalLight.shadow.windowSize = 100;
-	        scene.add(directionalLight);
-
-			var lightBall_geometry = new zen3d.SphereGeometry(4, 10, 10);
-			var basic = new zen3d.BasicMaterial();
-	        basic.diffuse.setHex(0xffffff);
-	        var lightBall = new zen3d.Mesh(lightBall_geometry, basic);
-	        lightBall.position.set(-40, 40, 0);
-	        scene.add(lightBall);
-
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.6;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 40, 80);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
-
-			// input
-
-			function toggleShadow() {
-				cylinder.castShadow = !cylinder.castShadow;
-				plane.receiveShadow = !plane.receiveShadow;
-				directionalLight.castShadow = !directionalLight.castShadow;
-			}
-
-			toggleShadow();
-
-			document.onkeydown = function(e) {
-				if(e.keyCode == 83) { // 's'
-					toggleShadow();
-				}
-
-				console.log(skeleton)
-	        };
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				// transform bones
-				for(var i = 0; i < bones.length; i++) {
-					bones[i].euler.x = Math.cos(count / 1000 * 0.5) * Math.PI / 180 * 12;
-				}
-
-				// rotate camera
-				camera.position.x = 80 * Math.sin(count / 1000 * .5);
-				camera.position.z = 80 * Math.cos(count / 1000 * .5);
-				camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,25 +4,7 @@
 	<meta charset="utf-8">
 	<title>zen3d - gltf</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-		.bar {
-			background: lightgreen;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
@@ -30,117 +12,110 @@
 	<script src="./libs/nanobar.min.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - gltf
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width * window.devicePixelRatio;
+		canvas.height = height * window.devicePixelRatio;
+		canvas.style.width = width + "px";
+		canvas.style.height = height + "px";
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width * window.devicePixelRatio;
-	        canvas.height = height * window.devicePixelRatio;
+		var renderer = new zen3d.Renderer(canvas);
+
+		var scene = new zen3d.Scene();
+
+		var file = "resources/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
+
+		var cube_texture = zen3d.TextureCube.fromSrc([
+			"resources/Bridge2/posx.jpg",
+			"resources/Bridge2/negx.jpg",
+			"resources/Bridge2/posy.jpg",
+			"resources/Bridge2/negy.jpg",
+			"resources/Bridge2/posz.jpg",
+			"resources/Bridge2/negz.jpg"
+		]);
+		var sky_box = new zen3d.SkyBox(cube_texture);
+		sky_box.level = 4;
+
+		let objectMaterial;
+
+		var nanobar = new Nanobar();
+		nanobar.el.style.background = "gray";
+
+		var loadingManager = new zen3d.LoadingManager(function() {
+			nanobar.go(100);
+			nanobar.el.style.background = "transparent";
+		}, function(url, itemsLoaded, itemsTotal) {
+			if (itemsLoaded < itemsTotal) {
+				nanobar.go(itemsLoaded / itemsTotal * 100);
+			}
+		});
+
+		var loader = new zen3d.GLTFLoader(loadingManager);
+		loader.load(file, function(result) {
+			// add mesh to scene
+			let object = result.scene.children[0];
+
+			objectMaterial = object.material;
+
+			objectMaterial.envMap = cube_texture;
+			objectMaterial.envMapIntensity = 1;
+
+			object.scale.set(10, 10, 10);
+			object.euler.z = -Math.PI / 6;
+
+			scene.add(object);
+		});
+
+		// top light
+		var directionalLight = new zen3d.DirectionalLight(0xbbbbff, 0.5);
+		directionalLight.euler.set(Math.PI / 2, 0, 0);
+		scene.add(directionalLight);
+
+		// bottom light
+		var directionalLight = new zen3d.DirectionalLight(0x444422, 0.5);
+		directionalLight.euler.set(-Math.PI / 2, 0, 0);
+		scene.add(directionalLight);
+
+		var camera = new zen3d.Camera();
+		camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+		camera.position.set(-15, 10, 45);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
+		camera.add(sky_box);
+		scene.add(camera);
+
+		var controller = new zen3d.OrbitControls(camera, canvas);
+		controller.enablePan = false;
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
+
+			renderer.backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
+
 			canvas.style.width = width + "px";
 			canvas.style.height = height + "px";
-			document.body.appendChild( canvas );
-
-	        var renderer = new zen3d.Renderer(canvas);
-
-	        var scene = new zen3d.Scene();
-
-			var file = "resources/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
-
-			var cube_texture = zen3d.TextureCube.fromSrc([
-				"resources/Bridge2/posx.jpg",
-			    "resources/Bridge2/negx.jpg",
-			    "resources/Bridge2/posy.jpg",
-			    "resources/Bridge2/negy.jpg",
-			    "resources/Bridge2/posz.jpg",
-			    "resources/Bridge2/negz.jpg"
-			]);
-			var sky_box = new zen3d.SkyBox(cube_texture);
-			sky_box.level = 4;
-
-			let objectMaterial;
-
-			var nanobar = new Nanobar();
-			nanobar.el.style.background = "gray";
-
-			var loadingManager = new zen3d.LoadingManager(function() {
-				nanobar.go(100);
-				nanobar.el.style.background = "transparent";
-			}, function(url, itemsLoaded, itemsTotal) {
-				if (itemsLoaded < itemsTotal) {
-					nanobar.go(itemsLoaded / itemsTotal * 100);
-				}
-			});
-
-			var loader = new zen3d.GLTFLoader(loadingManager);
-			loader.load(file, function(result) {
-				console.log(result);
-				// add mesh to scene
-				let object = result.scene.children[0];
-
-				objectMaterial = object.material;
-
-				objectMaterial.envMap = cube_texture;
-				objectMaterial.envMapIntensity = 1;
-
-				object.scale.set(10, 10, 10);
-				object.euler.z = -Math.PI / 6;
-
-				scene.add(object);
-			});
-
-			// top light
-			var directionalLight = new zen3d.DirectionalLight(0xbbbbff, 0.5);
-			directionalLight.euler.set(Math.PI / 2, 0, 0);
-	        scene.add(directionalLight);
-
-			// bottom light
-			var directionalLight = new zen3d.DirectionalLight(0x444422, 0.5);
-			directionalLight.euler.set(-Math.PI / 2, 0, 0);
-	        scene.add(directionalLight);
-
-			var camera = new zen3d.Camera();
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(-15, 10, 45);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
-			camera.add(sky_box);
-	        scene.add(camera);
-
-			var controller = new zen3d.OrbitControls(camera, canvas);
-			controller.enablePan = false;
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				controller.update();
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 8000);
-
-				renderer.backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
-
-				canvas.style.width = width + "px";
-				canvas.style.height = height + "px";
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

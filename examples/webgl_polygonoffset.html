@@ -4,99 +4,77 @@
 	<meta charset="utf-8">
 	<title>zen3d - polygon offset</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - polygon offset
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-			var scene = new zen3d.Scene();
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var material = new zen3d.BasicMaterial();
+		material.diffuse.setHex(0xff0000);
+		var plane = new zen3d.Mesh(plane_geometry, material);
+		scene.add(plane);
+		
+		var plane_geometry = new zen3d.PlaneGeometry(50, 50);
+		var material = new zen3d.BasicMaterial();
+		material.diffuse.setHex(0x0000ff);
+		var plane = new zen3d.Mesh(plane_geometry, material);
+		scene.add(plane);
+		
+		material.polygonOffset = true;
+		material.polygonOffsetFactor = -1;
+		material.polygonOffsetUnits = -1;
 
-	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var material = new zen3d.BasicMaterial();
-	        material.diffuse.setHex(0xff0000);
-	        var plane = new zen3d.Mesh(plane_geometry, material);
-			scene.add(plane);
-			
-			var plane_geometry = new zen3d.PlaneGeometry(50, 50);
-	        var material = new zen3d.BasicMaterial();
-	        material.diffuse.setHex(0x0000ff);
-	        var plane = new zen3d.Mesh(plane_geometry, material);
-			scene.add(plane);
-			
-			material.polygonOffset = true;
-			material.polygonOffsetFactor = -1;
-			material.polygonOffsetUnits = -1;
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 80, 100);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 5000);
+		scene.add(camera);
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 80, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 5000);
-			scene.add(camera);
+		var controller = new zen3d.OrbitControls(camera, canvas);
+		
+		var gui = new dat.GUI({ width: 350 });
+		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
+		gui.add( material, 'polygonOffset');
+		gui.add( material, 'polygonOffsetFactor', -10, 10);
+		gui.add( material, 'polygonOffsetUnits', -10, 10);
 
-			var controller = new zen3d.OrbitControls(camera, canvas);
-			
-			var gui = new dat.GUI( { width: 350 } );
-			gui.add( { version: "WebGL " + renderer.glCore.capabilities.version }, "version" );
-			gui.add( material, 'polygonOffset');
-			gui.add( material, 'polygonOffsetFactor', -10, 10);
-			gui.add( material, 'polygonOffsetUnits', -10, 10);
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-	        function loop(count) {
+			controller.update();
 
-	            requestAnimationFrame(loop);
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
 
-				controller.update();
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
 
-				renderer.render(scene, camera);
-				
-	        }
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 5000);
 
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 5000);
-
-				renderer.backRenderTarget.resize(width, height);
-			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

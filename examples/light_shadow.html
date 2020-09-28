@@ -4,145 +4,133 @@
 	<meta charset="utf-8">
 	<title>zen3d - shadow</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
 	<script src="../build/zen3d.js"></script>
-	<script src="./js/loaders/AssimpJsonLoader.js"></script>
+	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 
 	<script src="./js/objects/DirectionalLightHelper.js"></script>
 	<script src="./js/objects/PointLightHelper.js"></script>
+
+	<script src="./libs/nanobar.min.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - shadow
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
+		renderer.shadowAutoUpdate = false;
 
-	        var renderer = new zen3d.Renderer(canvas);
-			renderer.shadowAutoUpdate = false;
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var nanobar = new Nanobar();
+		nanobar.el.style.background = "gray";
 
-			var monkey = "resources/models/assimp/monkey/monkey.json";
-
-			var loader = new zen3d.AssimpJsonLoader();
-			loader.load(monkey, function(object) {
-				var monkey = object.getObjectByName("Suzanne").children[0];
-				monkey.castShadow = true;
-				monkey.receiveShadow = true;
-				object.scale.set(10, 10, 10);
-				object.position.y = 2;
-				scene.add(object);
-
-				renderer.shadowNeedsUpdate = true;
-			});
-
-	        var plane_geometry = new zen3d.PlaneGeometry(100, 100);
-	        var lambert = new zen3d.LambertMaterial();
-			lambert.diffuse.setHex(0xffffff);
-			lambert.dithering = true;
-	        var plane = new zen3d.Mesh(plane_geometry, lambert);
-	        plane.position.y = -10;
-	        scene.add(plane);
-
-			var pointLight = new zen3d.PointLight(0x00ff00, 1, 100);
-	        pointLight.position.set(20, 10, -20);
-			pointLight.shadow.bias = -0.003;
-			pointLight.shadow.cameraFar = 200;
-			scene.add(pointLight);
-			
-			var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
-			pointLight.add(pointLightHelper);
-
-			var pointLight2 = new zen3d.PointLight(0xff0000, 1, 100);
-	        pointLight2.position.set(20, 10, 20);
-			pointLight2.shadow.bias = -0.003;
-			pointLight2.shadow.cameraFar = 200;
-			scene.add(pointLight2);
-			
-			var pointLightHelper2 = new zen3d.PointLightHelper(pointLight2, 2);
-			pointLight2.add(pointLightHelper2);
-
-			var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.8);
-			directionalLight.position.set(-30, 30, 0);
-			directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
-			directionalLight.shadow.windowSize = 100;
-			directionalLight.shadow.bias = -0.04;
-			directionalLight.shadow.radius = 1;
-			directionalLight.shadow.cameraFar = 200;
-			scene.add(directionalLight);
-			
-			var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);
-			directionalLight.add(directionalLightHelper);
-
-			var camera = new zen3d.Camera();
-			camera.gammaFactor = 1.5;
-			camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
-	        camera.position.set(0, 80, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
-
-			var controller = new zen3d.OrbitControls(camera, canvas);
-
-			// sphere.castShadow = true;
-			plane.receiveShadow = true;
-			pointLight.castShadow = true;
-			pointLight2.castShadow = true;
-			directionalLight.castShadow = true;
-			directionalLight.shadow.mapSize.set(1024, 1024);
-
-	        function loop(count) {
-
-	            requestAnimationFrame(loop);
-
-				controller.update();
-
-				pointLightHelper.update();
-				pointLightHelper2.update();
-				directionalLightHelper.update();
-
-				renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-				renderer.backRenderTarget.resize(width, height);
+		var loadingManager = new zen3d.LoadingManager(function() {
+			nanobar.go(100);
+			nanobar.el.style.background = "transparent";
+		}, function(url, itemsLoaded, itemsTotal) {
+			if (itemsLoaded < itemsTotal) {
+				nanobar.go(itemsLoaded / itemsTotal * 100);
 			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+		});
+
+		var loader = new zen3d.GLTFLoader(loadingManager);
+		loader.load('resources/models/gltf/suzanne/suzanne.gltf', function(result) {
+			var object = result.scene.children[0];
+			object.castShadow = true;
+			scene.add(object);
+
+			renderer.shadowNeedsUpdate = true;
+		});
+
+		var plane_geometry = new zen3d.PlaneGeometry(50, 50);
+		var lambert = new zen3d.LambertMaterial();
+		lambert.diffuse.setHex(0xffffff);
+		lambert.dithering = true;
+		var plane = new zen3d.Mesh(plane_geometry, lambert);
+		plane.position.y = -1;
+		plane.receiveShadow = true;
+		scene.add(plane);
+
+		var pointLight = new zen3d.PointLight(0x00ff00, 1, 100);
+		pointLight.position.set(3, 1.5, -3);
+		pointLight.shadow.cameraNear = 0.1;
+		pointLight.shadow.cameraFar = 30;
+		pointLight.shadow.mapSize.set(1024, 1024);
+		pointLight.castShadow = true;
+		scene.add(pointLight);
+		
+		var pointLightHelper = new zen3d.PointLightHelper(pointLight, 0.5);
+		pointLight.add(pointLightHelper);
+
+		var pointLight2 = new zen3d.PointLight(0xff0000, 1, 100);
+		pointLight2.position.set(3, 1.5, 3);
+		pointLight2.shadow.cameraNear = 0.1;
+		pointLight2.shadow.cameraFar = 30;
+		pointLight2.shadow.mapSize.set(1024, 1024);
+		pointLight2.castShadow = true;
+		scene.add(pointLight2);
+		
+		var pointLightHelper2 = new zen3d.PointLightHelper(pointLight2,  0.5);
+		pointLight2.add(pointLightHelper2);
+
+		var directionalLight = new zen3d.DirectionalLight(0xffffff, 0.8);
+		directionalLight.position.set(-3, 1.5, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		directionalLight.shadow.windowSize = 10;
+		directionalLight.shadow.radius = 1;
+		directionalLight.shadow.cameraFar = 30;
+		directionalLight.shadow.mapSize.set(1024, 1024);
+		directionalLight.castShadow = true;
+		scene.add(directionalLight);
+		
+		var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight,  0.5);
+		directionalLight.add(directionalLightHelper);
+
+		var camera = new zen3d.Camera();
+		camera.gammaFactor = 1.5;
+		camera.outputEncoding = zen3d.TEXEL_ENCODING_TYPE.GAMMA;
+		camera.position.set(3, 5, 15);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
+
+		var controller = new zen3d.OrbitControls(camera, canvas);
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			pointLightHelper.update();
+			pointLightHelper2.update();
+			directionalLightHelper.update();
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>

@@ -4,134 +4,116 @@
 	<meta charset="utf-8">
 	<title>zen3d - particle</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<style>
-		body {
-			font-family: Monospace;
-			background-color: #f0f0f0;
-			margin: 0px;
-			overflow: hidden;
-		}
-        #info {
-			position: absolute;
-			top: 0px;
-			width: 100%;
-			padding: 5px;
-			text-align:center;
-			color: white;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
 	<script src="./js/objects/ParticleContainer.js"></script>
+	<script src="./js/Clock.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 </head>
 <body>
-
     <div id="info">
         <a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - particle
     </div>
 
 	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
 
-		(function() {
-			var width = window.innerWidth || 2;
-	        var height = window.innerHeight || 2;
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
 
-	        var canvas = document.createElement( 'canvas' );
-	        canvas.width = width;
-	        canvas.height = height;
-			document.body.appendChild( canvas );
+		var renderer = new zen3d.Renderer(canvas);
 
-	        var renderer = new zen3d.Renderer(canvas);
+		var scene = new zen3d.Scene();
 
-	        var scene = new zen3d.Scene();
+		var image = new Image();
+		var perlin = new zen3d.Texture2D();
+		image.onload = function() {
+			perlin.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+			perlin.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+			perlin.format = zen3d.WEBGL_PIXEL_FORMAT.RGBA;
+			perlin.image = image;
+			perlin.version++;
+		};
+		image.src = "resources/perlin-512.png";
 
-			var image = new Image();
-			var perlin = new zen3d.Texture2D();
-			image.onload = function() {
-				perlin.wrapS = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-				perlin.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
-	            perlin.format = zen3d.WEBGL_PIXEL_FORMAT.RGBA;
-	            perlin.image = image;
-	            perlin.version++;
-			};
-			image.src = "resources/perlin-512.png";
+		var particle = new zen3d.ParticleContainer({
+			maxParticleCount: 25000,
+			particleNoiseTex: perlin,
+			particleSpriteTex: zen3d.Texture2D.fromSrc("resources/particle2.png")
+		});
+		scene.add(particle);
 
-			var particle = new zen3d.ParticleContainer({
-				maxParticleCount: 25000,
-				particleNoiseTex: perlin,
-				particleSpriteTex: zen3d.Texture2D.fromSrc("resources/particle2.png")
-			});
-			scene.add(particle);
+		var camera = new zen3d.Camera();
+		camera.position.set(0, 0, 100);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(28 / 180 * Math.PI, width / height, 1, 1000);
+		scene.add(camera);
 
-	        var camera = new zen3d.Camera();
-	        camera.position.set(0, 0, 100);
-	        camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
-	        camera.setPerspective(28 / 180 * Math.PI, width / height, 1, 1000);
-	        scene.add(camera);
+		var delay = 0;
+		var time = 0;
+		var options = {
+			position: new zen3d.Vector3(),
+			positionRandomness: .3,
+			velocity: new zen3d.Vector3(),
+			velocityRandomness: .5,
+			color: new zen3d.Color3().setHex(0xaa88ff),
+			colorRandomness: .2,
+			turbulence: .5,
+			lifetime: 2,
+			size: 5,
+			sizeRandomness: 1
+		};
 
-			var delay = 0;
-			var time = 0;
-			var options = {
-				position: new zen3d.Vector3(),
-				positionRandomness: .3,
-				velocity: new zen3d.Vector3(),
-				velocityRandomness: .5,
-				color: new zen3d.Color3().setHex(0xaa88ff),
-				colorRandomness: .2,
-				turbulence: .5,
-				lifetime: 2,
-				size: 5,
-				sizeRandomness: 1
-			};
+		// gui
+		var gui = new dat.GUI();
+		gui.add(options, "positionRandomness", 0, 3);
+		gui.add(options, "velocityRandomness", 0, 3);
+		gui.add(options, "colorRandomness", 0, 1);
+		gui.add(options, "turbulence", 0, 1);
+		gui.add(options, "lifetime", 0, 25);
+		gui.add(options, "size", 0, 10);
+		gui.add(options, "sizeRandomness", 0, 25);
+		gui.close();
 
-			// gui
-			var gui = new dat.GUI();
-			gui.add(options, "positionRandomness", 0, 3);
-			gui.add(options, "velocityRandomness", 0, 3);
-			gui.add(options, "colorRandomness", 0, 1);
-			gui.add(options, "turbulence", 0, 1);
-			gui.add(options, "lifetime", 0, 25);
-			gui.add(options, "size", 0, 10);
-			gui.add(options, "sizeRandomness", 0, 25);
-			gui.close();
+		var clock = new zen3d.Clock();
 
-	        function loop(count) {
+		function loop(count) {
+			requestAnimationFrame(loop);
 
-	            requestAnimationFrame(loop);
+			delay = clock.getDelta();
+			time += delay;
 
-				delay = 16;
-				time += delay;
+			if(delay > 0) {
 
-				if(delay > 0) {
+				options.position.x = Math.sin(time * 1.5) * 10;
+				options.position.y = Math.sin(time * 1.33) * 10;
+				options.position.z = Math.sin(time * 1.5 + 1.33) * 5;
 
-					options.position.x = Math.sin(time / 1000 * 1.5) * 10;
-					options.position.y = Math.sin(time / 1000 * 1.33) * 10;
-					options.position.z = Math.sin(time / 1000 * 1.5 + 1.33) * 5;
-
-					for (var x = 0; x < 15 * delay; x++) {
-						// Yep, that's really it.	Spawning particles is super cheap, and once you spawn them, the rest of
-						// their lifecycle is handled entirely on the GPU, driven by a time uniform updated below
-						particle.spawn(options);
-					}
+				for (var x = 0; x < 15 * delay * 1000; x++) {
+					// Yep, that's really it.	Spawning particles is super cheap, and once you spawn them, the rest of
+					// their lifecycle is handled entirely on the GPU, driven by a time uniform updated below
+					particle.spawn(options);
 				}
-
-				particle.update(time / 1000);
-
-	            renderer.render(scene, camera);
-	        }
-
-	        loop(0);
-
-			function onWindowResize() {
-				width = window.innerWidth || 2;
-		        height = window.innerHeight || 2;
-
-				camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
-
-				renderer.backRenderTarget.resize(width, height);
 			}
-			window.addEventListener("resize", onWindowResize, false);
-		})();
+
+			particle.update(time);
+
+			renderer.render(scene, camera);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 2000);
+
+			renderer.backRenderTarget.resize(width, height);
+		}
+		window.addEventListener("resize", onWindowResize, false);
 	</script>
 </body>
 </html>
