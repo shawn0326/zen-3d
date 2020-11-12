@@ -9374,14 +9374,14 @@
 	     * @type {number}
 	     * @default ""
 	     */
-		this.vertexShader = shader.vertexShader || "";
+		this.vertexShader = "";
 
 		/**
 	     * Fragment shader GLSL code. This is the actual code for the shader.
 	     * @type {number}
 	     * @default ""
 	     */
-		this.fragmentShader = shader.fragmentShader || "";
+		this.fragmentShader = "";
 
 		/**
 	     * Defines of the shader
@@ -9390,16 +9390,21 @@
 	     */
 		this.defines = {};
 
-		// copy defines
-		Object.assign(this.defines, shader.defines);
-
 		/**
 	     * Uniforms of the shader.
 	     * Uniforms should match with fragment shader
 	     * @type {Object}
 	     * @default {}
 	     */
-		this.uniforms = cloneUniforms(shader.uniforms);
+		this.uniforms = {};
+
+		// Set values
+		if (shader) {
+			this.vertexShader = shader.vertexShader;
+			this.fragmentShader = shader.fragmentShader;
+			Object.assign(this.defines, shader.defines);
+			this.uniforms = cloneUniforms(shader.uniforms);
+		}
 	}
 
 	ShaderMaterial.prototype = Object.assign(Object.create(Material.prototype), /** @lends zen3d.ShaderMaterial.prototype */{
@@ -9411,7 +9416,7 @@
 
 			this.vertexShader = source.vertexShader;
 			this.fragmentShader = source.fragmentShader;
-			// this.defines = Object.assign({}, source.defines);
+
 			this.uniforms = cloneUniforms(source.uniforms);
 
 			return this;
