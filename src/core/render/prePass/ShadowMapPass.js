@@ -46,7 +46,7 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 		var faces = isPointLight ? 6 : 1;
 
 		if (glCore.capabilities.version >= 2) {
-			if (!isPointLight && !shadow.depthMap) {
+			if (!isPointLight && !shadow.depthMap && !glCore.disableShadowSampler) {
 				shadow._initDepthMap();
 			}
 		}

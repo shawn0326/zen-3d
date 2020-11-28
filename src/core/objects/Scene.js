@@ -39,6 +39,14 @@ function Scene() {
 	this.clippingPlanes = [];
 
 	/**
+     * Defines whether disable shadow sampler feature.
+	 * Shader with sampler2DShadow uniforms may cause unknown error on some android phones, set disableShadowSampler to true to avoid these bugs.
+     * @type {boolean}
+     * @default false
+     */
+	this.disableShadowSampler = false;
+
+	/**
      * A {@link zen3d.LightCache} instance that collected all lights info after the calling of {@link zen3d.Scene#updateLights}.
      * @type {zen3d.LightCache}
      * @default zen3d.LightCache()

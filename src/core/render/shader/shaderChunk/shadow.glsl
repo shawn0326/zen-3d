@@ -1,5 +1,5 @@
 
-#ifdef WEBGL2
+#ifdef USE_SHADOW_SAMPLER
     float computeShadow(sampler2DShadow shadowMap, vec3 shadowCoord) {
         return texture2D( shadowMap, shadowCoord );
     }

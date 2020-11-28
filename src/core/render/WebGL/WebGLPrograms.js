@@ -158,7 +158,7 @@ function createProgram(gl, props, defines) {
 		defines,
 
 		(props.version >= 2) ? '#define WEBGL2' : '',
-		(props.version < 2) ? '#define sampler2DShadow sampler2D' : '',
+		props.useShadowSampler ? '#define USE_SHADOW_SAMPLER' : '#define sampler2DShadow sampler2D',
 
 		props.useRoughnessMap ? '#define USE_ROUGHNESSMAP' : '',
 		props.useMetalnessMap ? '#define USE_METALNESSMAP' : '',
@@ -336,7 +336,12 @@ function unrollLoops(string) {
 	return string.replace(pattern, replace);
 }
 
-function generateProps(state, capabilities, camera, material, object, lights, fog, clippingPlanes) {
+function generateProps(state, capabilities, camera, material, object, renderContext) {
+	var lights = (renderContext && material.acceptLight) ? renderContext.lights : null;
+	var fog = renderContext ? renderContext.fog : null;
+	var clippingPlanes = renderContext ? renderContext.clippingPlanes : null;
+	var disableShadowSampler = renderContext ? renderContext.disableShadowSampler : null;
+
 	var props = {}; // cache this props?
 
 	props.materialType = material.type;
@@ -371,12 +376,18 @@ function generateProps(state, capabilities, camera, material, object, lights, fo
 	props.pointShadowNum = (object.receiveShadow && !!lights) ? lights.pointShadowNum : 0;
 	props.spotShadowNum = (object.receiveShadow && !!lights) ? lights.spotShadowNum : 0;
 	props.useShadow = object.receiveShadow && !!lights && lights.shadowsNum > 0;
-	if (object.shadowType.indexOf("pcss") > -1 && capabilities.version < 2) {
-		console.warn("WebGL 1.0 not support PCSS soft shadow, fallback to POISSON_SOFT");
-		props.shadowType = SHADOW_TYPE.POISSON_SOFT;
+	if (object.shadowType.indexOf("pcss") > -1) {
+		if (capabilities.version < 2) {
+			console.warn("WebGL 1.0 not support PCSS soft shadow, fallback to POISSON_SOFT");
+			props.shadowType = SHADOW_TYPE.POISSON_SOFT;
+		} else if (disableShadowSampler) {
+			console.warn("Set scene.disableShadowSampler to true can not use pcss, fallback to POISSON_SOFT");
+			props.shadowType = SHADOW_TYPE.POISSON_SOFT;
+		}
 	} else {
 		props.shadowType = object.shadowType;
 	}
+	props.useShadowSampler = capabilities.version >= 2 && !disableShadowSampler;
 	props.dithering = material.dithering;
 	// encoding
 	var currentRenderTarget = state.currentRenderTarget;
@@ -441,12 +452,7 @@ function WebGLPrograms(gl, state, capabilities) {
 	this.getProgram = function(camera, material, object, cache) {
 		var material = material || object.material;
 
-		// get render context from cache
-		var lights = (cache && material.acceptLight) ? cache.lights : null;
-		var fog = cache ? cache.fog : null;
-		var clippingPlanes = cache ? cache.clippingPlanes : null;
-
-		var props = generateProps(state, capabilities, camera, material, object, lights, fog, clippingPlanes);
+		var props = generateProps(state, capabilities, camera, material, object, cache);
 		var code = generateProgramCode(props, material);
 		var program;
 

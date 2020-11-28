@@ -154,6 +154,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 		var gl = this.gl;
 		var state = this.state;
+		var capabilities = this.capabilities;
 
 		var getMaterial = config.getMaterial || defaultGetMaterial;
 		var beforeRender = config.beforeRender || noop;
@@ -188,6 +189,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					material.needsUpdate = true;
 				} else if (camera.outputEncoding !==  materialProperties.outputEncoding ||
                     camera.gammaFactor !==  materialProperties.gammaFactor) {
+					material.needsUpdate = true;
+				} else if (capabilities.version > 1 && scene.disableShadowSampler !== materialProperties.disableShadowSampler) {
 					material.needsUpdate = true;
 				} else {
 					var acceptLight = material.acceptLight && !!scene.lights && scene.lights.totalNum > 0;
@@ -225,6 +228,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				materialProperties.numClippingPlanes = scene.clippingPlanes ? scene.clippingPlanes.length : 0;
 				materialProperties.outputEncoding = camera.outputEncoding;
 				materialProperties.gammaFactor = camera.gammaFactor;
+				materialProperties.disableShadowSampler = scene.disableShadowSampler;
 
 				material.needsUpdate = false;
 			}
@@ -421,7 +425,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			}
 
 			if (material.acceptLight && scene.lights) {
-				this.uploadLights(uniforms, scene.lights, object.receiveShadow, camera);
+				this.uploadLights(uniforms, scene.lights, scene.disableShadowSampler);
 			}
 
 			var frontFaceCW = object.worldMatrix.determinant() < 0;
@@ -624,7 +628,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 	},
 
 	// Upload lights uniforms.
-	uploadLights: function(uniforms, lights, receiveShadow, camera) {
+	uploadLights: function(uniforms, lights, disableShadowSampler) {
 		if (lights.ambientsNum > 0) {
 			uniforms.set("u_AmbientLightColor", lights.ambient);
 		}
@@ -633,7 +637,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			uniforms.set("u_Directional", lights.directional);
 
 			if (uniforms.has("directionalShadowMap")) {
-				if (this.capabilities.version >= 2) {
+				if (this.capabilities.version >= 2 && !disableShadowSampler) {
 					uniforms.set("directionalShadowMap", lights.directionalShadowDepthMap, this);
 				} else {
 					uniforms.set("directionalShadowMap", lights.directionalShadowMap, this);
@@ -658,7 +662,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			uniforms.set("u_Spot", lights.spot);
 
 			if (uniforms.has("spotShadowMap")) {
-				if (this.capabilities.version >= 2) {
+				if (this.capabilities.version >= 2 && !disableShadowSampler) {
 					uniforms.set("spotShadowMap", lights.spotShadowDepthMap, this);
 				} else {
 					uniforms.set("spotShadowMap", lights.spotShadowMap, this);
