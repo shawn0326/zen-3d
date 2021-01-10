@@ -9,7 +9,8 @@ zen3d.GBuffer = (function() {
 		position: 2,
 		glossiness: 3,
 		metalness: 4,
-		albedo: 5
+		albedo: 5,
+		velocity: 6
 	};
 
 	var helpMatrix4 = new zen3d.Matrix4();
@@ -17,6 +18,7 @@ zen3d.GBuffer = (function() {
 	var MaterialCache = function() {
 		var normalGlossinessMaterials = new Map();
 		var albedoMetalnessMaterials = new Map();
+		var motionMaterials = new Map();
 		var MRTMaterials = new Map();
 
 		var state = {};
@@ -29,6 +31,16 @@ zen3d.GBuffer = (function() {
 			result.useSkinning = renderable.object.type === zen3d.OBJECT_TYPE.SKINNED_MESH && renderable.object.skeleton;
 			result.morphTargets = !!renderable.object.morphTargetInfluences;
 			result.morphNormals = !!renderable.object.morphTargetInfluences && renderable.object.geometry.morphAttributes.normal;
+
+			var maxBones = 0;
+			if (result.useSkinning) {
+				if (renderable.object.skeleton.boneTexture) {
+					maxBones = 1024;
+				} else {
+					maxBones = renderable.object.skeleton.bones.length;
+				}
+			}
+			result.maxBones = maxBones;
 		}
 
 		function getMrtMaterial(renderable) {
@@ -114,10 +126,43 @@ zen3d.GBuffer = (function() {
 			return material;
 		}
 
+		function getMotionMaterial(renderable) {
+			generateMaterialState(renderable, state);
+
+			var material;
+			var code = state.useSkinning +
+				"_" + state.maxBones +
+				"_" + state.morphTargets;
+			if (!motionMaterials.has(code)) {
+				material = new zen3d.ShaderMaterial(GBufferShader.motion);
+				motionMaterials.set(code, material);
+			} else {
+				material = motionMaterials.get(code);
+			}
+
+			if (renderable.object.userData['prevModel'] && renderable.object.userData['prevViewProjection']) {
+				helpMatrix4.fromArray(renderable.object.userData['prevModel']).toArray(material.uniforms['prevModel']);
+				helpMatrix4.fromArray(renderable.object.userData['prevViewProjection']).toArray(material.uniforms['prevViewProjection']);
+				material.uniforms['firstRender'] = false;
+
+				if (renderable.object.userData['prevBoneTexture']) {
+					material.uniforms['prevBoneTexture'] = renderable.object.userData['prevBoneTexture'];
+					material.uniforms['prevBoneTextureSize'] = renderable.object.userData['prevBoneTexture'].image.width;
+				} else if (renderable.object.userData['prevBoneMatrices']) {
+					material.uniforms['prevBoneMatrices'] = renderable.object.userData['prevBoneMatrices'];
+				}
+			} else {
+				material.uniforms['firstRender'] = true;
+			}
+
+			return material;
+		}
+
 		return {
 			getMrtMaterial: getMrtMaterial,
 			getNormalGlossinessMaterial: getNormalGlossinessMaterial,
-			getAlbedoMetalnessMaterial: getAlbedoMetalnessMaterial
+			getAlbedoMetalnessMaterial: getAlbedoMetalnessMaterial,
+			getMotionMaterial: getMotionMaterial
 		}
 	}
 
@@ -155,15 +200,19 @@ zen3d.GBuffer = (function() {
 		this._renderTarget2.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
 		this._renderTarget2.texture.generateMipmaps = false;
 
-		this._normalGlossinessMaterials = new Map();
-		this._albedoMetalnessMaterials = new Map();
-		this._MRTMaterials = new Map();
+		this._renderTarget3 = new zen3d.RenderTarget2D(width, height);
+		this._renderTarget3.texture.type = zen3d.WEBGL_PIXEL_TYPE.HALF_FLOAT;
+		this._renderTarget3.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		this._renderTarget3.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		this._renderTarget3.texture.generateMipmaps = false;
 
 		this._debugPass = new zen3d.ShaderPostPass(GBufferShader.debug);
 
 		this.enableNormalGlossiness = true;
 
 		this.enableAlbedoMetalness = true;
+
+		this.enableMotion = false;
 	}
 
 	Object.assign(GBuffer.prototype, {
@@ -176,6 +225,7 @@ zen3d.GBuffer = (function() {
 		resize: function(width, height) {
 			this._renderTarget1.resize(width, height);
 			this._renderTarget2.resize(width, height);
+			this._renderTarget3.resize(width, height);
 		},
 
 		update: function(glCore, scene, camera) {
@@ -202,6 +252,8 @@ zen3d.GBuffer = (function() {
 
 						// this._depthTexture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.DEPTH32F_STENCIL8;
 						// this._depthTexture.type = zen3d.WEBGL_PIXEL_TYPE.FLOAT_32_UNSIGNED_INT_24_8_REV;
+
+						this._renderTarget3.texture.internalformat = zen3d.WEBGL_PIXEL_FORMAT.RGBA16F; // TODO use MRT to render motion texture
 					}
 
 					this._renderTarget1.attach(
@@ -224,46 +276,99 @@ zen3d.GBuffer = (function() {
 						return !!renderable.geometry.getAttribute("a_Normal");
 					}
 				});
+			} else {
+				// render normalDepthRenderTarget
 
-				return;
+				if (this.enableNormalGlossiness) {
+					glCore.renderTarget.setRenderTarget(this._renderTarget1);
+
+					glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+					glCore.clear(true, true, true);
+
+					glCore.renderPass(renderList.opaque, camera, {
+						scene: scene,
+						getMaterial: function(renderable) {
+							return materialCache.getNormalGlossinessMaterial(renderable);
+						},
+						ifRender: function(renderable) {
+							return !!renderable.geometry.getAttribute("a_Normal");
+						}
+					});
+				}
+
+				// render albedoMetalnessRenderTarget
+
+				if (this.enableAlbedoMetalness) {
+					glCore.renderTarget.setRenderTarget(this._renderTarget2);
+
+					glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+					glCore.clear(true, true, true);
+
+					glCore.renderPass(renderList.opaque, camera, {
+						scene: scene,
+						getMaterial: function(renderable) {
+							return materialCache.getAlbedoMetalnessMaterial(renderable);
+						},
+						ifRender: function(renderable) {
+							return !!renderable.geometry.getAttribute("a_Normal");
+						}
+					});
+				}
 			}
 
-			// render normalDepthRenderTarget
+			// render motionRenderTarget
 
-			if (this.enableNormalGlossiness) {
-				glCore.renderTarget.setRenderTarget(this._renderTarget1);
+			if (this.enableMotion) {
+				glCore.renderTarget.setRenderTarget(this._renderTarget3);
 
 				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 				glCore.clear(true, true, true);
 
-				glCore.renderPass(renderList.opaque, camera, {
+				var renderConfig = {
 					scene: scene,
 					getMaterial: function(renderable) {
-						return materialCache.getNormalGlossinessMaterial(renderable);
+						return materialCache.getMotionMaterial(renderable);
 					},
-					ifRender: function(renderable) {
-						return !!renderable.geometry.getAttribute("a_Normal");
+					afterRender: function(glCore, renderable) {
+						if (!renderable.object.userData['prevModel']) {
+							renderable.object.userData['prevModel'] = new Float32Array(16);
+						}
+						renderable.object.worldMatrix.toArray(renderable.object.userData['prevModel']);
+
+						if (!renderable.object.userData['prevViewProjection']) {
+							renderable.object.userData['prevViewProjection'] = new Float32Array(16);
+						}
+						helpMatrix4.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix).toArray(renderable.object.userData['prevViewProjection']);
+
+						if (renderable.object.skeleton) {
+							if (renderable.object.skeleton.boneTexture) {
+								if (!renderable.object.userData['prevBoneTexture']) {
+									var oldTexture = renderable.object.skeleton.boneTexture;
+									var newTexture = oldTexture.clone();
+									newTexture.image = {
+										width: oldTexture.image.width,
+										height: oldTexture.image.height,
+										data: new Float32Array(oldTexture.image.data.length)
+									};
+									renderable.object.userData['prevBoneTexture'] = newTexture;
+								}
+
+								renderable.object.userData['prevBoneTexture'].image.data.set(renderable.object.skeleton.boneTexture.image.data);
+								renderable.object.userData['prevBoneTexture'].version++;
+							} else {
+								if (!renderable.object.userData['prevBoneMatrices']) {
+									renderable.object.userData['prevBoneMatrices'] = new Float32Array(skeleton.boneMatrices.length);
+								}
+								renderable.object.userData['prevBoneMatrices'].set(skeleton.boneMatrices);
+							}
+						}
+
+						// TODO support morph targets
 					}
-				});
-			}
+				};
 
-			// render albedoMetalnessRenderTarget
-
-			if (this.enableAlbedoMetalness) {
-				glCore.renderTarget.setRenderTarget(this._renderTarget2);
-
-				glCore.state.colorBuffer.setClear(0, 0, 0, 0);
-				glCore.clear(true, true, true);
-
-				glCore.renderPass(renderList.opaque, camera, {
-					scene: scene,
-					getMaterial: function(renderable) {
-						return materialCache.getAlbedoMetalnessMaterial(renderable);
-					},
-					ifRender: function(renderable) {
-						return !!renderable.geometry.getAttribute("a_Normal");
-					}
-				});
+				glCore.renderPass(renderList.opaque, camera, renderConfig);
+				glCore.renderPass(renderList.transparent, camera, renderConfig);
 			}
 		},
 
@@ -276,6 +381,7 @@ zen3d.GBuffer = (function() {
          * + 'glossiness'
          * + 'metalness'
          * + 'albedo'
+		 * + 'velocity'
          *
          * @param {zen3d.GLCore} renderer
          * @param {zen3d.Camera} camera
@@ -285,6 +391,7 @@ zen3d.GBuffer = (function() {
 			this._debugPass.uniforms["normalGlossinessTexture"] = this.getNormalGlossinessTexture();
 			this._debugPass.uniforms["depthTexture"] = this.getDepthTexture();
 			this._debugPass.uniforms["albedoMetalnessTexture"] = this.getAlbedoMetalnessTexture();
+			this._debugPass.uniforms["motionTexture"] = this.getMotionTexture();
 			this._debugPass.uniforms["debug"] = debugTypes[type] || 0;
 			this._debugPass.uniforms["viewWidth"] = glCore.state.currentRenderTarget.width;
 			this._debugPass.uniforms["viewHeight"] = glCore.state.currentRenderTarget.height;
@@ -329,9 +436,21 @@ zen3d.GBuffer = (function() {
 			return this._useMRT ? this._texture2 : this._renderTarget2.texture;
 		},
 
+		/**
+         * Get motion texture.
+         * Channel storage:
+         * + R: velocity.x
+         * + G: velocity.y
+         * @return {zen3d.Texture2D}
+         */
+		getMotionTexture: function() {
+			return this._renderTarget3.texture;
+		},
+
 		dispose: function() {
 			this._renderTarget1.dispose();
 			this._renderTarget2.dispose();
+			this._renderTarget3.dispose();
 
 			this._depthTexture.dispose();
 			this._texture2.dispose();
@@ -339,10 +458,12 @@ zen3d.GBuffer = (function() {
 			materialCache.MRTMaterials.forEach(material => material.dispose());
 			materialCache.normalGlossinessMaterials.forEach(material => material.dispose());
 			materialCache.albedoMetalnessMaterials.forEach(material => material.dispose());
+			materialCache.motionMaterials.forEach(material => material.dispose());
 
 			materialCache.MRTMaterials.clear();
 			materialCache.normalGlossinessMaterials.clear();
 			materialCache.albedoMetalnessMaterials.clear();
+			materialCache.motionMaterials.clear();
 		}
 
 	});
@@ -473,6 +594,115 @@ zen3d.GBuffer = (function() {
 
 		},
 
+		motion: {
+
+			uniforms: {
+
+				prevModel: new Float32Array(16),
+				prevViewProjection: new Float32Array(16),
+
+				prevBoneTexture: null,
+				prevBoneTextureSize: 256,
+				prevBoneMatrices: new Float32Array(),
+
+				firstRender: false
+
+			},
+
+			vertexShader: [
+				"#include <common_vert>",
+				"#include <morphtarget_pars_vert>",
+				"#include <skinning_pars_vert>",
+
+				"uniform mat4 prevModel;",
+				"uniform mat4 prevViewProjection;",
+
+				"varying vec4 v_ScreenPosition;",
+				"varying vec4 v_PrevScreenPosition;",
+
+				"#ifdef USE_SKINNING",
+				"	#ifdef BONE_TEXTURE",
+				"		uniform sampler2D prevBoneTexture;",
+				"		uniform int prevBoneTextureSize;",
+				"		mat4 getPrevBoneMatrix(const in float i) {",
+				"			float j = i * 4.0;",
+				"			float x = mod( j, float( prevBoneTextureSize ) );",
+				"			float y = floor( j / float( prevBoneTextureSize ) );",
+
+				"			float dx = 1.0 / float( prevBoneTextureSize );",
+				"			float dy = 1.0 / float( prevBoneTextureSize );",
+
+				"			y = dy * ( y + 0.5 );",
+
+				"			vec4 v1 = texture2D( prevBoneTexture, vec2( dx * ( x + 0.5 ), y ) );",
+				"			vec4 v2 = texture2D( prevBoneTexture, vec2( dx * ( x + 1.5 ), y ) );",
+				"			vec4 v3 = texture2D( prevBoneTexture, vec2( dx * ( x + 2.5 ), y ) );",
+				"			vec4 v4 = texture2D( prevBoneTexture, vec2( dx * ( x + 3.5 ), y ) );",
+
+				"			mat4 bone = mat4( v1, v2, v3, v4 );",
+
+				"			return bone;",
+				"		}",
+				"	#else",
+				"		uniform mat4 prevBoneMatrices[MAX_BONES];",
+				"		mat4 getPrevBoneMatrix(const in float i) {",
+				"			mat4 bone = prevBoneMatrices[int(i)];",
+				"			return bone;",
+				"		}",
+				"	#endif",
+				"#endif",
+
+				"void main() {",
+				"	#include <begin_vert>",
+
+				"	vec3 prevTransformed = transformed;",
+
+				"	#include <morphtarget_vert>",
+				"	#include <skinning_vert>",
+				"	#include <pvm_vert>",
+
+				"	#ifdef USE_SKINNING",
+				"		mat4 prevBoneMatX = getPrevBoneMatrix( skinIndex.x );",
+				"		mat4 prevBoneMatY = getPrevBoneMatrix( skinIndex.y );",
+				"		mat4 prevBoneMatZ = getPrevBoneMatrix( skinIndex.z );",
+				"		mat4 prevBoneMatW = getPrevBoneMatrix( skinIndex.w );",
+
+				"		vec4 prevSkinVertex = bindMatrix * vec4(prevTransformed, 1.0);",
+
+				"		vec4 prevSkinned = vec4( 0.0 );",
+				"		prevSkinned += prevBoneMatX * prevSkinVertex * skinWeight.x;",
+				"		prevSkinned += prevBoneMatY * prevSkinVertex * skinWeight.y;",
+				"		prevSkinned += prevBoneMatZ * prevSkinVertex * skinWeight.z;",
+				"		prevSkinned += prevBoneMatW * prevSkinVertex * skinWeight.w;",
+				"		prevSkinned = bindMatrixInverse * prevSkinned;",
+
+				"		prevTransformed = prevSkinned.xyz / prevSkinned.w;",
+				"	#endif",
+
+				"	v_ScreenPosition = u_Projection * u_View * u_Model * vec4(transformed, 1.0);",
+				"	v_PrevScreenPosition = prevViewProjection * prevModel * vec4(prevTransformed, 1.0);",
+				"}"
+			].join("\n"),
+
+			fragmentShader: [
+				"uniform bool firstRender;",
+
+				"varying vec4 v_ScreenPosition;",
+				"varying vec4 v_PrevScreenPosition;",
+
+				"void main() {",
+				"	vec2 a = v_ScreenPosition.xy / v_ScreenPosition.w;",
+				"	vec2 b = v_PrevScreenPosition.xy / v_PrevScreenPosition.w;",
+
+				"	if (firstRender) {",
+				"		gl_FragColor = vec4(0.0);",
+				"	} else {",
+				"		gl_FragColor = vec4((a - b) * 0.5 + 0.5, 0.0, 1.0);",
+				"	}",
+				"}"
+			].join("\n"),
+		},
+
 		MRT: {
 
 			uniforms: {
@@ -568,6 +798,7 @@ zen3d.GBuffer = (function() {
 				normalGlossinessTexture: null,
 				depthTexture: null,
 				albedoMetalnessTexture: null,
+				motionTexture: null,
 
 				debug: 0,
 
@@ -599,6 +830,7 @@ zen3d.GBuffer = (function() {
 				"uniform sampler2D normalGlossinessTexture;",
 				"uniform sampler2D depthTexture;",
 				"uniform sampler2D albedoMetalnessTexture;",
+				"uniform sampler2D motionTexture;",
 
 				// DEBUG
 				// - 0: normal
@@ -657,8 +889,13 @@ zen3d.GBuffer = (function() {
 				"		gl_FragColor = vec4(vec3(glossiness), 1.0);",
 				"	} else if (debug == 4) {",
 				"		gl_FragColor = vec4(vec3(metalness), 1.0);",
-				"	} else {",
+				"	} else if (debug == 5) {",
 				"		gl_FragColor = vec4(albedo, 1.0);",
+				"	} else {",
+				"		vec4 texel4 = texture2D(motionTexture, texCoord);",
+				"		texel4.rg -= 0.5;",
+				"		texel4.rg *= 2.0;",
+				"		gl_FragColor = texel4;",
 				"	}",
 
 				"}"

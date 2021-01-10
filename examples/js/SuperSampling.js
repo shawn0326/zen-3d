@@ -42,9 +42,9 @@ zen3d.SuperSampling = function(width, height, samplingSize) {
 
 	this._output = output;
 
-	this._blendPass = new zen3d.ShaderPostPass(zen3d.BlendShader);
-	this._blendPass.material.depthWrite = false;
-	this._blendPass.material.depthTest = false;
+	this._taaPass = new zen3d.ShaderPostPass(zen3d.TAAShader);
+	this._taaPass.material.depthWrite = false;
+	this._taaPass.material.depthTest = false;
 
 	this._frame = 0;
 }
@@ -71,11 +71,11 @@ zen3d.SuperSampling.prototype = Object.assign(zen3d.SuperSampling.prototype, {
 	},
 
 	/**
-         * Jitter camera projectionMatrix
-         * @param {zen3d.Camera} camera
-         * @param {number} width screen width
-         * @param {number} height screen height
-         */
+	 * Jitter camera projectionMatrix
+	 * @param {zen3d.Camera} camera
+	 * @param {number} width screen width
+	 * @param {number} height screen height
+	 */
 	jitterProjection: function(camera, width, height) {
 		var offset = this._haltonSequence[this._frame];
 
@@ -91,24 +91,35 @@ zen3d.SuperSampling.prototype = Object.assign(zen3d.SuperSampling.prototype, {
 	},
 
 	/**
-         * @param {zen3d.GLCore} glCore
-         * @param {zen3d.TextureBase} texture input texture
-         * @return {zen3d.TextureBase} output texture
-         */
-	sample: function(glCore, texture) {
+	 * @param {zen3d.GLCore} glCore
+	 * @param {zen3d.TextureBase} texture input texture
+	 * @param {zen3d.TextureBase} velocityTexture velocity texture
+	 * @param {zen3d.TextureBase} depthTexture depth texture
+	 * @param {boolean} [still=true]
+	 * @return {zen3d.TextureBase} output texture
+	 */
+	sample: function(glCore, texture, velocityTexture, depthTexture, still) {
+		velocityTexture = (velocityTexture !== undefined) ? velocityTexture : null;
+		still = (still !== undefined) ? still : true;
+
 		var first = this._frame === 0;
 
-		this._blendPass.uniforms["tDiffuse1"] = texture;
-		this._blendPass.uniforms["tDiffuse2"] = this._prevFrame.texture;
-		this._blendPass.uniforms["opacity1"] = first ? 1 : 0.1;
-		this._blendPass.uniforms["opacity2"] = first ? 0 : 0.9;
+		this._taaPass.uniforms["currTex"] = texture;
+		this._taaPass.uniforms["prevTex"] = this._prevFrame.texture;
+		this._taaPass.uniforms["velocityTex"] = velocityTexture;
+		this._taaPass.uniforms["depthTex"] = depthTexture;
+		this._taaPass.uniforms["texelSize"][0] = 1 / this._prevFrame.width;
+		this._taaPass.uniforms["texelSize"][1] = 1 / this._prevFrame.height;
+		this._taaPass.uniforms["still"] = !!still;
+		this._taaPass.uniforms["stillBlending"] = first ? 0 : 0.9;
+		this._taaPass.uniforms["motionBlending"] = first ? 0 : 0.2;
 
 		glCore.renderTarget.setRenderTarget(this._output);
 
 		glCore.state.colorBuffer.setClear(0, 0, 0, 0);
 		glCore.clear(true, true, true);
 
-		this._blendPass.render(glCore);
+		this._taaPass.render(glCore);
 
 		var temp = this._prevFrame;
 		this._prevFrame = this._output;
