@@ -4423,6 +4423,7 @@
 			this.textureType = source.textureType;
 			this.border = source.border;
 			this.format = source.format;
+			this.internalformat = source.internalformat;
 			this.type = source.type;
 			this.magFilter = source.magFilter;
 			this.minFilter = source.minFilter;

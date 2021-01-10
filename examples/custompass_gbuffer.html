@@ -79,12 +79,13 @@
 		var glCore = new zen3d.WebGLCore(gl);
 
 		var gBuffer = new zen3d.GBuffer(width, height);
+		gBuffer.enableMotion = true;
 
 		// gui
 		var params = {version: "WebGL " + glCore.capabilities.version, debug: "normal"};
 		var gui = new dat.GUI();
 		gui.add(params, "version");
-		gui.add(params, "debug", ['normal', 'depth', 'position', 'glossiness', 'metalness', 'albedo']);
+		gui.add(params, "debug", ['normal', 'depth', 'position', 'glossiness', 'metalness', 'albedo', 'velocity']);
 
 		function loop(count) {
 			requestAnimationFrame(loop);

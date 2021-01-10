@@ -50,6 +50,7 @@ var files = [
 	{ path: 'shaders/SketchShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/SSAOShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/SSRShader.js', dependencies: [], ignoreList: [] },
+	{ path: 'shaders/TAAShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/VolumeShader.js', dependencies: [], ignoreList: [] },
 
 	{ path: 'stereo/StereoCamera.js', dependencies: [], ignoreList: [] },

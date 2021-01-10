@@ -13,9 +13,12 @@
 
 	<script src="./js/objects/SkyBox.js"></script>
 
+	<script src="./js/loaders/GLTFLoader.js"></script>
 	<script src="./js/shaders/CopyShader.js"></script>
-	<script src="./js/shaders/BlendShader.js"></script>
+	<script src="./js/shaders/TAAShader.js"></script>
 	<script src="./js/SuperSampling.js"></script>
+	<script src="./js/GBuffer.js"></script>
+	<script src="./js/Clock.js"></script>
 </head>
 <body>
     <div id="info">
@@ -27,8 +30,10 @@
 		var height = window.innerHeight || 2;
 
 		var canvas = document.createElement('canvas');
-		canvas.width = width;
-		canvas.height = height;
+		canvas.width = width * window.devicePixelRatio;
+		canvas.height = height * window.devicePixelRatio;
+		canvas.style.width = width + "px";
+		canvas.style.height = height + "px";
 		document.body.appendChild(canvas);
 
 		var backRenderTarget = new zen3d.RenderTargetBack(canvas);
@@ -38,24 +43,79 @@
 		var glCore = new zen3d.WebGLCore(gl);
 
 		var scene = new zen3d.Scene();
+		scene.disableShadowSampler = true;
 
 		var texture = new zen3d.Texture2D.fromSrc("resources/hardwood2_diffuse.jpg");
 		texture.anisotropy = glCore.capabilities.maxAnisotropy;
 		texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.NEAREST;
+		texture.wrapS = texture.wrapT = zen3d.WEBGL_TEXTURE_WRAP.REPEAT;
+		texture.repeat.set(10, 10, 10);
 		texture.addEventListener("onload", function() {
 			sceneChange = true;
 		});
 
-		var cube_geometry = new zen3d.CubeGeometry(8, 8, 8);
-		var material = new zen3d.BasicMaterial();
+		var cube_geometry = new zen3d.PlaneGeometry(200, 200);
+		var material = new zen3d.LambertMaterial();
 		material.diffuseMap = texture;
 		var cube = new zen3d.Mesh(cube_geometry, material);
+		cube.position.set(-5, 0, 0);
+		cube.receiveShadow = true;
 		scene.add(cube);
 
+		var file = "resources/models/gltf/CesiumMan/glTF-Binary/CesiumMan.glb";
+
+		var animation, object;
+
+		var loader = new zen3d.GLTFLoader();
+		loader.load(file, function(result) {
+			// add mesh to scene
+			object = result.scene.children[0];
+			object.children[1].castShadow = true;
+
+			object.children[1].frustumCulled = false;
+			
+			animation = new zen3d.AnimationMixer();
+			result.animations.forEach(function (clip) {
+				animation.add(clip);
+				animation.play(clip.name);
+			});
+
+			object.scale.set(8, 8, 8);
+
+			object.position.set(5, 0, 0);
+
+			scene.add(object);
+		});
+
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 1.6);
+		scene.add(ambientLight);
+
+		var directionalLight = new zen3d.DirectionalLight(0xffffff, 2.3);
+		directionalLight.position.set(-30, 30, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		directionalLight.shadow.windowSize = 50;
+		directionalLight.shadow.bias = -0.003;
+		directionalLight.castShadow = true;
+		scene.add(directionalLight);
+
+		var cube_texture = zen3d.TextureCube.fromSrc([
+			"resources/skybox/right.jpg",
+			"resources/skybox/left.jpg",
+			"resources/skybox/up.jpg",
+			"resources/skybox/down.jpg",
+			"resources/skybox/back.jpg",
+			"resources/skybox/front.jpg"
+		]);
+		cube_texture.addEventListener("onload", function() {
+			sceneChange = true;
+		});
+		var sky_box = new zen3d.SkyBox(cube_texture);
+
 		var camera = new zen3d.Camera();
-		camera.position.set(10, 10, 30);
+		camera.position.set(50, 20, 40);
 		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
 		camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
+		camera.add(sky_box);
 		scene.add(camera);
 
 		var controller = new zen3d.OrbitControls(camera, canvas);
@@ -71,35 +131,82 @@
 
 		var copyPass = new zen3d.ShaderPostPass(zen3d.CopyShader);
 
+		var gBuffer = new zen3d.GBuffer(width, height);
+		gBuffer.enableMotion = true;
+
 		var superSampling = new zen3d.SuperSampling(width, height);
 
 		var oldProjectionMatrix = new zen3d.Matrix4();
 
 		var sceneChange = false;
 
+		var params = { taa: window.devicePixelRatio == 1, dynamic: true }; // taa works bad on android and ios
+		var gui = new dat.GUI();
+		gui.add(params, 'taa').onChange(function() {
+			superSampling.start();
+		});
+		gui.add(params, 'dynamic').onChange(function() {
+			superSampling.start();
+		});
+
+		var clock = new zen3d.Clock();
+
 		function loop(count) {
 			requestAnimationFrame(loop);
 
-			var change = controller.update();
+			animation && animation.update(clock.getDelta() * 1.3);
 
-			if(change || sceneChange) {
-				superSampling.start();
-				sceneChange = false;
-			}
+			var change = controller.update() || sceneChange;
 
-			var tex;
-
-			if(!superSampling.finished()) {
+			if (!params.taa) {
 				// do render pass
 				scene.updateMatrix();
 				scene.updateLights();
 
 				shadowMapPass.render(glCore, scene);
 
+				glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+				glCore.state.colorBuffer.setClear(0.3, 0.3, 0.3, 1);
+				glCore.clear(true, true, true);
+				
+				glCore.render(scene, camera);
+				return;
+			}
+
+			if (change) {
+				if (!params.dynamic || sceneChange) {
+					superSampling.start();
+				}
+				
+				sceneChange = false;
+			}
+
+			var tex;
+
+			if (params.dynamic || !superSampling.finished()) {
+				// do render pass
+				scene.updateMatrix();
+				scene.updateLights();
+
+				shadowMapPass.render(glCore, scene);
+
+				scene.updateRenderList(camera);
+
+				if (params.dynamic) {
+					gBuffer.update(glCore, scene, camera);
+				}
+
 				glCore.renderTarget.setRenderTarget(tempRenderTarget);
 
 				glCore.state.colorBuffer.setClear(0.3, 0.3, 0.3, 1);
 				glCore.clear(true, true, true);
+
+				if (params.dynamic) {
+					if (superSampling.finished()) {
+						superSampling._frame = 1;
+					}
+				}
 
 				oldProjectionMatrix.copy(camera.projectionMatrix);
 				superSampling.jitterProjection(camera, width, height);
@@ -108,7 +215,7 @@
 
 				camera.projectionMatrix.copy(oldProjectionMatrix);
 
-				tex = superSampling.sample(glCore, tempRenderTarget.texture);
+				tex = superSampling.sample(glCore, tempRenderTarget.texture, gBuffer.getMotionTexture(), gBuffer.getDepthTexture(), !params.dynamic);
 			} else {
 				tex = superSampling.output();
 			}
@@ -133,10 +240,14 @@
 
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-			backRenderTarget.resize(width, height);
-			tempRenderTarget.resize(width, height);
+			backRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
+			tempRenderTarget.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
 
-			superSampling.resize(width, height);
+			gBuffer.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
+			superSampling.resize(width * window.devicePixelRatio, height * window.devicePixelRatio);
+
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
 
 			sceneChange = true;
 		}
