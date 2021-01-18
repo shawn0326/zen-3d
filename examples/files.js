@@ -111,6 +111,7 @@ var files = {
 		"custompass_ssao",
 		"custompass_sketch",
 		"custompass_ssr",
+		"custompass_dof",
 		"custompass_taa",
 		"custompass_bloom",
 		"custompass_blur",

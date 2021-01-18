@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>zen3d - custom pass dof</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="main.css">
+	
+	<script src="../build/zen3d.js"></script>
+	<script src="./libs/dat.gui.min.js"></script>
+	<script src="./libs/nanobar.min.js"></script>
+
+	<script src="./js/loaders/GLTFLoader.js"></script>
+	<script src="./js/controls/OrbitControls.js"></script>
+
+	<script src="./js/GBuffer.js"></script>
+
+	<script src="js/shaders/BokehShader.js"></script>
+</head>
+<body>
+    <div id="info">
+		<a href="http://github.com/shawn0326/zen-3d" target="_blank">zen3d</a> - custom pass dof
+		<br/>
+		mousemove/click to focal object
+    </div>
+
+	<script>
+		var width = window.innerWidth || 2;
+		var height = window.innerHeight || 2;
+
+		var canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		document.body.appendChild(canvas);
+
+		var scene = new zen3d.Scene();
+
+		var objects = [];
+
+		var nanobar = new Nanobar();
+		nanobar.el.style.background = "gray";
+
+		var loadingManager = new zen3d.LoadingManager(function() {
+			nanobar.go(100);
+			nanobar.el.style.background = "transparent";
+		}, function(url, itemsLoaded, itemsTotal) {
+			if (itemsLoaded < itemsTotal) {
+				nanobar.go(itemsLoaded / itemsTotal * 100);
+			}
+		});
+
+		var loader = new zen3d.GLTFLoader(loadingManager);
+		loader.load('resources/models/gltf/suzanne/suzanne.gltf', function(result) {
+			var object = result.scene.children[0];
+			
+			for (var i = 0; i < 21; i++) {
+				for (var j = 0; j < 21; j++) {
+					var monkey = object.clone();
+					monkey.position.set((i - 10) * 4, 1, (j - 10) * 4);
+					monkey.material = monkey.material.clone();
+					monkey.material.diffuse.setHSL( Math.random(), 1.0, 0.3 );
+					monkey.castShadow = true;
+					monkey.receiveShadow = true;
+					scene.add(monkey);
+					objects.push(monkey);
+				}
+			}
+		});
+
+		var plane_geometry = new zen3d.PlaneGeometry(100, 100);
+		var material = new zen3d.PBRMaterial();
+		material.diffuse.setHex(0xffffff);
+		material.roughness = 0.1;
+		material.metalness = 0.9;
+		material.dithering = true;
+		var plane = new zen3d.Mesh(plane_geometry, material);
+		plane.position.y = 0;
+		scene.add(plane);
+		
+		var ambientLight = new zen3d.AmbientLight(0xffffff, 2);
+		scene.add(ambientLight);
+
+		var directionalLight = new zen3d.DirectionalLight(0xffffff, 2);
+		directionalLight.position.set(-40, 40, 0);
+		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
+		directionalLight.shadow.windowSize = 50;
+		directionalLight.shadow.bias = -0.004;
+		directionalLight.shadow.radius = 1;
+		directionalLight.shadow.cameraNear = 40;
+		directionalLight.shadow.cameraFar = 100;
+		scene.add(directionalLight);
+
+		plane.receiveShadow = true;
+		directionalLight.castShadow = true;
+		directionalLight.shadow.mapSize.set(1024, 1024);
+
+		var camera = new zen3d.Camera();
+		camera.position.set(-8, 7, 20);
+		camera.lookAt(new zen3d.Vector3(0, 0, 0), new zen3d.Vector3(0, 1, 0));
+		camera.setPerspective(50 / 180 * Math.PI, width / height, 1, 500);
+		scene.add(camera);
+
+		var controller = new zen3d.OrbitControls(camera, canvas);
+
+		// custom pass
+		var backRenderTarget = new zen3d.RenderTargetBack(canvas);
+
+		var contextParams = { antialias: true, alpha: false };
+		var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+		var glCore = new zen3d.WebGLCore(gl);
+
+		var gBuffer = new zen3d.GBuffer(width, height);
+		gBuffer.enableAlbedoMetalness = false;
+
+		var shadowMapPass = new zen3d.ShadowMapPass();
+
+		var dofPass = new zen3d.ShaderPostPass(zen3d.BokehShader);
+		dofPass.uniforms["focalDepth"] = 35.36;
+		dofPass.uniforms["focalLength"] = 50;
+		dofPass.uniforms["resolution"][0] = 1 / width;
+		dofPass.uniforms["resolution"][1] = 1 / height;
+		dofPass.uniforms["znear"] = 1;
+		dofPass.uniforms["zfar"] = 500;
+		dofPass.uniforms["gain"] = 0.1;
+
+		var tempRenderTarget = new zen3d.RenderTarget2D(width, height);
+		tempRenderTarget.texture.minFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		tempRenderTarget.texture.magFilter = zen3d.WEBGL_TEXTURE_FILTER.LINEAR;
+		tempRenderTarget.texture.generateMipmaps = false;
+
+		var raycaster = new zen3d.Raycaster();
+
+		var mouse = new zen3d.Vector2();
+
+		function updateFocalDepth(e) {
+			mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+			mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+			raycaster.setFromCamera(mouse, camera);
+
+			var array = raycaster.intersectObject(scene, true);
+			if (array.length > 0) {
+				dofPass.uniforms["focalDepth"] = array[0].distance;
+			}
+		}
+
+		document.addEventListener("click", updateFocalDepth);
+		document.addEventListener("mousemove", updateFocalDepth);
+
+		var gui = new dat.GUI();
+		gui.add(dofPass.uniforms, 'focalDepth', 0, 50, 0.01).listen();
+		gui.add(dofPass.uniforms, 'focalLength', 0, 150, 1);
+		gui.add(dofPass.uniforms, 'fstop', 0, 1, 0.01);
+		gui.add(dofPass.uniforms, 'maxblur', 0, 1, 0.01);
+		gui.add(dofPass.uniforms, 'threshold', 0, 1, 0.01);
+		gui.add(dofPass.uniforms, 'gain', 0, 1, 0.01);
+		gui.add(dofPass.uniforms, 'bias', 0, 2, 0.01);
+
+		function loop(count) {
+			requestAnimationFrame(loop);
+
+			controller.update();
+
+			// do render pass
+			scene.updateMatrix();
+			scene.updateLights();
+
+			scene.updateRenderList(camera);
+
+			shadowMapPass.render(glCore, scene);
+
+			gBuffer.update(glCore, scene, camera);
+
+			glCore.renderTarget.setRenderTarget(tempRenderTarget);
+
+			glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			glCore.clear(true, true, true);
+
+			glCore.render(scene, camera, false);
+
+			glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+			glCore.state.colorBuffer.setClear(0, 0, 0, 1);
+			glCore.clear(true, true, true);
+
+			dofPass.uniforms["tColor"] = tempRenderTarget.texture;
+			dofPass.uniforms["tDepth"] = gBuffer.getDepthTexture();
+			dofPass.render(glCore);
+		}
+		requestAnimationFrame(loop);
+
+		function onWindowResize() {
+			width = window.innerWidth || 2;
+			height = window.innerHeight || 2;
+
+			camera.setPerspective(50 / 180 * Math.PI, width / height, 1, 500);
+
+			backRenderTarget.resize(width, height);
+			gBuffer.resize(width, height);
+
+			tempRenderTarget.resize(width, height);
+
+			dofPass.uniforms["resolution"][0] = 1 / width;
+			dofPass.uniforms["resolution"][1] = 1 / height;
+		}
+		window.addEventListener("resize", onWindowResize, false);
+	</script>
+</body>
+</html>

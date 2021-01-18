@@ -36,6 +36,7 @@ var files = [
 
 	{ path: 'shaders/BlendShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/BlurShader.js', dependencies: [], ignoreList: [] },
+	{ path: 'shaders/BokehShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/ColorAdjustShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/CopyShader.js', dependencies: [], ignoreList: [] },
 	{ path: 'shaders/DeferredShader.js', dependencies: [], ignoreList: [] },
