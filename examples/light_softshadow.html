@@ -74,7 +74,6 @@
 		spotLight.position.set(50, 50, 50);
 		spotLight.lookAt(new zen3d.Vector3(0, 10, 0), new zen3d.Vector3(0, 1, 0));
 		spotLight.castShadow = true;
-		spotLight.shadow.bias = -0.003;
 		spotLight.shadow.cameraNear = 20; // because PCSS soft shadow need a bigger value range
 		spotLight.shadow.cameraFar = 350;
 		scene.add(spotLight);

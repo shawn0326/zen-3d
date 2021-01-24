@@ -50,7 +50,6 @@
 
 		var pointLight = new zen3d.PointLight(0xffffff, 1, 200);
 		pointLight.position.set(-20, 20, 0);
-		pointLight.shadow.bias = -0.003;
 		scene.add(pointLight);
 		
 		var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);

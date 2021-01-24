@@ -51,7 +51,6 @@
 		directionalLight.position.set(-30, 30, 0);
 		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 		directionalLight.shadow.windowSize = 100;
-		directionalLight.shadow.bias = -0.003;
 		scene.add(directionalLight);
 		
 		var directionalLightHelper = new zen3d.DirectionalLightHelper(directionalLight, 3);

@@ -82,7 +82,6 @@
 		directionalLight.position.set(-30, 30, 0);
 		directionalLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 		directionalLight.castShadow = true;
-		directionalLight.shadow.bias = -0.03;
 		directionalLight.shadow.windowSize = 50;
 		scene.add(directionalLight);
 
@@ -92,7 +91,6 @@
 		var pointLight = new zen3d.PointLight(0x00ffff, 1, 200, 2);
 		pointLight.position.set(30, 30, 30);
 		pointLight.castShadow = true;
-		pointLight.shadow.bias = -0.003;
 		scene.add(pointLight);
 
 		var pointLightHelper = new zen3d.PointLightHelper(pointLight, 2);
@@ -102,7 +100,6 @@
 		spotLight.position.set(0, 40, -40);
 		spotLight.lookAt(new zen3d.Vector3(), new zen3d.Vector3(0, 1, 0));
 		spotLight.castShadow = true;
-		spotLight.shadow.bias = -0.003;
 		spotLight.shadow.windowSize = 50;
 		scene.add(spotLight);
 		

@@ -11,58 +11,74 @@ import { Vector2 } from '../../math/Vector2.js';
  */
 function LightShadow() {
 	/**
-     * The light's view of the world.
-     * This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
-     * @type {zen3d.Camera}
-     */
+      * The light's view of the world.
+      * This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
+      * @type {zen3d.Camera}
+      */
 	this.camera = new Camera();
 
 	/**
-     * Model to shadow camera space, to compute location and depth in shadow map. Stored in a {@link zen3d.Matrix4}.
-     * This is computed internally during rendering.
-     * @type {zen3d.Matrix4}
-     */
+      * Model to shadow camera space, to compute location and depth in shadow map. Stored in a {@link zen3d.Matrix4}.
+      * This is computed internally during rendering.
+      * @type {zen3d.Matrix4}
+      */
 	this.matrix = new Matrix4();
 
 	/**
-     * Shadow map bias, how much to add or subtract from the normalized depth when deciding whether a surface is in shadow.
-     * Very tiny adjustments here (in the order of 0.0001) may help reduce artefacts in shadows.
-     * @type {number}
-     * @default 0.0003
-     */
-	this.bias = 0.0003;
+      * Shadow map bias, how much to add or subtract from the normalized depth when deciding whether a surface is in shadow.
+      * Very tiny adjustments here (in the order of 0.0001) may help reduce artefacts in shadows.
+      * @type {number}
+      * @default 0
+      */
+	this.bias = 0;
 
 	/**
-     * Setting this to values greater than 1 will blur the edges of the shadow.
-     * High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.
-     * Note that this has no effect if the {@link @zen3d.Object3D#shadowType} is set to PCF or PCSS.
-     * @type {number}
-     * @default 2
-     */
+      * Setting this to values greater than 1 will blur the edges of the shadow.
+      * High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.
+      * Note that this has no effect if the {@link @zen3d.Object3D#shadowType} is set to PCF or PCSS.
+      * @type {number}
+      * @default 2
+      */
 	this.radius = 2;
 
 	/**
-     * Shadow camera near.
-     * @type {number}
-     * @default 1
-     */
+      * Shadow camera near.
+      * @type {number}
+      * @default 1
+      */
 	this.cameraNear = 1;
 
 	/**
-     * Shadow camera far.
-     * @type {number}
-     * @default 500
-     */
+      * Shadow camera far.
+      * @type {number}
+      * @default 500
+      */
 	this.cameraFar = 500;
 
 	/**
-     * A {@link zen3d.Vector2} defining the width and height of the shadow map.
-     * Higher values give better quality shadows at the cost of computation time.
-     * Values must be powers of 2,
-     * @type {zen3d.Vector2}
-     * @default zen3d.Vector2(512, 512)
-     */
+      * A {@link zen3d.Vector2} defining the width and height of the shadow map.
+      * Higher values give better quality shadows at the cost of computation time.
+      * Values must be powers of 2.
+      * @type {zen3d.Vector2}
+      * @default zen3d.Vector2(512, 512)
+      */
 	this.mapSize = new Vector2(512, 512);
+
+	/**
+      * Enables automatic updates of the light's shadow.
+      * If you do not require dynamic lighting / shadows, you may set this to false.
+      * @type {boolean}
+      * @default true
+      */
+	this.autoUpdate = true;
+
+	/**
+      * When set to true, shadow maps will be updated in the next ShadowMapPass.render call.
+      * If you have set .autoUpdate to false, you will need to set this property to true and then make a ShadowMapPass.render call to update the light's shadow.
+      * @type {boolean}
+      * @default false
+      */
+	this.needsUpdate = false;
 
 	this.renderTarget = null;
 	this.map = null;

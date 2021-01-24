@@ -13875,18 +13875,47 @@ EnvironmentMapPass.prototype.render = function(glCore, scene) {
 	}
 };
 
+var shadowSide = { "front": DRAW_SIDE.BACK, "back": DRAW_SIDE.FRONT, "double": DRAW_SIDE.DOUBLE };
+
+var defaultDepthMaterial = new DepthMaterial();
+defaultDepthMaterial.packToRGBA = true;
+
+var defaultDistanceMaterial = new DistanceMaterial();
+defaultDistanceMaterial.uniforms = {};
+
+function _getDepthMaterial(renderable, light) {
+	defaultDepthMaterial.side = shadowSide[renderable.material.side];
+	return defaultDepthMaterial;
+}
+
+function _getDistanceMaterial(renderable, light) {
+	defaultDistanceMaterial.side = shadowSide[renderable.material.side];
+	defaultDistanceMaterial.uniforms["nearDistance"] = light.shadow.cameraNear;
+	defaultDistanceMaterial.uniforms["farDistance"] = light.shadow.cameraFar;
+	return defaultDistanceMaterial;
+}
+
+var oldClearColor = new Vector4();
+
 /**
  * Shadow map pre pass.
  * @constructor
  * @memberof zen3d
  */
 function ShadowMapPass() {
-	this.depthMaterial = new DepthMaterial();
-	this.depthMaterial.packToRGBA = true;
+	/**
+	 * Get depth material function.
+	 * Override this to use custom depth material.
+	 * @type {Function}
+	 */
+	this.getDepthMaterial = _getDepthMaterial;
 
-	this.distanceMaterial = new DistanceMaterial();
-
-	this.oldClearColor = new Vector4();
+	/**
+	 * Get distance material function.
+	 * Override this to use custom distance material.
+	 * @type {Function}
+	 */
+	this.getDistanceMaterial = _getDistanceMaterial;
 }
 
 /**
@@ -13898,13 +13927,16 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 	var gl = glCore.gl;
 	var state = glCore.state;
 
+	var getDepthMaterial = this.getDepthMaterial;
+	var getDistanceMaterial = this.getDistanceMaterial;
+
 	// force disable stencil
 	var useStencil = state.states[gl.STENCIL_TEST];
 	if (useStencil) {
 		state.stencilBuffer.setTest(false);
 	}
 
-	this.oldClearColor.copy(state.colorBuffer.getClear());
+	oldClearColor.copy(state.colorBuffer.getClear());
 	state.colorBuffer.setClear(1, 1, 1, 1);
 
 	var lights = scene.lights.shadows;
@@ -13912,6 +13944,9 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 		var light = lights[i];
 
 		var shadow = light.shadow;
+
+		if (shadow.autoUpdate === false && shadow.needsUpdate === false) continue;
+
 		var camera = shadow.camera;
 		var shadowTarget = shadow.renderTarget;
 		var isPointLight = light.lightType == LIGHT_TYPE.POINT ? true : false;
@@ -13937,16 +13972,9 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 
 			glCore.clear(true, true);
 
-			var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
-			material.uniforms = material.uniforms || {};
-			material.uniforms["nearDistance"] = shadow.cameraNear;
-			material.uniforms["farDistance"] = shadow.cameraFar;
-
 			glCore.renderPass(renderList.opaque, camera, {
 				getMaterial: function(renderable) {
-					// copy draw side
-					material.side = renderable.material.side;
-					return material;
+					return isPointLight ? getDistanceMaterial(renderable, light) : getDepthMaterial(renderable, light);
 				},
 				ifRender: function(renderable) {
 					return renderable.object.castShadow;
@@ -13958,13 +13986,15 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 
 		// set generateMipmaps false
 		// glCore.renderTarget.updateRenderTargetMipmap(shadowTarget);
+
+		shadow.needsUpdate = false;
 	}
 
 	if (useStencil) {
 		state.stencilBuffer.setTest(true);
 	}
 
-	state.colorBuffer.setClear(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
+	state.colorBuffer.setClear(oldClearColor.x, oldClearColor.y, oldClearColor.z, oldClearColor.w);
 };
 
 var helpVector3$1 = new Vector3();
@@ -15226,58 +15256,74 @@ AmbientLight.prototype.constructor = AmbientLight;
  */
 function LightShadow() {
 	/**
-     * The light's view of the world.
-     * This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
-     * @type {zen3d.Camera}
-     */
+      * The light's view of the world.
+      * This is used to generate a depth map of the scene; objects behind other objects from the light's perspective will be in shadow.
+      * @type {zen3d.Camera}
+      */
 	this.camera = new Camera();
 
 	/**
-     * Model to shadow camera space, to compute location and depth in shadow map. Stored in a {@link zen3d.Matrix4}.
-     * This is computed internally during rendering.
-     * @type {zen3d.Matrix4}
-     */
+      * Model to shadow camera space, to compute location and depth in shadow map. Stored in a {@link zen3d.Matrix4}.
+      * This is computed internally during rendering.
+      * @type {zen3d.Matrix4}
+      */
 	this.matrix = new Matrix4();
 
 	/**
-     * Shadow map bias, how much to add or subtract from the normalized depth when deciding whether a surface is in shadow.
-     * Very tiny adjustments here (in the order of 0.0001) may help reduce artefacts in shadows.
-     * @type {number}
-     * @default 0.0003
-     */
-	this.bias = 0.0003;
+      * Shadow map bias, how much to add or subtract from the normalized depth when deciding whether a surface is in shadow.
+      * Very tiny adjustments here (in the order of 0.0001) may help reduce artefacts in shadows.
+      * @type {number}
+      * @default 0
+      */
+	this.bias = 0;
 
 	/**
-     * Setting this to values greater than 1 will blur the edges of the shadow.
-     * High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.
-     * Note that this has no effect if the {@link @zen3d.Object3D#shadowType} is set to PCF or PCSS.
-     * @type {number}
-     * @default 2
-     */
+      * Setting this to values greater than 1 will blur the edges of the shadow.
+      * High values will cause unwanted banding effects in the shadows - a greater mapSize will allow for a higher value to be used here before these effects become visible.
+      * Note that this has no effect if the {@link @zen3d.Object3D#shadowType} is set to PCF or PCSS.
+      * @type {number}
+      * @default 2
+      */
 	this.radius = 2;
 
 	/**
-     * Shadow camera near.
-     * @type {number}
-     * @default 1
-     */
+      * Shadow camera near.
+      * @type {number}
+      * @default 1
+      */
 	this.cameraNear = 1;
 
 	/**
-     * Shadow camera far.
-     * @type {number}
-     * @default 500
-     */
+      * Shadow camera far.
+      * @type {number}
+      * @default 500
+      */
 	this.cameraFar = 500;
 
 	/**
-     * A {@link zen3d.Vector2} defining the width and height of the shadow map.
-     * Higher values give better quality shadows at the cost of computation time.
-     * Values must be powers of 2,
-     * @type {zen3d.Vector2}
-     * @default zen3d.Vector2(512, 512)
-     */
+      * A {@link zen3d.Vector2} defining the width and height of the shadow map.
+      * Higher values give better quality shadows at the cost of computation time.
+      * Values must be powers of 2.
+      * @type {zen3d.Vector2}
+      * @default zen3d.Vector2(512, 512)
+      */
 	this.mapSize = new Vector2(512, 512);
+
+	/**
+      * Enables automatic updates of the light's shadow.
+      * If you do not require dynamic lighting / shadows, you may set this to false.
+      * @type {boolean}
+      * @default true
+      */
+	this.autoUpdate = true;
+
+	/**
+      * When set to true, shadow maps will be updated in the next ShadowMapPass.render call.
+      * If you have set .autoUpdate to false, you will need to set this property to true and then make a ShadowMapPass.render call to update the light's shadow.
+      * @type {boolean}
+      * @default false
+      */
+	this.needsUpdate = false;
 
 	this.renderTarget = null;
 	this.map = null;

@@ -1,7 +1,29 @@
 import { DepthMaterial } from '../../material/DepthMaterial.js';
 import { DistanceMaterial } from '../../material/DistanceMaterial.js';
-import { LIGHT_TYPE } from '../../const.js';
+import { LIGHT_TYPE, DRAW_SIDE } from '../../const.js';
 import { Vector4 } from '../../math/Vector4.js';
+
+var shadowSide = { "front": DRAW_SIDE.BACK, "back": DRAW_SIDE.FRONT, "double": DRAW_SIDE.DOUBLE };
+
+var defaultDepthMaterial = new DepthMaterial();
+defaultDepthMaterial.packToRGBA = true;
+
+var defaultDistanceMaterial = new DistanceMaterial();
+defaultDistanceMaterial.uniforms = {};
+
+function _getDepthMaterial(renderable, light) {
+	defaultDepthMaterial.side = shadowSide[renderable.material.side];
+	return defaultDepthMaterial;
+}
+
+function _getDistanceMaterial(renderable, light) {
+	defaultDistanceMaterial.side = shadowSide[renderable.material.side];
+	defaultDistanceMaterial.uniforms["nearDistance"] = light.shadow.cameraNear;
+	defaultDistanceMaterial.uniforms["farDistance"] = light.shadow.cameraFar;
+	return defaultDistanceMaterial;
+}
+
+var oldClearColor = new Vector4();
 
 /**
  * Shadow map pre pass.
@@ -9,12 +31,19 @@ import { Vector4 } from '../../math/Vector4.js';
  * @memberof zen3d
  */
 function ShadowMapPass() {
-	this.depthMaterial = new DepthMaterial();
-	this.depthMaterial.packToRGBA = true;
+	/**
+	 * Get depth material function.
+	 * Override this to use custom depth material.
+	 * @type {Function}
+	 */
+	this.getDepthMaterial = _getDepthMaterial;
 
-	this.distanceMaterial = new DistanceMaterial();
-
-	this.oldClearColor = new Vector4();
+	/**
+	 * Get distance material function.
+	 * Override this to use custom distance material.
+	 * @type {Function}
+	 */
+	this.getDistanceMaterial = _getDistanceMaterial;
 }
 
 /**
@@ -26,13 +55,16 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 	var gl = glCore.gl;
 	var state = glCore.state;
 
+	var getDepthMaterial = this.getDepthMaterial;
+	var getDistanceMaterial = this.getDistanceMaterial;
+
 	// force disable stencil
 	var useStencil = state.states[gl.STENCIL_TEST];
 	if (useStencil) {
 		state.stencilBuffer.setTest(false);
 	}
 
-	this.oldClearColor.copy(state.colorBuffer.getClear());
+	oldClearColor.copy(state.colorBuffer.getClear());
 	state.colorBuffer.setClear(1, 1, 1, 1);
 
 	var lights = scene.lights.shadows;
@@ -40,6 +72,9 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 		var light = lights[i];
 
 		var shadow = light.shadow;
+
+		if (shadow.autoUpdate === false && shadow.needsUpdate === false) continue;
+
 		var camera = shadow.camera;
 		var shadowTarget = shadow.renderTarget;
 		var isPointLight = light.lightType == LIGHT_TYPE.POINT ? true : false;
@@ -65,16 +100,9 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 
 			glCore.clear(true, true);
 
-			var material = isPointLight ? this.distanceMaterial : this.depthMaterial;
-			material.uniforms = material.uniforms || {};
-			material.uniforms["nearDistance"] = shadow.cameraNear;
-			material.uniforms["farDistance"] = shadow.cameraFar;
-
 			glCore.renderPass(renderList.opaque, camera, {
 				getMaterial: function(renderable) {
-					// copy draw side
-					material.side = renderable.material.side;
-					return material;
+					return isPointLight ? getDistanceMaterial(renderable, light) : getDepthMaterial(renderable, light);
 				},
 				ifRender: function(renderable) {
 					return renderable.object.castShadow;
@@ -86,13 +114,15 @@ ShadowMapPass.prototype.render = function(glCore, scene) {
 
 		// set generateMipmaps false
 		// glCore.renderTarget.updateRenderTargetMipmap(shadowTarget);
+
+		shadow.needsUpdate = false;
 	}
 
 	if (useStencil) {
 		state.stencilBuffer.setTest(true);
 	}
 
-	state.colorBuffer.setClear(this.oldClearColor.x, this.oldClearColor.y, this.oldClearColor.z, this.oldClearColor.w);
+	state.colorBuffer.setClear(oldClearColor.x, oldClearColor.y, oldClearColor.z, oldClearColor.w);
 }
 
 export { ShadowMapPass };
