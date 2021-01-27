@@ -14,7 +14,7 @@ var files = [
 	{ path: 'controls/FreeControls.js', dependencies: [], ignoreList: [] },
 	{ path: 'controls/OrbitControls.js', dependencies: [], ignoreList: [] },
 
-	{ path: 'loaders/GLTFLoader.js', dependencies: [], ignoreList: ['TextureBase'] },
+	{ path: 'loaders/GLTFLoader.js', dependencies: [], ignoreList: ['TextureBase', 'Vector2'] },
 	{ path: 'loaders/AssimpJsonLoader.js', dependencies: [], ignoreList: [] },
 	{ path: 'loaders/DRACOLoader.js', dependencies: [], ignoreList: ['LoadingManager'] },
 
@@ -63,7 +63,7 @@ var files = [
 	{ path: 'GBuffer.js', dependencies: [], ignoreList: ['Camera'] },
 	{ path: 'GeometryUtils.js', dependencies: [], ignoreList: ['Geoemtry'] },
 	{ path: 'PMREM.js', dependencies: [], ignoreList: ['GLCore'] },
-	{ path: 'SuperSampling.js', dependencies: [{ name: 'BlendShader', path: './shaders/BlendShader.js' }], ignoreList: ['Camera', 'TextureBase'] },
+	{ path: 'SuperSampling.js', dependencies: [], ignoreList: ['Camera', 'TextureBase'] },
 	{ path: 'VoxMeshBuilder.js', dependencies: [], ignoreList: ['Material', 'Texture2D'] },
 ];
 

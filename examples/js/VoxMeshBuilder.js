@@ -274,6 +274,9 @@ zen3d.VOXMeshBuilder = (function() {
 		attribute = new zen3d.InterleavedBufferAttribute(buffer, 2, 10);
 		geometry.addAttribute("a_Uv", attribute);
 
+		geometry.computeBoundingBox();
+		geometry.computeBoundingSphere();
+
 		return geometry;
 	}
 

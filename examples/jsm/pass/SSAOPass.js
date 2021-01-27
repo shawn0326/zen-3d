@@ -69,12 +69,11 @@ var SSAOPass = (function() {
 	// 生成采样偏移数组
 	// size为采样次数
 	// offset 为偏移值，传入不同的偏移可以生成不同的分布数
-	// hemisphere 代表phi的范围是否在0~180内，否则生成在0-360内
-	function generateKernel(size, offset, hemisphere) {
+	function generateKernel(size, offset) {
 		var kernel = new Float32Array(size * 3);
 		offset = offset || 0;
 		for (var i = 0; i < size; i++) {
-			var phi = halton(i + offset, 2) * (hemisphere ? 1 : 2) * Math.PI; // phi是方位面（水平面）内的角度
+			var phi = halton(i + offset, 2) * Math.PI; // phi是方位面（水平面）内的角度
 			var theta = halton(i + offset, 3) * Math.PI; // theta是俯仰面（竖直面）内的角度
 			var r = Math.random();
 			var x = Math.cos(phi) * Math.sin(theta) * r;

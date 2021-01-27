@@ -45,7 +45,6 @@ import {
 	TEXEL_ENCODING_TYPE,
 	Texture2D,
 	VERTEX_COLOR,
-	Vector2,
 	VectorKeyframeTrack,
 	WEBGL_PIXEL_FORMAT,
 	WEBGL_PIXEL_TYPE,
@@ -1283,7 +1282,7 @@ var GLTFLoader = (function() {
 			pending.push(parser.assignTexture(materialParams, 'normalMap', materialDef.normalTexture));
 
 			// TODO normalScale support
-			// materialParams.normalScale = new Vector2( 1, 1 );
+			// materialParams.normalScale = new zen3d.Vector2( 1, 1 );
 			//
 			// if ( materialDef.normalTexture.scale !== undefined ) {
 			//

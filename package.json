@@ -46,13 +46,13 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "acorn": "^7.3.1",
-    "eslint": "^7.5.0",
-    "jsdoc": "^3.6.5",
+    "acorn": "^7.4.1",
+    "eslint": "^7.18.0",
+    "jsdoc": "^3.6.6",
     "live-server": "^1.2.1",
-    "rollup": "^2.23.0",
+    "rollup": "^2.38.0",
     "rollup-plugin-buble": "^0.19.8",
-    "uglify-js": "^3.10.0"
+    "uglify-js": "^3.12.5"
   },
   "scripts": {
     "default": "rollup -c",
