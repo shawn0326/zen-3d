@@ -1,7 +1,5 @@
 import basic_frag from './shaderLib/basic_frag.glsl';
 import basic_vert from './shaderLib/basic_vert.glsl';
-import canvas2d_frag from './shaderLib/canvas2d_frag.glsl';
-import canvas2d_vert from './shaderLib/canvas2d_vert.glsl';
 import depth_frag from './shaderLib/depth_frag.glsl';
 import depth_vert from './shaderLib/depth_vert.glsl';
 import distance_frag from './shaderLib/distance_frag.glsl';
@@ -23,8 +21,6 @@ import point_vert from './shaderLib/point_vert.glsl';
 export var ShaderLib = {
 	basic_frag: basic_frag,
 	basic_vert: basic_vert,
-	canvas2d_frag: canvas2d_frag,
-	canvas2d_vert: canvas2d_vert,
 	depth_frag: depth_frag,
 	depth_vert: depth_vert,
 	distance_frag: distance_frag,

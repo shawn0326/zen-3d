@@ -118,11 +118,6 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
 			renderList.add(object, camera);
 		}
 
-		// skip ui children
-		if (OBJECT_TYPE.CANVAS2D === object.type) {
-			return;
-		}
-
 		// handle children by recursion
 		var children = object.children;
 		for (var i = 0, l = children.length; i < l; i++) {
@@ -137,11 +132,6 @@ Scene.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends ze
 
 		if (OBJECT_TYPE.LIGHT === object.type) { // light
 			this.lights.add(object);
-		}
-
-		// skip ui children
-		if (OBJECT_TYPE.CANVAS2D === object.type) {
-			return;
 		}
 
 		// handle children by recursion

@@ -10,8 +10,7 @@ export var OBJECT_TYPE = {
 	LIGHT: "light",
 	CAMERA: "camera",
 	SCENE: "scene",
-	GROUP: "group",
-	CANVAS2D: "canvas2d"
+	GROUP: "group"
 };
 
 /**
@@ -42,7 +41,6 @@ export var MATERIAL_TYPE = {
 	MATCAP: 'matcap',
 	POINT: "point",
 	LINE: "line",
-	CANVAS2D: "canvas2d",
 	SHADER: "shader",
 	DEPTH: "depth",
 	DISTANCE: "distance"

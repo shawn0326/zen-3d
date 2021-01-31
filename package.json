@@ -60,13 +60,9 @@
     "build": "rollup -c",
     "uglify": "uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
     "build-uglify": "rollup -c && uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
-    "build-canvas2d": "rollup -c rollup.extension.config.js",
-    "extension": "npm run build-canvas2d",
     "doc": "jsdoc ./src/core -r -d ./docs -c ./tools/doc.config.json",
     "eslint": "eslint src/core",
     "eslint-fix": "eslint src/core --fix",
-    "eslint-extensions": "eslint src/extension",
-    "eslint-extensions-fix": "eslint src/extension --fix",
     "eslint-examples": "eslint examples/js",
     "eslint-examples-fix": "eslint examples/js --fix",
     "example": "live-server --port=8080 --open=examples --watch=examples,build"

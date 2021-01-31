@@ -10,6 +10,10 @@ var srcFolder = __dirname + '/../examples/js/';
 var dstFolder = __dirname + '/../examples/jsm/';
 
 var files = [
+	{ path: 'canvas2d/Canvas2D.js', dependencies: [], ignoreList: [] },
+	{ path: 'canvas2d/Object2D.js', dependencies: [], ignoreList: [] },
+	{ path: 'canvas2d/Sprite2D.js', dependencies: [{ name: 'Object2D', path: 'canvas2d/Object2D.js' }], ignoreList: [] },
+
 	{ path: 'controls/FlyControls.js', dependencies: [], ignoreList: [] },
 	{ path: 'controls/FreeControls.js', dependencies: [], ignoreList: [] },
 	{ path: 'controls/OrbitControls.js', dependencies: [], ignoreList: [] },

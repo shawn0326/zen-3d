@@ -6,7 +6,9 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<link type="text/css" rel="stylesheet" href="main.css">
 	<script src="../build/zen3d.js"></script>
-	<script src="../build/zen3d.canvas2d.js"></script>
+	<script src="./js/canvas2d/Canvas2D.js"></script>
+	<script src="./js/canvas2d/Object2D.js"></script>
+	<script src="./js/canvas2d/Sprite2D.js"></script>
 	<script src="./js/Clock.js"></script>
 	<script src="./libs/dat.gui.min.js"></script>
 </head>
@@ -24,9 +26,14 @@
 		canvas.height = height;
 		document.body.appendChild(canvas);
 
-		var renderer = new zen3d.Renderer(canvas);
+		var contextParams = { antialias: false, alpha: false };
+		var gl = canvas.getContext("webgl2", contextParams) || canvas.getContext("webgl", contextParams);
+		var glCore = new zen3d.WebGLCore(gl);
+
+		var backRenderTarget = new zen3d.RenderTargetBack(canvas);
 
 		var scene = new zen3d.Scene();
+		var scene2 = new zen3d.Scene();
 
 		var sphere_geometry = new zen3d.SphereGeometry(6, 20, 20);
 		var phong = new zen3d.PhongMaterial();
@@ -68,6 +75,7 @@
 			sprites.push(sprite);
 		}
 		scene.add(canvas2d);
+		scene2.add(canvas2d);
 
 		var phong = new zen3d.PhongMaterial();
 		phong.diffuse.setHex(0xffffff);
@@ -91,12 +99,21 @@
 
 		// input
 
-		var params = { screenMatchMode: 'SHRINK' };
+		var params = { screenMatchMode: 'SHRINK', scaleFactor: 1 };
 		var gui = new dat.GUI();
-		gui.add(canvas2d, 'isScreenCanvas');
-		// gui.add(params, 'screenMatchMode', ['CONSTANT', 'SHRINK', 'EXPAND']).onChange(function(value) {
-		// 	canvas2d.setScreenMatchMode(zen3d.Canvas2D.SCREEN_MATCH_MODE[value]);
-		// });
+		gui.add(canvas2d, 'isScreenCanvas').onChange(value => {
+			if (value && canvas2d.parent !== scene2) {
+				scene2.add(canvas2d);
+			} else if (canvas2d.parent !== scene) {
+				scene.add(canvas2d);
+			}
+		});
+		gui.add(params, 'screenMatchMode', ['CONSTANT', 'SHRINK', 'EXPAND']).onChange(function(value) {
+			canvas2d.setScreenMatchMode(zen3d.Canvas2D.SCREEN_MATCH_MODE[value]);
+		});
+		gui.add(params, 'scaleFactor', 0.1, 20, 0.01).onChange(function(value) {
+			canvas2d.setScaleFactor(value);
+		});
 
 		var clock = new zen3d.Clock();
 
@@ -114,7 +131,64 @@
 				sprites[i].rotation += 8 * deltaTime;
 			}
 
-			renderer.render(scene, camera);
+			scene.updateMatrix();
+			scene2.updateMatrix();
+
+			glCore.renderTarget.setRenderTarget(backRenderTarget);
+
+			glCore.state.colorBuffer.setClear(0, 0, 0, 0);
+			glCore.clear(true, true, true);
+
+			if (canvas2d.isScreenCanvas) {
+				glCore.render(scene, camera);
+
+				canvas2d.setRenderViewport(0, 0, width, height);
+
+				canvas2d.orthoCamera.rect.x = canvas2d.viewport.x / width;
+				canvas2d.orthoCamera.rect.y = canvas2d.viewport.y / height;
+				canvas2d.orthoCamera.rect.z = canvas2d.viewport.z / width + canvas2d.viewport.x / width;
+				canvas2d.orthoCamera.rect.w = canvas2d.viewport.w / height + canvas2d.viewport.y / height;
+
+				var renderList2 = scene2.updateRenderList(canvas2d.orthoCamera);
+
+				var arrayCount = 0;
+				glCore.renderPass(renderList2.transparent, canvas2d.orthoCamera, {
+					scene: scene,
+					getMaterial: function(renderable) {
+						if (renderable.object === canvas2d) {
+							canvas2d.sharedMaterial.uniforms.spriteTexture = canvas2d.materialInfoArray[arrayCount];
+							arrayCount++;
+							return canvas2d.sharedMaterial;
+						} else {
+							return renderable.material;
+						}
+					}
+				});
+			} else {
+				var renderList = scene.updateRenderList(camera);
+
+				glCore.renderPass(renderList.opaque, camera, {
+					scene: scene,
+					getMaterial: function(renderable) {
+						return scene.overrideMaterial || renderable.material;
+					}
+				});
+
+				var arrayCount = 0;
+				glCore.renderPass(renderList.transparent, camera, {
+					scene: scene,
+					getMaterial: function(renderable) {
+						if (renderable.object === canvas2d) {
+							var material = canvas2d.sharedMaterial;
+							material.uniforms.spriteTexture = canvas2d.materialInfoArray[arrayCount];
+							arrayCount++;
+							return material;
+						} else {
+							return renderable.material;
+						}
+					}
+				});
+			}
 		}
 		requestAnimationFrame(loop);
 
@@ -124,7 +198,7 @@
 
 			camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
 
-			renderer.backRenderTarget.resize(width, height);
+			backRenderTarget.resize(width, height);
 		}
 		window.addEventListener("resize", onWindowResize, false);
 	</script>

@@ -109,8 +109,7 @@
 		LIGHT: "light",
 		CAMERA: "camera",
 		SCENE: "scene",
-		GROUP: "group",
-		CANVAS2D: "canvas2d"
+		GROUP: "group"
 	};
 
 	/**
@@ -141,7 +140,6 @@
 		MATCAP: 'matcap',
 		POINT: "point",
 		LINE: "line",
-		CANVAS2D: "canvas2d",
 		SHADER: "shader",
 		DEPTH: "depth",
 		DISTANCE: "distance"
@@ -11578,10 +11576,6 @@
 
 	var basic_vert = "#include <common_vert>\r\n#include <uv_pars_vert>\r\n#include <color_pars_vert>\r\n#include <envMap_pars_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n    #include <uv_vert>\r\n    #include <color_vert>\r\n    #include <envMap_vert>\r\n}";
 
-	var canvas2d_frag = "#include <common_frag>\r\nvarying vec2 v_Uv;\r\nuniform sampler2D spriteTexture;\r\nvoid main() {\r\n    #include <begin_frag>\r\n    outColor *= texture2D(spriteTexture, v_Uv);\r\n    #include <end_frag>\r\n    #include <premultipliedAlpha_frag>\r\n}";
-
-	var canvas2d_vert = "#include <common_vert>\r\nattribute vec2 a_Uv;\r\nvarying vec2 v_Uv;\r\nvoid main() {\r\n    #include <begin_vert>\r\n    #include <pvm_vert>\r\n    v_Uv = a_Uv;\r\n}";
-
 	var depth_frag = "#include <common_frag>\r\n#include <diffuseMap_pars_frag>\r\n\r\n#include <uv_pars_frag>\r\n\r\n#include <packing>\r\n\r\nvoid main() {\r\n    #if defined(USE_DIFFUSE_MAP) && defined(ALPHATEST)\r\n        vec4 texelColor = texture2D( diffuseMap, v_Uv );\r\n\r\n        float alpha = texelColor.a * u_Opacity;\r\n        if(alpha < ALPHATEST) discard;\r\n    #endif\r\n    \r\n    #ifdef DEPTH_PACKING_RGBA\r\n        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\r\n    #else\r\n        gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), u_Opacity );\r\n    #endif\r\n}";
 
 	var depth_vert = "#include <common_vert>\r\n#include <morphtarget_pars_vert>\r\n#include <skinning_pars_vert>\r\n#include <uv_pars_vert>\r\nvoid main() {\r\n    #include <uv_vert>\r\n    #include <begin_vert>\r\n    #include <morphtarget_vert>\r\n    #include <skinning_vert>\r\n    #include <pvm_vert>\r\n}";
@@ -11619,8 +11613,6 @@
 	var ShaderLib = {
 		basic_frag: basic_frag,
 		basic_vert: basic_vert,
-		canvas2d_frag: canvas2d_frag,
-		canvas2d_vert: canvas2d_vert,
 		depth_frag: depth_frag,
 		depth_vert: depth_vert,
 		distance_frag: distance_frag,
@@ -12757,7 +12749,7 @@
 		renderPass: function(renderList, camera, config) {
 			config = config || {};
 
-			var gl = this.gl;
+			this.gl;
 			var state = this.state;
 			var capabilities = this.capabilities;
 
@@ -12864,22 +12856,10 @@
 					switch (key) {
 					// pvm matrix
 					case "u_Projection":
-						if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
-							var projectionMat = object.orthoCamera.projectionMatrix.elements;
-						} else {
-							var projectionMat = camera.projectionMatrix.elements;
-						}
-
-						uniform.set(projectionMat);
+						uniform.set(camera.projectionMatrix.elements);
 						break;
 					case "u_View":
-						if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
-							var viewMatrix = object.orthoCamera.viewMatrix.elements;
-						} else {
-							var viewMatrix = camera.viewMatrix.elements;
-						}
-
-						uniform.set(viewMatrix);
+						uniform.set(camera.viewMatrix.elements);
 						break;
 					case "u_Model":
 						var modelMatrix = object.worldMatrix.elements;
@@ -13049,27 +13029,9 @@
 				viewport.z = Math.floor(viewport.z);
 				viewport.w = Math.floor(viewport.w);
 
-				if (object.type === OBJECT_TYPE.CANVAS2D) {
-					if (object.isScreenCanvas) {
-						object.setRenderViewport(viewport.x, viewport.y, viewport.z, viewport.w);
-						state.viewport(object.viewport.x, object.viewport.y, object.viewport.z, object.viewport.w);
-					}
+				state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
 
-					var _offset = 0;
-					for (var j = 0; j < object.drawArray.length; j++) {
-						var drawData = object.drawArray[j];
-
-						uniforms.set("spriteTexture", drawData.texture, this);
-
-						gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
-						_offset += drawData.count * 6;
-						this._usedTextureUnits = 0;
-					}
-				} else {
-					state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
-
-					this.draw(geometry, material, group);
-				}
+				this.draw(geometry, material, group);
 
 				this.vertexArrayBindings.resetBinding();
 
@@ -14624,11 +14586,6 @@
 				renderList.add(object, camera);
 			}
 
-			// skip ui children
-			if (OBJECT_TYPE.CANVAS2D === object.type) {
-				return;
-			}
-
 			// handle children by recursion
 			var children = object.children;
 			for (var i = 0, l = children.length; i < l; i++) {
@@ -14643,11 +14600,6 @@
 
 			if (OBJECT_TYPE.LIGHT === object.type) { // light
 				this.lights.add(object);
-			}
-
-			// skip ui children
-			if (OBJECT_TYPE.CANVAS2D === object.type) {
-				return;
 			}
 
 			// handle children by recursion

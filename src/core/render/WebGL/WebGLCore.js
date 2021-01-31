@@ -152,7 +152,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 	renderPass: function(renderList, camera, config) {
 		config = config || {};
 
-		var gl = this.gl;
 		var state = this.state;
 		var capabilities = this.capabilities;
 
@@ -259,22 +258,10 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 				switch (key) {
 				// pvm matrix
 				case "u_Projection":
-					if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
-						var projectionMat = object.orthoCamera.projectionMatrix.elements;
-					} else {
-						var projectionMat = camera.projectionMatrix.elements;
-					}
-
-					uniform.set(projectionMat);
+					uniform.set(camera.projectionMatrix.elements);
 					break;
 				case "u_View":
-					if (object.type === OBJECT_TYPE.CANVAS2D && object.isScreenCanvas) {
-						var viewMatrix = object.orthoCamera.viewMatrix.elements;
-					} else {
-						var viewMatrix = camera.viewMatrix.elements;
-					}
-
-					uniform.set(viewMatrix);
+					uniform.set(camera.viewMatrix.elements);
 					break;
 				case "u_Model":
 					var modelMatrix = object.worldMatrix.elements;
@@ -446,27 +433,9 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			viewport.z = Math.floor(viewport.z);
 			viewport.w = Math.floor(viewport.w);
 
-			if (object.type === OBJECT_TYPE.CANVAS2D) {
-				if (object.isScreenCanvas) {
-					object.setRenderViewport(viewport.x, viewport.y, viewport.z, viewport.w);
-					state.viewport(object.viewport.x, object.viewport.y, object.viewport.z, object.viewport.w);
-				}
+			state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
 
-				var _offset = 0;
-				for (var j = 0; j < object.drawArray.length; j++) {
-					var drawData = object.drawArray[j];
-
-					uniforms.set("spriteTexture", drawData.texture, this);
-
-					gl.drawElements(gl.TRIANGLES, drawData.count * 6, gl.UNSIGNED_SHORT, _offset * 2);
-					_offset += drawData.count * 6;
-					this._usedTextureUnits = 0;
-				}
-			} else {
-				state.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
-
-				this.draw(geometry, material, group);
-			}
+			this.draw(geometry, material, group);
 
 			this.vertexArrayBindings.resetBinding();
 
