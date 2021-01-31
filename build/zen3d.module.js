@@ -12753,7 +12753,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 	renderPass: function(renderList, camera, config) {
 		config = config || {};
 
-		this.gl;
 		var state = this.state;
 		var capabilities = this.capabilities;
 

@@ -12749,7 +12749,6 @@
 		renderPass: function(renderList, camera, config) {
 			config = config || {};
 
-			this.gl;
 			var state = this.state;
 			var capabilities = this.capabilities;
 
