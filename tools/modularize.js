@@ -22,6 +22,8 @@ var files = [
 	{ path: 'loaders/AssimpJsonLoader.js', dependencies: [], ignoreList: [] },
 	{ path: 'loaders/DRACOLoader.js', dependencies: [], ignoreList: ['LoadingManager'] },
 
+	{ path: 'math/Curve.js', dependencies: [], ignoreList: [] },
+
 	{ path: 'objects/DirectionalLightHelper.js', dependencies: [], ignoreList: [] },
 	{ path: 'objects/GridHelper.js', dependencies: [], ignoreList: [] },
 	{ path: 'objects/ParticleContainer.js', dependencies: [], ignoreList: [] },

@@ -24,7 +24,6 @@ export { Frustum } from './math/Frustum.js';
 export { Color3 } from './math/Color3.js';
 export { Ray } from './math/Ray.js';
 export { Triangle } from './math/Triangle.js';
-export { Curve } from './math/Curve.js';
 export { Spherical } from './math/Spherical.js';
 
 export { TextureBase } from './texture/TextureBase.js';

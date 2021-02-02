@@ -104,7 +104,7 @@ var SSAOPass = (function() {
 
 		var code = size + "_" + offset;
 		if (!this._kernels[code]) {
-			this._kernels[code] = generateKernel(size, offset * size, true);
+			this._kernels[code] = generateKernel(size, offset * size);
 		}
 
 		this.material.defines["KERNEL_SIZE"] = size;
