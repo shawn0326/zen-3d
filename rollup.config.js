@@ -23,7 +23,7 @@ function glsl() {
 			var transformedCode = 'export default ' + JSON.stringify(
 				code
 					.trim()
-					.replace( /\r/g, '' )
+					.replace(/\r/g, '')
 					.replace(/[ \t]*\/\/.*\n/g, '') // remove //
 					.replace(/[ \t]*\/\*[\s\S]*?\*\//g, '') // remove /* */
 					.replace(/\n{2,}/g, '\n') // # \n+ to \n
@@ -51,7 +51,7 @@ function babelCleanup() {
 
 function header() {
 	return {
-		renderChunk( code ) {
+		renderChunk(code) {
 			return '// github.com/shawn0326/zen-3d\n' + code;
 		}
 	};

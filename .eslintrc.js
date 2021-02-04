@@ -1,8 +1,11 @@
 module.exports = {
-	parser: 'babel-eslint',
+	'env': {
+		'browser': true,
+		'node': true,
+		'es2020': true
+	},
 	'parserOptions': {
-		'sourceType': 'module',
-		'ecmaVersion': 2015
+		'sourceType': 'module'
 	},
 	'rules': {
 		// errors
