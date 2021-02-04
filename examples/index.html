@@ -264,7 +264,7 @@
 		function loadFile( file ) {
 
 			selectFile( file );
-			viewer.src = file + '.html';
+			viewer.src = file + '.html'; // lgtm [js/client-side-unvalidated-url-redirection]
 
 		}
 

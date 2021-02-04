@@ -46,20 +46,20 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@babel/core": "^7.12.13",
+    "@babel/preset-env": "^7.12.13",
+    "@rollup/plugin-babel": "^5.2.3",
     "acorn": "^8.0.5",
     "eslint": "^7.19.0",
     "jsdoc": "^3.6.6",
     "live-server": "^1.2.1",
-    "rollup": "^2.38.1",
-    "rollup-plugin-buble": "^0.19.8",
-    "uglify-js": "^3.12.5"
+    "rollup": "^2.38.4",
+    "rollup-plugin-terser": "^7.0.2"
   },
   "scripts": {
     "default": "rollup -c",
     "b": "rollup -c",
     "build": "rollup -c",
-    "uglify": "uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
-    "build-uglify": "rollup -c && uglifyjs build/zen3d.js -c -m -b beautify=false,preamble=\"'// github.com/shawn0326/zen-3d'\" -o build/zen3d.min.js",
     "doc": "jsdoc ./src/core -r -d ./docs -c ./tools/doc.config.json",
     "eslint": "eslint src/core",
     "eslint-fix": "eslint src/core --fix",
