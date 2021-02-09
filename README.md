@@ -6,8 +6,10 @@ zen-3d
 [![NPM Downloads][npm-downloads]][npmtrends-url]
 [![License][license-badge]][license-badge-url]
 [![Issues][issues-badge]][issues-badge-url]
-[![Dev Dependencies][dev-dependencies]][dev-dependencies-url]
-[![Language Grade][lgtm]][lgtm-url]
+
+[![devDependencies Status](https://status.david-dm.org/gh/shawn0326/zen-3d.svg?type=dev)](https://david-dm.org/shawn0326/zen-3d?type=dev)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/shawn0326/zen-3d.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shawn0326/zen-3d/context:javascript)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/shawn0326/zen-3d.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shawn0326/zen-3d/alerts/)
 
 ### JavaScript 3D library ###
 
@@ -18,19 +20,9 @@ The aim of the project is to create an easy to use, lightweight, 3D/2D library. 
 [Documentation](https://shawn0326.github.io/zen-3d/docs/) &mdash;
 [Tests](https://shawn0326.github.io/zen-3d/tests/)
 
-[![image](./examples/resources/screenshot/screenshot1.png)](https://shawn0326.github.io/zen-3d/examples/#material_cubetexture_realtimeenvmap)
-[![image](./examples/resources/screenshot/screenshot0.png)](https://shawn0326.github.io/zen-3d/examples/#geometry_loader_gltf)
-[![image](./examples/resources/screenshot/screenshot3.png)](https://shawn0326.github.io/zen-3d/examples/#canvas2d_canvas2d)
-[![image](./examples/resources/screenshot/screenshot4.png)](https://shawn0326.github.io/zen-3d/examples/#stereo_webvr_car)
-<br />
-[![image](./examples/resources/screenshot/screenshot5.png)](https://shawn0326.github.io/zen-3d/examples/#animation_monster)
-[![image](./examples/resources/screenshot/screenshot6.png)](https://shawn0326.github.io/zen-3d/examples/#sprite_sprites)
-[![image](./examples/resources/screenshot/screenshot7.png)](https://shawn0326.github.io/zen-3d/examples/#material_shadermaterial)
-[![image](./examples/resources/screenshot/screenshot8.png)](https://shawn0326.github.io/zen-3d/examples/#particle_particle)
-
 ### Usage ###
 
-you can use `zen3d.js` or `zen3d.min.js` in your page simply by this:
+Use `zen3d.js` or `zen3d.min.js` in your page:
 
 ````html
 <script src="zen3d.min.js"></script>
@@ -98,22 +90,7 @@ function loop(count) {
 	glCore.render(scene, camera);
 }
 requestAnimationFrame(loop);
-
-function onWindowResize() {
-    width = window.innerWidth || 2;
-    height = window.innerHeight || 2;
-
-	camera.setPerspective(45 / 180 * Math.PI, width / height, 1, 1000);
-
-    backRenderTarget.resize(width, height);
-}
-window.addEventListener("resize", onWindowResize, false);
 ````
-
-### 3D Format Support ###
-
-[GLTF](https://github.com/KhronosGroup/glTF) /
-[assimp2json](https://github.com/acgessler/assimp2json)
 
 ### WebGL2 Support ###
 
@@ -147,7 +124,3 @@ window.addEventListener("resize", onWindowResize, false);
 [license-badge-url]: ./LICENSE
 [issues-badge]: https://img.shields.io/github/issues/shawn0326/zen-3d.svg
 [issues-badge-url]: https://github.com/shawn0326/zen-3d/issues
-[dev-dependencies]: https://img.shields.io/david/dev/shawn0326/zen-3d
-[dev-dependencies-url]: https://david-dm.org/shawn0326/zen-3d#info=devDependencies
-[lgtm]: https://img.shields.io/lgtm/alerts/github/shawn0326/zen-3d
-[lgtm-url]: https://lgtm.com/projects/g/shawn0326/zen-3d/
