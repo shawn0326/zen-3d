@@ -12731,6 +12731,20 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 			// update uniforms
 			var uniforms = program.uniforms;
+
+			// upload light uniforms
+			// shadow map need upload first ?
+			// or it will cause bug
+			if (material.acceptLight && scene.lights) {
+				this.uploadLights(uniforms, scene.lights, scene.disableShadowSampler);
+			}
+
+			// upload bone matrices
+			if (object.type === OBJECT_TYPE.SKINNED_MESH) {
+				this.uploadSkeleton(uniforms, object, program.program);
+			}
+
+			// upload other uniforms
 			for (var n = 0, ll = uniforms.seq.length; n < ll; n++) {
 				var uniform = uniforms.seq[n];
 				var key = uniform.id;
@@ -12888,15 +12902,6 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					material.alphaMap.updateMatrix();
 					uniform.set(material.alphaMap.matrix.elements);
 				}
-			}
-
-			// boneMatrices
-			if (object.type === OBJECT_TYPE.SKINNED_MESH) {
-				this.uploadSkeleton(uniforms, object, program.program);
-			}
-
-			if (material.acceptLight && scene.lights) {
-				this.uploadLights(uniforms, scene.lights, scene.disableShadowSampler);
 			}
 
 			var frontFaceCW = object.worldMatrix.determinant() < 0;
