@@ -79,7 +79,7 @@
 
 		var geometry = new zen3d.CubeGeometry(3, 3, 3);
 		var instancedGeometry = createInstancedGeoemtry(geometry);
-		instancedGeometry.maxInstancedCount = instances;
+		instancedGeometry.instanceCount = instances;
 
 		var instancedMesh = new zen3d.Mesh(instancedGeometry, shaderMaterial);
 		instancedMesh.frustumCulled = false;
@@ -143,7 +143,7 @@
 
 		var gui = new dat.GUI({ width: 350 });
 		gui.add({ version: "WebGL " + renderer.glCore.capabilities.version }, "version");
-		gui.add(instancedGeometry, 'maxInstancedCount', 0, instances);
+		gui.add(instancedGeometry, 'instanceCount', 0, instances);
 
 		var lastTime = 0;
 

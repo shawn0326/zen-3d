@@ -78,6 +78,9 @@ export class WebGLVertexArrayBindings {
 		var properties = this._properties;
 		var capabilities = this._capabilities;
 
+		var geometryProperties = properties.get(geometry);
+		geometryProperties._maxInstancedCount = Infinity;
+
 		for (var key in attributes) {
 			var programAttribute = attributes[key];
 			var geometryAttribute = geometry.getAttribute(key);
@@ -117,9 +120,7 @@ export class WebGLVertexArrayBindings {
 							console.warn("vertexAttribDivisor not supported");
 						}
 
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = data.meshPerAttribute * data.count;
-						}
+						geometryProperties._maxInstancedCount = Math.min(geometryProperties._maxInstancedCount, data.meshPerAttribute * data.count);
 					}
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -136,9 +137,7 @@ export class WebGLVertexArrayBindings {
 							console.warn("vertexAttribDivisor not supported");
 						}
 
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count;
-						}
+						geometryProperties._maxInstancedCount = Math.min(geometryProperties._maxInstancedCount, geometryAttribute.meshPerAttribute * geometryAttribute.count);
 					}
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);

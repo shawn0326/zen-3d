@@ -7784,9 +7784,10 @@ function InstancedGeometry() {
 	Geometry.call(this);
 
 	/**
-     * @type {Integer|undefined}
+     * @type {Integer}
+     * @default Infinity
      */
-	this.maxInstancedCount = undefined;
+	this.instanceCount = Infinity;
 }
 
 InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /** @lends zen3d.InstancedGeometry.prototype */{
@@ -7800,6 +7801,19 @@ InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /
      */
 	isInstancedGeometry: true
 
+});
+
+Object.defineProperties(InstancedGeometry.prototype, {
+	maxInstancedCount: {
+		get: function () {
+			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+			return this.instanceCount;
+		},
+		set: function (value) {
+			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+			this.instanceCount = value;
+		}
+	}
 });
 
 /**
@@ -12424,6 +12438,9 @@ class WebGLVertexArrayBindings {
 		var properties = this._properties;
 		var capabilities = this._capabilities;
 
+		var geometryProperties = properties.get(geometry);
+		geometryProperties._maxInstancedCount = Infinity;
+
 		for (var key in attributes) {
 			var programAttribute = attributes[key];
 			var geometryAttribute = geometry.getAttribute(key);
@@ -12461,9 +12478,7 @@ class WebGLVertexArrayBindings {
 							console.warn("vertexAttribDivisor not supported");
 						}
 
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = data.meshPerAttribute * data.count;
-						}
+						geometryProperties._maxInstancedCount = Math.min(geometryProperties._maxInstancedCount, data.meshPerAttribute * data.count);
 					}
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -12480,9 +12495,7 @@ class WebGLVertexArrayBindings {
 							console.warn("vertexAttribDivisor not supported");
 						}
 
-						if (geometry.maxInstancedCount === undefined) {
-							geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count;
-						}
+						geometryProperties._maxInstancedCount = Math.min(geometryProperties._maxInstancedCount, geometryAttribute.meshPerAttribute * geometryAttribute.count);
 					}
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -13013,11 +13026,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			}
 
 			if (geometry.isInstancedGeometry) {
-				if (geometry.maxInstancedCount > 0) {
+				var instanceCount = Math.min(properties.get(geometry)._maxInstancedCount, geometry.instanceCount);
+				if (instanceCount > 0) {
 					if (capabilities.version >= 2) {
-						gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+						gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, instanceCount);
 					} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-						capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+						capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, instanceCount);
 					} else {
 						console.warn("no support instanced draw.");
 					}
@@ -13027,11 +13041,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			}
 		} else {
 			if (geometry.isInstancedGeometry) {
-				if (geometry.maxInstancedCount > 0) {
+				var instanceCount = Math.min(properties.get(geometry)._maxInstancedCount, geometry.instanceCount);
+				if (instanceCount > 0) {
 					if (capabilities.version >= 2) {
-						gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+						gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, instanceCount);
 					} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-						capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+						capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, instanceCount);
 					} else {
 						console.warn("no support instanced draw.");
 					}

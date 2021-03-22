@@ -529,11 +529,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			}
 
 			if (geometry.isInstancedGeometry) {
-				if (geometry.maxInstancedCount > 0) {
+				var instanceCount = Math.min(properties.get(geometry)._maxInstancedCount, geometry.instanceCount);
+				if (instanceCount > 0) {
 					if (capabilities.version >= 2) {
-						gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+						gl.drawElementsInstanced(material.drawMode, drawCount, type, drawStart * bytesPerElement, instanceCount);
 					} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-						capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, geometry.maxInstancedCount);
+						capabilities.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(material.drawMode, drawCount, type, drawStart * bytesPerElement, instanceCount);
 					} else {
 						console.warn("no support instanced draw.");
 					}
@@ -543,11 +544,12 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 			}
 		} else {
 			if (geometry.isInstancedGeometry) {
-				if (geometry.maxInstancedCount > 0) {
+				var instanceCount = Math.min(properties.get(geometry)._maxInstancedCount, geometry.instanceCount);
+				if (instanceCount > 0) {
 					if (capabilities.version >= 2) {
-						gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+						gl.drawArraysInstanced(material.drawMode, drawStart, drawCount, instanceCount);
 					} else if (capabilities.getExtension('ANGLE_instanced_arrays')) {
-						capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, geometry.maxInstancedCount);
+						capabilities.getExtension('ANGLE_instanced_arrays').drawArraysInstancedANGLE(material.drawMode, drawStart, drawCount, instanceCount);
 					} else {
 						console.warn("no support instanced draw.");
 					}

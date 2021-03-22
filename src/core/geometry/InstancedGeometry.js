@@ -10,9 +10,10 @@ function InstancedGeometry() {
 	Geometry.call(this);
 
 	/**
-     * @type {Integer|undefined}
+     * @type {Integer}
+     * @default Infinity
      */
-	this.maxInstancedCount = undefined;
+	this.instanceCount = Infinity;
 }
 
 InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /** @lends zen3d.InstancedGeometry.prototype */{
@@ -26,6 +27,19 @@ InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /
      */
 	isInstancedGeometry: true
 
+});
+
+Object.defineProperties(InstancedGeometry.prototype, {
+	maxInstancedCount: {
+		get: function () {
+			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+			return this.instanceCount;
+		},
+		set: function (value) {
+			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+			this.instanceCount = value;
+		}
+	}
 });
 
 export { InstancedGeometry };

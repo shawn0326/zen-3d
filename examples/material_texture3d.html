@@ -130,7 +130,7 @@
 		var PLANE_SIZE = 20;
 		var geometry = new zen3d.PlaneGeometry(PLANE_SIZE, PLANE_SIZE, 1, 1);
 		var instancedGeometry = createInstancedGeoemtry(geometry);
-		instancedGeometry.maxInstancedCount = SIZE;
+		instancedGeometry.instanceCount = SIZE;
 
 		var shaderMaterial = new zen3d.ShaderMaterial({
 			vertexShader: document.getElementById( 'vertexShader' ).textContent,
