@@ -1026,7 +1026,7 @@
 		}
 	});
 
-	var _vec3_1 = new Vector3();
+	var _vec3_1$4 = new Vector3();
 
 	var _diff = new Vector3();
 
@@ -1071,11 +1071,11 @@
 				* @method
 				*/
 		intersectsSphere: function intersectsSphere(sphere, optionalTarget) {
-			_vec3_1.subVectors(sphere.center, this.origin);
+			_vec3_1$4.subVectors(sphere.center, this.origin);
 
-			var tca = _vec3_1.dot(this.direction);
+			var tca = _vec3_1$4.dot(this.direction);
 
-			var d2 = _vec3_1.dot(_vec3_1) - tca * tca;
+			var d2 = _vec3_1$4.dot(_vec3_1$4) - tca * tca;
 			var radius2 = sphere.radius * sphere.radius;
 
 			if (d2 > radius2) {
@@ -1352,9 +1352,9 @@
 		}
 	});
 
-	var _vec3_1$1 = new Vector3();
+	var _vec3_1$3 = new Vector3();
 
-	var _mat4_1 = new Matrix4();
+	var _mat4_1$3 = new Matrix4();
 
 	var _x = new Vector3();
 
@@ -1588,7 +1588,7 @@
 				* @method
 				*/
 		transform: function transform(pos, scale, rot) {
-			var rotMatrix = rot.toMatrix4(_mat4_1);
+			var rotMatrix = rot.toMatrix4(_mat4_1$3);
 			var rele = rotMatrix.elements;
 			var ele = this.elements;
 			ele[0] = rele[0] * scale.x;
@@ -1660,11 +1660,11 @@
 			var te = this.elements;
 			var me = m.elements;
 
-			var scaleX = 1 / _vec3_1$1.setFromMatrixColumn(m, 0).getLength();
+			var scaleX = 1 / _vec3_1$3.setFromMatrixColumn(m, 0).getLength();
 
-			var scaleY = 1 / _vec3_1$1.setFromMatrixColumn(m, 1).getLength();
+			var scaleY = 1 / _vec3_1$3.setFromMatrixColumn(m, 1).getLength();
 
-			var scaleZ = 1 / _vec3_1$1.setFromMatrixColumn(m, 2).getLength();
+			var scaleZ = 1 / _vec3_1$3.setFromMatrixColumn(m, 2).getLength();
 
 			te[0] = me[0] * scaleX;
 			te[1] = me[1] * scaleX;
@@ -1737,11 +1737,11 @@
 		decompose: function decompose(position, quaternion, scale) {
 			var te = this.elements;
 
-			var sx = _vec3_1$1.set(te[0], te[1], te[2]).getLength();
+			var sx = _vec3_1$3.set(te[0], te[1], te[2]).getLength();
 
-			var sy = _vec3_1$1.set(te[4], te[5], te[6]).getLength();
+			var sy = _vec3_1$3.set(te[4], te[5], te[6]).getLength();
 
-			var sz = _vec3_1$1.set(te[8], te[9], te[10]).getLength(); // if determine is negative, we need to invert one scale
+			var sz = _vec3_1$3.set(te[8], te[9], te[10]).getLength(); // if determine is negative, we need to invert one scale
 
 
 			var det = this.determinant();
@@ -1754,21 +1754,21 @@
 			position.y = te[13];
 			position.z = te[14]; // scale the rotation part
 
-			_mat4_1.copy(this);
+			_mat4_1$3.copy(this);
 
 			var invSX = 1 / sx;
 			var invSY = 1 / sy;
 			var invSZ = 1 / sz;
-			_mat4_1.elements[0] *= invSX;
-			_mat4_1.elements[1] *= invSX;
-			_mat4_1.elements[2] *= invSX;
-			_mat4_1.elements[4] *= invSY;
-			_mat4_1.elements[5] *= invSY;
-			_mat4_1.elements[6] *= invSY;
-			_mat4_1.elements[8] *= invSZ;
-			_mat4_1.elements[9] *= invSZ;
-			_mat4_1.elements[10] *= invSZ;
-			quaternion.setFromRotationMatrix(_mat4_1);
+			_mat4_1$3.elements[0] *= invSX;
+			_mat4_1$3.elements[1] *= invSX;
+			_mat4_1$3.elements[2] *= invSX;
+			_mat4_1$3.elements[4] *= invSY;
+			_mat4_1$3.elements[5] *= invSY;
+			_mat4_1$3.elements[6] *= invSY;
+			_mat4_1$3.elements[8] *= invSZ;
+			_mat4_1$3.elements[9] *= invSZ;
+			_mat4_1$3.elements[10] *= invSZ;
+			quaternion.setFromRotationMatrix(_mat4_1$3);
 			scale.x = sx;
 			scale.y = sy;
 			scale.z = sz;
@@ -3394,9 +3394,9 @@
 		}
 	});
 
-	var _vec3_1$3 = new Vector3();
+	var _vec3_1$1 = new Vector3();
 
-	var _mat4_1$1 = new Matrix3();
+	var _mat4_1$2 = new Matrix3();
 	/**
 	 * @constructor
 	 * @memberof zen3d
@@ -3479,16 +3479,16 @@
 				* @method
 				*/
 		applyMatrix4: function applyMatrix4(matrix, optionalNormalMatrix) {
-			var normalMatrix = optionalNormalMatrix || _mat4_1$1.setFromMatrix4(matrix).inverse().transpose();
+			var normalMatrix = optionalNormalMatrix || _mat4_1$2.setFromMatrix4(matrix).inverse().transpose();
 
-			var referencePoint = this.coplanarPoint(_vec3_1$3).applyMatrix4(matrix);
+			var referencePoint = this.coplanarPoint(_vec3_1$1).applyMatrix4(matrix);
 			var normal = this.normal.applyMatrix3(normalMatrix).normalize();
 			this.constant = -referencePoint.dot(normal);
 			return this;
 		}
 	});
 
-	var _vec3_1$4 = new Vector3();
+	var _vec3_1 = new Vector3();
 	/**
 	 * @constructor
 	 * @memberof zen3d
@@ -3566,11 +3566,11 @@
 			for (var i = 0; i < 6; i++) {
 				var plane = planes[i]; // corner at max distance
 
-				_vec3_1$4.x = plane.normal.x > 0 ? box.max.x : box.min.x;
-				_vec3_1$4.y = plane.normal.y > 0 ? box.max.y : box.min.y;
-				_vec3_1$4.z = plane.normal.z > 0 ? box.max.z : box.min.z; // if both outside plane, no intersection
+				_vec3_1.x = plane.normal.x > 0 ? box.max.x : box.min.x;
+				_vec3_1.y = plane.normal.y > 0 ? box.max.y : box.min.y;
+				_vec3_1.z = plane.normal.z > 0 ? box.max.z : box.min.z; // if both outside plane, no intersection
 
-				if (plane.distanceToPoint(_vec3_1$4) < 0) {
+				if (plane.distanceToPoint(_vec3_1) < 0) {
 					return false;
 				}
 			}
@@ -5572,7 +5572,7 @@
 
 	var _object3DId = 0;
 
-	var _mat4_1$2 = new Matrix4();
+	var _mat4_1$1 = new Matrix4();
 	/**
 	 * This is the base class for most objects in zen3d
 	 * and provides a set of properties and methods for manipulating objects in 3D space.
@@ -5874,9 +5874,9 @@
 				* @param {Vector3} up — A vector representing the up direction in local space.
 				*/
 		lookAt: function lookAt(target, up) {
-			_mat4_1$2.lookAtRH(target, this.position, up);
+			_mat4_1$1.lookAtRH(target, this.position, up);
 
-			this.quaternion.setFromRotationMatrix(_mat4_1$2);
+			this.quaternion.setFromRotationMatrix(_mat4_1$1);
 		},
 
 		/**
@@ -9506,7 +9506,7 @@
 		return WEBGL_TEXTURE_FILTER.LINEAR;
 	}
 
-	function _isPowerOfTwo(image) {
+	function _isPowerOfTwo$1(image) {
 		return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
 	}
 
@@ -9603,12 +9603,12 @@
 				if (isElement) {
 					image = clampToMaxSize(image, capabilities.maxTextureSize);
 
-					if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
+					if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo$1(image) === false && capabilities.version < 2) {
 						image = makePowerOf2(image);
 					}
 				}
 
-				var needFallback = !_isPowerOfTwo(image) && capabilities.version < 2;
+				var needFallback = !_isPowerOfTwo$1(image) && capabilities.version < 2;
 				gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
 				this.setTextureParameters(texture, needFallback);
 				var mipmap,
@@ -9748,12 +9748,12 @@
 					if (isElement) {
 						image = clampToMaxSize(image, capabilities.maxTextureSize);
 
-						if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
+						if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo$1(image) === false && capabilities.version < 2) {
 							image = makePowerOf2(image);
 						}
 					}
 
-					if (!_isPowerOfTwo(image) && capabilities.version < 2) {
+					if (!_isPowerOfTwo$1(image) && capabilities.version < 2) {
 						needFallback = true;
 					}
 
@@ -11324,7 +11324,7 @@
 		}
 	});
 
-	function _isPowerOfTwo$1(image) {
+	function _isPowerOfTwo(image) {
 		return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
 	}
 
@@ -11515,7 +11515,7 @@
 			var state = this.state;
 			var texture = renderTarget.texture;
 
-			if (texture.generateMipmaps && _isPowerOfTwo$1(renderTarget) && texture.minFilter !== gl.NEAREST && texture.minFilter !== gl.LINEAR) {
+			if (texture.generateMipmaps && _isPowerOfTwo(renderTarget) && texture.minFilter !== gl.NEAREST && texture.minFilter !== gl.LINEAR) {
 				var target = texture.textureType;
 
 				var webglTexture = this.properties.get(texture).__webglTexture;
@@ -11760,7 +11760,7 @@
 		return WebGLVertexArrayBindings;
 	}();
 
-	var helpVector3 = new Vector3();
+	var helpVector3$2 = new Vector3();
 	var helpVector4 = new Vector4();
 	var influencesList = new WeakMap();
 	var morphInfluences = new Float32Array(8);
@@ -12114,8 +12114,8 @@
 							break;
 
 						case "u_CameraPosition":
-							helpVector3.setFromMatrixPosition(camera.worldMatrix);
-							uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+							helpVector3$2.setFromMatrixPosition(camera.worldMatrix);
+							uniform.setValue(helpVector3$2.x, helpVector3$2.y, helpVector3$2.z);
 							break;
 
 						case "u_FogColor":
@@ -12465,7 +12465,7 @@
 		}
 	});
 
-	var _mat4_1$3 = new Matrix4();
+	var _mat4_1 = new Matrix4();
 	/**
 	 * The camera used for rendering a 3D scene.
 	 * @memberof zen3d
@@ -12545,9 +12545,9 @@
 				* @param {zen3d.Vector3} up - The up direction of the camera.
 				*/
 		lookAt: function lookAt(target, up) {
-			_mat4_1$3.lookAtRH(this.position, target, up);
+			_mat4_1.lookAtRH(this.position, target, up);
 
-			this.quaternion.setFromRotationMatrix(_mat4_1$3);
+			this.quaternion.setFromRotationMatrix(_mat4_1);
 		},
 
 		/**
@@ -12584,10 +12584,10 @@
 			Object3D.prototype.updateMatrix.call(this, force);
 			this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
 
-			_mat4_1$3.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+			_mat4_1.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
 
 
-			this.frustum.setFromMatrix(_mat4_1$3); // update frustum
+			this.frustum.setFromMatrix(_mat4_1); // update frustum
 		},
 		copy: function copy(source, recursive) {
 			Object3D.prototype.copy.call(this, source, recursive);
@@ -13389,7 +13389,7 @@
 		}
 	});
 
-	var helpVector3$2 = new Vector3();
+	var helpVector3 = new Vector3();
 	var helpSphere = new Sphere();
 
 	var sortFrontToBack = function sortFrontToBack(a, b) {
@@ -13475,8 +13475,8 @@
 			} // calculate z
 
 
-			helpVector3$2.setFromMatrixPosition(object.worldMatrix);
-			helpVector3$2.project(camera);
+			helpVector3.setFromMatrixPosition(object.worldMatrix);
+			helpVector3.project(camera);
 
 			if (Array.isArray(object.material)) {
 				var groups = object.geometry.groups;
@@ -13486,11 +13486,11 @@
 					var groupMaterial = object.material[group.materialIndex];
 
 					if (groupMaterial) {
-						_doAdd(object, object.geometry, groupMaterial, helpVector3$2.z, group);
+						_doAdd(object, object.geometry, groupMaterial, helpVector3.z, group);
 					}
 				}
 			} else {
-				_doAdd(object, object.geometry, object.material, helpVector3$2.z);
+				_doAdd(object, object.geometry, object.material, helpVector3.z);
 			}
 		}
 

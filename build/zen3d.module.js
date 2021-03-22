@@ -1048,7 +1048,7 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
 
 });
 
-var _vec3_1 = new Vector3();
+var _vec3_1$4 = new Vector3();
 
 var _diff = new Vector3();
 var _edge1 = new Vector3();
@@ -1089,9 +1089,9 @@ Object.assign(Ray.prototype, /** @lends zen3d.Ray.prototype */{
      * @method
      */
 	intersectsSphere: function(sphere, optionalTarget) {
-		_vec3_1.subVectors(sphere.center, this.origin);
-		var tca = _vec3_1.dot(this.direction);
-		var d2 = _vec3_1.dot(_vec3_1) - tca * tca;
+		_vec3_1$4.subVectors(sphere.center, this.origin);
+		var tca = _vec3_1$4.dot(this.direction);
+		var d2 = _vec3_1$4.dot(_vec3_1$4) - tca * tca;
 		var radius2 = sphere.radius * sphere.radius;
 		if (d2 > radius2) {
 			return null;
@@ -1382,8 +1382,8 @@ Object.assign(Raycaster.prototype, /** @lends zen3d.Raycaster.prototype */{
 
 });
 
-var _vec3_1$1 = new Vector3();
-var _mat4_1 = new Matrix4();
+var _vec3_1$3 = new Vector3();
+var _mat4_1$3 = new Matrix4();
 
 var _x = new Vector3();
 var _y = new Vector3();
@@ -1654,7 +1654,7 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
      * @method
      */
 	transform: function(pos, scale, rot) {
-		var rotMatrix = rot.toMatrix4(_mat4_1);
+		var rotMatrix = rot.toMatrix4(_mat4_1$3);
 
 		var rele = rotMatrix.elements;
 		var ele = this.elements;
@@ -1740,9 +1740,9 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 		var te = this.elements;
 		var me = m.elements;
 
-		var scaleX = 1 / _vec3_1$1.setFromMatrixColumn(m, 0).getLength();
-		var scaleY = 1 / _vec3_1$1.setFromMatrixColumn(m, 1).getLength();
-		var scaleZ = 1 / _vec3_1$1.setFromMatrixColumn(m, 2).getLength();
+		var scaleX = 1 / _vec3_1$3.setFromMatrixColumn(m, 0).getLength();
+		var scaleY = 1 / _vec3_1$3.setFromMatrixColumn(m, 1).getLength();
+		var scaleZ = 1 / _vec3_1$3.setFromMatrixColumn(m, 2).getLength();
 
 		te[0] = me[0] * scaleX;
 		te[1] = me[1] * scaleX;
@@ -1813,9 +1813,9 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 	decompose: function(position, quaternion, scale) {
 		var te = this.elements;
 
-		var sx = _vec3_1$1.set(te[0], te[1], te[2]).getLength();
-		var sy = _vec3_1$1.set(te[4], te[5], te[6]).getLength();
-		var sz = _vec3_1$1.set(te[8], te[9], te[10]).getLength();
+		var sx = _vec3_1$3.set(te[0], te[1], te[2]).getLength();
+		var sy = _vec3_1$3.set(te[4], te[5], te[6]).getLength();
+		var sz = _vec3_1$3.set(te[8], te[9], te[10]).getLength();
 
 		// if determine is negative, we need to invert one scale
 		var det = this.determinant();
@@ -1828,25 +1828,25 @@ Object.assign(Matrix4.prototype, /** @lends zen3d.Matrix4.prototype */{
 		position.z = te[14];
 
 		// scale the rotation part
-		_mat4_1.copy(this);
+		_mat4_1$3.copy(this);
 
 		var invSX = 1 / sx;
 		var invSY = 1 / sy;
 		var invSZ = 1 / sz;
 
-		_mat4_1.elements[0] *= invSX;
-		_mat4_1.elements[1] *= invSX;
-		_mat4_1.elements[2] *= invSX;
+		_mat4_1$3.elements[0] *= invSX;
+		_mat4_1$3.elements[1] *= invSX;
+		_mat4_1$3.elements[2] *= invSX;
 
-		_mat4_1.elements[4] *= invSY;
-		_mat4_1.elements[5] *= invSY;
-		_mat4_1.elements[6] *= invSY;
+		_mat4_1$3.elements[4] *= invSY;
+		_mat4_1$3.elements[5] *= invSY;
+		_mat4_1$3.elements[6] *= invSY;
 
-		_mat4_1.elements[8] *= invSZ;
-		_mat4_1.elements[9] *= invSZ;
-		_mat4_1.elements[10] *= invSZ;
+		_mat4_1$3.elements[8] *= invSZ;
+		_mat4_1$3.elements[9] *= invSZ;
+		_mat4_1$3.elements[10] *= invSZ;
 
-		quaternion.setFromRotationMatrix(_mat4_1);
+		quaternion.setFromRotationMatrix(_mat4_1$3);
 
 		scale.x = sx;
 		scale.y = sy;
@@ -3610,8 +3610,8 @@ Object.assign(Sphere.prototype, /** @lends zen3d.Sphere.prototype */{
 
 });
 
-var _vec3_1$3 = new Vector3();
-var _mat4_1$1 = new Matrix3();
+var _vec3_1$1 = new Vector3();
+var _mat4_1$2 = new Matrix3();
 
 /**
  * @constructor
@@ -3698,9 +3698,9 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
      * @method
      */
 	applyMatrix4: function(matrix, optionalNormalMatrix) {
-		var normalMatrix = optionalNormalMatrix || _mat4_1$1.setFromMatrix4(matrix).inverse().transpose();
+		var normalMatrix = optionalNormalMatrix || _mat4_1$2.setFromMatrix4(matrix).inverse().transpose();
 
-		var referencePoint = this.coplanarPoint(_vec3_1$3).applyMatrix4(matrix);
+		var referencePoint = this.coplanarPoint(_vec3_1$1).applyMatrix4(matrix);
 
 		var normal = this.normal.applyMatrix3(normalMatrix).normalize();
 
@@ -3711,7 +3711,7 @@ Object.assign(Plane.prototype, /** @lends zen3d.Plane.prototype */{
 
 });
 
-var _vec3_1$4 = new Vector3();
+var _vec3_1 = new Vector3();
 
 /**
  * @constructor
@@ -3803,13 +3803,13 @@ Object.assign(Frustum.prototype, /** @lends zen3d.Frustum.prototype */{
 
 			// corner at max distance
 
-			_vec3_1$4.x = plane.normal.x > 0 ? box.max.x : box.min.x;
-			_vec3_1$4.y = plane.normal.y > 0 ? box.max.y : box.min.y;
-			_vec3_1$4.z = plane.normal.z > 0 ? box.max.z : box.min.z;
+			_vec3_1.x = plane.normal.x > 0 ? box.max.x : box.min.x;
+			_vec3_1.y = plane.normal.y > 0 ? box.max.y : box.min.y;
+			_vec3_1.z = plane.normal.z > 0 ? box.max.z : box.min.z;
 
 			// if both outside plane, no intersection
 
-			if (plane.distanceToPoint(_vec3_1$4) < 0) {
+			if (plane.distanceToPoint(_vec3_1) < 0) {
 				return false;
 			}
 		}
@@ -5782,7 +5782,7 @@ Texture3D.prototype = Object.assign(Object.create(TextureBase.prototype), /** @l
 
 var _object3DId = 0;
 
-var _mat4_1$2 = new Matrix4();
+var _mat4_1$1 = new Matrix4();
 
 /**
  * This is the base class for most objects in zen3d
@@ -6081,8 +6081,8 @@ Object.assign(Object3D.prototype, /** @lends zen3d.Object3D.prototype */{
      * @param {Vector3} up — A vector representing the up direction in local space.
      */
 	lookAt: function(target, up) {
-		_mat4_1$2.lookAtRH(target, this.position, up);
-		this.quaternion.setFromRotationMatrix(_mat4_1$2);
+		_mat4_1$1.lookAtRH(target, this.position, up);
+		this.quaternion.setFromRotationMatrix(_mat4_1$1);
 	},
 
 	/**
@@ -10018,7 +10018,7 @@ function filterFallback(filter) {
 	return WEBGL_TEXTURE_FILTER.LINEAR;
 }
 
-function _isPowerOfTwo(image) {
+function _isPowerOfTwo$1(image) {
 	return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
 }
 
@@ -10135,12 +10135,12 @@ Object.assign(WebGLTexture.prototype, {
 			if (isElement) {
 				image = clampToMaxSize(image, capabilities.maxTextureSize);
 
-				if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
+				if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo$1(image) === false && capabilities.version < 2) {
 					image = makePowerOf2(image);
 				}
 			}
 
-			var needFallback = !_isPowerOfTwo(image) && capabilities.version < 2;
+			var needFallback = !_isPowerOfTwo$1(image) && capabilities.version < 2;
 
 			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
 			this.setTextureParameters(texture, needFallback);
@@ -10285,12 +10285,12 @@ Object.assign(WebGLTexture.prototype, {
 				if (isElement) {
 					image = clampToMaxSize(image, capabilities.maxTextureSize);
 
-					if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo(image) === false && capabilities.version < 2) {
+					if (textureNeedsPowerOfTwo(texture) && _isPowerOfTwo$1(image) === false && capabilities.version < 2) {
 						image = makePowerOf2(image);
 					}
 				}
 
-				if (!_isPowerOfTwo(image) && capabilities.version < 2) {
+				if (!_isPowerOfTwo$1(image) && capabilities.version < 2) {
 					needFallback = true;
 				}
 
@@ -12061,7 +12061,7 @@ Object.assign(WebGLRenderBuffer.prototype, {
 
 });
 
-function _isPowerOfTwo$1(image) {
+function _isPowerOfTwo(image) {
 	return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
 }
 
@@ -12269,7 +12269,7 @@ Object.assign(WebGLRenderTarget.prototype, {
 		var state = this.state;
 		var texture = renderTarget.texture;
 
-		if (texture.generateMipmaps && _isPowerOfTwo$1(renderTarget) &&
+		if (texture.generateMipmaps && _isPowerOfTwo(renderTarget) &&
             texture.minFilter !== gl.NEAREST &&
             texture.minFilter !== gl.LINEAR) {
 			var target = texture.textureType;
@@ -12500,7 +12500,7 @@ class WebGLVertexArrayBindings {
 
 }
 
-var helpVector3 = new Vector3();
+var helpVector3$2 = new Vector3();
 var helpVector4 = new Vector4();
 
 var influencesList = new WeakMap();
@@ -12847,8 +12847,8 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 					uniform.set(material.emissiveMap, this);
 					break;
 				case "u_CameraPosition":
-					helpVector3.setFromMatrixPosition(camera.worldMatrix);
-					uniform.setValue(helpVector3.x, helpVector3.y, helpVector3.z);
+					helpVector3$2.setFromMatrixPosition(camera.worldMatrix);
+					uniform.setValue(helpVector3$2.x, helpVector3$2.y, helpVector3$2.z);
 					break;
 				case "u_FogColor":
 					var color = scene.fog.color;
@@ -13220,7 +13220,7 @@ Object.assign(WebGLCore.prototype, /** @lends zen3d.WebGLCore.prototype */{
 
 });
 
-var _mat4_1$3 = new Matrix4();
+var _mat4_1 = new Matrix4();
 
 /**
  * The camera used for rendering a 3D scene.
@@ -13299,8 +13299,8 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
      * @param {zen3d.Vector3} up - The up direction of the camera.
      */
 	lookAt: function(target, up) {
-		_mat4_1$3.lookAtRH(this.position, target, up);
-		this.quaternion.setFromRotationMatrix(_mat4_1$3);
+		_mat4_1.lookAtRH(this.position, target, up);
+		this.quaternion.setFromRotationMatrix(_mat4_1);
 	},
 
 	/**
@@ -13350,8 +13350,8 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 		this.viewMatrix.getInverse(this.worldMatrix); // update view matrix
 
-		_mat4_1$3.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
-		this.frustum.setFromMatrix(_mat4_1$3); // update frustum
+		_mat4_1.multiplyMatrices(this.projectionMatrix, this.viewMatrix); // get PV matrix
+		this.frustum.setFromMatrix(_mat4_1); // update frustum
 	},
 
 	copy: function (source, recursive) {
@@ -14202,7 +14202,7 @@ Object.assign(LightCache.prototype, {
 
 });
 
-var helpVector3$2 = new Vector3();
+var helpVector3 = new Vector3();
 var helpSphere = new Sphere();
 
 var sortFrontToBack = function(a, b) {
@@ -14285,8 +14285,8 @@ function RenderList() {
 		}
 
 		// calculate z
-		helpVector3$2.setFromMatrixPosition(object.worldMatrix);
-		helpVector3$2.project(camera);
+		helpVector3.setFromMatrixPosition(object.worldMatrix);
+		helpVector3.project(camera);
 
 		if (Array.isArray(object.material)) {
 			var groups = object.geometry.groups;
@@ -14295,11 +14295,11 @@ function RenderList() {
 				var group = groups[i];
 				var groupMaterial = object.material[group.materialIndex];
 				if (groupMaterial) {
-					_doAdd(object, object.geometry, groupMaterial, helpVector3$2.z, group);
+					_doAdd(object, object.geometry, groupMaterial, helpVector3.z, group);
 				}
 			}
 		} else {
-			_doAdd(object, object.geometry, object.material, helpVector3$2.z);
+			_doAdd(object, object.geometry, object.material, helpVector3.z);
 		}
 	}
 
