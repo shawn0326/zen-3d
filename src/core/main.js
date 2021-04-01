@@ -118,3 +118,5 @@ export { FileLoader } from './loader/FileLoader.js';
 export { ImageLoader } from './loader/ImageLoader.js';
 export { TGALoader } from './loader/TGALoader.js';
 export { RGBELoader } from './loader/RGBELoader.js';
+
+export * from './legacy.js';

@@ -528,6 +528,24 @@ var DRAW_BUFFER = {
 };
 
 /**
+ * Enum for BUFFER_USAGE
+ * @name zen3d.BUFFER_USAGE
+ * @readonly
+ * @enum {number}
+ */
+var BUFFER_USAGE = {
+	STREAM_DRAW: 35040,
+	STREAM_READ: 35041,
+	STREAM_COPY: 35042,
+	STATIC_DRAW: 35044,
+	STATIC_READ: 35045,
+	STATIC_COPY: 35046,
+	DYNAMIC_DRAW: 35048,
+	DYNAMIC_READ: 35049,
+	DYNAMIC_COPY: 35050
+};
+
+/**
  * JavaScript events for custom objects.
  * @memberof zen3d
  * @constructor
@@ -1040,10 +1058,6 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
      */
 	clone: function() {
 		return new Vector3(this.x, this.y, this.z);
-	},
-
-	applyProjection: function(m) {
-		console.error("zen3d.Vector3: .applyProjection has been removed. Use .applyMatrix4 instead.");
 	}
 
 });
@@ -6995,15 +7009,12 @@ function BufferAttribute(array, size, normalized) {
 	this.normalized = normalized === true;
 
 	/**
-     * Whether the buffer is dynamic or not.
-     * If false, the GPU is informed that contents of the buffer are likely to be used often and not change often.
-     * This corresponds to the gl.STATIC_DRAW flag.
-     * If true, the GPU is informed that contents of the buffer are likely to be used often and change often.
-     * This corresponds to the gl.DYNAMIC_DRAW flag.
-     * @type {boolean}
-     * @default false
-     */
-	this.dynamic = false;
+      * Defines the intended usage pattern of the data store for optimization purposes.
+      * Corresponds to the usage parameter of WebGLRenderingContext.bufferData().
+      * @type {zen3d.BUFFER_USAGE}
+      * @default zen3d.BUFFER_USAGE.STATIC_DRAW
+      */
+	this.usage = BUFFER_USAGE.STATIC_DRAW;
 
 	/**
      * Object containing:
@@ -7044,7 +7055,7 @@ Object.assign(BufferAttribute.prototype, /** @lends zen3d.BufferAttribute.protot
 		this.size = source.size;
 		this.count = source.count;
 		this.normalized = source.normalized;
-		this.dynamic = source.dynamic;
+		this.usage = source.usage;
 		return this;
 	},
 
@@ -7803,19 +7814,6 @@ InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /
 
 });
 
-Object.defineProperties(InstancedGeometry.prototype, {
-	maxInstancedCount: {
-		get: function () {
-			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
-			return this.instanceCount;
-		},
-		set: function (value) {
-			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
-			this.instanceCount = value;
-		}
-	}
-});
-
 /**
  * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
  * An introduction into interleaved arrays can be found here: {@link https://blog.tojicode.com/2011/05/interleaved-array-basics.html Interleaved array basics}.
@@ -7845,10 +7843,12 @@ function InterleavedBuffer(array, stride) {
 	this.count = array !== undefined ? array.length / stride : 0;
 
 	/**
-     * @type {boolean}
-     * @default false
-     */
-	this.dynamic = false;
+      * Defines the intended usage pattern of the data store for optimization purposes.
+      * Corresponds to the usage parameter of WebGLRenderingContext.bufferData().
+      * @type {zen3d.BUFFER_USAGE}
+      * @default zen3d.BUFFER_USAGE.STATIC_DRAW
+      */
+	this.usage = BUFFER_USAGE.STATIC_DRAW;
 
 	/**
      * Object containing offset and count.
@@ -10493,7 +10493,7 @@ Object.assign(WebGLTexture.prototype, {
 
 function createBuffer(gl, data, attribute, bufferType) {
 	var array = attribute.array;
-	var usage = attribute.dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW;
+	var usage = attribute.usage;
 
 	var buffer = gl.createBuffer();
 
@@ -10532,7 +10532,7 @@ function updateBuffer(gl, capabilities, buffer, attribute, bufferType) {
 
 	gl.bindBuffer(bufferType, buffer);
 
-	if (attribute.dynamic === false) {
+	if (attribute.usage === BUFFER_USAGE.STATIC_DRAW) {
 		gl.bufferData(bufferType, array, gl.STATIC_DRAW);
 	} else if (updateRange.count === -1) {
 		// Not using update ranges
@@ -13387,32 +13387,6 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 });
 
-Object.defineProperties(Camera.prototype, {
-	gammaInput: {
-		get: function() {
-			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
-			return false;
-		},
-		set: function(value) {
-			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
-		}
-	},
-	gammaOutput: {
-		get: function() {
-			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
-			return this.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
-		},
-		set: function(value) {
-			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
-			if (value) {
-				this.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
-			} else {
-				this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
-			}
-		}
-	}
-});
-
 /**
  * Render Target is the wrapping class of gl.framebuffer.
  * @constructor
@@ -15732,4 +15706,75 @@ SkinnedMesh.prototype = Object.assign(Object.create(Mesh.prototype), /** @lends 
 
 });
 
-export { ATTACHMENT, AmbientLight, AnimationMixer, BLEND_EQUATION, BLEND_FACTOR, BLEND_TYPE, BasicMaterial, Bone, BooleanKeyframeTrack, Box2, Box3, BufferAttribute, CULL_FACE_TYPE, Camera, Color3, ColorKeyframeTrack, CubeGeometry, CylinderGeometry, DRAW_BUFFER, DRAW_MODE, DRAW_SIDE, DefaultLoadingManager, DepthMaterial, DirectionalLight, DirectionalLightShadow, DistanceMaterial, ENVMAP_COMBINE_TYPE, EnvironmentMapPass, Euler, EventDispatcher, FOG_TYPE, FileLoader, Fog, FogExp2, Frustum, Geometry, Group, ImageLoader, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, KeyframeClip, KeyframeTrack, LIGHT_TYPE, LambertMaterial, Light, LightCache, LightShadow, LineMaterial, LoadingManager, MATERIAL_TYPE, MatcapMaterial, Material, Matrix3, Matrix4, Mesh, NumberKeyframeTrack, OBJECT_TYPE, Object3D, PBR2Material, PBRMaterial, PhongMaterial, Plane, PlaneGeometry, PointLight, PointLightShadow, PointsMaterial, PropertyBindingMixer, Quaternion, QuaternionKeyframeTrack, RGBELoader, Ray, Raycaster, RenderBuffer, RenderList, RenderTarget2D, RenderTargetBack, RenderTargetBase, RenderTargetCube, Renderer, SHADING_TYPE, SHADOW_TYPE, Scene, ShaderChunk, ShaderLib, ShaderMaterial, ShaderPostPass, ShadowMapPass, Skeleton, SkinnedMesh, Sphere, SphereGeometry, Spherical, SpotLight, SpotLightShadow, StringKeyframeTrack, TEXEL_ENCODING_TYPE, TGALoader, Texture2D, Texture3D, TextureBase, TextureCube, TorusKnotGeometry, Triangle, VERTEX_COLOR, Vector2, Vector3, Vector4, VectorKeyframeTrack, WEBGL_ATTRIBUTE_TYPE, WEBGL_COMPARE_FUNC, WEBGL_OP, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_TYPE, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, WebGLAttribute, WebGLCapabilities, WebGLCore, WebGLGeometry, WebGLProgram, WebGLPrograms, WebGLProperties, WebGLState, WebGLTexture, WebGLUniforms, cloneUniforms, generateUUID, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo };
+// export function emptyLegacy() {}
+
+Object.defineProperties(BufferAttribute.prototype, {
+	dynamic: {
+		get: function () {
+			console.warn('zen3d.BufferAttribute: .dynamic has been deprecated. Use .usage instead.');
+			return this.usage === BUFFER_USAGE.DYNAMIC_DRAW;
+		},
+		set: function (value) {
+			console.warn('zen3d.BufferAttribute: .dynamic has been deprecated. Use .usage instead.');
+			this.usage = value ? BUFFER_USAGE.DYNAMIC_DRAW : BUFFER_USAGE.STATIC_DRAW;
+		}
+	}
+});
+
+Object.defineProperties(InterleavedBuffer.prototype, {
+	dynamic: {
+		get: function () {
+			console.warn('zen3d.InterleavedBuffer: .dynamic has been deprecated. Use .usage instead.');
+			return this.usage === BUFFER_USAGE.DYNAMIC_DRAW;
+		},
+		set: function (value) {
+			console.warn('zen3d.InterleavedBuffer: .dynamic has been deprecated. Use .usage instead.');
+			this.usage = value ? BUFFER_USAGE.DYNAMIC_DRAW : BUFFER_USAGE.STATIC_DRAW;
+		}
+	}
+});
+
+Object.defineProperties(InstancedGeometry.prototype, {
+	maxInstancedCount: {
+		get: function () {
+			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+			return this.instanceCount;
+		},
+		set: function (value) {
+			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+			this.instanceCount = value;
+		}
+	}
+});
+
+Vector3.prototype.applyProjection = function(m) {
+	console.error("zen3d.Vector3: .applyProjection has been removed. Use .applyMatrix4 instead.");
+};
+
+Object.defineProperties(Camera.prototype, {
+	gammaInput: {
+		get: function() {
+			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+			return false;
+		},
+		set: function(value) {
+			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+		}
+	},
+	gammaOutput: {
+		get: function() {
+			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			return this.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
+		},
+		set: function(value) {
+			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+			if (value) {
+				this.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
+			} else {
+				this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
+			}
+		}
+	}
+});
+
+export { ATTACHMENT, AmbientLight, AnimationMixer, BLEND_EQUATION, BLEND_FACTOR, BLEND_TYPE, BUFFER_USAGE, BasicMaterial, Bone, BooleanKeyframeTrack, Box2, Box3, BufferAttribute, CULL_FACE_TYPE, Camera, Color3, ColorKeyframeTrack, CubeGeometry, CylinderGeometry, DRAW_BUFFER, DRAW_MODE, DRAW_SIDE, DefaultLoadingManager, DepthMaterial, DirectionalLight, DirectionalLightShadow, DistanceMaterial, ENVMAP_COMBINE_TYPE, EnvironmentMapPass, Euler, EventDispatcher, FOG_TYPE, FileLoader, Fog, FogExp2, Frustum, Geometry, Group, ImageLoader, InstancedBufferAttribute, InstancedGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, KeyframeClip, KeyframeTrack, LIGHT_TYPE, LambertMaterial, Light, LightCache, LightShadow, LineMaterial, LoadingManager, MATERIAL_TYPE, MatcapMaterial, Material, Matrix3, Matrix4, Mesh, NumberKeyframeTrack, OBJECT_TYPE, Object3D, PBR2Material, PBRMaterial, PhongMaterial, Plane, PlaneGeometry, PointLight, PointLightShadow, PointsMaterial, PropertyBindingMixer, Quaternion, QuaternionKeyframeTrack, RGBELoader, Ray, Raycaster, RenderBuffer, RenderList, RenderTarget2D, RenderTargetBack, RenderTargetBase, RenderTargetCube, Renderer, SHADING_TYPE, SHADOW_TYPE, Scene, ShaderChunk, ShaderLib, ShaderMaterial, ShaderPostPass, ShadowMapPass, Skeleton, SkinnedMesh, Sphere, SphereGeometry, Spherical, SpotLight, SpotLightShadow, StringKeyframeTrack, TEXEL_ENCODING_TYPE, TGALoader, Texture2D, Texture3D, TextureBase, TextureCube, TorusKnotGeometry, Triangle, VERTEX_COLOR, Vector2, Vector3, Vector4, VectorKeyframeTrack, WEBGL_ATTRIBUTE_TYPE, WEBGL_COMPARE_FUNC, WEBGL_OP, WEBGL_PIXEL_FORMAT, WEBGL_PIXEL_TYPE, WEBGL_TEXTURE_FILTER, WEBGL_TEXTURE_TYPE, WEBGL_TEXTURE_WRAP, WEBGL_UNIFORM_TYPE, WebGLAttribute, WebGLCapabilities, WebGLCore, WebGLGeometry, WebGLProgram, WebGLPrograms, WebGLProperties, WebGLState, WebGLTexture, WebGLUniforms, cloneUniforms, generateUUID, isPowerOfTwo, nearestPowerOfTwo, nextPowerOfTwo };

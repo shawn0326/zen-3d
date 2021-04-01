@@ -157,30 +157,4 @@ Camera.prototype = Object.assign(Object.create(Object3D.prototype), /** @lends z
 
 });
 
-Object.defineProperties(Camera.prototype, {
-	gammaInput: {
-		get: function() {
-			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
-			return false;
-		},
-		set: function(value) {
-			console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
-		}
-	},
-	gammaOutput: {
-		get: function() {
-			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
-			return this.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
-		},
-		set: function(value) {
-			console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
-			if (value) {
-				this.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
-			} else {
-				this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
-			}
-		}
-	}
-});
-
 export { Camera };

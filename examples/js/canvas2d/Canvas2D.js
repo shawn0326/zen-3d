@@ -9,7 +9,7 @@ zen3d.Canvas2D = function(width, height, isScreenCanvas, screenMatchMode) {
 
 	var geometry = new zen3d.Geometry();
 	this.buffer = new zen3d.InterleavedBuffer(new Float32Array(), 5);
-	this.buffer.dynamic = true;
+	this.buffer.usage = zen3d.BUFFER_USAGE.DYNAMIC_DRAW;
 	geometry.addAttribute("a_Position", new zen3d.InterleavedBufferAttribute(this.buffer, 3, 0));
 	geometry.addAttribute("a_Uv", new zen3d.InterleavedBufferAttribute(this.buffer, 2, 3));
 	geometry.setIndex([]);

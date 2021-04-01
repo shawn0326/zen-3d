@@ -534,6 +534,24 @@
 		DRAW_BUFFER14: 0x8833,
 		DRAW_BUFFER15: 0x8834
 	};
+	/**
+	 * Enum for BUFFER_USAGE
+	 * @name zen3d.BUFFER_USAGE
+	 * @readonly
+	 * @enum {number}
+	 */
+
+	var BUFFER_USAGE = {
+		STREAM_DRAW: 35040,
+		STREAM_READ: 35041,
+		STREAM_COPY: 35042,
+		STATIC_DRAW: 35044,
+		STATIC_READ: 35045,
+		STATIC_COPY: 35046,
+		DYNAMIC_DRAW: 35048,
+		DYNAMIC_READ: 35049,
+		DYNAMIC_COPY: 35050
+	};
 
 	/**
 	 * JavaScript events for custom objects.
@@ -1020,9 +1038,6 @@
 				*/
 		clone: function clone() {
 			return new Vector3(this.x, this.y, this.z);
-		},
-		applyProjection: function applyProjection(m) {
-			console.error("zen3d.Vector3: .applyProjection has been removed. Use .applyMatrix4 instead.");
 		}
 	});
 
@@ -6710,6 +6725,7 @@
 	 * @param {Integer} size - the number of values of the array that should be associated with a particular vertex. For instance, if this attribute is storing a 3-component vector (such as a position, normal, or color), then itemSize should be 3.
 	 * @param {boolean} [normalized=false] - Indicates how the underlying data in the buffer maps to the values in the GLSL code. For instance, if array is an instance of UInt16Array, and normalized is true, the values 0 - +65535 in the array data will be mapped to 0.0f - +1.0f in the GLSL attribute. An Int16Array (signed) would map from -32767 - +32767 to -1.0f - +1.0f. If normalized is false, the values will be converted to floats which contain the exact value, i.e. 32767 becomes 32767.0f.
 	 */
+
 	function BufferAttribute(array, size, normalized) {
 		/**
 				* The array holding data stored in the buffer.
@@ -6737,16 +6753,13 @@
 
 		this.normalized = normalized === true;
 		/**
-				* Whether the buffer is dynamic or not.
-				* If false, the GPU is informed that contents of the buffer are likely to be used often and not change often.
-				* This corresponds to the gl.STATIC_DRAW flag.
-				* If true, the GPU is informed that contents of the buffer are likely to be used often and change often.
-				* This corresponds to the gl.DYNAMIC_DRAW flag.
-				* @type {boolean}
-				* @default false
-				*/
+				 * Defines the intended usage pattern of the data store for optimization purposes.
+				 * Corresponds to the usage parameter of WebGLRenderingContext.bufferData().
+				 * @type {zen3d.BUFFER_USAGE}
+				 * @default zen3d.BUFFER_USAGE.STATIC_DRAW
+				 */
 
-		this.dynamic = false;
+		this.usage = BUFFER_USAGE.STATIC_DRAW;
 		/**
 				* Object containing:
 				* offset: Default is 0. Position at whcih to start update.
@@ -6791,7 +6804,7 @@
 			this.size = source.size;
 			this.count = source.count;
 			this.normalized = source.normalized;
-			this.dynamic = source.dynamic;
+			this.usage = source.usage;
 			return this;
 		},
 
@@ -7466,18 +7479,6 @@
 				*/
 		isInstancedGeometry: true
 	});
-	Object.defineProperties(InstancedGeometry.prototype, {
-		maxInstancedCount: {
-			get: function get() {
-				console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
-				return this.instanceCount;
-			},
-			set: function set(value) {
-				console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
-				this.instanceCount = value;
-			}
-		}
-	});
 
 	/**
 	 * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
@@ -7487,6 +7488,7 @@
 	 * @param {TypedArray} array -- A typed array with a shared buffer. Stores the geometry data.
 	 * @param {Integer} stride -- The number of typed-array elements per vertex.
 	 */
+
 	function InterleavedBuffer(array, stride) {
 		/**
 				* A typed array with a shared buffer.
@@ -7507,11 +7509,13 @@
 
 		this.count = array !== undefined ? array.length / stride : 0;
 		/**
-				* @type {boolean}
-				* @default false
-				*/
+				 * Defines the intended usage pattern of the data store for optimization purposes.
+				 * Corresponds to the usage parameter of WebGLRenderingContext.bufferData().
+				 * @type {zen3d.BUFFER_USAGE}
+				 * @default zen3d.BUFFER_USAGE.STATIC_DRAW
+				 */
 
-		this.dynamic = false;
+		this.usage = BUFFER_USAGE.STATIC_DRAW;
 		/**
 				* Object containing offset and count.
 				* @type {Object}
@@ -9934,7 +9938,7 @@
 
 	function createBuffer(gl, data, attribute, bufferType) {
 		var array = attribute.array;
-		var usage = attribute.dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW;
+		var usage = attribute.usage;
 		var buffer = gl.createBuffer();
 		gl.bindBuffer(bufferType, buffer);
 		gl.bufferData(bufferType, array, usage);
@@ -9969,7 +9973,7 @@
 		var updateRange = attribute.updateRange;
 		gl.bindBuffer(bufferType, buffer);
 
-		if (attribute.dynamic === false) {
+		if (attribute.usage === BUFFER_USAGE.STATIC_DRAW) {
 			gl.bufferData(bufferType, array, gl.STATIC_DRAW);
 		} else if (updateRange.count === -1) {
 			// Not using update ranges
@@ -12617,32 +12621,6 @@
 			return this;
 		}
 	});
-	Object.defineProperties(Camera.prototype, {
-		gammaInput: {
-			get: function get() {
-				console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
-				return false;
-			},
-			set: function set(value) {
-				console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
-			}
-		},
-		gammaOutput: {
-			get: function get() {
-				console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
-				return this.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
-			},
-			set: function set(value) {
-				console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
-
-				if (value) {
-					this.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
-				} else {
-					this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
-				}
-			}
-		}
-	});
 
 	/**
 	 * Render Target is the wrapping class of gl.framebuffer.
@@ -14837,12 +14815,81 @@
 		}
 	});
 
+	Object.defineProperties(BufferAttribute.prototype, {
+		dynamic: {
+			get: function get() {
+				console.warn('zen3d.BufferAttribute: .dynamic has been deprecated. Use .usage instead.');
+				return this.usage === BUFFER_USAGE.DYNAMIC_DRAW;
+			},
+			set: function set(value) {
+				console.warn('zen3d.BufferAttribute: .dynamic has been deprecated. Use .usage instead.');
+				this.usage = value ? BUFFER_USAGE.DYNAMIC_DRAW : BUFFER_USAGE.STATIC_DRAW;
+			}
+		}
+	});
+	Object.defineProperties(InterleavedBuffer.prototype, {
+		dynamic: {
+			get: function get() {
+				console.warn('zen3d.InterleavedBuffer: .dynamic has been deprecated. Use .usage instead.');
+				return this.usage === BUFFER_USAGE.DYNAMIC_DRAW;
+			},
+			set: function set(value) {
+				console.warn('zen3d.InterleavedBuffer: .dynamic has been deprecated. Use .usage instead.');
+				this.usage = value ? BUFFER_USAGE.DYNAMIC_DRAW : BUFFER_USAGE.STATIC_DRAW;
+			}
+		}
+	});
+	Object.defineProperties(InstancedGeometry.prototype, {
+		maxInstancedCount: {
+			get: function get() {
+				console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+				return this.instanceCount;
+			},
+			set: function set(value) {
+				console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
+				this.instanceCount = value;
+			}
+		}
+	});
+
+	Vector3.prototype.applyProjection = function (m) {
+		console.error("zen3d.Vector3: .applyProjection has been removed. Use .applyMatrix4 instead.");
+	};
+
+	Object.defineProperties(Camera.prototype, {
+		gammaInput: {
+			get: function get() {
+				console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+				return false;
+			},
+			set: function set(value) {
+				console.warn("zen3d.Camera: .gammaInput has been removed. Use texture.encoding instead.");
+			}
+		},
+		gammaOutput: {
+			get: function get() {
+				console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+				return this.outputEncoding == TEXEL_ENCODING_TYPE.GAMMA;
+			},
+			set: function set(value) {
+				console.warn("zen3d.Camera: .gammaOutput has been removed. Use .outputEncoding or renderTarget.texture.encoding instead.");
+
+				if (value) {
+					this.outputEncoding = TEXEL_ENCODING_TYPE.GAMMA;
+				} else {
+					this.outputEncoding = TEXEL_ENCODING_TYPE.LINEAR;
+				}
+			}
+		}
+	});
+
 	exports.ATTACHMENT = ATTACHMENT;
 	exports.AmbientLight = AmbientLight;
 	exports.AnimationMixer = AnimationMixer;
 	exports.BLEND_EQUATION = BLEND_EQUATION;
 	exports.BLEND_FACTOR = BLEND_FACTOR;
 	exports.BLEND_TYPE = BLEND_TYPE;
+	exports.BUFFER_USAGE = BUFFER_USAGE;
 	exports.BasicMaterial = BasicMaterial;
 	exports.Bone = Bone;
 	exports.BooleanKeyframeTrack = BooleanKeyframeTrack;

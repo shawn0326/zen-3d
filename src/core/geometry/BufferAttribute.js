@@ -1,3 +1,5 @@
+import { BUFFER_USAGE } from "../const.js";
+
 /**
  * This class stores data for an attribute (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes ) associated with a Geometry, which allows for more efficient passing of data to the GPU.
  * Data is stored as vectors of any length (defined by itemSize).
@@ -35,15 +37,12 @@ function BufferAttribute(array, size, normalized) {
 	this.normalized = normalized === true;
 
 	/**
-     * Whether the buffer is dynamic or not.
-     * If false, the GPU is informed that contents of the buffer are likely to be used often and not change often.
-     * This corresponds to the gl.STATIC_DRAW flag.
-     * If true, the GPU is informed that contents of the buffer are likely to be used often and change often.
-     * This corresponds to the gl.DYNAMIC_DRAW flag.
-     * @type {boolean}
-     * @default false
-     */
-	this.dynamic = false;
+      * Defines the intended usage pattern of the data store for optimization purposes.
+      * Corresponds to the usage parameter of WebGLRenderingContext.bufferData().
+      * @type {zen3d.BUFFER_USAGE}
+      * @default zen3d.BUFFER_USAGE.STATIC_DRAW
+      */
+	this.usage = BUFFER_USAGE.STATIC_DRAW;
 
 	/**
      * Object containing:
@@ -84,7 +83,7 @@ Object.assign(BufferAttribute.prototype, /** @lends zen3d.BufferAttribute.protot
 		this.size = source.size;
 		this.count = source.count;
 		this.normalized = source.normalized;
-		this.dynamic = source.dynamic;
+		this.usage = source.usage;
 		return this;
 	},
 

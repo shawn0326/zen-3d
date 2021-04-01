@@ -1,6 +1,8 @@
+import { BUFFER_USAGE } from "../../const.js";
+
 function createBuffer(gl, data, attribute, bufferType) {
 	var array = attribute.array;
-	var usage = attribute.dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW;
+	var usage = attribute.usage;
 
 	var buffer = gl.createBuffer();
 
@@ -39,7 +41,7 @@ function updateBuffer(gl, capabilities, buffer, attribute, bufferType) {
 
 	gl.bindBuffer(bufferType, buffer);
 
-	if (attribute.dynamic === false) {
+	if (attribute.usage === BUFFER_USAGE.STATIC_DRAW) {
 		gl.bufferData(bufferType, array, gl.STATIC_DRAW);
 	} else if (updateRange.count === -1) {
 		// Not using update ranges

@@ -433,10 +433,6 @@ Object.assign(Vector3.prototype, /** @lends zen3d.Vector3.prototype */{
      */
 	clone: function() {
 		return new Vector3(this.x, this.y, this.z);
-	},
-
-	applyProjection: function(m) {
-		console.error("zen3d.Vector3: .applyProjection has been removed. Use .applyMatrix4 instead.");
 	}
 
 });

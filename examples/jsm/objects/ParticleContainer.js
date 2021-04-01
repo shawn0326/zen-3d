@@ -5,6 +5,7 @@
 
 import {
 	BLEND_TYPE,
+	BUFFER_USAGE,
 	Color3,
 	DRAW_MODE,
 	Geometry,
@@ -38,7 +39,7 @@ var ParticleContainer = function(options) {
 		vertices[i * 8 + 7] = 0.0; // lifespan
 	}
 	var buffer = new InterleavedBuffer(new Float32Array(vertices), 8);
-	buffer.dynamic = true;
+	buffer.usage = BUFFER_USAGE.DYNAMIC_DRAW;
 	var attribute;
 	attribute = new InterleavedBufferAttribute(buffer, 3, 0);
 	this.geometry.addAttribute("a_Position", attribute);

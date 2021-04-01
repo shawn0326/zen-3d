@@ -3,6 +3,7 @@
  */
 
 import {
+	BUFFER_USAGE,
 	Camera,
 	Geometry,
 	InterleavedBuffer,
@@ -20,7 +21,7 @@ var Canvas2D = function(width, height, isScreenCanvas, screenMatchMode) {
 
 	var geometry = new Geometry();
 	this.buffer = new InterleavedBuffer(new Float32Array(), 5);
-	this.buffer.dynamic = true;
+	this.buffer.usage = BUFFER_USAGE.DYNAMIC_DRAW;
 	geometry.addAttribute("a_Position", new InterleavedBufferAttribute(this.buffer, 3, 0));
 	geometry.addAttribute("a_Uv", new InterleavedBufferAttribute(this.buffer, 2, 3));
 	geometry.setIndex([]);

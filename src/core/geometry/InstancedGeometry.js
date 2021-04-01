@@ -29,17 +29,4 @@ InstancedGeometry.prototype = Object.assign(Object.create(Geometry.prototype), /
 
 });
 
-Object.defineProperties(InstancedGeometry.prototype, {
-	maxInstancedCount: {
-		get: function () {
-			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
-			return this.instanceCount;
-		},
-		set: function (value) {
-			console.warn('zen3d.InstancedGeometry: .maxInstancedCount has been renamed to .instanceCount.');
-			this.instanceCount = value;
-		}
-	}
-});
-
 export { InstancedGeometry };

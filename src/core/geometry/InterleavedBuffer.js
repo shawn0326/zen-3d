@@ -1,3 +1,5 @@
+import { BUFFER_USAGE } from "../const.js";
+
 /**
  * "Interleaved" means that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
  * An introduction into interleaved arrays can be found here: {@link https://blog.tojicode.com/2011/05/interleaved-array-basics.html Interleaved array basics}.
@@ -27,10 +29,12 @@ function InterleavedBuffer(array, stride) {
 	this.count = array !== undefined ? array.length / stride : 0;
 
 	/**
-     * @type {boolean}
-     * @default false
-     */
-	this.dynamic = false;
+      * Defines the intended usage pattern of the data store for optimization purposes.
+      * Corresponds to the usage parameter of WebGLRenderingContext.bufferData().
+      * @type {zen3d.BUFFER_USAGE}
+      * @default zen3d.BUFFER_USAGE.STATIC_DRAW
+      */
+	this.usage = BUFFER_USAGE.STATIC_DRAW;
 
 	/**
      * Object containing offset and count.

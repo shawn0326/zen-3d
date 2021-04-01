@@ -26,7 +26,7 @@ zen3d.ParticleContainer = function(options) {
 		vertices[i * 8 + 7] = 0.0; // lifespan
 	}
 	var buffer = new zen3d.InterleavedBuffer(new Float32Array(vertices), 8);
-	buffer.dynamic = true;
+	buffer.usage = zen3d.BUFFER_USAGE.DYNAMIC_DRAW;
 	var attribute;
 	attribute = new zen3d.InterleavedBufferAttribute(buffer, 3, 0);
 	this.geometry.addAttribute("a_Position", attribute);
