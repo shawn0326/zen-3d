@@ -11,6 +11,10 @@ zen-3d
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/shawn0326/zen-3d.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shawn0326/zen-3d/context:javascript)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/shawn0326/zen-3d.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shawn0326/zen-3d/alerts/)
 
+### Moved ###
+
+This project has moved and is now available at [t3d.js](https://github.com/UINOSOFT/t3d.js).
+
 ### JavaScript 3D library ###
 
 The aim of the project is to create an easy to use, lightweight, 3D/2D library. The library only provides WebGL renderers.
